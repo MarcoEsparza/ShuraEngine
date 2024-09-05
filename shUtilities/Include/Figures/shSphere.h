@@ -1,0 +1,19 @@
+/*************************************************************/
+/*
+*  @file    shSphere.h
+*  @author  MarcoEsparza <maeafinn14@gmail.com>
+*  @date    2024/09/04
+*  @brief
+*
+*
+*/
+/*************************************************************/
+
+#pragma once
+
+class shSphere
+{
+public:
+  shSphere();
+  ~shSphere();
+};

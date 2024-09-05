@@ -18,6 +18,41 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\Figures\shBoxAAB.h" />
+    <ClInclude Include="Include\Figures\shBoxOBB.h" />
+    <ClInclude Include="Include\Figures\shCapsule.h" />
+    <ClInclude Include="Include\Math\shMatrix4.h" />
+    <ClInclude Include="Include\Figures\shPlane.h" />
+    <ClInclude Include="Include\Math\shMath.h" />
+    <ClInclude Include="Include\Platform\shPlatformDefines.h" />
+    <ClInclude Include="Include\Math\shPlatformMath.h" />
+    <ClInclude Include="Include\Platform\shPlatformTypes.h" />
+    <ClInclude Include="Include\Prerequisites\shPrerequsitesUtilities.h" />
+    <ClInclude Include="Include\Math\shQuaternion.h" />
+    <ClInclude Include="Include\Figures\shRect.h" />
+    <ClInclude Include="Include\Figures\shSphere.h" />
+    <ClInclude Include="Include\Math\shVector2.h" />
+    <ClInclude Include="Include\Math\shVector2i.h" />
+    <ClInclude Include="Include\Math\shVector3.h" />
+    <ClInclude Include="Include\Math\shVector4.h" />
+    <ClInclude Include="Include\Prerequisites\shStdHeaders.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Figures\shBoxAAB.cpp" />
+    <ClCompile Include="Source\Figures\shBoxOBB.cpp" />
+    <ClCompile Include="Source\Figures\shCapsule.cpp" />
+    <ClCompile Include="Source\Figures\shPlane.cpp" />
+    <ClCompile Include="Source\Figures\shRect.cpp" />
+    <ClCompile Include="Source\Figures\shSphere.cpp" />
+    <ClCompile Include="Source\Math\shMatrix4.cpp" />
+    <ClCompile Include="Source\Math\shPlatformMath.cpp" />
+    <ClCompile Include="Source\Math\shQuaternion.cpp" />
+    <ClCompile Include="Source\Math\shVector2.cpp" />
+    <ClCompile Include="Source\Math\shVector2i.cpp" />
+    <ClCompile Include="Source\Math\shVector3.cpp" />
+    <ClCompile Include="Source\Math\shVector4.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

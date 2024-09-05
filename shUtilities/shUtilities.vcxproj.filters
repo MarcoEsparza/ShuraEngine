@@ -1,17 +1,75 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Figures">
+      <UniqueIdentifier>{b72ca73d-b458-4569-ac77-3b58c45d84f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Math">
+      <UniqueIdentifier>{4d2d36a9-ecd5-4125-a3d2-dc2169ac282d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Include">
+      <UniqueIdentifier>{90088993-259d-4246-859c-2158954317a1}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\Math\shMatrix4.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\shQuaternion.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\shVector2.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\shVector2i.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\shVector3.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\shVector4.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\shPlatformMath.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Figures\shBoxAAB.h">
+      <Filter>Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Figures\shBoxOBB.h">
+      <Filter>Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Figures\shCapsule.h">
+      <Filter>Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Figures\shSphere.h">
+      <Filter>Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Figures\shPlane.h">
+      <Filter>Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Figures\shRect.h">
+      <Filter>Figures</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Prerequisites\shPrerequsitesUtilities.h" />
+    <ClInclude Include="Include\Platform\shPlatformDefines.h" />
+    <ClInclude Include="Include\Platform\shPlatformTypes.h" />
+    <ClInclude Include="Include\Math\shMath.h" />
+    <ClInclude Include="Include\Prerequisites\shStdHeaders.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Math\shVector2i.cpp" />
+    <ClCompile Include="Source\Math\shVector2.cpp" />
+    <ClCompile Include="Source\Math\shVector3.cpp" />
+    <ClCompile Include="Source\Math\shVector4.cpp" />
+    <ClCompile Include="Source\Math\shQuaternion.cpp" />
+    <ClCompile Include="Source\Math\shMatrix4.cpp" />
+    <ClCompile Include="Source\Math\shPlatformMath.cpp" />
+    <ClCompile Include="Source\Figures\shBoxAAB.cpp" />
+    <ClCompile Include="Source\Figures\shBoxOBB.cpp" />
+    <ClCompile Include="Source\Figures\shCapsule.cpp" />
+    <ClCompile Include="Source\Figures\shPlane.cpp" />
+    <ClCompile Include="Source\Figures\shRect.cpp" />
+    <ClCompile Include="Source\Figures\shSphere.cpp" />
   </ItemGroup>
 </Project>
