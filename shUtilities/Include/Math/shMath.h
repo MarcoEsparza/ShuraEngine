@@ -2,11 +2,34 @@
 /*
 *  @file    shMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/04
-*  @brief   Include all the math headers
+*  @date    2024/09/06
+*  @brief   Math wrapper, to use the actual library needed for the system
 *
-*  Include all the math headers
+*  If it needs a different Math library depending on the OS, here it'd be defined
+* 
+*  @bug     No bug known
 */
 /*************************************************************/
 
 #pragma once
+
+/*************************************************************/
+/*
+*  Includes
+*/
+/*************************************************************/
+
+#include "Prerequisites/shPrerequsitesUtilities.h"
+#include "Math/shPlatformMath.h"
+
+namespace shEngineSDK {
+#if SH_PLATFORM == SH_PLATFORM_WIN32 || \
+    SH_PLATFORM == SH_PLATFORM_LINUX || \
+    SH_PLATFORM == SH_PLATFORM_OSX
+
+using Math = PlatformMath;
+
+#else
+using Math = PlatformMath;
+#endif
+}

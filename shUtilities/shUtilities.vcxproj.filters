@@ -56,6 +56,8 @@
     <ClInclude Include="Include\Platform\shPlatformTypes.h" />
     <ClInclude Include="Include\Math\shMath.h" />
     <ClInclude Include="Include\Prerequisites\shStdHeaders.h" />
+    <ClInclude Include="Include\Math\Radian.h" />
+    <ClInclude Include="Include\Math\Degree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Math\shVector2i.cpp" />

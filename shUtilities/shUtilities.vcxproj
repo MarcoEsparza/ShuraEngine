@@ -22,6 +22,8 @@
     <ClInclude Include="Include\Figures\shBoxAAB.h" />
     <ClInclude Include="Include\Figures\shBoxOBB.h" />
     <ClInclude Include="Include\Figures\shCapsule.h" />
+    <ClInclude Include="Include\Math\Degree.h" />
+    <ClInclude Include="Include\Math\Radian.h" />
     <ClInclude Include="Include\Math\shMatrix4.h" />
     <ClInclude Include="Include\Figures\shPlane.h" />
     <ClInclude Include="Include\Math\shMath.h" />

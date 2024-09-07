@@ -2,17 +2,19 @@
 /*
 *  @file    shPlatformDefines.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/04
-*  @brief   Include the most basic defines for platform
+*  @date    2024/09/06
+*  @brief   Basic definitions are meant to describe the target platform
 *
-*  Include the most basic defines for platform
+*  This definitions are meant to describe the target platform
+* 
+*  @bug     No bug known
 */
 /*************************************************************/
 
 #pragma once
 /*************************************************************/
 /*
-*  Initial platform/compiler-related stuf to set
+*  Initial platform/compiler-related stuf to set.
 */
 /*************************************************************/
 
@@ -46,7 +48,7 @@
 
 /*************************************************************/
 /*
-*
+*  Compiler type and version
 */
 /*************************************************************/
 
@@ -190,7 +192,7 @@
 */
 /*************************************************************/
 
-#if SH_PLATFORM == SH_PLATFORMWIN32
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 # if SH_COMPILER == SH_COMPILER_MSVC
 #  if defined(SH_STATIC_LIB)
 #   define SH_UTILITY_EXPORT
