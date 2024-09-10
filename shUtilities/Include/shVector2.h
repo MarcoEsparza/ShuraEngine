@@ -1,0 +1,210 @@
+/*************************************************************/
+/*
+*  @file    shVector2.h
+*  @author  MarcoEsparza <maeafinn14@gmail.com>
+*  @date    2024/09/09
+*  @brief   Vector2 with float
+*
+*  Vector2 with float
+* 
+*  @bug     No bug known
+*/
+/*************************************************************/
+#pragma once
+
+/*************************************************************/
+/*
+*  Includes
+*/
+/*************************************************************/
+#include "shPrerequsitesUtilities.h"
+
+namespace shEngineSDK {
+ /*
+ *  Vector2 with float
+ * 
+ *  Sample usage:
+ *  Vector2 myVector2;
+ *  Vector2 myVector2(1.0f, 1.0f);
+ *  Vector2* ptrVector2 = new Vector2(); The constructor may take arguments.
+ */
+class SH_UTILITY_EXPORT  Vector2
+{
+  public:
+  /*
+  *  Default constructor.
+  */
+  Vector2() = default;
+
+  /*
+  *  Constructor to initialize values to the given numbers.
+  * 
+  *  @param X value, Y value.
+  */
+  Vector2(float _x, float _y);
+
+  /*
+  *  Copy constructor.
+  * 
+  *  @param Vector2.
+  */
+  Vector2(const Vector2& _other);
+
+  /*
+  *  Default destructor.
+  */
+  ~Vector2() = default;
+
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
+
+  /*
+  *  Calculates the dot product of two given Vector2s.
+  * 
+  *  @param The Vector2 to calculate with this Vector2.
+  * 
+  *  @return float The result of the dot product.
+  */
+  float
+  dot(const Vector2& other) const;
+
+  /*
+  *  Calculates the magnitude of the Vector2.
+  * 
+  *  @param 
+  * 
+  *  @return float The magnitude of this Vector2.
+  */
+  float
+  mag() const;
+
+  /*
+  *  Normalize the Vector2.
+  *
+  *  @param
+  *
+  *  @return void
+  */
+  void
+  normalize();
+
+  /*
+  *  Calculates the cross product of the Vector2.
+  *
+  *  @param The Vector2 to calculate with this Vector2.
+  *
+  *  @return Vector2 The ortogonal Vector2 between this and the other Vector2.
+  */
+  float
+  scalarProjection(const Vector2& other) const;
+
+  /*
+  *  Calculates the of a Vector2 to another Vector2.
+  *
+  *  @param The first Vector2, the second Vector2 to calculate over the first
+  *
+  *  @return Vector2 The ortogonal Vector2 between this and the other Vector2.
+  */
+  Vector2
+  vectorProjection(const Vector2& other) const;
+
+  /*
+  *  Calculates the linear interpolate between two Vector2.
+  *
+  *  @param Min value, max value, time.
+  *
+  *  @return Vector2 The result of the linear interpolation.
+  */
+  Vector2
+  lerp(const Vector2& vec, const Vector2& other, const float time) const;
+
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+public:
+  /*
+  * Vector2 X value.
+  */
+  float x;
+  /*
+  * Vector2 Y value.
+  */
+  float y;
+
+  /*************************************************************/
+  /*
+  *  Operator overload
+  */
+  /*************************************************************/
+public:
+  /*
+  *  Operator to sum a Vector2 values and other Vector2 values
+  *  
+  *  @param lValue-Vector2, rValue-Vector2
+  * 
+  *  @return Vector2
+  */
+  FORCEINLINE Vector2
+  operator+(const Vector2& other) const
+  {
+    return Vector2(x + other.x, y + other.y);
+  }
+
+  /*
+  *  Operator to substract a Vector2 values and other Vector2 values
+  *
+  *  @param lValue-Vector2, rValue-Vector2
+  *
+  *  @return Vector2
+  */
+  FORCEINLINE Vector2
+  operator-(const Vector2& other) const
+  {
+    return Vector2(x - other.x, y - other.y);
+  }
+
+  /*
+  *  Operator to multiply the values of a Vector2 with a float
+  *
+  *  @param lValue-Vector2, rValue-float
+  *
+  *  @return Vector2 The result of the multiplication
+  */
+  FORCEINLINE Vector2
+  operator*(const float& delta) const
+  {
+    return Vector2(x * delta, y * delta);
+  }
+
+  /*
+  *  Operator to sum a Vector2 values and other Vector2 values and store the
+  *  result in the first Vector2
+  *
+  *  @param lValue-Vector2, rValue-Vector2
+  */
+  FORCEINLINE void
+  operator+=(const Vector2& other)
+  {
+    x += other.x;
+    y += other.y;
+  }
+
+  /*
+  *  Operator to substract a Vector2 values and other Vector2 values and store
+  *  the result in the first Vector2
+  *
+  *  @param lValue-Vector2, rValue-Vector2
+  */
+  FORCEINLINE void
+  operator-=(const Vector2& other)
+  {
+    x -= other.x;
+    y -= other.y;
+  }
+};
+}
