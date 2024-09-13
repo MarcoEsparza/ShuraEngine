@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -20,13 +20,6 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector3::Vector3(float _x, float _y, float _z)
-{
-  x = _x;
-  y = _y;
-  z = _z;
-}
-
 Vector3::Vector3(const Vector3& _other)
 {
   *this = _other;
@@ -40,28 +33,28 @@ Vector3::Vector3(const Vector3& _other)
 
 
 float
-Vector3::dot(const Vector3& vec, const Vector3& other) const
+Vector3::dot(const Vector3& _other) const
 {
-  return ((vec.x * other.x) + (vec.y * other.y) + (vec.z * other.z));
+  return ((x * _other.x) + (y * _other.y) + (z * _other.z));
 }
 
 Vector3
-Vector3::cross(const Vector3& vec, const Vector3& other) const
+Vector3::cross(const Vector3& _other) const
 {
-  return Vector3(y * other.z - z * other.y,
-                 z * other.x - x * other.z,
-                 x * other.y - y * other.x);
+  return Vector3(y * _other.z - z * _other.y,
+                 z * _other.x - x * _other.z,
+                 x * _other.y - y * _other.x);
 }
 
 float
-Vector3::fastReverseSqrt(const float& num) const
+Vector3::fastReverseSqrt(const float& _num) const
 {
   long i;
   float x2, _y;
   const float threehalfs = 1.5F;
 
-  x2 = num * 0.5F;
-  _y = num;
+  x2 = _num * 0.5F;
+  _y = _num;
   i = *(long*)&_y;
   i = 0x5f3759df - (i >> 1);
   _y = *(float*)&i;
@@ -81,11 +74,11 @@ Vector3::mag() const
 void
 Vector3::normalize()
 {
-  float magnitude = mag();
-  if (magnitude != 0.0f) {
-    x /= magnitude;
-    y /= magnitude;
-    z /= magnitude;
+  float invMag = 1 / mag();
+  if (invMag != 0.0f) {
+    x *= invMag;
+    y *= invMag;
+    z *= invMag;
   }
   else {
     x = 0.0f;
@@ -95,10 +88,10 @@ Vector3::normalize()
 }
 
 Vector3
-Vector3::lerp(const Vector3& vecA,
-              const Vector3& vecB,
-              float time) const
+Vector3::lerp(const Vector3& _vecA,
+              const Vector3& _vecB,
+              float _time) const
 {
-  return vecA + (vecB - vecA) * time;
+  return _vecA + (_vecB - _vecA) * _time;
 }
 }
