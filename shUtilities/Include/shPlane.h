@@ -15,7 +15,7 @@
 *  Includes
 */
 /*************************************************************/
-#include "shPrerequsitesUtilities.h"
+#include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
 /*

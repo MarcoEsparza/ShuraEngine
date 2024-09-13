@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformDefines.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief   Basic definitions are meant to describe the target platform
 *
 *  This definitions are meant to describe the target platform
@@ -146,7 +146,7 @@
 #if defined (__x86_x64__) || defined(_M_X64)
 # define SH_ARCH_TYPE SH_ARQUITECTURE_X86_64
 #else
-# defined SH_ARCH_TYPE SH_ARQUITECTURE_X86_32
+# define SH_ARCH_TYPE SH_ARQUITECTURE_X86_32
 #endif
 
 /*************************************************************/

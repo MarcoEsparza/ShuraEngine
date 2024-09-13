@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -22,9 +22,9 @@
 namespace shEngineSDK {
 Vector3::Vector3(float _x, float _y, float _z)
 {
-  x = 0;
-  y = 0;
-  z = 0;
+  x = _x;
+  y = _y;
+  z = _z;
 }
 
 Vector3::Vector3(const Vector3& _other)
