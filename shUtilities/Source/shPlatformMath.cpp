@@ -4,9 +4,9 @@
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2024/09/12
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
-*           and OSX
+*           and OSX.
 *
-*
+*  Math class wrapper, suing the STD. compatible with Windows, Linux and OSX.
 *
 * @bug      No bug known
 */
@@ -25,6 +25,7 @@ namespace shEngineSDK {
  *  Static variables
  */
  /*************************************************************/
+
 const float PlatformMath::PI = std::acosf(-1.0f);
 
 const float PlatformMath::RAD2DEG = 180.0f / PI;

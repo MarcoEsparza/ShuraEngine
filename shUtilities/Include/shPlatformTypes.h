@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief   Defines basic platform types
 *
 *  Define the basic platform type variable. For porting, this might
@@ -42,6 +42,7 @@ using std::int64_t;
 *  Basic unsigned types
 */
 /*************************************************************/
+
 using uint8 = uint8_t;
 using uint16 = uint16_t;
 using uint32 = uint32_t;
@@ -52,6 +53,7 @@ using uint64 = uint64_t;
 *  Basic signed types
 */
 /*************************************************************/
+
 using int8 = int8_t;
 using int16 = int16_t;
 using int32 = int32_t;
