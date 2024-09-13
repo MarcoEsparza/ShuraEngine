@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -17,7 +17,7 @@
 *  Includes
 */
 /*************************************************************/
-#include "shPrerequsitesUtilities.h"
+#include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
 /*

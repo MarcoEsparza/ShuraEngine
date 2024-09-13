@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -17,7 +17,7 @@
 *  Includes
 */
 /*************************************************************/
-#include "shPrerequsitesUtilities.h"
+#include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
  /*
@@ -157,7 +157,7 @@ class SH_UTILITY_EXPORT Vector2i
   *
   *  @param lValue-Vector2i, rValue-Vector2i
   */
-  Vector2i
+  FORCEINLINE void
   operator+=(const Vector2i& other)
   {
     x += other.x;
@@ -170,7 +170,7 @@ class SH_UTILITY_EXPORT Vector2i
   *
   *  @param lValue-Vector2i, rValue-Vector2i
   */
-  FORCEINLINE Vector2i
+  FORCEINLINE void
   operator-=(const Vector2i& other)
   {
     x -= other.x;

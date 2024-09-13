@@ -45,7 +45,7 @@
     <ClInclude Include="Include\shSphere.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
-    <ClInclude Include="Include\shPrerequsitesUtilities.h">
+    <ClInclude Include="Include\shPrerequisitesUtilities.h">
       <Filter>Include\Prerequisites</Filter>
     </ClInclude>
     <ClInclude Include="Include\shStdHeaders.h">
