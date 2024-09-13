@@ -74,7 +74,7 @@ Vector2i::vectorProjection(const Vector2i& _other) const
 Vector2i
 Vector2i::lerp(const Vector2i& _vec,
                const Vector2i& _other,
-               const int32 _time) const
+               const int32& _time) const
 {
   return (_vec + (_other + _vec) * _time);
 }

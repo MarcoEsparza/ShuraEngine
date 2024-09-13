@@ -90,7 +90,7 @@ Vector3::normalize()
 Vector3
 Vector3::lerp(const Vector3& _vecA,
               const Vector3& _vecB,
-              float _time) const
+              const float& _time) const
 {
   return _vecA + (_vecB - _vecA) * _time;
 }

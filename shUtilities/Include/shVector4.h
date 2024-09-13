@@ -2,10 +2,10 @@
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
-*  @brief   Vector4
+*  @date    2024/09/13
+*  @brief   Vector4 with float.
 *
-*  float Vector4
+*  Vector4 with float.
 * 
 *  @bug     No bug known
 */
@@ -30,7 +30,7 @@ namespace shEngineSDK {
 */
 class SH_UTILITY_EXPORT Vector4
 {
-  public:
+ public:
   /*
   *  Default constructor: initialize Vector4 values to 0.
   */
@@ -39,9 +39,16 @@ class SH_UTILITY_EXPORT Vector4
   /*
   *  Constructor to initialize values to the given numbers.
   *
-  *  @param X value, Y value, Z value, W value
+  *  @param float _x: X value.
+  * 
+  *  @param float _y: Y value.
+  * 
+  *  @param float _z: Z value.
+  * 
+  *  @param float _w: W value.
   */
-  Vector4(float _x, float _y, float _z, float _w);
+  Vector4(float _x, float _y, float _z, float _w) :
+          x(_x), y(_y), z(_z), w(_w) {}
 
   /*
   *  Copy constructor
@@ -60,6 +67,16 @@ class SH_UTILITY_EXPORT Vector4
   *  Functions
   */
   /*************************************************************/
+
+  /*
+  *  Calculates the dot product of two given Vector4s.
+  *
+  *  @param Vector4 _other: To calculate with this Vector4.
+  * 
+  *  @return float The result of the dot product.
+  */
+  float
+  dot(const Vector4& _other) const;
 
   /*
   *  Calculates the magnitude of the Vector4.
@@ -84,19 +101,23 @@ class SH_UTILITY_EXPORT Vector4
   /*
   *  Linear interpolation between two given Vector4.
   *
-  *  @param Min value, max value, time.
+  *  @param Vector4 _vecA: Min value.
+  * 
+  *  @param Vector4 _vecB: Max value.
+  * 
+  *  @param float _time: Time.
   *
   *  @return Vector4 Interpolated Vector4.
   */
   Vector4
-  lerp(const Vector4& vecA, const Vector4& vecB, float time) const;
+  lerp(const Vector4& _vecA, const Vector4& _vecB, const float& _time) const;
 
   /*************************************************************/
   /*
   *  Variables
   */
   /*************************************************************/
-  public:
+ public:
   /*
   * Vector4 X value.
   */
@@ -119,83 +140,120 @@ class SH_UTILITY_EXPORT Vector4
   *  Operator overload
   */
   /*************************************************************/
-  public:
+ public:
   /*
-  *  Operator to sum a Vector4 values and other Vector4 values
+  *  Operator to sum a Vector4 values and other Vector4 values.
   *
   *  @param lValue-Vector4, rValue-Vector4
   *
   *  @return Vector4
   */
   FORCEINLINE Vector4
-  operator+(const Vector4& other) const
-  {
-    return Vector4(x + other.x,
-                   y + other.y,
-                   z + other.z,
-                   w + other.w);
-  }
+  operator+(const Vector4& other) const;
 
   /*
-  *  Operator to substract a Vector4 values and other Vector4 values
+  *  Operator to substract a Vector4 values and other Vector4 values.
   *
-  *  @param lValue-Vector4, rValue-Vector4
+  *  @param lValue-Vector4.
+  * 
+  *  @param rValue-Vector4.
   *
-  *  @return Vector4
+  *  @return Vector4.
   */
   FORCEINLINE Vector4
-  operator-(const Vector4& other) const
-  {
-    return Vector4(x - other.x,
-                   y - other.y,
-                   z - other.z,
-                   w - other.w);
-  }
+  operator-(const Vector4& other) const;
 
   /*
-  *  Operator to multiply the values of a Vector4 with a float
+  *  Operator to multiply the values of a Vector4 with a float.
   *
-  *  @param lValue-Vector4, rValue-float
+  *  @param lValue-Vector4.
+  * 
+  *  @param rValue-float.
   *
-  *  @return Vector4 The result of the multiplication
+  *  @return Vector4 The result of the multiplication.
   */
   FORCEINLINE Vector4
-  operator*(const float& delta) const
-  {
-    return Vector4(x + delta,
-                   y + delta,
-                   z + delta,
-                   w + delta);
-  }
+  operator*(const float& delta) const;
 
   /*
   *  Operator to sum a Vector4 values and other Vector4 values and store the
-  *  result in the first Vector4
+  *  result in the first Vector4.
   *
-  *  @param lValue-Vector4, rValue-Vector4
+  *  @param lValue-Vector4.
+  * 
+  *  @param rValue-Vector4.
+  * 
+  *  @return Vector4 This.
   */
-  FORCEINLINE void
-  operator+=(const Vector4& other)
-  {
-    x += other.x;
-    y += other.y;
-    z += other.z;
-    w += other.w;
-  }
+  FORCEINLINE Vector4
+  operator+=(const Vector4& other);
 
   /*
-  *  Operator to substract a Vector4 values and other Vector4 values and store
-  *  the result in the first Vector4
+  *  Operator to substract a Vector4 values and other Vector4 values and
+  *  store the result in the first Vector4.
   *
-  *  @param lValue-Vector4, rValue-Vector4
+  *  @param lValue-Vector4.
+  * 
+  *  @param rValue-Vector4.
+  * 
+  *  @return Vector4 This.
   */
-  FORCEINLINE void
-  operator-=(const Vector4& other)
-  {
-    x -= other.x;
-    y -= other.y;
-    z -= other.z;
-    w -= other.w;
-  }
+  FORCEINLINE Vector4
+  operator-=(const Vector4& other);
 };
+
+/*************************************************************/
+/*
+*  Implementations
+*/
+/*************************************************************/
+
+FORCEINLINE Vector4
+Vector4::operator+(const Vector4& other) const
+{
+  return Vector4(x + other.x,
+    y + other.y,
+    z + other.z,
+    w + other.w);
+}
+
+FORCEINLINE Vector4
+Vector4::operator-(const Vector4& other) const
+{
+  return Vector4(x - other.x,
+    y - other.y,
+    z - other.z,
+    w - other.w);
+}
+
+FORCEINLINE Vector4
+Vector4::operator*(const float& delta) const
+{
+  return Vector4(x + delta,
+    y + delta,
+    z + delta,
+    w + delta);
+}
+
+FORCEINLINE Vector4
+Vector4::operator+=(const Vector4& other)
+{
+  x += other.x;
+  y += other.y;
+  z += other.z;
+  w += other.w;
+
+  return *this;
+}
+
+FORCEINLINE Vector4
+Vector4::operator-=(const Vector4& other)
+{
+  x -= other.x;
+  y -= other.y;
+  z -= other.z;
+  w -= other.w;
+
+  return *this;
+}
 }
