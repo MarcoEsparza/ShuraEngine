@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/13
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -20,12 +20,6 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector2::Vector2(float _x, float _y)
-{
-  x = _x;
-  y = _y;
-}
-
 Vector2::Vector2(const Vector2& _other)
 {
   *this = _other;
@@ -39,9 +33,9 @@ Vector2::Vector2(const Vector2& _other)
 
 
 float
-Vector2::dot(const Vector2& other) const
+Vector2::dot(const Vector2& _other) const
 {
-  return (x * other.x + y * other.y);
+  return (x * _other.x + y * _other.y);
 }
 
 float
@@ -53,10 +47,10 @@ Vector2::mag() const
 void
 Vector2::normalize()
 {
-  float magnitude = mag();
-  if (magnitude != 0.0f) {
-    x /= magnitude;
-    y /= magnitude;
+  float invMag = 1/mag();
+  if (invMag != 0.0f) {
+    x *= invMag;
+    y *= invMag;
   }
   else {
     x = 0.0f;
@@ -65,23 +59,23 @@ Vector2::normalize()
 }
 
 float
-Vector2::scalarProjection(const Vector2& other) const
+Vector2::scalarProjection(const Vector2& _other) const
 {
-  return dot(other) / other.mag();
+  return dot(_other) / _other.mag();
 }
 
 Vector2
-Vector2::vectorProjection(const Vector2& other) const
+Vector2::vectorProjection(const Vector2& _other) const
 {
-  float scalar = dot(other) / (other.mag() * other.mag());
-  return Vector2(other.x * scalar, other.y * scalar);
+  float scalar = dot(_other) / (_other.mag() * _other.mag());
+  return Vector2(_other.x * scalar, _other.y * scalar);
 }
 
 Vector2
-Vector2::lerp(const Vector2& vecA,
-              const Vector2& vecB,
-              const float time) const
+Vector2::lerp(const Vector2& _vecA,
+              const Vector2& _vecB,
+              const float& _time) const
 {
-  return (vecA + (vecB + vecA) * time);
+  return (_vecA + (_vecB + _vecA) * _time);
 }
 }
