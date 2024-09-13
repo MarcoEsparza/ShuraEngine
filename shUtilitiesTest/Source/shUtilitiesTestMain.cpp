@@ -109,21 +109,38 @@ TEST_CASE("Vectors and Quaternion") {
   Vector4 vec4f(1.0f, 7.7f, 12.6f, 2.5f);
   Quaternion quat(9.0f, 3.4f, 1.2f, 10.1f);
 
+  // Vector2i
   REQUIRE(vec2i.x == 5);
   REQUIRE(vec2i.y == 8);
+  REQUIRE(vec2i.dot(Vector2i(2, 3)) == (34));
+  REQUIRE(vec2i.mag() == (9.4339811321f));
+  Vector2i nVec2i = vec2i.lerp(vec2i, Vector2i(6, 10), 1);
+  REQUIRE(nVec2i.x == 16);
+  REQUIRE(nVec2i.y == 26);
+  vec2i.normalize();
+  REQUIRE(vec2i.x == 0);
+  REQUIRE(vec2i.y == 0);
+  REQUIRE(nVec2i.scalarProjection(Vector2i(6, 10)) == (30.52674816f));
+  Vector2i otherVec2i = nVec2i.vectorProjection(Vector2i(6, 10));
+  REQUIRE(otherVec2i.x == 15);
+  REQUIRE(otherVec2i.y == 26);
 
+  // Vector2
   REQUIRE(vec2f.x == 2.0f);
   REQUIRE(vec2f.y == 3.0f);
 
+  // Vector3
   REQUIRE(vec3f.x == 15.0f);
   REQUIRE(vec3f.y == 8.0f);
   REQUIRE(vec3f.z == 9.0f);
 
+  // Vector4
   REQUIRE(vec4f.x == 1.0f);
   REQUIRE(vec4f.y == 7.7f);
   REQUIRE(vec4f.z == 12.6f);
   REQUIRE(vec4f.w == 2.5f);
 
+  // Quaternion
   REQUIRE(quat.x == 9.0f);
   REQUIRE(quat.y == 3.4f);
   REQUIRE(quat.z == 1.2f);

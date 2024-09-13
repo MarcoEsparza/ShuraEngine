@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/13
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -38,23 +38,50 @@ Vector2i::Vector2i(const Vector2i& _other)
 /*************************************************************/
 
 
-float
-Vector2i::dot(const Vector2i& vec, const Vector2i& other) const
+int32
+Vector2i::dot(const Vector2i& _other) const
 {
-  return (vec.x * other.x + vec.y * other.y);
+  return (x * _other.x + y * _other.y);
 }
 
 float
 Vector2i::mag() const
 {
-  return Math::sqrtf(x * x + y * y);
+  return Math::sqrtf(static_cast<float>(x * x + y * y));
+}
+
+void
+Vector2i::normalize()
+{
+  float magnitude = mag();
+  if (magnitude != 0.0f) {
+    x = static_cast<int32>(x / magnitude);
+    y = static_cast<int32>(y / magnitude);
+  }
+  else {
+    x = 0;
+    y = 0;
+  }
+}
+
+float
+Vector2i::scalarProjection(const Vector2i& _other) const
+{
+  return dot(_other) / _other.mag();
 }
 
 Vector2i
-Vector2i::lerp(const Vector2i& vec,
-               const Vector2i& other,
-               const float time) const
+Vector2i::vectorProjection(const Vector2i& _other) const
 {
-  return (vec + (other + vec) * time);
+  float scalar = dot(_other) / (_other.mag() * _other.mag());
+  return Vector2i(_other.x * scalar, _other.y * scalar);
+}
+
+Vector2i
+Vector2i::lerp(const Vector2i& _vec,
+               const Vector2i& _other,
+               const int32 _time) const
+{
+  return (_vec + (_other + _vec) * _time);
 }
 }

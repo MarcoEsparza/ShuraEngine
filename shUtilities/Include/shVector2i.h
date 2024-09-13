@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -25,8 +25,8 @@ namespace shEngineSDK {
  * 
  *  Sample usage:
  *  Vector2i myVector2i;
- *   Vector2i myVector2i(1.0f, 1.0f);
- *   Vector2i* ptrVector2i = new Vector2i(); The constructor may take arguments.
+ *  Vector2i myVector2i(1.0f, 1.0f);
+ *  Vector2i* ptrVector2i = new Vector2i(); The constructor may take arguments.
  */
 class SH_UTILITY_EXPORT Vector2i
 {
@@ -39,16 +39,18 @@ class SH_UTILITY_EXPORT Vector2i
   /*
   *  Constructor to initialize values to the given numbers.
   *
-  *  @param X value, Y value.
+  *  @param _x: X value.
+  *
+  *  @param _y: Y value.
   */
   Vector2i(int32 _x, int32 _y);
 
   /*
   *  Copy constructor
   *
-  *  @param Vector2i
+  *  @param _other: Another Vector2i
   */
-  Vector2i(const Vector2i& _other);
+  explicit Vector2i(const Vector2i& _other);
 
   /*
   *  Default destructor.
@@ -64,32 +66,68 @@ class SH_UTILITY_EXPORT Vector2i
   /*
   *  Calculates the dot product of two given Vector2is.
   *
-  *  @param The Vector2i to calculate with this Vector2i.
+  *  @param Vector2i _other: To calculate with this Vector2i.
   *
-  *  @return float The result of the dot product.
+  *  @return int32 The result of the dot product.
   */
-  float
-  dot(const Vector2i& vec, const Vector2i& other) const;
+  int32
+  dot(const Vector2i& _other) const;
 
   /*
   *  Calculates the magnitude of the Vector2i.
   *
   *  @param
   *
-  *  @return float The magnitude of this Vector2i.
+  *  @return int32 The magnitude of this Vector2i.
   */
   float
   mag() const;
 
   /*
+  *  Calculates the magnitude of the Vector2i.
+  *
+  *  @param
+  *
+  *  @return int32 The magnitude of this Vector2i.
+  */
+  void
+  normalize();
+
+  /*
+  *  Calculates the cross product of the Vector2i.
+  *
+  *  @param Vector2i _other: To calculate with this Vector2i.
+  *
+  *  @return Vector2i The ortogonal Vector2i between this and the other
+  *          Vector2i.
+  */
+  float
+  scalarProjection(const Vector2i& _other) const;
+
+  /*
+  *  Calculates the of a Vector2i to another Vector2i.
+  *
+  *  @param Vector2i _other: To calculate over this.
+  *
+  *  @return Vector2i The ortogonal Vector2i between this and the other
+  *          Vector2i.
+  */
+  Vector2i
+  vectorProjection(const Vector2i& _other) const;
+
+  /*
   *  Calculates the linear interpolate between two Vector2i.
   *
-  *  @param Min value, max value, time.
+  *  @param Vector2i _vec: Min value.
+  * 
+  *  @param Vector2i _vec: Max value.
+  * 
+  *  @param int32 _time: Time.
   *
   *  @return Vector2i The result of the linear interpolation.
   */
   Vector2i
-  lerp(const Vector2i& vec, const Vector2i& other, const float time) const;
+  lerp(const Vector2i& _vec, const Vector2i& _other, const int32 _time) const;
 
   /*************************************************************/
   /*
@@ -115,66 +153,76 @@ class SH_UTILITY_EXPORT Vector2i
   /*
   *  Operator to sum a Vector2i values and other Vector2i values
   *
-  *  @param lValue-Vector2i, rValue-Vector2i
+  *  @param lValue-Vector2i
+  *
+  *  @param rValue-Vector2i
   *
   *  @return Vector2i
   */
   FORCEINLINE Vector2i
-  operator+(const Vector2i& other) const
+  operator+(const Vector2i& _other) const
   {
-    return Vector2i(x + other.x, y + other.y);
+    return Vector2i(x + _other.x, y + _other.y);
   }
 
   /*
   *  Operator to substract a Vector2i values and other Vector2i values
   *
-  *  @param lValue-Vector2i, rValue-Vector2i
+  *  @param lValue-Vector2i
+  * 
+  *  @param rValue-Vector2i
   *
   *  @return Vector2i
   */
   FORCEINLINE Vector2i
-  operator-(const Vector2i& other) const
+  operator-(const Vector2i& _other) const
   {
-    return Vector2i(x - other.x, y - other.y);
+    return Vector2i(x - _other.x, y - _other.y);
   }
 
   /*
   *  Operator to multiply the values of a Vector2 with a int32
   *
-  *  @param lValue-Vectori2, rValue-int32
+  *  @param lValue-Vectori2
+  * 
+  *  @param rValue-int32
   *
   *  @return Vector2i The result of the multiplication
   */
   FORCEINLINE Vector2i
-  operator*(const int32& delta) const
+  operator*(const int32& _delta) const
   {
-    return Vector2i(x * delta, y * delta);
+    return Vector2i(x * _delta, y * _delta);
   }
 
   /*
   *  Operator to sum a Vector2i values and other Vector2i values and store the
   *  result in the first Vector2i
   *
-  *  @param lValue-Vector2i, rValue-Vector2i
+  *  @param lValue-Vector2i
+  * 
+  *  @param rValue-Vector2i
   */
   FORCEINLINE void
-  operator+=(const Vector2i& other)
+  operator+=(const Vector2i& _other)
   {
-    x += other.x;
-    y += other.y;
+    x += _other.x;
+    y += _other.y;
   }
 
   /*
   *  Operator to substract a Vector2i values and other Vector2i values and store
   *  the result in the first Vector2i
   *
-  *  @param lValue-Vector2i, rValue-Vector2i
+  *  @param lValue-Vector2i
+  * 
+  *  @param rValue-Vector2i
   */
   FORCEINLINE void
-  operator-=(const Vector2i& other)
+  operator-=(const Vector2i& _other)
   {
-    x -= other.x;
-    y -= other.y;
+    x -= _other.x;
+    y -= _other.y;
   }
 };
 }
