@@ -30,7 +30,7 @@ namespace shEngineSDK {
  */
 class SH_UTILITY_EXPORT Vector2i
 {
-  public:
+ public:
   /*
   *  Default constructor.
   */
@@ -43,14 +43,14 @@ class SH_UTILITY_EXPORT Vector2i
   *
   *  @param _y: Y value.
   */
-  Vector2i(int32 _x, int32 _y);
+  Vector2i(int32 _x, int32 _y) : x(_x), y(_y) {}
 
   /*
   *  Copy constructor
   *
   *  @param _other: Another Vector2i
   */
-  explicit Vector2i(const Vector2i& _other);
+  Vector2i(const Vector2i& _other);
 
   /*
   *  Default destructor.
@@ -134,7 +134,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  Variables
   */
   /*************************************************************/
-  public:
+ public:
   /*
   * Vector2i X value.
   */
@@ -149,7 +149,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  Operator overload
   */
   /*************************************************************/
-  public:
+ public:
   /*
   *  Operator to sum a Vector2i values and other Vector2i values
   *
@@ -160,10 +160,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i
   */
   FORCEINLINE Vector2i
-  operator+(const Vector2i& _other) const
-  {
-    return Vector2i(x + _other.x, y + _other.y);
-  }
+  operator+(const Vector2i& _other) const;
 
   /*
   *  Operator to substract a Vector2i values and other Vector2i values
@@ -175,10 +172,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i
   */
   FORCEINLINE Vector2i
-  operator-(const Vector2i& _other) const
-  {
-    return Vector2i(x - _other.x, y - _other.y);
-  }
+  operator-(const Vector2i& _other) const;
 
   /*
   *  Operator to multiply the values of a Vector2 with a int32
@@ -190,10 +184,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i The result of the multiplication
   */
   FORCEINLINE Vector2i
-  operator*(const int32& _delta) const
-  {
-    return Vector2i(x * _delta, y * _delta);
-  }
+  operator*(const int32& _delta) const;
 
   /*
   *  Operator to sum a Vector2i values and other Vector2i values and store the
@@ -202,13 +193,11 @@ class SH_UTILITY_EXPORT Vector2i
   *  @param lValue-Vector2i
   * 
   *  @param rValue-Vector2i
+  * 
+  *  @return Vector2i This.
   */
-  FORCEINLINE void
-  operator+=(const Vector2i& _other)
-  {
-    x += _other.x;
-    y += _other.y;
-  }
+  FORCEINLINE Vector2i
+  operator+=(const Vector2i& _other);
 
   /*
   *  Operator to substract a Vector2i values and other Vector2i values and store
@@ -217,12 +206,52 @@ class SH_UTILITY_EXPORT Vector2i
   *  @param lValue-Vector2i
   * 
   *  @param rValue-Vector2i
+  * 
+  *  @return Vector2i This.
   */
-  FORCEINLINE void
-  operator-=(const Vector2i& _other)
-  {
-    x -= _other.x;
-    y -= _other.y;
-  }
+  FORCEINLINE Vector2i
+  operator-=(const Vector2i& _other);
 };
+
+/*************************************************************/
+/*
+*  Implementations
+*/
+/*************************************************************/
+
+FORCEINLINE Vector2i
+Vector2i::operator+(const Vector2i& _other) const
+{
+  return Vector2i(x + _other.x, y + _other.y);
+}
+
+FORCEINLINE Vector2i
+Vector2i::operator-(const Vector2i& _other) const
+{
+  return Vector2i(x - _other.x, y - _other.y);
+}
+
+FORCEINLINE Vector2i
+Vector2i::operator*(const int32& _delta) const
+{
+  return Vector2i(x * _delta, y * _delta);
+}
+
+FORCEINLINE Vector2i
+Vector2i::operator+=(const Vector2i& _other)
+{
+  x += _other.x;
+  y += _other.y;
+
+  return *this;
+}
+
+FORCEINLINE Vector2i
+Vector2i::operator-=(const Vector2i& _other)
+{
+  x -= _other.x;
+  y -= _other.y;
+
+  return *this;
+}
 }

@@ -20,12 +20,6 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector2i::Vector2i(int32 _x, int32 _y)
-{
-  x = _x;
-  y = _y;
-}
-
 Vector2i::Vector2i(const Vector2i& _other)
 {
   *this = _other;
