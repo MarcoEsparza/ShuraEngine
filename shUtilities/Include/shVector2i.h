@@ -127,7 +127,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i The result of the linear interpolation.
   */
   Vector2i
-  lerp(const Vector2i& _vec, const Vector2i& _other, const int32 _time) const;
+  lerp(const Vector2i& _vec, const Vector2i& _other, const int32& _time) const;
 
   /*************************************************************/
   /*
