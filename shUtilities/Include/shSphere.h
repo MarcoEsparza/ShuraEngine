@@ -2,7 +2,7 @@
 /*
 *  @file    shSphere.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief
 *
 *
@@ -21,17 +21,17 @@ namespace shEngineSDK {
 /*
 *  
 */
-SH_PLUGIN_EXPORT class shSphere
+class SH_UTILITY_EXPORT shSphere
 {
   public:
   /*
   *  Default constructor.
   */
-  SH_PLUGIN_EXPORT shSphere() = default;
+  shSphere() = default;
   /*
   *  Default destructor.
   */
-  SH_PLUGIN_EXPORT ~shSphere() = default;
+  ~shSphere() = default;
 
   /*************************************************************/
   /*

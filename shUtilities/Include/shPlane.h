@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief
 *
 *
@@ -21,17 +21,17 @@ namespace shEngineSDK {
 /*
 *  
 */
-SH_PLUGIN_EXPORT class shPlane
+class SH_UTILITY_EXPORT shPlane
 {
   public:
   /*
   *  Default constructor.
   */
-  SH_PLUGIN_EXPORT shPlane() = default;
+  shPlane() = default;
   /*
   *  Default destructor.
   */
-  SH_PLUGIN_EXPORT ~shPlane() = default;
+  ~shPlane() = default;
   
   /*************************************************************/
   /*

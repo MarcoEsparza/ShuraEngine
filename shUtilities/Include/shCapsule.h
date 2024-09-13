@@ -2,7 +2,7 @@
 /*
 *  @file    shCapsule.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief
 *
 *
@@ -21,17 +21,17 @@ namespace shEngineSDK {
 /*
 *
 */
-SH_PLUGIN_EXPORT class shCapsule
+class SH_UTILITY_EXPORT shCapsule
 {
   public:
   /*
   *  Default constructor.
   */
-  SH_PLUGIN_EXPORT shCapsule() = default;
+  shCapsule() = default;
   /*
   *  Default destructor.
   */
-  SH_PLUGIN_EXPORT ~shCapsule() = default;
+  ~shCapsule() = default;
 
   /*************************************************************/
   /*

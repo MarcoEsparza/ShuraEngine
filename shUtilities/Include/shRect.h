@@ -2,7 +2,7 @@
 /*
 *  @file    shRect.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/12
 *  @brief   
 *
 *  
@@ -21,17 +21,17 @@ namespace shEngineSDK {
 /*
 *  
 */
-SH_PLUGIN_EXPORT class shRect
+class SH_UTILITY_EXPORT shRect
 {
   public:
   /*
   *  Default constructor.
   */
-  SH_PLUGIN_EXPORT shRect() = default;
+  shRect() = default;
   /*
   *  Default destructor.
   */
-  SH_PLUGIN_EXPORT ~shRect() = default;
+  ~shRect() = default;
   
   /*************************************************************/
   /*
