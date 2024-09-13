@@ -47,10 +47,10 @@ Vector2i::mag() const
 void
 Vector2i::normalize()
 {
-  float magnitude = mag();
-  if (magnitude != 0.0f) {
-    x = static_cast<int32>(x / magnitude);
-    y = static_cast<int32>(y / magnitude);
+  float invMag = 1 / mag();
+  if (invMag != 0.0f) {
+    x = static_cast<int32>(x * invMag);
+    y = static_cast<int32>(y * invMag);
   }
   else {
     x = 0;
