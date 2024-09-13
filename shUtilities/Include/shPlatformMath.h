@@ -4,9 +4,9 @@
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2024/09/12
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
-*           and OSX
+*           and OSX.
 *
-*  
+*  Math class wrapper, suing the STD. compatible with Windows, Linux and OSX.
 * 
 * @bug      No bug known
 */
@@ -66,7 +66,9 @@ public:
   /*
   *  Calculate the pow of a given number.
   *
-  *  @param Value to calculate, number of times to be multiplied.
+  *  @param float Value to calculate.
+  * 
+  *  @param float Number of times to be multiplied.
   *
   *  @return float The calculated pow.
   */
@@ -76,8 +78,11 @@ public:
   /*
   *  Calculate the linear interpolation between two given values
   *
-  *  @param First value, second value and alpha. First and second value must
-  *         be the same type.
+  *  @param float First value.
+  * 
+  *  @param float Second value.
+  * 
+  *  @param float Alpha to calculate with previous numbers
   *
   *  @return T The result of the linear interpolation.
   */
@@ -87,7 +92,9 @@ public:
   /*
   *  Calculate the minimum between two given numbers.
   *
-  *  @param First value to compare, second value.
+  *  @param float First value to compare.
+  * 
+  *  @param float Second value.
   *
   *  @return float The result of the comparison.
   */
@@ -97,7 +104,9 @@ public:
   /*
   *  Calculate the maximum between two given numbers.
   *
-  *  @param First value to compare, second value.
+  *  @param float First value to compare.
+  * 
+  *  @param float Second value.
   *
   *  @return float The result of the comparison.
   */
@@ -107,8 +116,11 @@ public:
   /*
   *  Clamp a given number with given min and max values
   *
-  *  @param Value to calculate, min value and max value. All parameter must be
-  *         the same type.
+  *  @param float Value to calculate.
+  * 
+  *  @param float Min value.
+  * 
+  *  @param float Max value.
   *
   *  @return T The result of the clamp.
   */
@@ -136,121 +148,121 @@ public:
   /*************************************************************/
 
   /*
-  *  Cosine result from Radian.
+  *  Cosine.
   *
-  *  @param Radian Value to calculate cosine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Cosine from value.
+  *  @return float Cosine from value.
   */
   static float
   cos(const float& _radian);
 
   /*
-  *  Sine result from Radian.
+  *  Sine.
   *
-  *  @param Radian Value to calculate sine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Sine from value.
+  *  @return float Sine from value.
   */
   static float
   sin(const float& _radian);
 
   /*
-  *  Tangent result from Radian.
+  *  Tangent.
   *
-  *  @param Radian Value to calculate tangent.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Tangent from value.
+  *  @return float Tangent from value.
   */
   static float
   tan(const float& _radian);
 
   /*
-  *  Hyperbolic cosine result from Radian.
+  *  Hyperbolic cosine.
   *
-  *  @param Radian Value to calculate hyperbolic cosine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Hyperbolic cosine from value.
+  *  @return float Hyperbolic cosine from value.
   */
   static float
   cosh(const float& _radian);
 
   /*
-  *  Hyperbolic sine result from Radian.
+  *  Hyperbolic sine.
   *
-  *  @param Radian Value to calculate hyperbolic sine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Hyperbolic sine from value.
+  *  @return float Hyperbolic sine from value.
   */
   static float
   sinh(const float& _radian);
 
   /*
-  *  Hyperbolic tangent result from Radian.
+  *  Hyperbolic tangent.
   *
-  *  @param Radian Value to calculate hyperbolic tangent.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Hyperbolic tangent from value.
+  *  @return float Hyperbolic tangent from value.
   */
   static float
   tanh(const float& _radian);
 
   /*
-  *  Arch cosine result from Radian.
+  *  Arch cosine.
   *
-  *  @param Radian Value to calculate arch cosine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Arch cosine from value.
+  *  @return float Arch cosine from value.
   */
   static float
   acos(const float& _radian);
 
   /*
-  *  Arch sine result from Radian.
+  *  Arch sine.
   *
-  *  @param Radian Value to calculate arch sine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Arch sine from value.
+  *  @return float Arch sine from value.
   */
   static float
   asin(const float& _radian);
 
   /*
-  *  ArchTangent result from Radian.
+  *  Arch Tangent.
   *
-  *  @param Radian Value to calculate Arch tangent.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Arch Tangent from value.
+  *  @return float Arch Tangent from value.
   */
   static float
   atan(const float& _radian);
 
   /*
-  *  Hyperbolic arch cosine result from Radian.
+  *  Hyperbolic arch cosine.
   *
-  *  @param Radian Value to calculate hyperbolic arch cosine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Hyperbolic arch cosine from value.
+  *  @return float Hyperbolic arch cosine from value.
   */
   static float
   acosh(const float& _radian);
 
   /*
-  *  Hyperbolic arch sine result from Radian.
+  *  Hyperbolic arch sine.
   *
-  *  @param Radian Value to calculate hyperbolic arch sine.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Hyperbolic arch sine from value.
+  *  @return float Hyperbolic arch sine from value.
   */
   static float
   asinh(const float& _radian);
 
   /*
-  *  Hyperbolic arch tangent result from Radian.
+  *  Hyperbolic arch tangent.
   *
-  *  @param Radian Value to calculate hyperbolic arch tangent.
+  *  @param float Value must be in radians.
   *
-  *  @return Radian Hyperbolic arch tangent from value.
+  *  @return float Hyperbolic arch tangent from value.
   */
   static float
   atanh(const float& _radian);
