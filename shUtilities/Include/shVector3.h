@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -30,7 +30,7 @@ namespace shEngineSDK {
 */
 class SH_UTILITY_EXPORT Vector3
 {
-  public:
+ public:
   /*
   *  Default constructor.
   */
@@ -39,9 +39,13 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  Constructor to initialize values to the given numbers.
   *
-  *  @param X value, Y value, Z value.
+  *  @param float _x: X value.
+  * 
+  *  @param float _y: Y value.
+  * 
+  *  @param float _z: Z value.
   */
-  Vector3(float _x, float _y, float _z);
+  Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
 
   /*
   *  Copy constructor
@@ -64,32 +68,32 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  Calculates the dot product of two given Vector3s.
   *
-  *  @param The Vector3 to calculate with this Vector3.
+  *  @param Vector3 _other: To calculate with this Vector3.
   * 
   *  @return float The result of the dot product.
   */
   float
-  dot(const Vector3& vec, const Vector3& other) const;
+  dot(const Vector3& _other) const;
 
   /*
   * Calculates the cross product of two given Vector3s.
   *
-  *  @param The Vector3 to calculate with this Vector3.
+  *  @param Vector3 _other: To calculate with this Vector3.
   *
   *  @return Vector3 The result of the cross product.
   */
   Vector3
-  cross(const Vector3& vec, const Vector3& other) const;
+  cross(const Vector3& _other) const;
 
   /*
   *  Make a fast calculation of the reverse square of the magnitude
   *
-  *  @param The number to calculate
+  *  @param float _num: The number to calculate
   *
   *  @return float
   */
   float
-  fastReverseSqrt(const float& num) const;
+  fastReverseSqrt(const float& _num) const;
 
   /*
   *  Calculates the magnitude of the Vector3.
@@ -114,19 +118,23 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  Linear interpolation between two given Vector3.
   *
-  *  @param Min value, max value, time.
+  *  @param Vector3 _vecA: Min value.
+  * 
+  *  @param Vector3 _vecB: Max value.
+  * 
+  *  @param float _time: Time.
   *
   *  @return Vector3 Interpolated Vector3.
   */
   Vector3
-  lerp(const Vector3& vecA, const Vector3& vecB, float time) const;
+  lerp(const Vector3& _vecA, const Vector3& _vecB, float _time) const;
 
   /*************************************************************/
   /*
   *  Variables
   */
   /*************************************************************/
-  public:
+ public:
   /*
   * Vector3 X value.
   */
@@ -145,72 +153,111 @@ class SH_UTILITY_EXPORT Vector3
   *  Operator overload
   */
   /*************************************************************/
-public:
+ public:
   /*
   *  Operator to sum a Vector3 values and other Vector3 values
   *
-  *  @param lValue-Vector3, rValue-Vector3
+  *  @param lValue-Vector3.
+  * 
+  *  @param rValue-Vector3.
   *
   *  @return Vector3
   */
   FORCEINLINE Vector3
-  operator+(const Vector3& other) const
-  {
-    return Vector3(x + other.x, y + other.y, z + other.z);
-  }
+  operator+(const Vector3& other) const;
 
   /*
   *  Operator to substract a Vector3 values and other Vector3 values
   *
-  *  @param lValue-Vector3, rValue-Vector3
+  *  @param lValue-Vector3.
+  * 
+  *  @param rValue-Vector3.
   *
   *  @return Vector3
   */
   FORCEINLINE Vector3
-  operator-(const Vector3& other) const
-  {
-    return Vector3(x - other.x, y - other.y, z - other.z);
-  }
+  operator-(const Vector3& other) const;
 
   /*
   *  Operator to multiply the values of a Vector3 with a float
   *
-  *  @param lValue-Vector3, rValue-float
+  *  @param lValue-Vector3.
+  * 
+  *  @param rValue-float.
   *
   *  @return Vector3 The result of the multiplication
   */
   FORCEINLINE Vector3
-  operator*(const float& delta) const
-  {
-    return Vector3(x * delta, y * delta, z * delta);
-  }
+  operator*(const float& delta) const;
 
   /*
-  *  Operator to sum a Vector3 values and other Vector3 values and store the
-  *  result in the first Vector3
-  *
-  *  @param lValue-Vector3, rValue-Vector3
-  */
-  FORCEINLINE void
-  operator+=(const Vector3& other)
-  {
-    x += other.x;
-    y += other.y;
-    z += other.z;
-  }
-
-  /*
-  *  Operator to substract a Vector3 values and other Vector3 values and store
+  *  Operator to sum a Vector3 values and other Vector3 values and store
   *  the result in the first Vector3
   *
-  *  @param lValue-Vector3, rValue-Vector3
+  *  @param lValue-Vector3.
+  * 
+  *  @param rValue-Vector3.
+  * 
+  *  @return Vector3 This.
   */
-  FORCEINLINE void
-  operator-=(const Vector3& other)
-  {
-    x -= other.x;
-    y -= other.y;
-    z -= other.z;
-  }
+  FORCEINLINE Vector3
+  operator+=(const Vector3& other);
+
+  /*
+  *  Operator to substract a Vector3 values and other Vector3 values and
+  *  store the result in the first Vector3
+  *
+  *  @param lValue-Vector3.
+  * 
+  *  @param rValue-Vector3.
+  * 
+  *  @return Vector3 This.
+  */
+  FORCEINLINE Vector3
+  operator-=(const Vector3& other);
 };
+
+/*************************************************************/
+/*
+*  Implementations
+*/
+/*************************************************************/
+
+FORCEINLINE Vector3
+Vector3::operator+(const Vector3& other) const
+{
+  return Vector3(x + other.x, y + other.y, z + other.z);
+}
+
+FORCEINLINE Vector3
+Vector3::operator-(const Vector3& other) const
+{
+  return Vector3(x - other.x, y - other.y, z - other.z);
+}
+
+FORCEINLINE Vector3
+Vector3::operator*(const float& delta) const
+{
+  return Vector3(x * delta, y * delta, z * delta);
+}
+
+FORCEINLINE Vector3
+Vector3::operator+=(const Vector3& other)
+{
+  x += other.x;
+  y += other.y;
+  z += other.z;
+
+  return *this;
+}
+
+FORCEINLINE Vector3
+Vector3::operator-=(const Vector3& other)
+{
+  x -= other.x;
+  y -= other.y;
+  z -= other.z;
+
+  return *this;
+}
 }
