@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/13
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *

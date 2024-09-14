@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -30,7 +30,7 @@ namespace shEngineSDK {
 */
 class SH_UTILITY_EXPORT Matrix4
 {
-  public:
+ public:
   /*
   *  Default constructor.
   */
@@ -69,10 +69,18 @@ class SH_UTILITY_EXPORT Matrix4
   *  Variables
   */
   /*************************************************************/
-  public:
+ public:
   /*
   *  Use double array to access values.
   */
   float m[4][4];
+
+  /*************************************************************/
+  /*
+  *  Operator overload
+  */
+  /*************************************************************/
+ public:
+
 };
 }

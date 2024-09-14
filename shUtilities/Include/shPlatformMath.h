@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -139,7 +139,7 @@ public:
   *          The reminder of the division
   */
   static float
-  fmod(float _value1, float _value2);
+  fmod(const float& _value1, const float& _value2);
   
   /*************************************************************/
   /*

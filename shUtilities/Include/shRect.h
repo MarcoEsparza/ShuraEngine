@@ -2,7 +2,7 @@
 /*
 *  @file    shRect.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   
 *
 *  
@@ -23,7 +23,7 @@ namespace shEngineSDK {
 */
 class SH_UTILITY_EXPORT shRect
 {
-  public:
+ public:
   /*
   *  Default constructor.
   */
@@ -46,7 +46,7 @@ class SH_UTILITY_EXPORT shRect
   *  Variables
   */
   /*************************************************************/
-  public:
+ public:
 
 };
 }
