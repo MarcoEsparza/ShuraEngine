@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/13
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -71,7 +71,7 @@ PlatformMath::max(const float& x, const float& y)
 }
 
 float
-PlatformMath::fmod(float _value1, float _value2)
+PlatformMath::fmod(const float& _value1, const float& _value2)
 {
   return std::fmod(_value1, _value2);
 }

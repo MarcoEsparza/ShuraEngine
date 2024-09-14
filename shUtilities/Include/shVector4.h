@@ -114,29 +114,6 @@ class SH_UTILITY_EXPORT Vector4
 
   /*************************************************************/
   /*
-  *  Variables
-  */
-  /*************************************************************/
- public:
-  /*
-  * Vector4 X value.
-  */
-  float x;
-  /*
-  * Vector4 Y value.
-  */
-  float y;
-  /*
-  * Vector4 Z value.
-  */
-  float z;
-  /*
-  * Vector4 W value.
-  */
-  float w;
-
-  /*************************************************************/
-  /*
   *  Operator overload
   */
   /*************************************************************/
@@ -200,6 +177,29 @@ class SH_UTILITY_EXPORT Vector4
   */
   FORCEINLINE Vector4
   operator-=(const Vector4& other);
+
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
+   /*
+   * Vector4 X value.
+   */
+   float x;
+   /*
+   * Vector4 Y value.
+   */
+   float y;
+   /*
+   * Vector4 Z value.
+   */
+   float z;
+   /*
+   * Vector4 W value.
+   */
+   float w;
 };
 
 /*************************************************************/
