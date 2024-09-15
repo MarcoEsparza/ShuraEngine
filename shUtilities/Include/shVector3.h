@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/15
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -86,16 +86,6 @@ class SH_UTILITY_EXPORT Vector3
   cross(const Vector3& _other) const;
 
   /*
-  *  Make a fast calculation of the reverse square of the magnitude
-  *
-  *  @param float _num: The number to calculate
-  *
-  *  @return float
-  */
-  float
-  fastReverseSqrt(const float& _num) const;
-
-  /*
   *  Calculates the magnitude of the Vector3.
   *
   *  @param
@@ -117,17 +107,16 @@ class SH_UTILITY_EXPORT Vector3
 
   /*
   *  Linear interpolation between two given Vector3.
+  *  @brief This Vector3 is taken as the min value.
   *
-  *  @param Vector3 _vecA: Min value.
-  * 
-  *  @param Vector3 _vecB: Max value.
+  *  @param Vector3 _other: Max value.
   * 
   *  @param float _time: Time.
   *
   *  @return Vector3 Interpolated Vector3.
   */
   Vector3
-  lerp(const Vector3& _vecA, const Vector3& _vecB, const float& _time) const;
+  lerp(const Vector3& _other, const float& _time) const;
 
   /*************************************************************/
   /*

@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -114,9 +114,8 @@ class SH_UTILITY_EXPORT  Vector2
 
   /*
   *  Calculates the linear interpolate between two Vector2.
+  *  @brief This Vector2 is taken as the min value.
   *
-  *  @param Vector2 _vec: Min value.
-  * 
   *  @param Vector2 _other: Max value.
   * 
   *  @param float _time: Time.
@@ -124,7 +123,7 @@ class SH_UTILITY_EXPORT  Vector2
   *  @return Vector2 The result of the linear interpolation.
   */
   Vector2
-  lerp(const Vector2& _vec, const Vector2& _other, const float& _time) const;
+  lerp(const Vector2& _other, const float& _time) const;
 
   /*************************************************************/
   /*

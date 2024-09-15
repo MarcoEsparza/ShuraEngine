@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -117,9 +117,8 @@ class SH_UTILITY_EXPORT Vector2i
 
   /*
   *  Calculates the linear interpolate between two Vector2i.
+  *  @brief This Vector2i is taken as the min value.
   *
-  *  @param Vector2i _vec: Min value.
-  * 
   *  @param Vector2i _vec: Max value.
   * 
   *  @param int32 _time: Time.
@@ -127,7 +126,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i The result of the linear interpolation.
   */
   Vector2i
-  lerp(const Vector2i& _vec, const Vector2i& _other, const int32& _time) const;
+  lerp(const Vector2i& _other, const int32& _time) const;
 
   /*************************************************************/
   /*

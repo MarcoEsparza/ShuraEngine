@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/15
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -72,10 +72,9 @@ Vector2::vectorProjection(const Vector2& _other) const
 }
 
 Vector2
-Vector2::lerp(const Vector2& _vecA,
-              const Vector2& _vecB,
+Vector2::lerp(const Vector2& _other,
               const float& _time) const
 {
-  return (_vecA + (_vecB + _vecA) * _time);
+  return (*this + (_other + *this) * _time);
 }
 }
