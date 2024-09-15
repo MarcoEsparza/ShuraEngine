@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -69,7 +69,7 @@ class SH_UTILITY_EXPORT Vector4
   /*************************************************************/
 
   /*
-  *  Calculates the dot product of two given Vector4s.
+  *  Calculates the dot product of this Vector4 and a given Vector4.
   *
   *  @param Vector4 _other: To calculate with this Vector4.
   * 
@@ -121,9 +121,11 @@ class SH_UTILITY_EXPORT Vector4
   /*
   *  Operator to sum a Vector4 values and other Vector4 values.
   *
-  *  @param lValue-Vector4, rValue-Vector4
+  *  @param lValue-Vector4.
+  * 
+  *  @param rValue-Vector4.
   *
-  *  @return Vector4
+  *  @return Vector4.
   */
   FORCEINLINE Vector4
   operator+(const Vector4& other) const;

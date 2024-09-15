@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -50,7 +50,7 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  Copy constructor
   *
-  *  @param Vector3
+  *  @param Vector3 _other: The Vector3 to be copied.
   */
   Vector3(const Vector3& _other);
 
@@ -145,7 +145,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3
   */
   FORCEINLINE Vector3
-  operator+(const Vector3& other) const;
+  operator+(const Vector3& _other) const;
 
   /*
   *  Operator to substract a Vector3 values and other Vector3 values
@@ -157,7 +157,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3
   */
   FORCEINLINE Vector3
-  operator-(const Vector3& other) const;
+  operator-(const Vector3& _other) const;
 
   /*
   *  Operator to multiply the values of a Vector3 with a float
@@ -169,7 +169,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 The result of the multiplication
   */
   FORCEINLINE Vector3
-  operator*(const float& delta) const;
+  operator*(const float& _delta) const;
 
   /*
   *  Operator to sum a Vector3 values and other Vector3 values and store
@@ -182,7 +182,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 This.
   */
   FORCEINLINE Vector3
-  operator+=(const Vector3& other);
+  operator+=(const Vector3& _other);
 
   /*
   *  Operator to substract a Vector3 values and other Vector3 values and
@@ -195,7 +195,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 This.
   */
   FORCEINLINE Vector3
-  operator-=(const Vector3& other);
+  operator-=(const Vector3& _other);
 
   /*************************************************************/
   /*
@@ -224,39 +224,39 @@ class SH_UTILITY_EXPORT Vector3
 /*************************************************************/
 
 FORCEINLINE Vector3
-Vector3::operator+(const Vector3& other) const
+Vector3::operator+(const Vector3& _other) const
 {
-  return Vector3(x + other.x, y + other.y, z + other.z);
+  return Vector3(x + _other.x, y + _other.y, z + _other.z);
 }
 
 FORCEINLINE Vector3
-Vector3::operator-(const Vector3& other) const
+Vector3::operator-(const Vector3& _other) const
 {
-  return Vector3(x - other.x, y - other.y, z - other.z);
+  return Vector3(x - _other.x, y - _other.y, z - _other.z);
 }
 
 FORCEINLINE Vector3
-Vector3::operator*(const float& delta) const
+Vector3::operator*(const float& _delta) const
 {
-  return Vector3(x * delta, y * delta, z * delta);
+  return Vector3(x * _delta, y * _delta, z * _delta);
 }
 
 FORCEINLINE Vector3
-Vector3::operator+=(const Vector3& other)
+Vector3::operator+=(const Vector3& _other)
 {
-  x += other.x;
-  y += other.y;
-  z += other.z;
+  x += _other.x;
+  y += _other.y;
+  z += _other.z;
 
   return *this;
 }
 
 FORCEINLINE Vector3
-Vector3::operator-=(const Vector3& other)
+Vector3::operator-=(const Vector3& _other)
 {
-  x -= other.x;
-  y -= other.y;
-  z -= other.z;
+  x -= _other.x;
+  y -= _other.y;
+  z -= _other.z;
 
   return *this;
 }

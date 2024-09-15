@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -41,33 +41,33 @@ const float PlatformMath::SMALL_NUMBER = (1.e-6f);
 /*************************************************************/
 
 float
-PlatformMath::sqrt(const float& value)
+PlatformMath::sqrt(const float& _value)
 {
-  return std::sqrt(value);
+  return std::sqrt(_value);
 }
 
 float
-PlatformMath::sqrtf(const float& value)
+PlatformMath::sqrtf(const float& _value)
 {
-  return std::sqrtf(value);
+  return std::sqrtf(_value);
 }
 
 float
-PlatformMath::pow(const float& value, const float vPow)
+PlatformMath::pow(const float& _value, const float _vPow)
 {
-  return std::pow(value, vPow);
+  return std::pow(_value, _vPow);
 }
 
 float
-PlatformMath::min(const float& x, const float& y)
+PlatformMath::min(const float& _x, const float& _y)
 {
-  return std::min(x, y);
+  return std::min(_x, _y);
 }
 
 float
-PlatformMath::max(const float& x, const float& y)
+PlatformMath::max(const float& _x, const float& _y)
 {
-  return std::max(x, y);
+  return std::max(_x, _y);
 }
 
 float
@@ -75,6 +75,18 @@ PlatformMath::fmod(const float& _value1, const float& _value2)
 {
   return std::fmod(_value1, _value2);
 }
+
+float
+PlatformMath::abs(const float& _value)
+{
+  return std::abs(_value);
+}
+
+/*************************************************************/
+/*
+*  Trigonometric functions
+*/
+/*************************************************************/
 
 float
 PlatformMath::cos(const float& _radian)

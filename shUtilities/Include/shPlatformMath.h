@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -46,55 +46,55 @@ public:
   /*
   *  Calculate the square root of a given number.
   * 
-  *  @param Value to calculate.
+  *  @param float _value: Value to calculate.
   * 
   *  @return float The result of the square root of value.
   */
   static float
-  sqrt(const float& value);
+  sqrt(const float& _value);
 
   /*
   *  Calculate the square root of a given number.
   *
-  *  @param Value to calculate.
+  *  @param float _value: Value to calculate.
   *
   *  @return float The result of the square root of value.
   */
   static float
-  sqrtf(const float& value);
+  sqrtf(const float& _value);
 
   /*
   *  Calculate the pow of a given number.
   *
-  *  @param float Value to calculate.
+  *  @param float _value: Value to calculate.
   * 
-  *  @param float Number of times to be multiplied.
+  *  @param float _vPow: Number of times to be multiplied.
   *
   *  @return float The calculated pow.
   */
   static float
-  pow(const float& value, const float vPow);
+  pow(const float& _value, const float _vPow);
 
   /*
   *  Calculate the linear interpolation between two given values
   *
-  *  @param float First value.
+  *  @param float _A: First value.
   * 
-  *  @param float Second value.
+  *  @param float _B: Second value.
   * 
-  *  @param float Alpha to calculate with previous numbers
+  *  @param float _alpha: Alpha to calculate with previous numbers
   *
   *  @return T The result of the linear interpolation.
   */
   FORCEINLINE static float
-  lerp(const float& A, const float& B, const float& alpha);
+  lerp(const float& _A, const float& _B, const float& _alpha);
 
   /*
   *  Calculate the minimum between two given numbers.
   *
-  *  @param float First value to compare.
+  *  @param float _x: First value to compare.
   * 
-  *  @param float Second value.
+  *  @param float _y: Second value.
   *
   *  @return float The result of the comparison.
   */
@@ -104,42 +104,51 @@ public:
   /*
   *  Calculate the maximum between two given numbers.
   *
-  *  @param float First value to compare.
+  *  @param float _x: First value to compare.
   * 
-  *  @param float Second value.
+  *  @param float _y: Second value.
   *
   *  @return float The result of the comparison.
   */
   static float
-  max(const float& x, const float& y);
+  max(const float& _x, const float& _y);
 
   /*
   *  Clamp a given number with given min and max values
   *
-  *  @param float Value to calculate.
+  *  @param float _x: Value to calculate.
   * 
-  *  @param float Min value.
+  *  @param float _min: Min value.
   * 
-  *  @param float Max value.
+  *  @param float _max: Max value.
   *
   *  @return T The result of the clamp.
   */
   FORCEINLINE static float
-  clamp(const float& x, const float& min, const float& max);
+  clamp(const float& _x, const float& _min, const float& _max);
 
   /*
   *  Calculate the floating point reminder of the division of the given
   *  values
   *
-  *  @param float Point value.
+  *  @param float _value1: Dividend.
   * 
-  *  @param float Point value.
+  *  @param float _value2: Divisor.
   *
-  *  @return float
-  *          The reminder of the division
+  *  @return float The reminder of the division
   */
   static float
   fmod(const float& _value1, const float& _value2);
+
+  /*
+  *  Calculate the absolute of a given number
+  *
+  *  @param float _value
+  *
+  *  @return float
+  */
+  static float
+  abs(const float& _value);
   
   /*************************************************************/
   /*
@@ -150,7 +159,7 @@ public:
   /*
   *  Cosine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Cosine from value.
   */
@@ -160,7 +169,7 @@ public:
   /*
   *  Sine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Sine from value.
   */
@@ -170,7 +179,7 @@ public:
   /*
   *  Tangent.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Tangent from value.
   */
@@ -180,7 +189,7 @@ public:
   /*
   *  Hyperbolic cosine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Hyperbolic cosine from value.
   */
@@ -190,7 +199,7 @@ public:
   /*
   *  Hyperbolic sine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Hyperbolic sine from value.
   */
@@ -200,7 +209,7 @@ public:
   /*
   *  Hyperbolic tangent.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Hyperbolic tangent from value.
   */
@@ -210,7 +219,7 @@ public:
   /*
   *  Arch cosine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Arch cosine from value.
   */
@@ -220,7 +229,7 @@ public:
   /*
   *  Arch sine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Arch sine from value.
   */
@@ -230,7 +239,7 @@ public:
   /*
   *  Arch Tangent.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Arch Tangent from value.
   */
@@ -240,7 +249,7 @@ public:
   /*
   *  Hyperbolic arch cosine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Hyperbolic arch cosine from value.
   */
@@ -250,7 +259,7 @@ public:
   /*
   *  Hyperbolic arch sine.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Hyperbolic arch sine from value.
   */
@@ -260,7 +269,7 @@ public:
   /*
   *  Hyperbolic arch tangent.
   *
-  *  @param float Value must be in radians.
+  *  @param float _radian: Value must be in radians.
   *
   *  @return float Hyperbolic arch tangent from value.
   */
