@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/15
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -72,10 +72,9 @@ Vector2i::vectorProjection(const Vector2i& _other) const
 }
 
 Vector2i
-Vector2i::lerp(const Vector2i& _vec,
-               const Vector2i& _other,
+Vector2i::lerp(const Vector2i& _other,
                const int32& _time) const
 {
-  return (_vec + (_other + _vec) * _time);
+  return (*this + (_other + *this) * _time);
 }
 }

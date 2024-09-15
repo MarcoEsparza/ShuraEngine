@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/15
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -100,17 +100,16 @@ class SH_UTILITY_EXPORT Vector4
 
   /*
   *  Linear interpolation between two given Vector4.
+  *  @brief This Vector4 is taken as the min value.
   *
-  *  @param Vector4 _vecA: Min value.
-  * 
-  *  @param Vector4 _vecB: Max value.
+  *  @param Vector4 _other: Max value.
   * 
   *  @param float _time: Time.
   *
   *  @return Vector4 Interpolated Vector4.
   */
   Vector4
-  lerp(const Vector4& _vecA, const Vector4& _vecB, const float& _time) const;
+  lerp(const Vector4& _vecB, const float& _time) const;
 
   /*************************************************************/
   /*
