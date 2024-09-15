@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/14
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -65,7 +65,9 @@ class SH_UTILITY_EXPORT Quaternion
   /*************************************************************/
 
   /*
-  *  
+  *  Transform quaternion angles from radians to euler degrees.
+  *  @brief WARNING: make sure your values are radians, because in this case
+  *  this function may give you wrong answers.
   *
   *  @param
   * 
@@ -75,46 +77,116 @@ class SH_UTILITY_EXPORT Quaternion
   eulerAngles();
 
   /*
-  *
-  *
-  *  @param
-  *
-  *  @return
-  */
-  float
-  mag();
-
-  /*
-  *
+  *  Transform quaternion angles from euler degrees to radians.
+  *  @brief WARNING: make sure your values are euler degrees, because in this
+  *  case this function may give you wrong answers.
   *
   *  @param
   *
   *  @return
   */
   void
-  normalized();
+  radAngles();
 
   /*
-  *
+  *  Computes the euclidian lenght.
   *
   *  @param
   *
   *  @return
   */
   float
-  dot(const Quaternion& _other);
+  lenght() const;
 
   /*
+  *  Normalize Quaternion values.
   *
+  *  @param
+  *
+  *  @return
+  */
+  void
+  normalize();
+
+  /*
+  *  Calculates the dot product of this Quaternion and a given Quaternion.
+  *
+  *  @param Quaternion _other: To calculate with this.
+  *
+  *  @return float Result from dot product.
+  */
+  float
+  dot(const Quaternion& _other) const;
+
+  /*
+  *  Change Quaternion value symbol: x = 1.0f -> x = -1.0f.
   *
   *  @param
   *
   *  @return
   */
   Quaternion
-  lerp(const Quaternion& _quatA,
-       const Quaternion& _quatB,
-       const float& _time);
+  conjugate();
+
+  /*
+  *  Get the inverse rotation of the Quaternion.
+  *
+  *  @param
+  *
+  *  @return Quaternion The inverse of this Quaternion.
+  */
+  Quaternion
+  inverse();
+
+  /*
+  *  Returns the angle in degrees between two rotations, this and _other.
+  *  The resulting angle ranges from 0 to 180.
+  *
+  *  @param Quaternion _other: The Quaternion to be calculate with.
+  *
+  *  @return float The resultant angle.
+  */
+  float
+  angleTo(const Quaternion& _other) const;
+
+  /*
+  *  Rotates the Quaternion towards another Quaternion.
+  *
+  *  @param Quaternion _other
+  * 
+  *  @param float _step
+  *
+  *  @return Quaternion
+  */
+  Quaternion
+  rotateTowards(const Quaternion& _other, const float& _step) const;
+
+  /*
+  *  Linear interpolation between two given Quaternion.
+  *
+  *  @param Quaternion _quatA: Min value.
+  * 
+  *  @param Quaternion _quatB: Max value.
+  * 
+  *  @param float _time: Time.
+  *
+  *  @return Quaternion
+  */
+  Quaternion
+  lerp(const Quaternion& _other, const float& _time) const;
+
+  /*
+  *  Spherically linear interpolates between this Quaternion and another
+  *  by this ratio of t.
+  *
+  *  @param Quaternion _other: End unit quaternion value, returned when t = 1.
+  * 
+  *  @param float _time: Time.
+  *
+  *  @return Quaternion Returns this Quaternion when t = 0.
+  */
+  Quaternion
+  slerp(const Quaternion& _other, const float& _time) const;
 
   /*************************************************************/
   /*
@@ -122,6 +194,77 @@ class SH_UTILITY_EXPORT Quaternion
   */
   /*************************************************************/
  public:
+  /*
+  *  Quaternion sum.
+  *
+  *  @param Quaternion _other
+  *
+  *  @return Quaternion
+  */
+  FORCEINLINE Quaternion
+  operator+(const Quaternion& _other) const;
+
+  /*
+  *  Quaternion substraction.
+  *
+  *  @param lValue-Quaternion.
+  * 
+  *  @param rValue-Quaternion.
+  *
+  *  @return Quaternion
+  */
+  FORCEINLINE Quaternion
+  operator-(const Quaternion& _other) const;
+
+  /*
+  *  Quaternion multiplication with another Quaternion.
+  *
+  *  @param lValue-Quaternion.
+  *
+  *  @param rValue-Quaternion.
+  *
+  *  @return Quaternion
+  */
+  FORCEINLINE Quaternion
+    operator*(const Quaternion& _delta) const;
+
+  /*
+  *  Quaternion multiplication with a float value.
+  *
+  *  @param lValue-Quaternion.
+  * 
+  *  @param rValue-Quaternion.
+  *
+  *  @return Quaternion
+  */
+  FORCEINLINE Quaternion
+  operator*(const float& _delta) const;
+
+  /*
+  *  Operator to sum a Quaternion values and other Quaternion values and
+  *  store the result in the first Quaternion.
+  *
+  *  @param lValue-Quaternion.
+  * 
+  *  @param rValue-Quaternion.
+  *
+  *  @return Quaternion
+  */
+  FORCEINLINE Quaternion
+  operator+=(const Quaternion& _other);
+
+  /*
+  *  Operator to sum a Quaternion values and other Quaternion values and
+  *  store the result in the first Quaternion.
+  *
+  *  @param lValue-Quaternion.
+  * 
+  *  @param rValue-Quaternion.
+  *
+  *  @return Quaternion
+  */
+  FORCEINLINE Quaternion
+  operator-=(const Quaternion& _other);
 
   /*************************************************************/
   /*
@@ -146,4 +289,68 @@ class SH_UTILITY_EXPORT Quaternion
   */
   float w;
 };
+
+/*************************************************************/
+/*
+*  Implementations
+*/
+/*************************************************************/
+
+FORCEINLINE Quaternion
+Quaternion::operator+(const Quaternion& _other) const
+{
+  return Quaternion(x + _other.x,
+                    y + _other.y,
+                    z + _other.z,
+                    w + _other.w);
+}
+
+FORCEINLINE Quaternion
+Quaternion::operator-(const Quaternion& _other) const
+{
+  return Quaternion(x - _other.x,
+                    y - _other.y,
+                    z - _other.z,
+                    w - _other.w);
+}
+
+FORCEINLINE Quaternion
+Quaternion::operator*(const Quaternion& _other) const
+{
+  return Quaternion(x * _other.w + w * _other.x + y * _other.z + z * _other.y,
+                    y * _other.w + w * _other.y + z * _other.x + x * _other.z,
+                    z * _other.w + w * _other.z + x * _other.y + y * _other.x,
+                    w * _other.w - x * _other.x - y * _other.y - z * _other.z);
+}
+
+FORCEINLINE Quaternion
+Quaternion::operator*(const float& _delta) const
+{
+  return Quaternion(x * _delta,
+                    y * _delta,
+                    z * _delta,
+                    w * _delta);
+}
+
+FORCEINLINE Quaternion
+Quaternion::operator+=(const Quaternion& _other)
+{
+  x += _other.x;
+  y += _other.y;
+  z += _other.z;
+  w += _other.w;
+
+  return *this;
+}
+
+FORCEINLINE Quaternion
+Quaternion::operator-=(const Quaternion& _other)
+{
+  x -= _other.x;
+  y -= _other.y;
+  z -= _other.z;
+  w -= _other.w;
+
+  return *this;
+}
 }
