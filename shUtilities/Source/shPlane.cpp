@@ -3,9 +3,9 @@
 *  @file    shPlane.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2024/09/09
-*  @brief
+*  @brief   Math class for plane figure.
 *
-*
+*  Math class for plane figure.
 */
 /*************************************************************/
 
@@ -18,4 +18,15 @@
 
 namespace shEngineSDK {
 
+/*************************************************************/
+/*
+*  Functions
+*/
+/*************************************************************/
+
+bool
+shPlane::intersect(const shPlane& _other) const
+{
+  return false;
+}
 }

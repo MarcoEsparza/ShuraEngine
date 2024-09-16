@@ -3,9 +3,9 @@
 *  @file    shCapsule.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2024/09/09
-*  @brief
+*  @brief   Math class for capsule figure.
 *
-*
+*  Math class for capsule figure.
 */
 /*************************************************************/
 
@@ -18,4 +18,15 @@
 
 namespace shEngineSDK {
 
+/*************************************************************/
+/*
+*  Functions
+*/
+/*************************************************************/
+
+bool
+shCapsule::intersect(const shCapsule& _other) const
+{
+  return false;
+}
 }
