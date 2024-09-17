@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/15
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -39,20 +39,7 @@ Matrix4::Matrix4(const Matrix4& _other)
 
 Matrix4::Matrix4(const Quaternion& _q)
 {
-  float p00 = 1.0f - (2 * (Math::pow(_q.y, 2))) - (2 * (Math::pow(_q.z, 2)));
-  float p01 = (2 * (_q.x * _q.y)) - (2 * (_q.w * _q.z));
-  float p02 = (2 * (_q.x * _q.z)) + (2 * (_q.w * _q.y));
-  float p10 = (2 * (_q.x * _q.y)) + (2 * (_q.w * _q.z));
-  float p11 = 1.0f - (2 * (Math::pow(_q.x, 2))) - (2 * (Math::pow(_q.z, 2)));
-  float p12 = (2 * (_q.y * _q.z)) - (2 * (_q.w * _q.x));
-  float p20 = (2 * (_q.x * _q.z)) - (2 * (_q.w * _q.y));
-  float p21 = (2 * (_q.y * _q.z)) + (2 * (_q.w * _q.x));
-  float p22 = 1.0f - (2 * (Math::pow(_q.x, 2))) - (2 * (Math::pow(_q.y, 2)));
-
-  m[0][0] = p00; m[0][1] = p01; m[0][2] = p02; m[0][3] = 0.0f;
-  m[1][0] = p10; m[1][1] = p11; m[1][2] = p12; m[1][3] = 0.0f;
-  m[2][0] = p20; m[2][1] = p21; m[2][2] = p22; m[2][3] = 0.0f;
-  m[3][0] = 0.0f; m[3][1] = 0.0f; m[3][2] = 0.0f; m[3][3] = 1.0f;
+  *this = quaternionToMatrix(_q);
 }
 
 Matrix4::Matrix4(const Vector4& _vec1,
@@ -252,6 +239,47 @@ Matrix4::quaternionToMatrix(const Quaternion& _q)
                  p10, p11, p12, 0.0f,
                  p20, p21, p22, 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+Quaternion
+Matrix4::matrixToQuaternion()
+{
+  Quaternion q;
+  float trace = m[0][0] + m[1][1] + m[2][2];
+
+  if (trace > 0) {
+    float s = 0.5f;
+    q.x = (m[2][1] - m[1][2]) * s;
+    q.y = (m[0][2] - m[2][0]) * s;
+    q.z = (m[1][0] - m[0][1]) * s;
+    q.w = 0.25f / s;
+  }
+  else if (m[0][0] > m[1][1] && m[0][0] > m[2][2]) {
+    float s = 2.0f * Math::sqrtf(1.0f + m[0][0] - m[1][1] - m[2][2]);
+    float invS = 1 / s;
+    q.x = 0.25f * invS;
+    q.y = (m[0][1] - m[1][0]) * invS;
+    q.z = (m[0][2] - m[2][0]) * invS;
+    q.w = (m[2][1] - m[1][2]) * invS;
+  }
+  else if (m[1][1] > m[2][2]) {
+    float s = 2.0f * Math::sqrtf(1.0f + m[1][1] - m[0][0] - m[2][2]);
+    float invS = 1 / s;
+    q.x = (m[0][1] + m[1][0]) * invS;
+    q.y = 0.25 * invS;
+    q.z = (m[1][2] + m[2][1]) * invS;
+    q.w = (m[0][2] - m[2][0]) * invS;
+  }
+  else {
+    float s = 2.0f * Math::sqrtf(1.0f + m[2][2] - m[0][0] - m[1][1]);
+    float invS = 1 / s;
+    q.x = (m[0][2] + m[2][0]) * invS;
+    q.y = (m[1][2] + m[2][1]) * invS;
+    q.z = 0.25 * invS;
+    q.w = (m[1][0] - m[0][1]) * invS;
+  }
+
+  return q;
 }
 
 Matrix4

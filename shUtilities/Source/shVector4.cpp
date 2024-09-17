@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/15
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -65,10 +65,9 @@ Vector4::normalize()
 }
 
 Vector4
-Vector4::lerp(const Vector4& _vecA,
-              const Vector4& _vecB,
+Vector4::lerp(const Vector4& _other,
               const float& _time) const
 {
-  return _vecA + (_vecB - _vecA) * _time;
+  return *this + (_other - *this) * _time;
 }
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/15
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -109,7 +109,7 @@ class SH_UTILITY_EXPORT Matrix4
   zeroMatrix();
 
   /*
-  *  Transpose this Matrix4 with another Matrix4.
+  *  This Matrix convert into the transpose matrix from another Matrix4.
   *
   *  @param Matrix4 _other: The another Matrix4.
   *
@@ -157,6 +157,16 @@ class SH_UTILITY_EXPORT Matrix4
   */
   Matrix4
   quaternionToMatrix(const Quaternion& _q);
+
+  /*
+  *  Convert this Matrix4 to a Quaternion.
+  *
+  *  @param
+  *
+  *  @return Quaternion The resultant Quaternion from this Matrix4.
+  */
+  Quaternion
+  matrixToQuaternion();
 
   /*
   *  Creates a scale matrix.

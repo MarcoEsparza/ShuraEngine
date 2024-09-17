@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/13
+*  @date    2024/09/15
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -47,23 +47,6 @@ Vector3::cross(const Vector3& _other) const
 }
 
 float
-Vector3::fastReverseSqrt(const float& _num) const
-{
-  long i;
-  float x2, _y;
-  const float threehalfs = 1.5F;
-
-  x2 = _num * 0.5F;
-  _y = _num;
-  i = *(long*)&_y;
-  i = 0x5f3759df - (i >> 1);
-  _y = *(float*)&i;
-  _y = _y * (threehalfs - (x2 * _y * _y));
-
-  return _y;
-}
-
-float
 Vector3::mag() const
 {
   float lenght = (x * x) + (y * y) + (z * z);
@@ -88,10 +71,9 @@ Vector3::normalize()
 }
 
 Vector3
-Vector3::lerp(const Vector3& _vecA,
-              const Vector3& _vecB,
+Vector3::lerp(const Vector3& _other,
               const float& _time) const
 {
-  return _vecA + (_vecB - _vecA) * _time;
+  return *this + (_other - *this) * _time;
 }
 }
