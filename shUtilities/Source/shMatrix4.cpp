@@ -79,7 +79,7 @@ Matrix4::transpose(const Matrix4& _other)
 }
 
 Matrix4
-Matrix4::getTransposed()
+Matrix4::getTransposed() const
 {
   return Matrix4(m[0][0], m[1][0], m[2][0], m[3][0],
                  m[0][1], m[1][1], m[2][1], m[3][1],
@@ -88,7 +88,7 @@ Matrix4::getTransposed()
 }
 
 Matrix4
-Matrix4::getInversed()
+Matrix4::getInversed() const
 {
   // Cofactors
   Vector<float> inv;
@@ -221,7 +221,7 @@ Matrix4::getInversed()
 }
 
 Matrix4
-Matrix4::createTranslationMatrix(const Vector3& _vec)
+Matrix4::createTranslationMatrix(const Vector3& _vec) const
 {
   return Matrix4(1.0f, 0.0f, 0.0f, _vec.x,
                  0.0f, 1.0f, 0.0f, _vec.y,
@@ -249,7 +249,7 @@ Matrix4::quaternionToMatrix(const Quaternion& _q)
 }
 
 Quaternion
-Matrix4::matrixToQuaternion()
+Matrix4::matrixToQuaternion() const
 {
   Quaternion q;
   float trace = m[0][0] + m[1][1] + m[2][2];

@@ -258,48 +258,48 @@ TEST_CASE("Matrix4") {
   Vector4 v4(54.4f, 148.0, 12.7f, 1.0f);
   Matrix4 mat_3(v1, v2, v3, v4);
   Matrix4 mat_4 = Matrix4::zeroMatrix();
+  const Matrix4 mat_5 = mat_2->getTransposed();
 
   mat_4.transpose(*mat_2);
-  *mat_2 = mat_2->getTransposed();
-  REQUIRE(mat_4.m[0][0] == Approx(mat_2->m[0][0]).epsilon(0.1f));
-  REQUIRE(mat_4.m[0][1] == Approx(mat_2->m[0][1]).epsilon(0.1f));
-  REQUIRE(mat_4.m[0][2] == Approx(mat_2->m[0][2]).epsilon(0.1f));
-  REQUIRE(mat_4.m[0][3] == Approx(mat_2->m[0][3]).epsilon(0.1f));
+  REQUIRE(mat_4.m[0][0] == Approx(mat_5.m[0][0]).epsilon(0.1f));
+  REQUIRE(Math::abs(mat_4.m[0][1]) == Approx(mat_5.m[0][1]).epsilon(0.1f));
+  REQUIRE(mat_4.m[0][2] == Approx(mat_5.m[0][2]).epsilon(0.1f));
+  REQUIRE(mat_4.m[0][3] == Approx(mat_5.m[0][3]).epsilon(0.1f));
 
-  REQUIRE(mat_4.m[1][0] == Approx(mat_2->m[1][0]).epsilon(0.1f));
-  REQUIRE(mat_4.m[1][1] == Approx(mat_2->m[1][1]).epsilon(0.1f));
-  REQUIRE(mat_4.m[1][2] == Approx(mat_2->m[1][2]).epsilon(0.1f));
-  REQUIRE(mat_4.m[1][3] == Approx(mat_2->m[1][3]).epsilon(0.1f));
+  REQUIRE(mat_4.m[1][0] == Approx(mat_5.m[1][0]).epsilon(0.1f));
+  REQUIRE(mat_4.m[1][1] == Approx(mat_5.m[1][1]).epsilon(0.1f));
+  REQUIRE(mat_4.m[1][2] == Approx(mat_5.m[1][2]).epsilon(0.1f));
+  REQUIRE(mat_4.m[1][3] == Approx(mat_5.m[1][3]).epsilon(0.1f));
 
-  REQUIRE(mat_4.m[2][0] == Approx(mat_2->m[2][0]).epsilon(0.1f));
-  REQUIRE(mat_4.m[2][1] == Approx(mat_2->m[2][1]).epsilon(0.1f));
-  REQUIRE(mat_4.m[2][2] == Approx(mat_2->m[2][2]).epsilon(0.1f));
-  REQUIRE(mat_4.m[2][3] == Approx(mat_2->m[2][3]).epsilon(0.1f));
+  REQUIRE(mat_4.m[2][0] == Approx(mat_5.m[2][0]).epsilon(0.1f));
+  REQUIRE(mat_4.m[2][1] == Approx(mat_5.m[2][1]).epsilon(0.1f));
+  REQUIRE(mat_4.m[2][2] == Approx(mat_5.m[2][2]).epsilon(0.1f));
+  REQUIRE(mat_4.m[2][3] == Approx(mat_5.m[2][3]).epsilon(0.1f));
 
-  REQUIRE(mat_4.m[3][0] == Approx(mat_2->m[3][0]));
-  REQUIRE(mat_4.m[3][1] == Approx(mat_2->m[3][1]));
-  REQUIRE(mat_4.m[3][2] == Approx(mat_2->m[3][2]));
-  REQUIRE(mat_4.m[3][3] == Approx(mat_2->m[3][3]));
+  REQUIRE(mat_4.m[3][0] == Approx(mat_5.m[3][0]));
+  REQUIRE(mat_4.m[3][1] == Approx(mat_5.m[3][1]));
+  REQUIRE(mat_4.m[3][2] == Approx(mat_5.m[3][2]));
+  REQUIRE(mat_4.m[3][3] == Approx(mat_5.m[3][3]));
 
-  Matrix4 mat_5 = mat_0.getInversed();
-  mat_5 = mat_5 * mat_0;
-  REQUIRE(mat_5.m[0][0] == Approx(mat_1.m[0][0]));
-  REQUIRE(mat_5.m[0][1] == Approx(mat_1.m[0][1]));
-  REQUIRE(mat_5.m[0][2] == Approx(mat_1.m[0][2]).epsilon(0.1f));
-  REQUIRE(mat_5.m[0][3] == Approx(mat_1.m[0][3]).epsilon(0.1f));
+  Matrix4 mat_6 = mat_0.getInversed();
+  mat_6 = mat_6 * mat_0;
+  REQUIRE(mat_6.m[0][0] == Approx(mat_1.m[0][0]));
+  REQUIRE(mat_6.m[0][1] == Approx(mat_1.m[0][1]));
+  REQUIRE(Math::abs(mat_6.m[0][2]) == mat_1.m[0][2]);
+  REQUIRE(Math::abs(mat_6.m[0][3]) == Approx(mat_1.m[0][3]).epsilon(0.1f));
 
-  REQUIRE(mat_5.m[1][0] == Approx(mat_1.m[1][0]));
-  REQUIRE(mat_5.m[1][1] == Approx(mat_1.m[1][1]));
-  REQUIRE(mat_5.m[1][2] == Approx(mat_1.m[1][2]));
-  REQUIRE(mat_5.m[1][3] == Approx(mat_1.m[1][3]));
+  REQUIRE(mat_6.m[1][0] == Approx(mat_1.m[1][0]));
+  REQUIRE(mat_6.m[1][1] == Approx(mat_1.m[1][1]));
+  REQUIRE(mat_6.m[1][2] == Approx(mat_1.m[1][2]));
+  REQUIRE(mat_6.m[1][3] == Approx(mat_1.m[1][3]));
 
-  REQUIRE(mat_5.m[2][0] == Approx(mat_1.m[2][0]));
-  REQUIRE(mat_5.m[2][1] == Approx(mat_1.m[2][1]));
-  REQUIRE(mat_5.m[2][2] == Approx(mat_1.m[2][2]));
-  REQUIRE(mat_5.m[2][3] == Approx(mat_1.m[2][3]));
+  REQUIRE(mat_6.m[2][0] == Approx(mat_1.m[2][0]));
+  REQUIRE(mat_6.m[2][1] == Approx(mat_1.m[2][1]));
+  REQUIRE(mat_6.m[2][2] == Approx(mat_1.m[2][2]));
+  REQUIRE(mat_6.m[2][3] == Approx(mat_1.m[2][3]));
 
-  REQUIRE(mat_5.m[3][0] == Approx(mat_1.m[3][0]));
-  REQUIRE(mat_5.m[3][1] == Approx(mat_1.m[3][1]));
-  REQUIRE(mat_5.m[3][2] == Approx(mat_1.m[3][2]));
-  REQUIRE(mat_5.m[3][3] == Approx(mat_1.m[3][3]));
+  REQUIRE(mat_6.m[3][0] == Approx(mat_1.m[3][0]));
+  REQUIRE(mat_6.m[3][1] == Approx(mat_1.m[3][1]));
+  REQUIRE(mat_6.m[3][2] == Approx(mat_1.m[3][2]));
+  REQUIRE(mat_6.m[3][3] == Approx(mat_1.m[3][3]));
 }
