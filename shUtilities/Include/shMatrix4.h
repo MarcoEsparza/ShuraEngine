@@ -130,7 +130,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The transposed Matrix4.
   */
   Matrix4
-  getTransposed();
+  getTransposed() const;
 
   /*
   *  Get the inverse of this Matrix4.
@@ -140,7 +140,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The inversed Matrix4.
   */
   Matrix4
-  getInversed();
+  getInversed() const;
 
   /*
   *  Creates a translation matrix.
@@ -150,7 +150,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The translation matrix.
   */
   Matrix4
-  createTranslationMatrix(const Vector3& _vec);
+  createTranslationMatrix(const Vector3& _vec) const;
 
   /*
   *  Convert a Quaternion to a Matrix4.
@@ -159,7 +159,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  Matrix4
+  static Matrix4
   quaternionToMatrix(const Quaternion& _q);
 
   /*
@@ -170,7 +170,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Quaternion The resultant Quaternion from this Matrix4.
   */
   Quaternion
-  matrixToQuaternion();
+  matrixToQuaternion() const;
 
   /*
   *  Creates a scale matrix.
@@ -179,7 +179,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The scale matrix.
   */
-  Matrix4
+  static Matrix4
   createScaleMatrix(const Vector3& _vec);
 
   /*
@@ -199,7 +199,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  Matrix4
+  static Matrix4
   createRotationXMatrix(const float _angle);
 
   /*
@@ -209,7 +209,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  Matrix4
+  static Matrix4
   createRotationYMatrix(const float _angle);
 
   /*
@@ -219,7 +219,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  Matrix4
+  static Matrix4
   createRotationZMatrix(const float _angle);
 
   /*************************************************************/
@@ -262,7 +262,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4
-  operator*(const Matrix4& _other);
+  operator*(const Matrix4& _other) const;
 
   /*
   *  The multiplication of a Matrix4 and a constant.
@@ -286,7 +286,7 @@ public:
   *
   *  @return Matrix4
   */
-  FORCEINLINE Matrix4
+  FORCEINLINE Matrix4&
   operator+=(const Matrix4& _other);
 
   /*
@@ -299,7 +299,7 @@ public:
   *
   *  @return Matrix4
   */
-  FORCEINLINE Matrix4
+  FORCEINLINE Matrix4&
   operator-=(const Matrix4& _other);
 
   /*************************************************************/
@@ -387,7 +387,7 @@ Matrix4::operator-(const Matrix4& _other)
 }
 
 FORCEINLINE Matrix4
-Matrix4::operator*(const Matrix4& _other)
+Matrix4::operator*(const Matrix4& _other) const
 {
   Matrix4 mat = Matrix4::zeroMatrix();
 
@@ -429,7 +429,7 @@ Matrix4::operator*(const float _delta)
                  m[3][3] * _delta);
 }
 
-FORCEINLINE Matrix4
+FORCEINLINE Matrix4&
 Matrix4::operator+=(const Matrix4& _other)
 {
   m[0][0] += _other.m[0][0];
@@ -455,7 +455,7 @@ Matrix4::operator+=(const Matrix4& _other)
   return *this;
 }
 
-FORCEINLINE Matrix4
+FORCEINLINE Matrix4&
 Matrix4::operator-=(const Matrix4& _other)
 {
   m[0][0] -= _other.m[0][0];
