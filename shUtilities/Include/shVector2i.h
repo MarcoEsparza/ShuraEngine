@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/18
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -82,16 +82,6 @@ class SH_UTILITY_EXPORT Vector2i
   */
   float
   mag() const;
-
-  /*
-  *  Calculates the magnitude of the Vector2i.
-  *
-  *  @param
-  *
-  *  @return int32 The magnitude of this Vector2i.
-  */
-  void
-  normalize();
 
   /*
   *  Calculates the cross product of the Vector2i.
@@ -180,7 +170,7 @@ class SH_UTILITY_EXPORT Vector2i
   * 
   *  @return Vector2i This.
   */
-  FORCEINLINE Vector2i
+  FORCEINLINE Vector2i&
   operator+=(const Vector2i& _other);
 
   /*
@@ -193,7 +183,7 @@ class SH_UTILITY_EXPORT Vector2i
   * 
   *  @return Vector2i This.
   */
-  FORCEINLINE Vector2i
+  FORCEINLINE Vector2i&
   operator-=(const Vector2i& _other);
 
   /*************************************************************/
@@ -236,7 +226,7 @@ Vector2i::operator*(const int32& _delta) const
   return Vector2i(x * _delta, y * _delta);
 }
 
-FORCEINLINE Vector2i
+FORCEINLINE Vector2i&
 Vector2i::operator+=(const Vector2i& _other)
 {
   x += _other.x;
@@ -245,7 +235,7 @@ Vector2i::operator+=(const Vector2i& _other)
   return *this;
 }
 
-FORCEINLINE Vector2i
+FORCEINLINE Vector2i&
 Vector2i::operator-=(const Vector2i& _other)
 {
   x -= _other.x;

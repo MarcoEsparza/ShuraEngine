@@ -31,13 +31,12 @@ Quaternion::Quaternion(const Quaternion& _other)
 */
 /*************************************************************/
 
-void
+Vector3
 Quaternion::eulerAngles()
 {
-  x *= Math::RAD2DEG;
-  y *= Math::RAD2DEG;
-  z *= Math::RAD2DEG;
-  w *= Math::RAD2DEG;
+  return Vector3(x * Math::RAD2DEG,
+                 y * Math::RAD2DEG,
+                 z * Math::RAD2DEG);
 }
 
 void
