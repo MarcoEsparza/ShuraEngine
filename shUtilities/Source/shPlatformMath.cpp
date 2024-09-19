@@ -159,4 +159,28 @@ PlatformMath::atanh(const float& _radian)
 {
   return std::atanh(_radian);
 }
+
+/*************************************************************/
+/*
+*  Figures
+*/
+/*************************************************************/
+
+bool
+PlatformMath::boxBoxIntersect(const shBoxAAB& _boxA, const shBoxOBB& _boxO)
+{
+  return false;
+}
+
+bool
+PlatformMath::boxAABSphereIntersect(const shBoxAAB& _boxA, const shSphere& _boxO)
+{
+  return false;
+}
+
+bool
+PlatformMath::boxOBBSphereIntersect(const shBoxOBB& _boxA, const shSphere& _boxO)
+{
+  return false;
+}
 }
