@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/18
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -18,6 +18,7 @@
 */
 /*************************************************************/
 #include "shPrerequisitesUtilities.h"
+#include "shVector3.h"
 
 namespace shEngineSDK {
 /*
@@ -66,14 +67,12 @@ class SH_UTILITY_EXPORT Quaternion
 
   /*
   *  Transform quaternion angles from radians to euler degrees.
-  *  @brief WARNING: make sure your values are radians, because in this case
-  *  this function may give you wrong answers.
   *
   *  @param
   * 
-  *  @return
+  *  @return Vector3 The transformed euler degrees.
   */
-  void
+  Vector3
   eulerAngles();
 
   /*
@@ -250,7 +249,7 @@ class SH_UTILITY_EXPORT Quaternion
   *
   *  @return Quaternion
   */
-  FORCEINLINE Quaternion
+  FORCEINLINE Quaternion&
   operator+=(const Quaternion& _other);
 
   /*
@@ -263,7 +262,7 @@ class SH_UTILITY_EXPORT Quaternion
   *
   *  @return Quaternion
   */
-  FORCEINLINE Quaternion
+  FORCEINLINE Quaternion&
   operator-=(const Quaternion& _other);
 
   /*************************************************************/
@@ -332,7 +331,7 @@ Quaternion::operator*(const float& _delta) const
                     w * _delta);
 }
 
-FORCEINLINE Quaternion
+FORCEINLINE Quaternion&
 Quaternion::operator+=(const Quaternion& _other)
 {
   x += _other.x;
@@ -343,7 +342,7 @@ Quaternion::operator+=(const Quaternion& _other)
   return *this;
 }
 
-FORCEINLINE Quaternion
+FORCEINLINE Quaternion&
 Quaternion::operator-=(const Quaternion& _other)
 {
   x -= _other.x;

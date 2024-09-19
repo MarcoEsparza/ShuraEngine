@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/18
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -170,7 +170,7 @@ class SH_UTILITY_EXPORT Vector3
   * 
   *  @return Vector3 This.
   */
-  FORCEINLINE Vector3
+  FORCEINLINE Vector3&
   operator+=(const Vector3& _other);
 
   /*
@@ -183,7 +183,7 @@ class SH_UTILITY_EXPORT Vector3
   * 
   *  @return Vector3 This.
   */
-  FORCEINLINE Vector3
+  FORCEINLINE Vector3&
   operator-=(const Vector3& _other);
 
   /*************************************************************/
@@ -230,7 +230,7 @@ Vector3::operator*(const float& _delta) const
   return Vector3(x * _delta, y * _delta, z * _delta);
 }
 
-FORCEINLINE Vector3
+FORCEINLINE Vector3&
 Vector3::operator+=(const Vector3& _other)
 {
   x += _other.x;
@@ -240,7 +240,7 @@ Vector3::operator+=(const Vector3& _other)
   return *this;
 }
 
-FORCEINLINE Vector3
+FORCEINLINE Vector3&
 Vector3::operator-=(const Vector3& _other)
 {
   x -= _other.x;

@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/18
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -177,7 +177,7 @@ class SH_UTILITY_EXPORT  Vector2
   * 
   *  @return Vector2 This
   */
-  FORCEINLINE Vector2
+  FORCEINLINE Vector2&
   operator+=(const Vector2& other);
 
   /*
@@ -190,7 +190,7 @@ class SH_UTILITY_EXPORT  Vector2
   * 
   *   @return Vector2 This
   */
-  FORCEINLINE Vector2
+  FORCEINLINE Vector2&
   operator-=(const Vector2& other);
 
   /*************************************************************/
@@ -233,7 +233,7 @@ Vector2::operator*(const float& delta) const
   return Vector2(x * delta, y * delta);
 }
 
-FORCEINLINE Vector2
+FORCEINLINE Vector2&
 Vector2::operator+=(const Vector2& other)
 {
   x += other.x;
@@ -242,7 +242,7 @@ Vector2::operator+=(const Vector2& other)
   return *this;
 }
 
-FORCEINLINE Vector2
+FORCEINLINE Vector2&
 Vector2::operator-=(const Vector2& other)
 {
   x -= other.x;

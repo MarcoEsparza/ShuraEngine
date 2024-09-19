@@ -18,6 +18,9 @@
 */
 /*************************************************************/
 #include "shPlatformMath.h"
+#include "shBoxAAB.h"
+#include "shBoxOBB.h"
+#include "shSphere.h"
 
 namespace shEngineSDK {
  /*************************************************************/
