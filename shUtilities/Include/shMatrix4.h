@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/18
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -45,7 +45,11 @@ class SH_UTILITY_EXPORT Matrix4
   Matrix4(float m00, float m01, float m02, float m03,
           float m10, float m11, float m12, float m13,
           float m20, float m21, float m22, float m23,
-          float m30, float m31, float m32, float m33);
+          float m30, float m31, float m32, float m33)  :
+          m{{m00, m01, m02, m03},
+            {m10, m11, m12, m13},
+            {m20, m21, m22, m23},
+            {m30, m31, m32, m33}} {}
 
   /*
   *  Copy constructor
@@ -196,7 +200,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationXMatrix(const float& _angle);
+  createRotationXMatrix(const float _angle);
 
   /*
   *  Create a rotation matrix for the y axis with a given angle.
@@ -206,7 +210,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationYMatrix(const float& _angle);
+  createRotationYMatrix(const float _angle);
 
   /*
   *  Create a rotation matrix for the z axis with a given angle.
@@ -216,7 +220,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationZMatrix(const float& _angle);
+  createRotationZMatrix(const float _angle);
 
   /*************************************************************/
   /*
@@ -270,7 +274,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4
-  operator*(const float& _delta);
+  operator*(const float _delta);
 
   /*
   *  Operator to sum a Matrix4 values and other Matrix4 values and store
@@ -402,7 +406,7 @@ Matrix4::operator*(const Matrix4& _other)
 }
 
 FORCEINLINE Matrix4
-Matrix4::operator*(const float& _delta)
+Matrix4::operator*(const float _delta)
 {
   return Matrix4(m[0][0] * _delta,
                  m[0][1] * _delta,

@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/18
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -21,20 +21,27 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Matrix4::Matrix4(float m00, float m01, float m02, float m03,
-                 float m10, float m11, float m12, float m13,
-                 float m20, float m21, float m22, float m23,
-                 float m30, float m31, float m32, float m33)
-{
-  m[0][0] = m00; m[0][1] = m01; m[0][2] = m02; m[0][3] = m03;
-  m[1][0] = m10; m[1][1] = m11; m[1][2] = m12; m[1][3] = m13;
-  m[2][0] = m20; m[2][1] = m21; m[2][2] = m22; m[2][3] = m23;
-  m[3][0] = m30; m[3][1] = m31; m[3][2] = m32; m[3][3] = m33;
-}
-
 Matrix4::Matrix4(const Matrix4& _other)
 {
-  *this = _other;
+  m[0][0] = _other.m[0][0];
+  m[0][1] = _other.m[0][1];
+  m[0][2] = _other.m[0][2];
+  m[0][3] = _other.m[0][3];
+
+  m[1][0] = _other.m[1][0];
+  m[1][1] = _other.m[1][1];
+  m[1][2] = _other.m[1][2];
+  m[1][3] = _other.m[1][3];
+
+  m[2][0] = _other.m[2][0];
+  m[2][1] = _other.m[2][1];
+  m[2][2] = _other.m[2][2];
+  m[2][3] = _other.m[2][3];
+
+  m[3][0] = _other.m[3][0];
+  m[3][1] = _other.m[3][1];
+  m[3][2] = _other.m[3][2];
+  m[3][3] = _other.m[3][3];
 }
 
 Matrix4::Matrix4(const Quaternion& _q)
@@ -66,7 +73,7 @@ Matrix4::transpose(const Matrix4& _other)
   {
     for (int j = 0; j < 4; ++j)
     {
-      this->m[j][i] = _other.m[i][j];
+      m[j][i] = _other.m[i][j];
     }
   }
 }
@@ -84,7 +91,7 @@ Matrix4
 Matrix4::getInversed()
 {
   // Cofactors
-  std::vector<float> inv;
+  Vector<float> inv;
   inv.resize(16);
   float det;
 
@@ -266,7 +273,7 @@ Matrix4::matrixToQuaternion()
     float s = 2.0f * Math::sqrtf(1.0f + m[1][1] - m[0][0] - m[2][2]);
     float invS = 1 / s;
     q.x = (m[0][1] + m[1][0]) * invS;
-    q.y = 0.25 * invS;
+    q.y = 0.25f * invS;
     q.z = (m[1][2] + m[2][1]) * invS;
     q.w = (m[0][2] - m[2][0]) * invS;
   }
@@ -275,7 +282,7 @@ Matrix4::matrixToQuaternion()
     float invS = 1 / s;
     q.x = (m[0][2] + m[2][0]) * invS;
     q.y = (m[1][2] + m[2][1]) * invS;
-    q.z = 0.25 * invS;
+    q.z = 0.25f * invS;
     q.w = (m[1][0] - m[0][1]) * invS;
   }
 
@@ -300,7 +307,7 @@ Matrix4::transformDirection(const Vector3& _vec)
 }
 
 Matrix4
-Matrix4::createRotationXMatrix(const float& _angle)
+Matrix4::createRotationXMatrix(const float _angle)
 {
   return Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
                  0.0f, Math::cos(_angle), -(Math::sin(_angle)), 0.0f,
@@ -309,7 +316,7 @@ Matrix4::createRotationXMatrix(const float& _angle)
 }
 
 Matrix4
-Matrix4::createRotationYMatrix(const float& _angle)
+Matrix4::createRotationYMatrix(const float _angle)
 {
   return Matrix4(Math::cos(_angle), 0.0f, Math::sin(_angle), 0.0f,
                  0.0f, 1.0f, 0.0f, 0.0f,
@@ -318,7 +325,7 @@ Matrix4::createRotationYMatrix(const float& _angle)
 }
 
 Matrix4
-Matrix4::createRotationZMatrix(const float& _angle)
+Matrix4::createRotationZMatrix(const float _angle)
 {
   return Matrix4(Math::cos(_angle), -(Math::sin(_angle)), 0.0f, 0.0f,
                  Math::sin(_angle), Math::cos(_angle), 0.0f, 0.0f,
