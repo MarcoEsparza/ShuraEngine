@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/18
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -42,20 +42,6 @@ float
 Vector2i::mag() const
 {
   return Math::sqrtf(static_cast<float>(x * x + y * y));
-}
-
-void
-Vector2i::normalize()
-{
-  float invMag = 1 / mag();
-  if (invMag != 0.0f) {
-    x = static_cast<int32>(x * invMag);
-    y = static_cast<int32>(y * invMag);
-  }
-  else {
-    x = 0;
-    y = 0;
-  }
 }
 
 float
