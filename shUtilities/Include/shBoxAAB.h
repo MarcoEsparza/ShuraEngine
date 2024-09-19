@@ -50,39 +50,6 @@ class SH_UTILITY_EXPORT shBoxAAB
   bool
   intersect(const shBoxAAB& _other) const;
 
-  /*
-  *  NOT IMPLEMENTED YET
-  *  Event to be executed when collision start.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return
-  */
-  void
-  OnCollisionEnter(const shBoxAAB& _other);
-
-  /*
-  *  NOT IMPLEMENTED YET
-  *  Event to be executed while collision exist.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return
-  */
-  void
-  OnCollisionStay(const shBoxAAB& _other);
-
-  /*
-  *  NOT IMPLEMENTED YET
-  *  Event to be executed when collision end.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return
-  */
-  void
-  OnCollisionExit(const shBoxAAB& _other);
-
   /*************************************************************/
   /*
   *  Variables

@@ -19,6 +19,12 @@
 */
 /*************************************************************/
 #include "shPrerequisitesUtilities.h"
+#include "shBoxAAB.h"
+#include "shBoxOBB.h"
+#include "shCapsule.h"
+#include "shPlane.h"
+#include "shRect.h"
+#include "shSphere.h"
 
 namespace shEngineSDK {
 /*
@@ -275,6 +281,42 @@ public:
   */
   static float
   atanh(const float& _radian);
+
+  /*************************************************************/
+  /*
+  *  Figures
+  */
+  /*************************************************************/
+
+  /*
+  *
+  *
+  *  @param
+  *
+  *  @return
+  */
+  static bool
+  boxBoxIntersect(const shBoxAAB& _boxA, const shBoxOBB& _boxO);
+
+  /*
+  *
+  *
+  *  @param
+  *
+  *  @return
+  */
+  static bool
+  boxAABSphereIntersect(const shBoxAAB& _boxA, const shSphere& _boxO);
+
+  /*
+  *
+  *
+  *  @param
+  *
+  *  @return
+  */
+  static bool
+  boxOBBSphereIntersect(const shBoxOBB& _boxA, const shSphere& _boxO);
 
   /*************************************************************/
   /*

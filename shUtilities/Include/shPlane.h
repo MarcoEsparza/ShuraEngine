@@ -16,7 +16,7 @@
 */
 /*************************************************************/
 #include "shPrerequisitesUtilities.h"
-#include "shVector3.h"
+#include "shVector2.h"
 
 namespace shEngineSDK {
 /*
@@ -59,10 +59,10 @@ class SH_UTILITY_EXPORT shPlane
    /*
    *  Minimum values for X, Y and Z position
    */
-   Vector3 min;
+   Vector2 min;
    /*
    *  Maximum values for X, Y and Z position
    */
-   Vector3 max;
+   Vector2 max;
 };
 }
