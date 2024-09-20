@@ -2,7 +2,7 @@
 /*
 *  @file    shCapsule.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/16
+*  @date    2024/09/20
 *  @brief   Math class for capsule figure.
 *
 *  Math class for capsule figure.
@@ -52,15 +52,7 @@ class SH_UTILITY_EXPORT shCapsule
   */
   /*************************************************************/
 
-  /*
-  *  Checks if another box is intersecting with this box.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return bool True if is intersecting, false is otherwise.
-  */
-  bool
-  intersect(const shCapsule& _other) const;
+  
 
   /*************************************************************/
   /*

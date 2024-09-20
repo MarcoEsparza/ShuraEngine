@@ -289,34 +289,328 @@ public:
   /*************************************************************/
 
   /*
+  *  Checks if a point is intersecting with an axis aligned bounding box.
   *
+  *  @param Vector3 _point: The point.
   *
-  *  @param
+  *  @param shBoxAAB _box: The box.
   *
-  *  @return
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  pointBoxIntersect(const Vector3& _point, const shBoxAAB& _box);
+
+  /*
+  *  Checks if a point is intersecting with an oriented bounding box.
+  *
+  *  @param Vector3 _point: The point.
+  *
+  *  @param shBoxOBB _box: The box.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  pointBoxIntersect(const Vector3& _point, const shBoxOBB& _box);
+
+  /*
+  *  Checks if a point is intersecting with a sphere.
+  *
+  *  @param Vector3 _point: The point.
+  *
+  *  @param shSphere _sph: The sphere.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  pointSphereIntersect(const Vector3& _point, const shSphere& _sph);
+
+  /*
+  *  Checks if a point is intersecting with a capsule.
+  *
+  *  @param Vector3 _point: The point.
+  *
+  *  @param shCapsule _cap: The capsule.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  pointCapsuleIntersect(const Vector3& _point, const shCapsule& _cap);
+
+  /*
+  *  Checks if a point is intersecting with a rect.
+  *
+  *  @param Vector3 _point: The point.
+  *
+  *  @param shRect _r: The rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  pointRectIntersect(const Vector2& _point, const shRect& _r);
+
+  /*
+  *  Checks if a point is intersecting with a plane.
+  *
+  *  @param Vector3 _point: The point.
+  *
+  *  @param shPlane _pln: The plane.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  pointPlaneIntersect(const Vector2& _point, const shPlane& _pln);
+
+  /*
+  *  Checks if a box is intersecting with another box.
+  *
+  *  @param shBoxAAB _box: The first box.
+  * 
+  *  @param shBoxAAB _box1: The second box.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxBoxIntersect(const shBoxAAB& _box, const shBoxAAB& _box1);
+
+  /*
+  *  Checks if a box is intersecting with another box.
+  *
+  *  @param shBoxOBB _box: The first box.
+  *
+  *  @param shBoxOBB _box1: The second box.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxBoxIntersect(const shBoxOBB& _box, const shBoxOBB& _box1);
+
+  /*
+  *  Checks if a box is intersecting with another box.
+  *
+  *  @param shBoxAAB _boxA: The axis aligned bounding box.
+  *
+  *  @param shBoxOBB _boxO: The oriented bounding box.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
   boxBoxIntersect(const shBoxAAB& _boxA, const shBoxOBB& _boxO);
 
   /*
+  *  Checks if a box is intersecting with a capsule.
   *
+  *  @param shBoxAAB _box: The axis aligned bounding box.
   *
-  *  @param
+  *  @param shCapsule _cap: The capsule.
   *
-  *  @return
+  *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxAABSphereIntersect(const shBoxAAB& _boxA, const shSphere& _boxO);
+  boxCapsuleIntersect(const shBoxAAB& _box, const shCapsule& _cap);
 
   /*
+  *  Checks if a box is intersecting with a capsule.
   *
+  *  @param shBoxOBB _box: The oriented bounding box.
   *
-  *  @param
+  *  @param shCapsule _cap: The capsule.
   *
-  *  @return
+  *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxOBBSphereIntersect(const shBoxOBB& _boxA, const shSphere& _boxO);
+  boxCapsuleIntersect(const shBoxOBB& _box, const shCapsule& _cap);
+
+  /*
+  *  Checks if a box is intersecting with a plane.
+  *
+  *  @param shBoxAAB _box: The axis aligned bounding box.
+  *
+  *  @param shPlane _pln: The plane.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxPlaneIntersect(const shBoxAAB& _box, const shPlane& _pln);
+
+  /*
+  *  Checks if a box is intersecting with a plane.
+  *
+  *  @param shBoxOBB _box: The oriented bounding box.
+  *
+  *  @param shPlane _pln: The plane.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxPlaneIntersect(const shBoxOBB& _box, const shPlane& _pln);
+
+  /*
+  *  Checks if a box is intersecting with a rect.
+  *
+  *  @param shBoxAAB _box: The axis aligned bounding box.
+  *
+  *  @param shRect _r: The rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxRectIntersect(const shBoxAAB& _box, const shRect& _r);
+
+  /*
+  *  Checks if a box is intersecting with a rect.
+  *
+  *  @param shBoxOBB _box: The oriented bounding box.
+  *
+  *  @param shRect _r: The rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxRectIntersect(const shBoxOBB& _box, const shRect& _r);
+
+  /*
+  *  Checks if a sphere is intersecting with another sphere.
+  *
+  *  @param shSphere _sph: The first sphere.
+  *
+  *  @param shSphere _sph1: The second sphere.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  sphereSphereIntersect(const shSphere& _sph, const shSphere& _sph1);
+
+  /*
+  *  Checks if a box is intersecting with a sphere.
+  *
+  *  @param shBoxAAB _box: The axis aligned bounding box.
+  *
+  *  @param shSphere _sph: The sphere.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxSphereIntersect(const shBoxAAB& _box, const shSphere& _sph);
+
+  /*
+  *  Checks if a box is intersecting with a sphere.
+  *
+  *  @param shBoxOBB _box: The oriented bounding box.
+  *
+  *  @param shSphere _sph: The sphere.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  boxSphereIntersect(const shBoxOBB& _box, const shSphere& _sph);
+
+  /*
+  *  Checks if a sphere is intersecting with a capsule.
+  *
+  *  @param shSphere _sph: The sphere.
+  *
+  *  @param shCapsule _cap: The capsule.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  sphereCapsuleIntersect(const shSphere& _sph, const shCapsule& _cap);
+
+  /*
+  *  Checks if a sphere is intersecting with a plane.
+  *
+  *  @param shSphere _sph: The sphere.
+  *
+  *  @param shPlane _pln: The plane.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  spherePlaneIntersect(const shSphere& _sph, const shPlane& _pln);
+
+  /*
+  *  Checks if a sphere is intersecting with a rect.
+  *
+  *  @param shSphere _sph: The sphere.
+  *
+  *  @param shRect _r: The rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  sphereRectIntersect(const shSphere& _sph, const shRect& _r);
+
+  /*
+  *  Checks if a capsule is intersecting with another capsule.
+  *
+  *  @param shCapsule _cap: The first capsule.
+  *
+  *  @param shCapsule _cap1: The second capsule.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  capsuleCapsuleIntersect(const shCapsule& _cap, const shCapsule& _cap1);
+  
+  /*
+  *  Checks if a capsule is intersecting with a plane.
+  *
+  *  @param shCapsule _cap: The capsule.
+  *
+  *  @param shPlane _pln: The plane.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  capsulePlaneIntersect(const shCapsule& _cap, const shPlane& _pln);
+
+  /*
+  *  Checks if a capsule is intersecting with a rect.
+  *
+  *  @param shCapsule _cap: The capsule.
+  *
+  *  @param shRect _r: The rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  capsuleRectIntersect(const shCapsule& _cap, const shRect& _r);
+
+  /*
+  *  Checks if a plane is intersecting with another plane.
+  *
+  *  @param shPlane _pln: The first plane.
+  *
+  *  @param shPlane _pln1: The second plane.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  planePlaneIntersect(const shPlane& _pln, const shPlane& _pln1);
+
+  /*
+  *  Checks if a plane is intersecting with a rect.
+  *
+  *  @param shPlane _pln: The plane.
+  *
+  *  @param shRect _r: The rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  planeRectIntersect(const shPlane& _pln, const shRect& _r);
+
+  /*
+  *  Checks if a rect is intersecting with another rect.
+  *
+  *  @param shRect _r: The first rect.
+  *
+  *  @param shRect _r1: The second rect.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  rectRectIntersect(const shRect& _r, const shRect& _r1);
 
   /*************************************************************/
   /*

@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxOBB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/16
+*  @date    2024/09/20
 *  @brief   Math class for Oriented Bounding-Box.
 *
 *  Math class for Oriented Bounding-Box.
@@ -53,15 +53,7 @@ class SH_UTILITY_EXPORT shBoxOBB
   */
   /*************************************************************/
 
-  /*
-  *  Checks if another box is intersecting with this box.
-  *
-  *  @param shBoxOBB _other: The other box.
-  *
-  *  @return bool True if is intersecting, false is otherwise.
-  */
-  bool
-  intersect(const shBoxOBB& _other);
+  
 
   /*************************************************************/
   /*
@@ -78,7 +70,7 @@ class SH_UTILITY_EXPORT shBoxOBB
    */
    Vector3 max;
    /*
-   *  
+   *  Half lenghts of the box along each axis
    */
    Vector3 extent;
 };

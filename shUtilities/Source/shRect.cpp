@@ -2,7 +2,7 @@
 /*
 *  @file    shRect.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/20
 *  @brief   Math class for rectangle figure.
 *
 *  Math class for rectangle figure.
@@ -18,15 +18,10 @@
 
 namespace shEngineSDK {
 
-  /*************************************************************/
-  /*
-  *  Functions
-  */
-  /*************************************************************/
+/*************************************************************/
+/*
+*  Functions
+*/
+/*************************************************************/
 
-bool
-shRect::intersect(const shRect& _other) const
-{
-  return false;
-}
 }
