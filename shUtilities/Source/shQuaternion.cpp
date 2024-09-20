@@ -40,13 +40,6 @@ Quaternion::Quaternion(const Quaternion& _other)
 /*************************************************************/
 
 Vector3
-<<<<<<< Updated upstream
-Quaternion::eulerAngles()
-{
-  return Vector3(x * Math::RAD2DEG,
-                 y * Math::RAD2DEG,
-                 z * Math::RAD2DEG);
-=======
 Quaternion::toEulerAngles() const
 {
   float theta = (Math::acos(w)) * 2;
@@ -71,7 +64,6 @@ Quaternion::fromEulerAngles(Vector3 _vec) const
                     (sr * cp * cy) - (cr * sp * sy),
                     (cr * sp * cy) + (sr * cp * sy),
                     (cr * cp * sy) - (sr * sp * cy));
->>>>>>> Stashed changes
 }
 
 void
