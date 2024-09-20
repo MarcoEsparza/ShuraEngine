@@ -2,11 +2,7 @@
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-<<<<<<< Updated upstream
-*  @date    2024/09/18
-=======
 *  @date    2024/09/20
->>>>>>> Stashed changes
 *  @brief   Vector2 with float
 *
 *  Vector2 with float

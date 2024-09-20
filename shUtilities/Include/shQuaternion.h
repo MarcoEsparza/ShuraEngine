@@ -2,11 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-<<<<<<< Updated upstream
-*  @date    2024/09/18
-=======
 *  @date    2024/09/20
->>>>>>> Stashed changes
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -52,7 +48,7 @@ class SH_UTILITY_EXPORT Quaternion
              w(_w), x(_x), y(_y), z(_z) {}
 
   /*
-  *  Constructor from euler degrees to quaternion radians.
+  *  Constructor from euler degrees to Quaternion radians.
   *
   *  @param Vector3 _vec: The euler angles to transform.
   */
@@ -77,17 +73,7 @@ class SH_UTILITY_EXPORT Quaternion
   /*************************************************************/
 
   /*
-<<<<<<< Updated upstream
-  *  Transform quaternion angles from radians to euler degrees.
-  *
-  *  @param
-  * 
-  *  @return Vector3 The transformed euler degrees.
-  */
-  Vector3
-  eulerAngles();
-=======
-  *  Transform quaternion angles from radians to euler degrees in Vector3.
+  *  Transform Quaternion angles from radians to euler degrees in Vector3.
   *
   *  @param
   * 
@@ -95,7 +81,6 @@ class SH_UTILITY_EXPORT Quaternion
   */
   Vector3
   toEulerAngles() const;
->>>>>>> Stashed changes
 
   /*
   *  Transform Vector3 angles from euler degrees to Quaternion radians.
@@ -108,7 +93,7 @@ class SH_UTILITY_EXPORT Quaternion
   fromEulerAngles(Vector3 _vec) const;
 
   /*
-  *  Transform this quaternion values to radians from euler degrees.
+  *  Transform this Quaternion values to radians from euler degrees.
   *
   *  @param Vector3 _vec: The euler angles.
   *

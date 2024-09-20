@@ -119,13 +119,6 @@ TEST_CASE("Vectors") {
   Vector2i vec2i_2 = vec2i_0.lerp(vec2i_1, 1);
   REQUIRE(vec2i_2.x == 16);
   REQUIRE(vec2i_2.y == 26);
-<<<<<<< Updated upstream
-  REQUIRE(vec2i_2.scalarProjection(Vector2i(6, 10)) == (30.52674816f));
-  const Vector2i vec2i_3 = vec2i_2.vectorProjection(Vector2i(6, 10));
-  REQUIRE(vec2i_3.x == 15);
-  REQUIRE(vec2i_3.y == 26);
-=======
->>>>>>> Stashed changes
 
   // Vector2
   Vector2 vec2f_0(2.0f, 3.0f);
