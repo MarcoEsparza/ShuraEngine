@@ -2,7 +2,11 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
+<<<<<<< Updated upstream
 *  @date    2024/09/18
+=======
+*  @date    2024/09/20
+>>>>>>> Stashed changes
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -104,6 +108,16 @@ class SH_UTILITY_EXPORT Vector3
   */
   void
   normalize();
+
+  /*
+  *  Get this Vector3 normalized.
+  *
+  *  @param
+  *
+  *  @return Vector3 The normalized Vector3.
+  */
+  Vector3
+  getNormalized();
 
   /*
   *  Linear interpolation between two given Vector3.

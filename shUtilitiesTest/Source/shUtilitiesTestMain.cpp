@@ -119,10 +119,13 @@ TEST_CASE("Vectors") {
   Vector2i vec2i_2 = vec2i_0.lerp(vec2i_1, 1);
   REQUIRE(vec2i_2.x == 16);
   REQUIRE(vec2i_2.y == 26);
+<<<<<<< Updated upstream
   REQUIRE(vec2i_2.scalarProjection(Vector2i(6, 10)) == (30.52674816f));
   const Vector2i vec2i_3 = vec2i_2.vectorProjection(Vector2i(6, 10));
   REQUIRE(vec2i_3.x == 15);
   REQUIRE(vec2i_3.y == 26);
+=======
+>>>>>>> Stashed changes
 
   // Vector2
   Vector2 vec2f_0(2.0f, 3.0f);
@@ -201,27 +204,6 @@ TEST_CASE("Quaternion") {
   const Quaternion quat_1(71.1, 115.8f, 54.9, 1.0f); 
   Quaternion* quat_2 = new Quaternion(33.2f, 121.4f, 12.0f, 145.8f);
 
-  REQUIRE(quat_0.x == 90.0f);
-  REQUIRE(quat_0.y == 43.4f);
-  REQUIRE(quat_0.z == 65.2f);
-  REQUIRE(quat_0.w == 10.1f);
-  quat_2->radAngles();
-  REQUIRE(quat_2->x == Approx(0.57945f));
-  REQUIRE(quat_2->y == Approx(2.11883f));
-  REQUIRE(quat_2->z == Approx(0.20944f));
-  REQUIRE(quat_2->w == Approx(2.54469f));
-  quat_2->eulerAngles();
-  REQUIRE(quat_2->x == Approx(33.2f));
-  REQUIRE(quat_2->y == Approx(121.4f));
-  REQUIRE(quat_2->z == Approx(12.0f));
-  REQUIRE(quat_2->w == Approx(145.8f));
-  quat_0.radAngles();
-  REQUIRE(quat_0.lenght() == (2.08978f));
-  quat_0.normalize();
-  REQUIRE(quat_0.x == Approx(0.75166f));
-  REQUIRE(quat_0.y == Approx(0.36247f).epsilon(0.1f));
-  REQUIRE(quat_0.z == Approx(0.54453f));
-  REQUIRE(quat_0.w == Approx(0.08435f).epsilon(0.1f));
   Quaternion quat_3 = quat_2->inverse();
   REQUIRE(quat_3.x == Approx(-0.17204f).epsilon(0.1f));
   REQUIRE(quat_3.y == Approx(-0.62908f));

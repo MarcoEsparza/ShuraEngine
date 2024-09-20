@@ -2,7 +2,11 @@
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
+<<<<<<< Updated upstream
 *  @date    2024/09/18
+=======
+*  @date    2024/09/20
+>>>>>>> Stashed changes
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -84,6 +88,7 @@ class SH_UTILITY_EXPORT Vector2i
   mag() const;
 
   /*
+<<<<<<< Updated upstream
   *  Calculates the cross product of the Vector2i.
   *
   *  @param Vector2i _other: To calculate with this Vector2i.
@@ -106,6 +111,8 @@ class SH_UTILITY_EXPORT Vector2i
   vectorProjection(const Vector2i& _other) const;
 
   /*
+=======
+>>>>>>> Stashed changes
   *  Calculates the linear interpolate between two Vector2i.
   *  @brief This Vector2i is taken as the min value.
   *
