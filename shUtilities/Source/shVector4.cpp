@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/20
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -22,7 +22,10 @@
 namespace shEngineSDK {
 Vector4::Vector4(const Vector4& _other)
 {
-  *this = _other;
+  x = _other.x;
+  y = _other.y;
+  z = _other.z;
+  w = _other.w;
 }
 
 /*************************************************************/
@@ -61,6 +64,25 @@ Vector4::normalize()
     y = 0.0f;
     z = 0.0f;
     w = 0.0f;
+  }
+}
+
+Vector4
+Vector4::getNormalized()
+{
+  float invMag = 1 / mag();
+  if (invMag != 0.0f) {
+    
+    return Vector4(x * invMag,
+                   y * invMag,
+                   z * invMag,
+                   w * invMag);
+  }
+  else {
+    return Vector4(0.0f,
+                   0.0f,
+                   0.0f,
+                   0.0f);
   }
 }
 

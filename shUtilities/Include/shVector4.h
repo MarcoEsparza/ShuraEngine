@@ -2,7 +2,11 @@
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
+<<<<<<< Updated upstream
 *  @date    2024/09/18
+=======
+*  @date    2024/09/20
+>>>>>>> Stashed changes
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -97,6 +101,16 @@ class SH_UTILITY_EXPORT Vector4
   */
   void
   normalize();
+
+  /*
+  *  Get this Vector4 normalized.
+  *
+  *  @param
+  *
+  *  @return Vector4 The normalized Vector4.
+  */
+  Vector4
+  getNormalized();
 
   /*
   *  Linear interpolation between two given Vector4.

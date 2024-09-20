@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/18
+*  @date    2024/09/20
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -159,7 +159,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  static Matrix4
+  Matrix4
   quaternionToMatrix(const Quaternion& _q);
 
   /*
@@ -179,7 +179,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The scale matrix.
   */
-  static Matrix4
+  Matrix4
   createScaleMatrix(const Vector3& _vec);
 
   /*
@@ -199,7 +199,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  static Matrix4
+  Matrix4
   createRotationXMatrix(const float _angle);
 
   /*
@@ -209,7 +209,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  static Matrix4
+  Matrix4
   createRotationYMatrix(const float _angle);
 
   /*
@@ -219,7 +219,7 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
-  static Matrix4
+  Matrix4
   createRotationZMatrix(const float _angle);
 
   /*************************************************************/

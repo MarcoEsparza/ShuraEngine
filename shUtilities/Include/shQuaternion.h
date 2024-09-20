@@ -2,7 +2,11 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
+<<<<<<< Updated upstream
 *  @date    2024/09/18
+=======
+*  @date    2024/09/20
+>>>>>>> Stashed changes
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -39,13 +43,20 @@ class SH_UTILITY_EXPORT Quaternion
   *  Constructor to initialize values to the given numbers.
   *  Recommended to initialize in radians.
   *  
+  *  @param float _w: W value.
   *  @param float _x: X value.
   *  @param float _y: Y value.
   *  @param float _z: Z value.
-  *  @param float _w: W value.
   */
-  Quaternion(float _x, float _y, float _z, float _w) :
-             x(_x), y(_y), z(_z), w(_w) {}
+  Quaternion(float _w, float _x, float _y, float _z) :
+             w(_w), x(_x), y(_y), z(_z) {}
+
+  /*
+  *  Constructor from euler degrees to quaternion radians.
+  *
+  *  @param Vector3 _vec: The euler angles to transform.
+  */
+  Quaternion(const Vector3& _vec);
 
   /*
   *  Copy constructor
@@ -66,6 +77,7 @@ class SH_UTILITY_EXPORT Quaternion
   /*************************************************************/
 
   /*
+<<<<<<< Updated upstream
   *  Transform quaternion angles from radians to euler degrees.
   *
   *  @param
@@ -74,18 +86,36 @@ class SH_UTILITY_EXPORT Quaternion
   */
   Vector3
   eulerAngles();
-
-  /*
-  *  Transform quaternion angles from euler degrees to radians.
-  *  @brief WARNING: make sure your values are euler degrees, because in this
-  *  case this function may give you wrong answers.
+=======
+  *  Transform quaternion angles from radians to euler degrees in Vector3.
   *
   *  @param
+  * 
+  *  @return Vector3 The angles in euler degrees
+  */
+  Vector3
+  toEulerAngles() const;
+>>>>>>> Stashed changes
+
+  /*
+  *  Transform Vector3 angles from euler degrees to Quaternion radians.
+  *
+  *  @param
+  *
+  *  @return Quaternion Transformed euler angles to radians.
+  */
+  Quaternion
+  fromEulerAngles(Vector3 _vec) const;
+
+  /*
+  *  Transform this quaternion values to radians from euler degrees.
+  *
+  *  @param Vector3 _vec: The euler angles.
   *
   *  @return
   */
   void
-  radAngles();
+  radAngles(Vector3 _vec);
 
   /*
   *  Computes the euclidian lenght.
@@ -106,6 +136,16 @@ class SH_UTILITY_EXPORT Quaternion
   */
   void
   normalize();
+
+  /*
+  *  Normalize Quaternion values.
+  *
+  *  @param
+  *
+  *  @return
+  */
+  Quaternion
+  getNormalized();
 
   /*
   *  Calculates the dot product of this Quaternion and a given Quaternion.
@@ -272,21 +312,21 @@ class SH_UTILITY_EXPORT Quaternion
   /*************************************************************/
  public:
   /*
-  * Quaternion X value.
+  * Quaternion W value. Real part.
+  */
+  float w;
+  /*
+  * Quaternion X value. Imaginary part.
   */
   float x;
   /*
-  * Quaternion Y value.
+  * Quaternion Y value. Imaginary part.
   */
   float y;
   /*
-  * Quaternion Z value.
+  * Quaternion Z value. Imaginary part.
   */
   float z;
-  /*
-  * Quaternion W value.
-  */
-  float w;
 };
 
 /*************************************************************/

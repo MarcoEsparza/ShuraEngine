@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/20
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -22,7 +22,8 @@
 namespace shEngineSDK {
 Vector2::Vector2(const Vector2& _other)
 {
-  *this = _other;
+  x = _other.x;
+  y = _other.y;
 }
 
 /*************************************************************/
@@ -55,6 +56,21 @@ Vector2::normalize()
   else {
     x = 0.0f;
     y = 0.0f;
+  }
+}
+
+Vector2
+Vector2::getNormalized()
+{
+  float invMag = 1 / mag();
+  if (invMag != 0.0f) {
+    
+    return Vector2(x * invMag,
+                   y * invMag);
+  }
+  else {
+    return Vector2(0.0f,
+                   0.0f);
   }
 }
 

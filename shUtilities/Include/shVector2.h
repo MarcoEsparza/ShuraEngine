@@ -2,7 +2,11 @@
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
+<<<<<<< Updated upstream
 *  @date    2024/09/18
+=======
+*  @date    2024/09/20
+>>>>>>> Stashed changes
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -83,7 +87,7 @@ class SH_UTILITY_EXPORT  Vector2
   mag() const;
 
   /*
-  *  Normalize the Vector2.
+  *  Normalize this Vector2.
   *
   *  @param
   *
@@ -91,6 +95,16 @@ class SH_UTILITY_EXPORT  Vector2
   */
   void
   normalize();
+
+  /*
+  *  Get this Vector2 normalized.
+  *
+  *  @param
+  *
+  *  @return Vector2 The normalized Vector2.
+  */
+  Vector2
+  getNormalized();
 
   /*
   *  Calculates the cross product of the Vector2.

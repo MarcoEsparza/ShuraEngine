@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/09/20
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -20,9 +20,17 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
+Quaternion::Quaternion(const Vector3& _vec)
+{
+  radAngles(_vec);
+}
+
 Quaternion::Quaternion(const Quaternion& _other)
 {
-  *this = _other;
+  w = _other.w;
+  x = _other.x;
+  y = _other.y;
+  z = _other.z;
 }
 
 /*************************************************************/
@@ -32,20 +40,54 @@ Quaternion::Quaternion(const Quaternion& _other)
 /*************************************************************/
 
 Vector3
+<<<<<<< Updated upstream
 Quaternion::eulerAngles()
 {
   return Vector3(x * Math::RAD2DEG,
                  y * Math::RAD2DEG,
                  z * Math::RAD2DEG);
+=======
+Quaternion::toEulerAngles() const
+{
+  float theta = (Math::acos(w)) * 2;
+  float inv = 1 / (Math::sin(Math::acos(theta)));
+
+  return Vector3(x * inv,
+                 y * inv,
+                 z * inv);
+}
+
+Quaternion
+Quaternion::fromEulerAngles(Vector3 _vec) const
+{
+  float cr = Math::cos(_vec.x * 0.5f);  // Cosine Roll
+  float sr = Math::sin(_vec.x * 0.5f);  // Sine Roll
+  float cp = Math::cos(_vec.y * 0.5f);  // Cosine Pitch
+  float sp = Math::sin(_vec.y * 0.5f);  // Sine Pich
+  float cy = Math::cos(_vec.z * 0.5f);  // Cosine Yaw
+  float sy = Math::sin(_vec.z * 0.5f);  // Sine Yaw
+
+  return Quaternion((cr * cp * cy) + (sr * sp * sy),
+                    (sr * cp * cy) - (cr * sp * sy),
+                    (cr * sp * cy) + (sr * cp * sy),
+                    (cr * cp * sy) - (sr * sp * cy));
+>>>>>>> Stashed changes
 }
 
 void
-Quaternion::radAngles()
+Quaternion::radAngles(Vector3 _vec)
 {
-  x *= Math::DEG2RAD;
-  y *= Math::DEG2RAD;
-  z *= Math::DEG2RAD;
-  w *= Math::DEG2RAD;
+  float cr = Math::cos(_vec.x * 0.5f);
+  float sr = Math::sin(_vec.x * 0.5f);
+  float cp = Math::cos(_vec.y * 0.5f);
+  float sp = Math::sin(_vec.y * 0.5f);
+  float cy = Math::cos(_vec.z * 0.5f);
+  float sy = Math::sin(_vec.z * 0.5f);
+
+  w = (cr * cp * cy) + (sr * sp * sy);
+  x = (sr * cp * cy) - (cr * sp * sy);
+  y = (cr * sp * cy) + (sr * cp * sy);
+  z = (cr * cp * sy) - (sr * sp * cy);
 }
 
 float
@@ -59,16 +101,34 @@ Quaternion::normalize()
 {
   float invLenght = 1 / lenght();
   if (invLenght != 0.0f) {
+    w *= invLenght;
     x *= invLenght;
     y *= invLenght;
     z *= invLenght;
-    w *= invLenght;
   }
   else {
+    w = 0.0f;
     x = 0.0f;
     y = 0.0f;
     z = 0.0f;
-    w = 0.0f;
+  }
+}
+
+Quaternion
+Quaternion::getNormalized()
+{
+  float invLenght = 1 / lenght();
+  if (invLenght != 0.0f) {
+    return Quaternion(w * invLenght,
+                      x * invLenght,
+                      y * invLenght,
+                      z * invLenght);
+  }
+  else {
+    return Quaternion(0.0f,
+                      0.0f,
+                      0.0f,
+                      0.0f);
   }
 }
 
@@ -110,7 +170,7 @@ Quaternion::inverse()
 float
 Quaternion::angleTo(const Quaternion& _other) const
 {
-  return (2 * Math::acos(Math::abs(Math::clamp(this->dot(_other), -1, 1))));
+  return (2 * Math::acos(Math::abs(Math::clamp(dot(_other), -1, 1))));
 }
 
 Quaternion
