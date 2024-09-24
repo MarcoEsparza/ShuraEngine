@@ -2,7 +2,7 @@
 /*
 *  @file    shSphere.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/16
+*  @date    2024/09/20
 *  @brief   Math class for sphere figure.
 *
 *  Math class for sphere figure.
@@ -40,15 +40,7 @@ class SH_UTILITY_EXPORT shSphere
   */
   /*************************************************************/
 
-  /*
-  *  Checks if another sphere is intersecting with this sphere.
-  *
-  *  @param shSphere _other: The other sphere.
-  *
-  *  @return bool True if is intersecting, false is otherwise.
-  */
-  bool
-  intersect(const shSphere& _other);
+  
 
   /*************************************************************/
   /*

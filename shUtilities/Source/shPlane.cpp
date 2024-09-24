@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/09
+*  @date    2024/09/20
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -24,9 +24,4 @@ namespace shEngineSDK {
 */
 /*************************************************************/
 
-bool
-shPlane::intersect(const shPlane& _other) const
-{
-  return false;
-}
 }

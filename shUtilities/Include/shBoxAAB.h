@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxAAB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/16
+*  @date    2024/09/20
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
@@ -40,48 +40,7 @@ class SH_UTILITY_EXPORT shBoxAAB
   */
   /*************************************************************/
 
-  /*
-  *  Checks if another box is intersecting with this box.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return bool True if is intersecting, false is otherwise.
-  */
-  bool
-  intersect(const shBoxAAB& _other) const;
-
-  /*
-  *  NOT IMPLEMENTED YET
-  *  Event to be executed when collision start.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return
-  */
-  void
-  OnCollisionEnter(const shBoxAAB& _other);
-
-  /*
-  *  NOT IMPLEMENTED YET
-  *  Event to be executed while collision exist.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return
-  */
-  void
-  OnCollisionStay(const shBoxAAB& _other);
-
-  /*
-  *  NOT IMPLEMENTED YET
-  *  Event to be executed when collision end.
-  *
-  *  @param shBoxAAB _other: The other box.
-  *
-  *  @return
-  */
-  void
-  OnCollisionExit(const shBoxAAB& _other);
+  
 
   /*************************************************************/
   /*
