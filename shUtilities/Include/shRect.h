@@ -2,7 +2,7 @@
 /*
 *  @file    shRect.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Math class for rectangle figure.
 *
 *  Math class for rectangle figure.
@@ -30,6 +30,14 @@ class SH_UTILITY_EXPORT shRect
   */
   shRect() = default;
   /*
+  *  Constructor to initialize rect values.
+  * 
+  *  @param const Vector2& _pos: Desired min value.
+  * 
+  *  @param const Vector2& _size: Compute max value with size and min value.
+  */
+  shRect(const Vector2& _pos, const Vector2& _size);
+  /*
   *  Default destructor.
   */
   ~shRect() = default;
@@ -40,7 +48,25 @@ class SH_UTILITY_EXPORT shRect
   */
   /*************************************************************/
 
-  
+  /*
+  *  Set the min values for the rect.
+  * 
+  *  @param const Vector2& _pos: Desired min value.
+  * 
+  *  @return
+  */
+  void
+  setPosition(const Vector2& _pos);
+
+  /*
+  *  Compute the max values with given size and the position.
+  *  
+  *  @param const Vector2& _size: Set the max values with this plus position.
+  * 
+  *  @return
+  */
+  void
+  setSize(const Vector2& _size);
 
   /*************************************************************/
   /*
