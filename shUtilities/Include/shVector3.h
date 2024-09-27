@@ -147,6 +147,18 @@ class SH_UTILITY_EXPORT Vector3
   operator+(const Vector3& _other) const;
 
   /*
+  *  Operator to sum a Vector3 values and a constant
+  *
+  *  @param lValue-Vector3.
+  * 
+  *  @param rValue-float.
+  *
+  *  @return Vector3
+  */
+  FORCEINLINE Vector3
+  operator+(const float delta) const;
+
+  /*
   *  Operator to substract a Vector3 values and other Vector3 values
   *
   *  @param lValue-Vector3.
@@ -226,6 +238,11 @@ FORCEINLINE Vector3
 Vector3::operator+(const Vector3& _other) const
 {
   return Vector3(x + _other.x, y + _other.y, z + _other.z);
+}
+FORCEINLINE Vector3
+Vector3::operator+(const float delta) const
+{
+  return Vector3(x + delta, y + delta, z + delta);
 }
 
 FORCEINLINE Vector3

@@ -36,7 +36,6 @@ using namespace shEngineSDK;
 *  Platform Types
 */
 /*************************************************************/
-
 TEST_CASE("Platform Types") {
   REQUIRE(sizeof(int8) == 1);
   REQUIRE(sizeof(int16) == 2);
@@ -67,7 +66,6 @@ TEST_CASE("Platform Types") {
 *  Platform Math: functions
 */
 /*************************************************************/
-
 TEST_CASE("Platform Math") {
   REQUIRE(Math::sqrt(130.25f) == Approx(11.41271f));
   REQUIRE(Math::sqrtf(433.42f) == Approx(20.81874f));
@@ -452,7 +450,17 @@ TEST_CASE("Matrix4") {
 */
 /*************************************************************/
 TEST_CASE("BoxAAB") {
+  Vector3 pos1(3.0f, 1.5f, 2.0f);
+  Vector3 size1(3.0f, 1.5f, 2.0f);
+  Vector3 pos2(3.0f, 1.5f, 2.0f);
+  Vector3 size2(3.0f, 1.5f, 2.0f);
 
+  shBoxAAB box1(pos1, size1);
+  shBoxAAB box2;
+  box2.setPosition(pos2);
+  box2.setSize(size2);
+
+  REQUIRE(Math::boxBoxIntersect(box1, box2) == (true));
 }
 
 /*************************************************************/
@@ -461,7 +469,10 @@ TEST_CASE("BoxAAB") {
 */
 /*************************************************************/
 TEST_CASE("BoxOBB") {
+  shBoxOBB box1;
+  shBoxOBB box2;
 
+  REQUIRE(Math::boxBoxIntersect(box1, box2) == (false));
 }
 
 /*************************************************************/
@@ -470,7 +481,10 @@ TEST_CASE("BoxOBB") {
 */
 /*************************************************************/
 TEST_CASE("Capsule") {
+  shCapsule cap1(1.5f, Vector3(3.0f, 1.5f, 2.0f), Vector3(4.0f, 2.5f, 2.0f));
+  shCapsule cap2(2.5f, Vector3(4.0f, 1.5f, 2.0f), Vector3(5.0f, 2.5f, 2.0f));
 
+  REQUIRE(Math::capsuleCapsuleIntersect(cap1, cap2) == (true));
 }
 
 /*************************************************************/
@@ -479,7 +493,10 @@ TEST_CASE("Capsule") {
 */
 /*************************************************************/
 TEST_CASE("Sphere") {
+  shSphere sph1(Vector3(3.0f, 1.5f, 2.0f), 3.0f);
+  shSphere sph2(Vector3(3.0f, 1.5f, 2.0f), 3.0f);
 
+  REQUIRE(Math::sphereSphereIntersect(sph1, sph2) == (true));
 }
 
 /*************************************************************/
@@ -488,7 +505,10 @@ TEST_CASE("Sphere") {
 */
 /*************************************************************/
 TEST_CASE("Rect") {
+  shRect r1(Vector2(3.0f, 2.5f), Vector2(1.0f, 1.0f));
+  shRect r2(Vector2(3.0f, 2.5f), Vector2(1.0f, 1.0f));
 
+  REQUIRE(Math::rectRectIntersect(r1, r1) == (true));
 }
 
 /*************************************************************/
@@ -497,7 +517,10 @@ TEST_CASE("Rect") {
 */
 /*************************************************************/
 TEST_CASE("Plane") {
+  shPlane pln1(Vector3(3.0f, 1.5f, 2.0f), 1.0f);
+  shPlane pln2(Vector3(3.0f, 1.5f, 2.0f), 1.0f);
 
+  REQUIRE(Math::planePlaneIntersect(pln1, pln2) == (false));
 }
 
 /*************************************************************/
@@ -506,5 +529,8 @@ TEST_CASE("Plane") {
 */
 /*************************************************************/
 TEST_CASE("Module") {
+  class SubModule : public Module<SubModule> {
+   public:
 
+  };
 }
