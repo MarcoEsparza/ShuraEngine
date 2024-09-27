@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -113,7 +113,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 The normalized Vector3.
   */
   Vector3
-  getNormalized();
+  getNormalized() const;
 
   /*
   *  Linear interpolation between two given Vector3.

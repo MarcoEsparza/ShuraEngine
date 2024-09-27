@@ -22,8 +22,10 @@
     <ClInclude Include="Include\shBoxAAB.h" />
     <ClInclude Include="Include\shBoxOBB.h" />
     <ClInclude Include="Include\shCapsule.h" />
+    <ClInclude Include="Include\shException.h" />
     <ClInclude Include="Include\shMath.h" />
     <ClInclude Include="Include\shMatrix4.h" />
+    <ClInclude Include="Include\shModule.h" />
     <ClInclude Include="Include\shPlane.h" />
     <ClInclude Include="Include\shPlatformDefines.h" />
     <ClInclude Include="Include\shPlatformMath.h" />

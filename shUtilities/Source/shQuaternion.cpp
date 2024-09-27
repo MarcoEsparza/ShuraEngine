@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -107,7 +107,7 @@ Quaternion::normalize()
 }
 
 Quaternion
-Quaternion::getNormalized()
+Quaternion::getNormalized() const
 {
   float invLenght = 1 / lenght();
   if (invLenght != 0.0f) {
