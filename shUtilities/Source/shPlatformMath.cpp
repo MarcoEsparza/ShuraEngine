@@ -228,10 +228,12 @@ PlatformMath::pointRectIntersect(const Vector2& _point, const shRect& _r)
 bool
 PlatformMath::pointPlaneIntersect(const Vector2& _point, const shPlane& _pln)
 {
-  return (_point.x >= _pln.min.x &&
+  /*return (_point.x >= _pln.min.x &&
           _point.x <= _pln.max.x &&
           _point.y >= _pln.min.y &&
-          _point.y <= _pln.max.y);
+          _point.y <= _pln.max.y);*/
+
+  return false;
 }
 
 bool
@@ -302,19 +304,23 @@ PlatformMath::boxCapsuleIntersect(const shBoxOBB& _box, const shCapsule& _cap)
 bool
 PlatformMath::boxPlaneIntersect(const shBoxAAB& _box, const shPlane& _pln)
 {
-  return (_box.min.x <= _pln.max.x &&
+  /*return (_box.min.x <= _pln.max.x &&
           _box.max.x >= _pln.min.x &&
           _box.min.z <= _pln.max.y &&
-          _box.max.z >= _pln.min.y);
+          _box.max.z >= _pln.min.y);*/
+
+  return false;
 }
 
 bool
 PlatformMath::boxPlaneIntersect(const shBoxOBB& _box, const shPlane& _pln)
 {
-  return (_box.min.x <= _pln.max.x &&
+  /*return (_box.min.x <= _pln.max.x &&
           _box.max.x >= _pln.min.x &&
           _box.min.z <= _pln.max.y &&
-          _box.max.z >= _pln.min.y);
+          _box.max.z >= _pln.min.y);*/
+
+  return false;
 }
 
 bool
@@ -392,13 +398,15 @@ PlatformMath::sphereCapsuleIntersect(const shSphere& _sph, const shCapsule& _cap
 bool
 PlatformMath::spherePlaneIntersect(const shSphere& _sph, const shPlane& _pln)
 {
-  float x = max(_pln.min.x, min(_sph.center.x, _pln.max.x));
+  /*float x = max(_pln.min.x, min(_sph.center.x, _pln.max.x));
   float z = max(_pln.min.y, min(_sph.center.z, _pln.max.y));
 
   float distance = sqrt(((x - _sph.center.x) * (x - _sph.center.x)) +
                         ((z - _sph.center.z) * (z - _sph.center.z)));
 
-  return distance < _sph.radius;
+  return distance < _sph.radius;*/
+
+  return false;
 }
 
 bool
@@ -432,14 +440,16 @@ PlatformMath::capsuleCapsuleIntersect(const shCapsule& _cap, const shCapsule& _c
 bool
 PlatformMath::capsulePlaneIntersect(const shCapsule& _cap, const shPlane& _pln)
 {
-  float x = max(_pln.min.x, min(_cap.center.x, _pln.max.x));
+  /*float x = max(_pln.min.x, min(_cap.center.x, _pln.max.x));
   float z = max(_pln.min.y, min(_cap.center.z, _pln.max.y));
 
   float dx = sqrt((x - _cap.center.x) * (x - _cap.center.x));
   float dz = sqrt((z - _cap.center.z) * (z - _cap.center.z));
 
   return ((dx < _cap.radius) &&
-          (dz < _cap.radius));
+          (dz < _cap.radius));*/
+
+  return false;
 }
 
 bool
@@ -458,19 +468,23 @@ PlatformMath::capsuleRectIntersect(const shCapsule& _cap, const shRect& _r)
 bool
 PlatformMath::planePlaneIntersect(const shPlane& _pln, const shPlane& _pln1)
 {
-  return (_pln.min.x <= _pln1.max.x &&
+  /*return (_pln.min.x <= _pln1.max.x &&
           _pln.max.x >= _pln1.min.x &&
           _pln.min.y <= _pln1.max.y &&
-          _pln.max.y >= _pln1.min.y);
+          _pln.max.y >= _pln1.min.y);*/
+
+  return false;
 }
 
 bool
 PlatformMath::planeRectIntersect(const shPlane& _pln, const shRect& _r)
 {
-  return (_pln.min.x <= _r.max.x &&
+  /*return (_pln.min.x <= _r.max.x &&
           _pln.max.x >= _r.min.x &&
           _pln.min.y <= _r.max.y &&
-          _pln.max.y >= _r.min.y);
+          _pln.max.y >= _r.min.y);*/
+
+  return false;
 }
 
 bool

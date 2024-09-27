@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -160,7 +160,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  quaternionToMatrix(const Quaternion& _q);
+  quaternionToMatrix(const Quaternion& _q) const;
 
   /*
   *  Convert this Matrix4 to a Quaternion.
@@ -180,7 +180,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The scale matrix.
   */
   Matrix4
-  createScaleMatrix(const Vector3& _vec);
+  createScaleMatrix(const Vector3& _vec) const;
 
   /*
   *  Transorms the direction of a Vector3 with the Matrix4 info.
@@ -190,7 +190,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Vector3 The transformed Vector3.
   */
   Vector3
-  transformDirection(const Vector3& _vec);
+  transformDirection(const Vector3& _vec) const;
 
   /*
   *  Create a rotation matrix for the x axis with a given angle.
@@ -200,7 +200,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationXMatrix(const float _angle);
+  createRotationXMatrix(const float _angle) const;
 
   /*
   *  Create a rotation matrix for the y axis with a given angle.
@@ -210,7 +210,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationYMatrix(const float _angle);
+  createRotationYMatrix(const float _angle) const;
 
   /*
   *  Create a rotation matrix for the z axis with a given angle.
@@ -220,7 +220,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationZMatrix(const float _angle);
+  createRotationZMatrix(const float _angle) const;
 
   /*************************************************************/
   /*

@@ -25,6 +25,9 @@
     <Filter Include="Source\Figures">
       <UniqueIdentifier>{07a8b8cf-0816-4e5c-bbbb-0fbce2bfb418}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Util">
+      <UniqueIdentifier>{a206cb56-d428-403f-b49d-0b977ec60b3f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shBoxAAB.h">
@@ -80,6 +83,12 @@
     </ClInclude>
     <ClInclude Include="Include\shPlatformTypes.h">
       <Filter>Include\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\shModule.h">
+      <Filter>Include\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\shException.h">
+      <Filter>Include\Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/23
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -16,7 +16,7 @@
 */
 /*************************************************************/
 #include "shPrerequisitesUtilities.h"
-#include "shVector2.h"
+#include "shVector3.h"
 
 namespace shEngineSDK {
 /*
@@ -49,12 +49,12 @@ class SH_UTILITY_EXPORT shPlane
   /*************************************************************/
  public:
    /*
-   *  Minimum values for X and Z (y value to access z).
+   *  
    */
-   Vector2 min;
+   Vector3 normal;
    /*
-   *  Maximum values for X and Z (y value to access z).
+   *  
    */
-   Vector2 max;
+   float distance;
 };
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shUtilitiesTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/15
+*  @date    2024/09/27
 *  @brief   Here is the main for the utilities test project
 *
 *  Here is the main for the utilities test project
@@ -16,6 +16,7 @@
 *  Includes
 */
 /*************************************************************/
+#include "shPrerequisitesUtilities.h"
 #include "shMath.h"
 #include "shVector2i.h"
 #include "shVector2.h"
@@ -23,6 +24,7 @@
 #include "shVector4.h"
 #include "shQuaternion.h"
 #include "shMatrix4.h"
+#include "shModule.h"
 
 //#define CATCH_CONGIG_MAIN
 #include "catch.hpp"
@@ -53,9 +55,9 @@ TEST_CASE("Platform Types") {
 
   REQUIRE(sizeof(TYPE_OF_NULL) == 4);
 
-#if SH_ARCH_TYPE == SH_ARCHITECTURE_X86_64
+#if SH_ARCH_TYPE == SH_ARQUITECTURE_X86_64
   REQUIRE(sizeof(SIZE_T) == 8);
-#elif SH_ARCH_TYPE == SH_ARCHITECTURE_X86_32
+#elif SH_ARCH_TYPE == SH_ARQUITECTURE_X86_32
   REQUIRE(sizeof(SIZE_T) == 4);
 #endif
 }
@@ -67,14 +69,14 @@ TEST_CASE("Platform Types") {
 /*************************************************************/
 
 TEST_CASE("Platform Math") {
-  REQUIRE(Math::sqrt(30.25f) == (5.5f));
-  REQUIRE(Math::sqrtf(36.0f) == (6.0f));
-  REQUIRE(Math::pow(4.0f, 3.0f) == (64.0f));
-  REQUIRE(Math::lerp(1.0f, 10.0f, 0.5f) == (5.5f));
+  REQUIRE(Math::sqrt(130.25f) == Approx(11.41271f));
+  REQUIRE(Math::sqrtf(433.42f) == Approx(20.81874f));
+  REQUIRE(Math::pow(15.21f, 3.5f) == Approx(13723.10059f));
+  REQUIRE(Math::lerp(11.0f, 43.2f, 2.5f) == (91.5f));
   REQUIRE(Math::min(12.0f, 3.0f) == (3.0f));
   REQUIRE(Math::max(12.0f, 3.0f) == (12.0f));
-  REQUIRE(Math::clamp(8.0f, 10.0f, 15.0f) == (10.0f));
-  REQUIRE(Math::fmod(20.0f, 6.0f) == (2.0f));
+  REQUIRE(Math::clamp(8.3f, 130.2f, 27.8f) == (130.2f));
+  REQUIRE(Math::fmod(154.0f, 41.1f) == Approx(30.7f));
 }
 
 /*************************************************************/
@@ -84,31 +86,34 @@ TEST_CASE("Platform Math") {
 /*************************************************************/
 TEST_CASE("Trigonometric Functions") {
   float angle = 45 * Math::DEG2RAD;
+  float angle1 = 90 * Math::DEG2RAD;
+  float angle2 = 172 * Math::DEG2RAD;
+  float angle3 = 13 * Math::DEG2RAD;
+  float angle4 = 65 * Math::DEG2RAD;
 
-  REQUIRE(Math::cos(0.0f) == (1.0f));
-  REQUIRE(Math::sin(0.0f) == (0.0f));
+  REQUIRE(Math::cos(angle2) == Approx(-0.99027f));
+  REQUIRE(Math::sin(angle1) == (1.0f));
   REQUIRE(Math::tan(angle) == (1.0f));
 
-  REQUIRE(Math::cosh(0.0f) == (1.0f));
+  REQUIRE(Math::cosh(angle3) == Approx(1.02585f));
   REQUIRE(Math::sinh(angle) == (0.868671f));
-  REQUIRE(Math::tanh(0.0f) == (0.0f));
+  REQUIRE(Math::tanh(angle2) == Approx(0.99507f));
 
-  REQUIRE(Math::acos(1.0f) == (0.0f));
-  REQUIRE(Math::asin(0.0f) == (0.0f));
-  REQUIRE(Math::atan(0.0f) == (0.0f));
+  REQUIRE(Math::acos(angle) == Approx(0.66746f));
+  REQUIRE(Math::asin(angle3) == Approx(0.22889f).epsilon(0.1f));
+  REQUIRE(Math::atan(angle3) == Approx(0.22312f).epsilon(0.1f));
   
-  REQUIRE(Math::acosh(1.0f) == (0.0f));
-  REQUIRE(Math::asinh(0.0f) == (0.0f));
-  REQUIRE(Math::atanh(0.0f) == (0.0f));
+  REQUIRE(Math::acosh(angle4) == Approx(0.51294f));
+  REQUIRE(Math::asinh(angle1) == Approx(1.2334f));
+  REQUIRE(Math::atanh(angle3) == Approx(0.23091f));
 }
 
 /*************************************************************/
 /*
-*  Vectors and Quaternion
+*  Vector2i
 */
 /*************************************************************/
-TEST_CASE("Vectors") {
-  // Vector2i
+TEST_CASE("Vector2i") {
   Vector2i vec2i_0(5, 8);
   const Vector2i vec2i_1(6, 10);
 
@@ -119,8 +124,14 @@ TEST_CASE("Vectors") {
   Vector2i vec2i_2 = vec2i_0.lerp(vec2i_1, 1);
   REQUIRE(vec2i_2.x == 16);
   REQUIRE(vec2i_2.y == 26);
+}
 
-  // Vector2
+/*************************************************************/
+/*
+*  Vector2
+*/
+/*************************************************************/
+TEST_CASE("Vector2") {
   Vector2 vec2f_0(2.0f, 3.0f);
   const Vector2 vec2f_1(4.5f, 6.2f);
 
@@ -138,8 +149,17 @@ TEST_CASE("Vectors") {
   const Vector2 vec2f_3 = vec2f_2.vectorProjection(Vector2(8.1f, 2.8f));
   REQUIRE(vec2f_3.x == Approx(5.30696f));
   REQUIRE(vec2f_3.y == Approx(1.8345f));
+  const Vector2 vec2f_4 = vec2f_3.getNormalized();
+  REQUIRE(vec2f_4.x == Approx(0.94512f));
+  REQUIRE(vec2f_4.y == Approx(0.32671f));
+}
 
-  // Vector3
+/*************************************************************/
+/*
+*  Vector3
+*/
+/*************************************************************/
+TEST_CASE("Vector3") {
   Vector3 vec3f_0(15.0f, 8.0f, 9.0f);
   const Vector3 vec3f_1 = Vector3(2.4f, 11.4f, 5.6f);
   Vector3* vec3f_2 = new Vector3(vec3f_1);
@@ -150,6 +170,7 @@ TEST_CASE("Vectors") {
   REQUIRE(vec3f_2->x == 2.4f);
   REQUIRE(vec3f_2->y == 11.4f);
   REQUIRE(vec3f_2->z == 5.6f);
+  REQUIRE(vec3f_2->dot(vec3f_0) == Approx(177.59999f));
   vec3f_0 = vec3f_2->lerp(vec3f_1, 0.6f);
   REQUIRE(vec3f_0.x == Approx(2.4f));
   REQUIRE(vec3f_0.y == Approx(11.4f));
@@ -163,8 +184,18 @@ TEST_CASE("Vectors") {
   REQUIRE(vec3f_2->x == Approx(0.18567f).epsilon(0.1f));
   REQUIRE(vec3f_2->y == Approx(0.88195f));
   REQUIRE(vec3f_2->z == Approx(0.43324f));
+  const Vector3 vec3f_3 = vec3f_1.getNormalized();
+  REQUIRE(vec3f_3.x == Approx(0.18567f).epsilon(0.1f));
+  REQUIRE(vec3f_3.y == Approx(0.88195f));
+  REQUIRE(vec3f_3.z == Approx(0.43324f));
+}
 
-  // Vector4
+/*************************************************************/
+/*
+*  Vector4
+*/
+/*************************************************************/
+TEST_CASE("Vector4") {
   Vector4 vec4f_0(1.0f, 7.7f, 12.6f, 2.5f);
   const Vector4 vec4f_1 = Vector4(2.4f, 11.4f, 5.6f, 0.0f);
   SPtr<Vector4> vec4f_2 = std::make_shared<Vector4>(vec4f_0);
@@ -184,6 +215,12 @@ TEST_CASE("Vectors") {
   REQUIRE(vec4f_2->z == Approx(0.83944f));
   REQUIRE(vec4f_2->w == Approx(0.16656f).epsilon(0.1f));
   REQUIRE(vec4f_1.mag() == Approx(12.92594f));
+  const Vector4 vec4f_3 = vec4f_1.getNormalized();
+  REQUIRE(vec4f_3.x == Approx(0.18567f).epsilon(0.1f));
+  REQUIRE(vec4f_3.y == Approx(0.88195f));
+  REQUIRE(vec4f_3.z == Approx(0.43324f));
+  REQUIRE(vec4f_3.w == Approx(0.0f));
+  REQUIRE(vec4f_0.dot(vec4f_1) == Approx(176.25999f));
 }
 
 /*************************************************************/
@@ -193,22 +230,57 @@ TEST_CASE("Vectors") {
 /*************************************************************/
 
 TEST_CASE("Quaternion") {
-  Quaternion quat_0(90.0f, 43.4f, 65.2f, 10.1f);
-  const Quaternion quat_1(71.1, 115.8f, 54.9, 1.0f); 
-  Quaternion* quat_2 = new Quaternion(33.2f, 121.4f, 12.0f, 145.8f);
-
+  Quaternion quat_0(1.0f, 43.4f, 65.2f, 10.1f);
+  Quaternion quat_1(1.0f, 115.8f, 54.9f, 90.0f);
+  Quaternion* quat_2 = new Quaternion(1.0f, 121.4f, 12.0f, 145.8f);
+   // Inverse
   Quaternion quat_3 = quat_2->inverse();
-  REQUIRE(quat_3.x == Approx(-0.17204f).epsilon(0.1f));
-  REQUIRE(quat_3.y == Approx(-0.62908f));
-  REQUIRE(quat_3.z == Approx(-0.06218f).epsilon(0.1f));
-  REQUIRE(quat_3.w == Approx(0.75551f));
-  REQUIRE(quat_1.angleTo(Quaternion(23.1f, 54.0f, 167.2f, 78.5f)) == (0.0f));
-  quat_3 = quat_2->rotateTowards(Quaternion(23.1f, 54.0f, 167.2f, 78.5f), 0.7f);
+  REQUIRE(quat_3.w == Approx(-0.63859f));
+  REQUIRE(quat_3.x == Approx(-0.06312f).epsilon(0.1f));
+  REQUIRE(quat_3.y == Approx(-0.76694f));
+  REQUIRE(quat_3.z == Approx(0.00526f).epsilon(0.1f));
+  
+  //Angles
+  REQUIRE(quat_1.angleTo(Quaternion(0.0f, 54.0f, 167.2f, 78.5f)) == (0.0f));
+  quat_3 = quat_2->rotateTowards(Quaternion(1.0f, 54.0f, 167.2f, 78.5f), 0.7f);
   Quaternion quat_4 = quat_3.slerp(*quat_2, 0.6f);
-  REQUIRE(quat_4.x == Approx(33.2f));
-  REQUIRE(quat_4.y == Approx(121.39999f));
-  REQUIRE(quat_4.z == Approx(12.0f));
-  REQUIRE(quat_4.w == Approx(145.8f));
+  REQUIRE(quat_4.w == Approx(1.0f));
+  REQUIRE(quat_4.x == Approx(121.4f));
+  REQUIRE(quat_4.y == Approx(12.0f));
+  REQUIRE(quat_4.z == Approx(145.8f));
+
+  // Conversions
+  const Vector3 vec3f = quat_4.toEulerAngles();
+  REQUIRE(vec3f.x == Approx(121.4f));
+  REQUIRE(vec3f.y == Approx(12.0f));
+  REQUIRE(vec3f.z == Approx(145.8f));
+  const Quaternion quat_5 = quat_0.fromEulerAngles(vec3f);
+  REQUIRE(quat_5.w == Approx(0.26683f));
+  REQUIRE(quat_5.x == Approx(0.73963f));
+  REQUIRE(quat_5.y == Approx(0.36875f));
+  REQUIRE(quat_5.z == Approx(0.49576f));
+  Quaternion quat_6;
+  quat_6.radAngles(vec3f);
+  REQUIRE(quat_6.w == Approx(quat_5.w));
+  REQUIRE(quat_6.x == Approx(quat_5.x));
+  REQUIRE(quat_6.y == Approx(quat_5.y));
+  REQUIRE(quat_6.z == Approx(quat_5.z));
+
+  // Lenght and normalize
+  REQUIRE(quat_5.lenght() == Approx(1.0f));
+  quat_6.normalize();
+  const Quaternion quat_7 = quat_5.getNormalized();
+  REQUIRE(quat_6.w == Approx(0.26683f));
+  REQUIRE(quat_6.x == Approx(0.73963f));
+  REQUIRE(quat_6.y == Approx(0.36875f));
+  REQUIRE(quat_6.z == Approx(0.49576f));
+  REQUIRE(quat_7.w == Approx(quat_6.w));
+  REQUIRE(quat_7.x == Approx(quat_6.x));
+  REQUIRE(quat_7.y == Approx(quat_6.y));
+  REQUIRE(quat_7.z == Approx(quat_6.z));
+  
+  // Dot
+  REQUIRE(quat_7.dot(quat_4) == Approx(166.76457f));
 }
 
 /*************************************************************/
@@ -255,23 +327,184 @@ TEST_CASE("Matrix4") {
 
   Matrix4 mat_6 = mat_0.getInversed();
   mat_6 = mat_6 * mat_0;
-  REQUIRE(mat_6.m[0][0] == Approx(mat_1.m[0][0]));
-  REQUIRE(mat_6.m[0][1] == Approx(mat_1.m[0][1]));
-  REQUIRE(Math::abs(mat_6.m[0][2]) == mat_1.m[0][2]);
-  REQUIRE(Math::abs(mat_6.m[0][3]) == Approx(mat_1.m[0][3]).epsilon(0.1f));
 
-  REQUIRE(mat_6.m[1][0] == Approx(mat_1.m[1][0]));
-  REQUIRE(mat_6.m[1][1] == Approx(mat_1.m[1][1]));
-  REQUIRE(mat_6.m[1][2] == Approx(mat_1.m[1][2]));
-  REQUIRE(mat_6.m[1][3] == Approx(mat_1.m[1][3]));
+  const Matrix4 mat_7 = mat_1.createTranslationMatrix(Vector3(23.0f, 14.2f, 1.0f));
+  REQUIRE(mat_7.m[0][0] == Approx(1.0f));
+  REQUIRE(mat_7.m[0][1] == Approx(0.0f));
+  REQUIRE(mat_7.m[0][2] == Approx(0.0f));
+  REQUIRE(mat_7.m[0][3] == Approx(23.0f));
 
-  REQUIRE(mat_6.m[2][0] == Approx(mat_1.m[2][0]));
-  REQUIRE(mat_6.m[2][1] == Approx(mat_1.m[2][1]));
-  REQUIRE(mat_6.m[2][2] == Approx(mat_1.m[2][2]));
-  REQUIRE(mat_6.m[2][3] == Approx(mat_1.m[2][3]));
+  REQUIRE(mat_7.m[1][0] == Approx(0.0f));
+  REQUIRE(mat_7.m[1][1] == Approx(1.0f));
+  REQUIRE(mat_7.m[1][2] == Approx(0.0f));
+  REQUIRE(mat_7.m[1][3] == Approx(14.2f));
 
-  REQUIRE(mat_6.m[3][0] == Approx(mat_1.m[3][0]));
-  REQUIRE(mat_6.m[3][1] == Approx(mat_1.m[3][1]));
-  REQUIRE(mat_6.m[3][2] == Approx(mat_1.m[3][2]));
-  REQUIRE(mat_6.m[3][3] == Approx(mat_1.m[3][3]));
+  REQUIRE(mat_7.m[2][0] == Approx(0.0f));
+  REQUIRE(mat_7.m[2][1] == Approx(0.0f));
+  REQUIRE(mat_7.m[2][2] == Approx(1.0f));
+  REQUIRE(mat_7.m[2][3] == Approx(1.0f));
+
+  REQUIRE(mat_7.m[3][0] == Approx(0.0f));
+  REQUIRE(mat_7.m[3][1] == Approx(0.0f));
+  REQUIRE(mat_7.m[3][2] == Approx(0.0f));
+  REQUIRE(mat_7.m[3][3] == Approx(1.0f));
+
+  const Matrix4 mat_8 = mat_1.createScaleMatrix(Vector3(2.0f, 1.5f, 3.4f));
+  REQUIRE(mat_8.m[0][0] == Approx(2.0f));
+  REQUIRE(mat_8.m[0][1] == Approx(0.0f));
+  REQUIRE(mat_8.m[0][2] == Approx(0.0f));
+  REQUIRE(mat_8.m[0][3] == Approx(0.0f));
+
+  REQUIRE(mat_8.m[1][0] == Approx(0.0f));
+  REQUIRE(mat_8.m[1][1] == Approx(1.5f));
+  REQUIRE(mat_8.m[1][2] == Approx(0.0f));
+  REQUIRE(mat_8.m[1][3] == Approx(0.0f));
+
+  REQUIRE(mat_8.m[2][0] == Approx(0.0f));
+  REQUIRE(mat_8.m[2][1] == Approx(0.0f));
+  REQUIRE(mat_8.m[2][2] == Approx(3.4f));
+  REQUIRE(mat_8.m[2][3] == Approx(0.0f));
+
+  REQUIRE(mat_8.m[3][0] == Approx(0.0f));
+  REQUIRE(mat_8.m[3][1] == Approx(0.0f));
+  REQUIRE(mat_8.m[3][2] == Approx(0.0f));
+  REQUIRE(mat_8.m[3][3] == Approx(1.0f));
+
+  Quaternion quat = mat_3.matrixToQuaternion();
+  REQUIRE(quat.w == Approx(0.5f));
+  REQUIRE(quat.x == Approx(-47.85f));
+  REQUIRE(quat.y == Approx(31.6f));
+  REQUIRE(quat.z == Approx(26.65f));
+
+  Vector3 vec3f_0(123.4f, 67.3f, 90.0f);
+  Vector3 vec3f_1 = mat_0.transformDirection(vec3f_0);
+  REQUIRE(vec3f_1.x == Approx(16720.70117f));
+  REQUIRE(vec3f_1.y == Approx(10377.66113f));
+  REQUIRE(vec3f_1.z == Approx(4475.4502f));
+
+  Matrix4 mat_9 = mat_1.createRotationXMatrix(87.0f * Math::DEG2RAD);
+  REQUIRE(mat_9.m[0][0] == Approx(1.0f));
+  REQUIRE(mat_9.m[0][1] == Approx(0.0f));
+  REQUIRE(mat_9.m[0][2] == Approx(0.0f));
+  REQUIRE(mat_9.m[0][3] == Approx(0.0f));
+
+  REQUIRE(mat_9.m[1][0] == Approx(0.0f));
+  REQUIRE(mat_9.m[1][1] == Approx(0.05234f).epsilon(0.1f));
+  REQUIRE(mat_9.m[1][2] == Approx(-0.99863f));
+  REQUIRE(mat_9.m[1][3] == Approx(0.0f));
+
+  REQUIRE(mat_9.m[2][0] == Approx(0.0f));
+  REQUIRE(mat_9.m[2][1] == Approx(0.99863f));
+  REQUIRE(mat_9.m[2][2] == Approx(0.05234f).epsilon(0.1f));
+  REQUIRE(mat_9.m[2][3] == Approx(0.0f));
+
+  REQUIRE(mat_9.m[3][0] == Approx(0.0f));
+  REQUIRE(mat_9.m[3][1] == Approx(0.0f));
+  REQUIRE(mat_9.m[3][2] == Approx(0.0f));
+  REQUIRE(mat_9.m[3][3] == Approx(1.0f));
+
+  Matrix4 mat_10 = mat_1.createRotationYMatrix(87.0f * Math::DEG2RAD);
+  REQUIRE(mat_10.m[0][0] == Approx(0.05234f).epsilon(0.1f));
+  REQUIRE(mat_10.m[0][1] == Approx(0.0f));
+  REQUIRE(mat_10.m[0][2] == Approx(0.99863f).epsilon(0.1f));
+  REQUIRE(mat_10.m[0][3] == Approx(0.0f));
+
+  REQUIRE(mat_10.m[1][0] == Approx(0.0f));
+  REQUIRE(mat_10.m[1][1] == Approx(1.0f));
+  REQUIRE(mat_10.m[1][2] == Approx(0.0f));
+  REQUIRE(mat_10.m[1][3] == Approx(0.0f));
+
+  REQUIRE(mat_10.m[2][0] == Approx(-0.99863f).epsilon(0.1f));
+  REQUIRE(mat_10.m[2][1] == Approx(0.0f));
+  REQUIRE(mat_10.m[2][2] == Approx(0.05234f).epsilon(0.1f));
+  REQUIRE(mat_10.m[2][3] == Approx(0.0f));
+
+  REQUIRE(mat_10.m[3][0] == Approx(0.0f));
+  REQUIRE(mat_10.m[3][1] == Approx(0.0f));
+  REQUIRE(mat_10.m[3][2] == Approx(0.0f));
+  REQUIRE(mat_10.m[3][3] == Approx(1.0f));
+
+  Matrix4 mat_11 = mat_1.createRotationZMatrix(87.0f * Math::DEG2RAD);
+  REQUIRE(mat_11.m[0][0] == Approx(0.05234f).epsilon(0.1f));
+  REQUIRE(mat_11.m[0][1] == Approx(-0.99863f).epsilon(0.1f));
+  REQUIRE(mat_11.m[0][2] == Approx(0.0f));
+  REQUIRE(mat_11.m[0][3] == Approx(0.0f));
+
+  REQUIRE(mat_11.m[1][0] == Approx(0.99863f).epsilon(0.1f));
+  REQUIRE(mat_11.m[1][1] == Approx(0.05234f).epsilon(0.1f));
+  REQUIRE(mat_11.m[1][2] == Approx(0.0f));
+  REQUIRE(mat_11.m[1][3] == Approx(0.0f));
+
+  REQUIRE(mat_11.m[2][0] == Approx(0.0f));
+  REQUIRE(mat_11.m[2][1] == Approx(0.0f));
+  REQUIRE(mat_11.m[2][2] == Approx(1.0f));
+  REQUIRE(mat_11.m[2][3] == Approx(0.0f));
+
+  REQUIRE(mat_11.m[3][0] == Approx(0.0f));
+  REQUIRE(mat_11.m[3][1] == Approx(0.0f));
+  REQUIRE(mat_11.m[3][2] == Approx(0.0f));
+  REQUIRE(mat_11.m[3][3] == Approx(1.0f));
+}
+
+/*************************************************************/
+/*
+*  BoxAAB
+*/
+/*************************************************************/
+TEST_CASE("BoxAAB") {
+
+}
+
+/*************************************************************/
+/*
+*  BoxOBB
+*/
+/*************************************************************/
+TEST_CASE("BoxOBB") {
+
+}
+
+/*************************************************************/
+/*
+*  Capsule
+*/
+/*************************************************************/
+TEST_CASE("Capsule") {
+
+}
+
+/*************************************************************/
+/*
+*  Sphere
+*/
+/*************************************************************/
+TEST_CASE("Sphere") {
+
+}
+
+/*************************************************************/
+/*
+*  Rect
+*/
+/*************************************************************/
+TEST_CASE("Rect") {
+
+}
+
+/*************************************************************/
+/*
+*  Plane
+*/
+/*************************************************************/
+TEST_CASE("Plane") {
+
+}
+
+/*************************************************************/
+/*
+*  Module
+*/
+/*************************************************************/
+TEST_CASE("Module") {
+
 }

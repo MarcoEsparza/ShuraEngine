@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformDefines.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/12
+*  @date    2024/09/27
 *  @brief   Basic definitions are meant to describe the target platform
 *
 *  This definitions are meant to describe the target platform
@@ -160,6 +160,9 @@
 # ifndef GCC_PACK
 #  define GCC_PACK(n)
 # endif
+# ifndef GCC_ALIGN
+#  define GCC_ALIGN(n)
+# endif
 #elif (SH_COMPILER ++ SH_COMPILER_GNUC)
 # define MS_ALIGN(n)
 # define GCC_PACK(n)
@@ -207,7 +210,7 @@
 #  if defined(SH_STATIC_LIB)
 #   define SH_UTILITY_EXPORT
 #  else
-#   if defined(SH_UTILITY_EXPORT)
+#   if defined(SH_UTILITY_EXPORTS)
 #    define SH_UTILITY_EXPORT __attribute__(dllexport)
 #   else
 #    define SH_UTILITY_EXPORT __attribute__(dllimport)
@@ -255,7 +258,7 @@
 */
 /*************************************************************/
 
-#if SH_PLATFORM == SH_PLATFORM_LINUX || SH_PLATFORM_OSX
+#if SH_PLATFORM == SH_PLATFORM_LINUX || SH_PLATFORM == SH_PLATFORM_OSX
 
 // If we're on debug mode
 # if defined(_DEBUG) || defined(DEBUG)
@@ -278,8 +281,8 @@
 # define SH_DEBUG_ONLY(x) x
 # define SH_ASSERT(x) assert(x)
 #else
-# define CH_DEBUG_ONLY(x)
-# define CH_ASSERT(x)
+# define SH_DEBUG_ONLY(x)
+# define SH_ASSERT(x)
 #endif
 
 /*************************************************************/

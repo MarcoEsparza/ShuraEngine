@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -68,7 +68,7 @@ Vector4::normalize()
 }
 
 Vector4
-Vector4::getNormalized()
+Vector4::getNormalized() const
 {
   float invMag = 1 / mag();
   if (invMag != 0.0f) {

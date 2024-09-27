@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -130,7 +130,7 @@ class SH_UTILITY_EXPORT Quaternion
   *  @return
   */
   Quaternion
-  getNormalized();
+  getNormalized() const;
 
   /*
   *  Calculates the dot product of this Quaternion and a given Quaternion.

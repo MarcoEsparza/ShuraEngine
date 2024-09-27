@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/18
+*  @date    2024/09/27
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -69,9 +69,9 @@ Matrix4::Matrix4(const Vector4& _vec1,
 void
 Matrix4::transpose(const Matrix4& _other)
 {
-  for (int i = 0; i < 4; ++i)
+  for (int8 i = 0; i < 4; ++i)
   {
-    for (int j = 0; j < 4; ++j)
+    for (int8 j = 0; j < 4; ++j)
     {
       m[j][i] = _other.m[i][j];
     }
@@ -230,7 +230,7 @@ Matrix4::createTranslationMatrix(const Vector3& _vec) const
 }
 
 Matrix4
-Matrix4::quaternionToMatrix(const Quaternion& _q)
+Matrix4::quaternionToMatrix(const Quaternion& _q) const
 {
   float p00 = 1.0f - (2 * (Math::pow(_q.y, 2))) - (2 * (Math::pow(_q.z, 2)));
   float p01 = (2 * (_q.x * _q.y)) - (2 * (_q.w * _q.z));
@@ -290,7 +290,7 @@ Matrix4::matrixToQuaternion() const
 }
 
 Matrix4
-Matrix4::createScaleMatrix(const Vector3& _vec)
+Matrix4::createScaleMatrix(const Vector3& _vec) const
 {
   return Matrix4(_vec.x, 0.0f, 0.0f, 0.0f,
                  0.0f, _vec.y, 0.0f, 0.0f,
@@ -299,7 +299,7 @@ Matrix4::createScaleMatrix(const Vector3& _vec)
 }
 
 Vector3
-Matrix4::transformDirection(const Vector3& _vec)
+Matrix4::transformDirection(const Vector3& _vec) const
 {
   return Vector3((m[0][0] * _vec.x) + (m[0][1] * _vec.x) + (m[0][2] * _vec.x),
                  (m[1][0] * _vec.y) + (m[1][1] * _vec.y) + (m[1][2] * _vec.y),
@@ -307,7 +307,7 @@ Matrix4::transformDirection(const Vector3& _vec)
 }
 
 Matrix4
-Matrix4::createRotationXMatrix(const float _angle)
+Matrix4::createRotationXMatrix(const float _angle) const
 {
   return Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
                  0.0f, Math::cos(_angle), -(Math::sin(_angle)), 0.0f,
@@ -316,7 +316,7 @@ Matrix4::createRotationXMatrix(const float _angle)
 }
 
 Matrix4
-Matrix4::createRotationYMatrix(const float _angle)
+Matrix4::createRotationYMatrix(const float _angle) const
 {
   return Matrix4(Math::cos(_angle), 0.0f, Math::sin(_angle), 0.0f,
                  0.0f, 1.0f, 0.0f, 0.0f,
@@ -325,7 +325,7 @@ Matrix4::createRotationYMatrix(const float _angle)
 }
 
 Matrix4
-Matrix4::createRotationZMatrix(const float _angle)
+Matrix4::createRotationZMatrix(const float _angle) const
 {
   return Matrix4(Math::cos(_angle), -(Math::sin(_angle)), 0.0f, 0.0f,
                  Math::sin(_angle), Math::cos(_angle), 0.0f, 0.0f,

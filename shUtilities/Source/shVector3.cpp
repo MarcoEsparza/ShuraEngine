@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -73,7 +73,7 @@ Vector3::normalize()
 }
 
 Vector3
-Vector3::getNormalized()
+Vector3::getNormalized() const
 {
   float invMag = 1 / mag();
   if (invMag != 0.0f) {
