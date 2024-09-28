@@ -32,9 +32,20 @@ shSphere::setCenter(const Vector3& _center)
 }
 
 void
-shSphere::setSize(const float _radius)
+shSphere::setRadius(const float _radius)
 {
   radius = _radius;
 }
 
+Vector3
+shSphere::getCenter() const
+{
+  return center;
+}
+
+float
+shSphere::getRadius() const
+{
+  return radius;
+}
 }

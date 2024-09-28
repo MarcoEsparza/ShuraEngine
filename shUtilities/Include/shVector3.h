@@ -52,7 +52,7 @@ class SH_UTILITY_EXPORT Vector3
   *
   *  @param Vector3 _other: The Vector3 to be copied.
   */
-  Vector3(const Vector3& _other);
+  Vector3(const Vector3& other);
 
   /*
   *  Default destructor.
@@ -68,22 +68,22 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  Calculates the dot product of two given Vector3s.
   *
-  *  @param Vector3 _other: To calculate with this Vector3.
+  *  @param Vector3 other: To calculate with this Vector3.
   * 
   *  @return float The result of the dot product.
   */
   float
-  dot(const Vector3& _other) const;
+  dot(const Vector3& other) const;
 
   /*
   * Calculates the cross product of two given Vector3s.
   *
-  *  @param Vector3 _other: To calculate with this Vector3.
+  *  @param Vector3 other: To calculate with this Vector3.
   *
   *  @return Vector3 The result of the cross product.
   */
   Vector3
-  cross(const Vector3& _other) const;
+  cross(const Vector3& other) const;
 
   /*
   *  Calculates the magnitude of the Vector3.
@@ -119,14 +119,65 @@ class SH_UTILITY_EXPORT Vector3
   *  Linear interpolation between two given Vector3.
   *  @brief This Vector3 is taken as the min value.
   *
-  *  @param Vector3 _other: Max value.
+  *  @param Vector3 other: Max value.
   * 
-  *  @param float _time: Time.
+  *  @param float time: Alpha.
   *
   *  @return Vector3 Interpolated Vector3.
   */
   Vector3
-  lerp(const Vector3& _other, const float& _time) const;
+  lerp(const Vector3& other, const float time) const;
+
+  /*
+  *  Rotate Vector3 in X axis.
+  *
+  *  @param float angle
+  *
+  *  @return Vector3
+  */
+  Vector3
+  rotateX(const float angle);
+
+  /*
+  *  Rotate Vector3 in Y axis.
+  *
+  *  @param float angle
+  *
+  *  @return Vector3
+  */
+  Vector3
+  rotateY(const float angle);
+
+  /*
+  *  Rotate Vector3 in Z axis.
+  *
+  *  @param float angle
+  *
+  *  @return Vector3
+  */
+  Vector3
+  rotateZ(const float angle);
+
+  /*
+  *  Rotate Vector3
+  *
+  *  @param Vector3 angles
+  *
+  *  @return Vector3 Rotation Vector3 in 3 axis
+  */
+  Vector3
+  rotate(const Vector3& angles);
+
+  /*
+  *  This vector3 values to radians
+  *  @note Function modify this
+  *
+  *  @param 
+  *
+  *  @return Vector3
+  */
+  Vector3
+  toRadians();
 
   /*************************************************************/
   /*
@@ -144,7 +195,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3
   */
   FORCEINLINE Vector3
-  operator+(const Vector3& _other) const;
+  operator+(const Vector3& other) const;
 
   /*
   *  Operator to sum a Vector3 values and a constant
@@ -168,7 +219,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3
   */
   FORCEINLINE Vector3
-  operator-(const Vector3& _other) const;
+  operator-(const Vector3& other) const;
 
   /*
   *  Operator to multiply the values of a Vector3 with a float
@@ -180,7 +231,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 The result of the multiplication
   */
   FORCEINLINE Vector3
-  operator*(const float& _delta) const;
+  operator*(const float delta) const;
 
   /*
   *  Operator to sum a Vector3 values and other Vector3 values and store
@@ -193,7 +244,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 This.
   */
   FORCEINLINE Vector3&
-  operator+=(const Vector3& _other);
+  operator+=(const Vector3& other);
 
   /*
   *  Operator to substract a Vector3 values and other Vector3 values and
@@ -206,7 +257,7 @@ class SH_UTILITY_EXPORT Vector3
   *  @return Vector3 This.
   */
   FORCEINLINE Vector3&
-  operator-=(const Vector3& _other);
+  operator-=(const Vector3& other);
 
   /*************************************************************/
   /*
@@ -235,9 +286,9 @@ class SH_UTILITY_EXPORT Vector3
 /*************************************************************/
 
 FORCEINLINE Vector3
-Vector3::operator+(const Vector3& _other) const
+Vector3::operator+(const Vector3& other) const
 {
-  return Vector3(x + _other.x, y + _other.y, z + _other.z);
+  return Vector3(x + other.x, y + other.y, z + other.z);
 }
 FORCEINLINE Vector3
 Vector3::operator+(const float delta) const
@@ -246,33 +297,33 @@ Vector3::operator+(const float delta) const
 }
 
 FORCEINLINE Vector3
-Vector3::operator-(const Vector3& _other) const
+Vector3::operator-(const Vector3& other) const
 {
-  return Vector3(x - _other.x, y - _other.y, z - _other.z);
+  return Vector3(x - other.x, y - other.y, z - other.z);
 }
 
 FORCEINLINE Vector3
-Vector3::operator*(const float& _delta) const
+Vector3::operator*(const float delta) const
 {
-  return Vector3(x * _delta, y * _delta, z * _delta);
+  return Vector3(x * delta, y * delta, z * delta);
 }
 
 FORCEINLINE Vector3&
-Vector3::operator+=(const Vector3& _other)
+Vector3::operator+=(const Vector3& other)
 {
-  x += _other.x;
-  y += _other.y;
-  z += _other.z;
+  x += other.x;
+  y += other.y;
+  z += other.z;
 
   return *this;
 }
 
 FORCEINLINE Vector3&
-Vector3::operator-=(const Vector3& _other)
+Vector3::operator-=(const Vector3& other)
 {
-  x -= _other.x;
-  y -= _other.y;
-  z -= _other.z;
+  x -= other.x;
+  y -= other.y;
+  z -= other.z;
 
   return *this;
 }

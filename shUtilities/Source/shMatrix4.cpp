@@ -21,43 +21,50 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Matrix4::Matrix4(const Matrix4& _other)
+
+/*************************************************************/
+/*
+*  Constructors
+*/
+/*************************************************************/
+
+Matrix4::Matrix4(const Matrix4& other)
 {
-  m[0][0] = _other.m[0][0];
-  m[0][1] = _other.m[0][1];
-  m[0][2] = _other.m[0][2];
-  m[0][3] = _other.m[0][3];
+  m[0][0] = other.m[0][0];
+  m[0][1] = other.m[0][1];
+  m[0][2] = other.m[0][2];
+  m[0][3] = other.m[0][3];
 
-  m[1][0] = _other.m[1][0];
-  m[1][1] = _other.m[1][1];
-  m[1][2] = _other.m[1][2];
-  m[1][3] = _other.m[1][3];
+  m[1][0] = other.m[1][0];
+  m[1][1] = other.m[1][1];
+  m[1][2] = other.m[1][2];
+  m[1][3] = other.m[1][3];
 
-  m[2][0] = _other.m[2][0];
-  m[2][1] = _other.m[2][1];
-  m[2][2] = _other.m[2][2];
-  m[2][3] = _other.m[2][3];
+  m[2][0] = other.m[2][0];
+  m[2][1] = other.m[2][1];
+  m[2][2] = other.m[2][2];
+  m[2][3] = other.m[2][3];
 
-  m[3][0] = _other.m[3][0];
-  m[3][1] = _other.m[3][1];
-  m[3][2] = _other.m[3][2];
-  m[3][3] = _other.m[3][3];
+  m[3][0] = other.m[3][0];
+  m[3][1] = other.m[3][1];
+  m[3][2] = other.m[3][2];
+  m[3][3] = other.m[3][3];
 }
 
-Matrix4::Matrix4(const Quaternion& _q)
+Matrix4::Matrix4(const Quaternion& quat)
 {
-  *this = quaternionToMatrix(_q);
+  *this = quaternionToMatrix(quat);
 }
 
-Matrix4::Matrix4(const Vector4& _vec1,
-                 const Vector4& _vec2,
-                 const Vector4& _vec3,
-                 const Vector4& _vec4)
+Matrix4::Matrix4(const Vector4& vec1,
+                 const Vector4& vec2,
+                 const Vector4& vec3,
+                 const Vector4& vec4)
 {
-  m[0][0] = _vec1.x; m[0][1] = _vec1.y; m[0][2] = _vec1.z; m[0][3] = _vec1.w;
-  m[1][0] = _vec2.x; m[1][1] = _vec2.y; m[1][2] = _vec2.z; m[1][3] = _vec2.w;
-  m[2][0] = _vec3.x; m[2][1] = _vec3.y; m[2][2] = _vec3.z; m[2][3] = _vec3.w;
-  m[3][0] = _vec4.x; m[3][1] = _vec4.y; m[3][2] = _vec4.z; m[3][3] = _vec4.w;
+  m[0][0] = vec1.x; m[0][1] = vec1.y; m[0][2] = vec1.z; m[0][3] = vec1.w;
+  m[1][0] = vec2.x; m[1][1] = vec2.y; m[1][2] = vec2.z; m[1][3] = vec2.w;
+  m[2][0] = vec3.x; m[2][1] = vec3.y; m[2][2] = vec3.z; m[2][3] = vec3.w;
+  m[3][0] = vec4.x; m[3][1] = vec4.y; m[3][2] = vec4.z; m[3][3] = vec4.w;
 }
 
 /*************************************************************/
@@ -67,13 +74,13 @@ Matrix4::Matrix4(const Vector4& _vec1,
 /*************************************************************/
 
 void
-Matrix4::transpose(const Matrix4& _other)
+Matrix4::transpose(const Matrix4& other)
 {
   for (int8 i = 0; i < 4; ++i)
   {
     for (int8 j = 0; j < 4; ++j)
     {
-      m[j][i] = _other.m[i][j];
+      m[j][i] = other.m[i][j];
     }
   }
 }
@@ -221,26 +228,26 @@ Matrix4::getInversed() const
 }
 
 Matrix4
-Matrix4::createTranslationMatrix(const Vector3& _vec) const
+Matrix4::createTranslationMatrix(const Vector3& vec) const
 {
-  return Matrix4(1.0f, 0.0f, 0.0f, _vec.x,
-                 0.0f, 1.0f, 0.0f, _vec.y,
-                 0.0f, 0.0f, 1.0f, _vec.z,
+  return Matrix4(1.0f, 0.0f, 0.0f, vec.x,
+                 0.0f, 1.0f, 0.0f, vec.y,
+                 0.0f, 0.0f, 1.0f, vec.z,
                  0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Matrix4
-Matrix4::quaternionToMatrix(const Quaternion& _q) const
+Matrix4::quaternionToMatrix(const Quaternion& quat) const
 {
-  float p00 = 1.0f - (2 * (Math::pow(_q.y, 2))) - (2 * (Math::pow(_q.z, 2)));
-  float p01 = (2 * (_q.x * _q.y)) - (2 * (_q.w * _q.z));
-  float p02 = (2 * (_q.x * _q.z)) + (2 * (_q.w * _q.y));
-  float p10 = (2 * (_q.x * _q.y)) + (2 * (_q.w * _q.z));
-  float p11 = 1.0f - (2 * (Math::pow(_q.x, 2))) - (2 * (Math::pow(_q.z, 2)));
-  float p12 = (2 * (_q.y * _q.z)) - (2 * (_q.w * _q.x));
-  float p20 = (2 * (_q.x * _q.z)) - (2 * (_q.w * _q.y));
-  float p21 = (2 * (_q.y * _q.z)) + (2 * (_q.w * _q.x));
-  float p22 = 1.0f - (2 * (Math::pow(_q.x, 2))) - (2 * (Math::pow(_q.y, 2)));
+  const float p00 = 1.0f - (2.0f * (Math::pow(quat.y, 2.0f))) - (2.0f * (Math::pow(quat.z, 2.0f)));
+  const float p01 = (2.0f * (quat.x * quat.y)) - (2.0f * (quat.w * quat.z));
+  const float p02 = (2.0f * (quat.x * quat.z)) + (2.0f * (quat.w * quat.y));
+  const float p10 = (2.0f * (quat.x * quat.y)) + (2.0f * (quat.w * quat.z));
+  const float p11 = 1.0f - (2.0f * (Math::pow(quat.x, 2.0f))) - (2.0f * (Math::pow(quat.z, 2.0f)));
+  const float p12 = (2.0f * (quat.y * quat.z)) - (2.0f * (quat.w * quat.x));
+  const float p20 = (2.0f * (quat.x * quat.z)) - (2.0f * (quat.w * quat.y));
+  const float p21 = (2.0f * (quat.y * quat.z)) + (2.0f * (quat.w * quat.x));
+  const float p22 = 1.0f - (2.0f * (Math::pow(quat.x, 2.0f))) - (2.0f * (Math::pow(quat.y, 2.0f)));
 
   return Matrix4(p00, p01, p02, 0.0f,
                  p10, p11, p12, 0.0f,
@@ -249,86 +256,86 @@ Matrix4::quaternionToMatrix(const Quaternion& _q) const
 }
 
 Quaternion
-Matrix4::matrixToQuaternion() const
+Matrix4::toQuaternion() const
 {
-  Quaternion q;
-  float trace = m[0][0] + m[1][1] + m[2][2];
+  Quaternion quat;
+  const float trace = m[0][0] + m[1][1] + m[2][2];
 
   if (trace > 0) {
-    float s = 0.5f;
-    q.x = (m[2][1] - m[1][2]) * s;
-    q.y = (m[0][2] - m[2][0]) * s;
-    q.z = (m[1][0] - m[0][1]) * s;
-    q.w = 0.25f / s;
+    const float step = 0.5f;
+    quat.x = (m[2][1] - m[1][2]) * step;
+    quat.y = (m[0][2] - m[2][0]) * step;
+    quat.z = (m[1][0] - m[0][1]) * step;
+    quat.w = 0.25f / step;
   }
   else if (m[0][0] > m[1][1] && m[0][0] > m[2][2]) {
-    float s = 2.0f * Math::sqrtf(1.0f + m[0][0] - m[1][1] - m[2][2]);
-    float invS = 1 / s;
-    q.x = 0.25f * invS;
-    q.y = (m[0][1] - m[1][0]) * invS;
-    q.z = (m[0][2] - m[2][0]) * invS;
-    q.w = (m[2][1] - m[1][2]) * invS;
+    const float step = 2.0f * Math::sqrt(1.0f + m[0][0] - m[1][1] - m[2][2]);
+    const float invS = 1 / step;
+    quat.x = 0.25f * invS;
+    quat.y = (m[0][1] - m[1][0]) * invS;
+    quat.z = (m[0][2] - m[2][0]) * invS;
+    quat.w = (m[2][1] - m[1][2]) * invS;
   }
   else if (m[1][1] > m[2][2]) {
-    float s = 2.0f * Math::sqrtf(1.0f + m[1][1] - m[0][0] - m[2][2]);
-    float invS = 1 / s;
-    q.x = (m[0][1] + m[1][0]) * invS;
-    q.y = 0.25f * invS;
-    q.z = (m[1][2] + m[2][1]) * invS;
-    q.w = (m[0][2] - m[2][0]) * invS;
+    const float step = 2.0f * Math::sqrt(1.0f + m[1][1] - m[0][0] - m[2][2]);
+    const float invS = 1 / step;
+    quat.x = (m[0][1] + m[1][0]) * invS;
+    quat.y = 0.25f * invS;
+    quat.z = (m[1][2] + m[2][1]) * invS;
+    quat.w = (m[0][2] - m[2][0]) * invS;
   }
   else {
-    float s = 2.0f * Math::sqrtf(1.0f + m[2][2] - m[0][0] - m[1][1]);
-    float invS = 1 / s;
-    q.x = (m[0][2] + m[2][0]) * invS;
-    q.y = (m[1][2] + m[2][1]) * invS;
-    q.z = 0.25f * invS;
-    q.w = (m[1][0] - m[0][1]) * invS;
+    const float step = 2.0f * Math::sqrt(1.0f + m[2][2] - m[0][0] - m[1][1]);
+    const float invS = 1 / step;
+    quat.x = (m[0][2] + m[2][0]) * invS;
+    quat.y = (m[1][2] + m[2][1]) * invS;
+    quat.z = 0.25f * invS;
+    quat.w = (m[1][0] - m[0][1]) * invS;
   }
 
-  return q;
+  return quat;
 }
 
 Matrix4
-Matrix4::createScaleMatrix(const Vector3& _vec) const
+Matrix4::createScaleMatrix(const Vector3& vec) const
 {
-  return Matrix4(_vec.x, 0.0f, 0.0f, 0.0f,
-                 0.0f, _vec.y, 0.0f, 0.0f,
-                 0.0f, 0.0f, _vec.z, 0.0f,
+  return Matrix4(vec.x, 0.0f, 0.0f, 0.0f,
+                 0.0f, vec.y, 0.0f, 0.0f,
+                 0.0f, 0.0f, vec.z, 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Vector3
-Matrix4::transformDirection(const Vector3& _vec) const
+Matrix4::transformDirection(const Vector3& vec) const
 {
-  return Vector3((m[0][0] * _vec.x) + (m[0][1] * _vec.x) + (m[0][2] * _vec.x),
-                 (m[1][0] * _vec.y) + (m[1][1] * _vec.y) + (m[1][2] * _vec.y),
-                 (m[2][0] * _vec.y) + (m[2][1] * _vec.y) + (m[2][2] * _vec.y));
+  return Vector3((m[0][0] * vec.x) + (m[0][1] * vec.x) + (m[0][2] * vec.x),
+                 (m[1][0] * vec.y) + (m[1][1] * vec.y) + (m[1][2] * vec.y),
+                 (m[2][0] * vec.y) + (m[2][1] * vec.y) + (m[2][2] * vec.y));
 }
 
 Matrix4
-Matrix4::createRotationXMatrix(const float _angle) const
+Matrix4::createRotationXMatrix(const float angle) const
 {
   return Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
-                 0.0f, Math::cos(_angle), -(Math::sin(_angle)), 0.0f,
-                 0.0f, Math::sin(_angle), Math::cos(_angle), 0.0f,
+                 0.0f, Math::cos(angle), -(Math::sin(angle)), 0.0f,
+                 0.0f, Math::sin(angle), Math::cos(angle), 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Matrix4
-Matrix4::createRotationYMatrix(const float _angle) const
+Matrix4::createRotationYMatrix(const float angle) const
 {
-  return Matrix4(Math::cos(_angle), 0.0f, Math::sin(_angle), 0.0f,
+  return Matrix4(Math::cos(angle), 0.0f, Math::sin(angle), 0.0f,
                  0.0f, 1.0f, 0.0f, 0.0f,
-                 -(Math::sin(_angle)), 0.0f, Math::cos(_angle), 0.0f,
+                 -(Math::sin(angle)), 0.0f, Math::cos(angle), 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Matrix4
-Matrix4::createRotationZMatrix(const float _angle) const
+Matrix4::createRotationZMatrix(const float angle) const
 {
-  return Matrix4(Math::cos(_angle), -(Math::sin(_angle)), 0.0f, 0.0f,
-                 Math::sin(_angle), Math::cos(_angle), 0.0f, 0.0f,
+  return Matrix4(Math::cos(angle), -(Math::sin(angle)), 0.0f, 0.0f,
+                 Math::sin(angle), Math::cos(angle), 0.0f, 0.0f,
                  0.0f, 0.0f, 1.0f, 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
 }

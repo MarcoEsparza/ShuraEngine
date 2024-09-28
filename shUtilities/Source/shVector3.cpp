@@ -20,11 +20,11 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector3::Vector3(const Vector3& _other)
+Vector3::Vector3(const Vector3& other)
 {
-  x = _other.x;
-  y = _other.y;
-  z = _other.z;
+  x = other.x;
+  y = other.y;
+  z = other.z;
 }
 
 /*************************************************************/
@@ -35,23 +35,23 @@ Vector3::Vector3(const Vector3& _other)
 
 
 float
-Vector3::dot(const Vector3& _other) const
+Vector3::dot(const Vector3& other) const
 {
-  return ((x * _other.x) + (y * _other.y) + (z * _other.z));
+  return ((x * other.x) + (y * other.y) + (z * other.z));
 }
 
 Vector3
-Vector3::cross(const Vector3& _other) const
+Vector3::cross(const Vector3& other) const
 {
-  return Vector3(y * _other.z - z * _other.y,
-                 z * _other.x - x * _other.z,
-                 x * _other.y - y * _other.x);
+  return Vector3(y * other.z - z * other.y,
+                 z * other.x - x * other.z,
+                 x * other.y - y * other.x);
 }
 
 float
 Vector3::mag() const
 {
-  float lenght = (x * x) + (y * y) + (z * z);
+  const float lenght = (x * x) + (y * y) + (z * z);
 
   return Math::sqrt(lenght);
 }
@@ -59,7 +59,7 @@ Vector3::mag() const
 void
 Vector3::normalize()
 {
-  float invMag = 1 / mag();
+  const float invMag = 1 / mag();
   if (invMag != 0.0f) {
     x *= invMag;
     y *= invMag;
@@ -75,7 +75,7 @@ Vector3::normalize()
 Vector3
 Vector3::getNormalized() const
 {
-  float invMag = 1 / mag();
+  const float invMag = 1 / mag();
   if (invMag != 0.0f) {
     return Vector3(x * invMag,
                    y * invMag,
@@ -90,8 +90,59 @@ Vector3::getNormalized() const
 
 Vector3
 Vector3::lerp(const Vector3& _other,
-              const float& _time) const
+              const float _time) const
 {
   return *this + (_other - *this) * _time;
+}
+
+Vector3
+Vector3::rotateX(const float angle)
+{
+  const float cosA = Math::cos(angle);
+  const float sinA = Math::sin(angle);
+
+  return Vector3(x,
+                 (y * cosA - z * sinA),
+                 (y * sinA + z * cosA));
+}
+
+Vector3
+Vector3::rotateY(const float angle)
+{
+  const float cosA = Math::cos(angle);
+  const float sinA = Math::sin(angle);
+
+  return Vector3((x * cosA + z * sinA),
+                 y,
+                 (-x * sinA + z * cosA));
+}
+
+Vector3
+Vector3::rotateZ(const float angle)
+{
+  const float cosA = Math::cos(angle);
+  const float sinA = Math::sin(angle);
+
+  return Vector3((x * cosA - y * sinA),
+                 (x * sinA + y * cosA),
+                 z);
+}
+
+Vector3
+Vector3::rotate(const Vector3& angles)
+{
+  Vector3 resX = rotateX(angles.x);
+  Vector3 resY = resX.rotateY(angles.y);
+  Vector3 resZ = resY.rotateZ(angles.z);
+
+  return resZ;
+}
+
+Vector3
+Vector3::toRadians()
+{
+  return Vector3(x * Math::DEG2RAD,
+                 y * Math::DEG2RAD, 
+                 z * Math::DEG2RAD);
 }
 }

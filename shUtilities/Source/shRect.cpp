@@ -18,10 +18,10 @@
 
 namespace shEngineSDK {
 
-shRect::shRect(const Vector2& _pos, const Vector2& _size)
+shRect::shRect(const Vector2& pos, const Vector2& size)
 {
-  min = _pos;
-  max = min + _size;
+  min = pos;
+  max = min + size;
 }
 
 /*************************************************************/
@@ -31,15 +31,26 @@ shRect::shRect(const Vector2& _pos, const Vector2& _size)
 /*************************************************************/
 
 void
-shRect::setPosition(const Vector2& _pos)
+shRect::setPosition(const Vector2& pos)
 {
-  min = _pos;
+  min = pos;
 }
 
 void
-shRect::setSize(const Vector2& _size)
+shRect::setSize(const Vector2& size)
 {
-  max = min + _size;
+  max = min + size;
 }
 
+Vector2
+shRect::getMinPosition() const
+{
+  return min;
+}
+
+Vector2
+shRect::getMaxPosition() const
+{
+  return max;
+}
 }

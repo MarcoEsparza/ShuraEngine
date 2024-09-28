@@ -25,15 +25,26 @@ namespace shEngineSDK {
 /*************************************************************/
 
 void
-shPlane::setNormal(const Vector3& _norm)
+shPlane::setNormal(const Vector3& _normal)
 {
-  normal = _norm;
+  normal = _normal;
 }
 
 void
-shPlane::setDistance(const float _d)
+shPlane::setDistance(const float _distance)
 {
-  distance = _d;
+  distance = _distance;
 }
 
+Vector3
+shPlane::getNormal() const
+{
+  return normal;
+}
+
+float
+shPlane::getDistance() const
+{
+  return distance;
+}
 }

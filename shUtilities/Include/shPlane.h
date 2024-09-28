@@ -32,12 +32,12 @@ class SH_UTILITY_EXPORT shPlane
   /*
   *  Constructor to initialize plane values.
   * 
-  *  @param const Vector3& _norm: Desired normal.
+  *  @param const Vector3& _normal: Desired normal.
   * 
-  *  @param const float _d: Desired distance.
+  *  @param const float _distance: Desired distance.
   */
-  shPlane(const Vector3& _norm, const float _d)
-          : normal(_norm), distance(_d) {}
+  shPlane(const Vector3& _normal, const float _distance)
+          : normal(_normal), distance(_distance) {}
   /*
   *  Default destructor.
   */
@@ -52,22 +52,42 @@ class SH_UTILITY_EXPORT shPlane
   /*
   *  Set the normal value for the plane.
   *
-  *  @param const Vector3& _norm: Desired normal value.
+  *  @param const Vector3& _normal: Desired normal value.
   *
   *  @return
   */
   void
-  setNormal(const Vector3& _norm);
+  setNormal(const Vector3& _normal);
 
   /*
   *  Set the distance for the plane.
   *
-  *  @param const float _d: Desired distance.
+  *  @param const float _distance: Desired distance.
   *
   *  @return
   */
   void
-  setDistance(const float _d);
+  setDistance(const float _distance);
+
+  /*
+  *  Returns plane normal.
+  *
+  *  @param
+  *
+  *  @return Vector3
+  */
+  Vector3
+  getNormal() const;
+
+  /*
+  *  Returns plane distance.
+  *
+  *  @param
+  *
+  *  @return float
+  */
+  float
+  getDistance() const;
 
   /*************************************************************/
   /*
@@ -76,11 +96,11 @@ class SH_UTILITY_EXPORT shPlane
   /*************************************************************/
  public:
    /*
-   *  
+   *  Plane normal
    */
    Vector3 normal;
    /*
-   *  
+   *  The distance
    */
    float distance;
 };

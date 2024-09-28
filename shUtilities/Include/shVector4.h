@@ -47,15 +47,15 @@ class SH_UTILITY_EXPORT Vector4
   * 
   *  @param float _w: W value.
   */
-  Vector4(float _x, float _y, float _z, float _w) :
+  Vector4(const float _x, const float _y, const float _z, const float _w) :
           x(_x), y(_y), z(_z), w(_w) {}
 
   /*
   *  Copy constructor
   *
-  *  @param Vector4
+  *  @param Vector4 other
   */
-  Vector4(const Vector4& _other);
+  Vector4(const Vector4& other);
 
   /*
   *  Default destructor.
@@ -71,12 +71,12 @@ class SH_UTILITY_EXPORT Vector4
   /*
   *  Calculates the dot product of this Vector4 and a given Vector4.
   *
-  *  @param Vector4 _other: To calculate with this Vector4.
+  *  @param Vector4 other: To calculate with this Vector4.
   * 
   *  @return float The result of the dot product.
   */
   float
-  dot(const Vector4& _other) const;
+  dot(const Vector4& other) const;
 
   /*
   *  Calculates the magnitude of the Vector4.
@@ -112,14 +112,14 @@ class SH_UTILITY_EXPORT Vector4
   *  Linear interpolation between two given Vector4.
   *  @brief This Vector4 is taken as the min value.
   *
-  *  @param Vector4 _other: Max value.
+  *  @param Vector4 other: Max value.
   * 
-  *  @param float _time: Time.
+  *  @param float time: Alpha.
   *
   *  @return Vector4 Interpolated Vector4.
   */
   Vector4
-  lerp(const Vector4& _vecB, const float& _time) const;
+  lerp(const Vector4& other, const float time) const;
 
   /*************************************************************/
   /*
@@ -161,7 +161,7 @@ class SH_UTILITY_EXPORT Vector4
   *  @return Vector4 The result of the multiplication.
   */
   FORCEINLINE Vector4
-  operator*(const float& delta) const;
+  operator*(const float delta) const;
 
   /*
   *  Operator to sum a Vector4 values and other Vector4 values and store the
@@ -238,7 +238,7 @@ Vector4::operator-(const Vector4& other) const
 }
 
 FORCEINLINE Vector4
-Vector4::operator*(const float& delta) const
+Vector4::operator*(const float delta) const
 {
   return Vector4(x + delta,
     y + delta,
