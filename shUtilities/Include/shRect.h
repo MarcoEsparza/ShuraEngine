@@ -32,11 +32,11 @@ class SH_UTILITY_EXPORT shRect
   /*
   *  Constructor to initialize rect values.
   * 
-  *  @param const Vector2& _pos: Desired min value.
+  *  @param const Vector2& pos: Desired min value.
   * 
-  *  @param const Vector2& _size: Compute max value with size and min value.
+  *  @param const Vector2& size: Compute max value with size and min value.
   */
-  shRect(const Vector2& _pos, const Vector2& _size);
+  shRect(const Vector2& pos, const Vector2& size);
   /*
   *  Default destructor.
   */
@@ -51,22 +51,42 @@ class SH_UTILITY_EXPORT shRect
   /*
   *  Set the min values for the rect.
   * 
-  *  @param const Vector2& _pos: Desired min value.
+  *  @param const Vector2& pos: Desired min value.
   * 
   *  @return
   */
   void
-  setPosition(const Vector2& _pos);
+  setPosition(const Vector2& pos);
 
   /*
   *  Compute the max values with given size and the position.
   *  
-  *  @param const Vector2& _size: Set the max values with this plus position.
+  *  @param const Vector2& size: Set the max values with this plus position.
   * 
   *  @return
   */
   void
-  setSize(const Vector2& _size);
+  setSize(const Vector2& size);
+
+  /*
+  *  Returns rect min position values.
+  *
+  *  @param
+  *
+  *  @return Vector2
+  */
+  Vector2
+  getMinPosition() const;
+
+  /*
+  *  Returns rect max position values.
+  *
+  *  @param
+  *
+  *  @return Vector2
+  */
+  Vector2
+  getMaxPosition() const;
 
   /*************************************************************/
   /*

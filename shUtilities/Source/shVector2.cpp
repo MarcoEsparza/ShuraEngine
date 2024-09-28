@@ -20,10 +20,10 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector2::Vector2(const Vector2& _other)
+Vector2::Vector2(const Vector2& other)
 {
-  x = _other.x;
-  y = _other.y;
+  x = other.x;
+  y = other.y;
 }
 
 /*************************************************************/
@@ -34,21 +34,21 @@ Vector2::Vector2(const Vector2& _other)
 
 
 float
-Vector2::dot(const Vector2& _other) const
+Vector2::dot(const Vector2& other) const
 {
-  return (x * _other.x + y * _other.y);
+  return (x * other.x + y * other.y);
 }
 
 float
 Vector2::mag() const
 {
-  return Math::sqrtf(x * x + y * y);
+  return Math::sqrt(x * x + y * y);
 }
 
 void
 Vector2::normalize()
 {
-  float invMag = 1/mag();
+  const float invMag = 1/mag();
   if (invMag != 0.0f) {
     x *= invMag;
     y *= invMag;
@@ -62,7 +62,7 @@ Vector2::normalize()
 Vector2
 Vector2::getNormalized() const
 {
-  float invMag = 1 / mag();
+  const float invMag = 1 / mag();
   if (invMag != 0.0f) {
     
     return Vector2(x * invMag,
@@ -75,22 +75,22 @@ Vector2::getNormalized() const
 }
 
 float
-Vector2::scalarProjection(const Vector2& _other) const
+Vector2::scalarProjection(const Vector2& other) const
 {
-  return dot(_other) / _other.mag();
+  return dot(other) / other.mag();
 }
 
 Vector2
-Vector2::vectorProjection(const Vector2& _other) const
+Vector2::vectorProjection(const Vector2& other) const
 {
-  float scalar = dot(_other) / (_other.mag() * _other.mag());
-  return Vector2(_other.x * scalar, _other.y * scalar);
+  const float scalar = dot(other) / (other.mag() * other.mag());
+  return Vector2(other.x * scalar, other.y * scalar);
 }
 
 Vector2
-Vector2::lerp(const Vector2& _other,
-              const float& _time) const
+Vector2::lerp(const Vector2& other,
+              const float time) const
 {
-  return (*this + (_other + *this) * _time);
+  return (*this + (other + *this) * time);
 }
 }

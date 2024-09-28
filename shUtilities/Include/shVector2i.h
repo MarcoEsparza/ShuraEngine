@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/20
+*  @date    2024/09/27
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
@@ -43,14 +43,14 @@ class SH_UTILITY_EXPORT Vector2i
   *
   *  @param _y: Y value.
   */
-  Vector2i(int32 _x, int32 _y) : x(_x), y(_y) {}
+  Vector2i(const int32 _x, const int32 _y) : x(_x), y(_y) {}
 
   /*
   *  Copy constructor
   *
-  *  @param _other: Another Vector2i
+  *  @param other: Another Vector2i
   */
-  Vector2i(const Vector2i& _other);
+  Vector2i(const Vector2i& other);
 
   /*
   *  Default destructor.
@@ -66,12 +66,12 @@ class SH_UTILITY_EXPORT Vector2i
   /*
   *  Calculates the dot product of two given Vector2is.
   *
-  *  @param Vector2i _other: To calculate with this Vector2i.
+  *  @param Vector2i other: To calculate with this Vector2i.
   *
   *  @return int32 The result of the dot product.
   */
   int32
-  dot(const Vector2i& _other) const;
+  dot(const Vector2i& other) const;
 
   /*
   *  Calculates the magnitude of the Vector2i.
@@ -87,14 +87,14 @@ class SH_UTILITY_EXPORT Vector2i
   *  Calculates the linear interpolate between two Vector2i.
   *  @brief This Vector2i is taken as the min value.
   *
-  *  @param Vector2i _vec: Max value.
+  *  @param Vector2i vec: Max value.
   * 
-  *  @param int32 _time: Time.
+  *  @param int32 time: Alpha.
   *
   *  @return Vector2i The result of the linear interpolation.
   */
   Vector2i
-  lerp(const Vector2i& _other, const int32& _time) const;
+  lerp(const Vector2i& other, const int32 time) const;
 
   /*************************************************************/
   /*
@@ -112,7 +112,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i
   */
   FORCEINLINE Vector2i
-  operator+(const Vector2i& _other) const;
+  operator+(const Vector2i& other) const;
 
   /*
   *  Operator to substract a Vector2i values and other Vector2i values
@@ -124,7 +124,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i
   */
   FORCEINLINE Vector2i
-  operator-(const Vector2i& _other) const;
+  operator-(const Vector2i& other) const;
 
   /*
   *  Operator to multiply the values of a Vector2 with a int32
@@ -136,7 +136,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i The result of the multiplication
   */
   FORCEINLINE Vector2i
-  operator*(const int32& _delta) const;
+  operator*(const int32& delta) const;
 
   /*
   *  Operator to sum a Vector2i values and other Vector2i values and store the
@@ -149,7 +149,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i This.
   */
   FORCEINLINE Vector2i&
-  operator+=(const Vector2i& _other);
+  operator+=(const Vector2i& other);
 
   /*
   *  Operator to substract a Vector2i values and other Vector2i values and store
@@ -162,7 +162,7 @@ class SH_UTILITY_EXPORT Vector2i
   *  @return Vector2i This.
   */
   FORCEINLINE Vector2i&
-  operator-=(const Vector2i& _other);
+  operator-=(const Vector2i& other);
 
   /*************************************************************/
   /*
@@ -187,37 +187,37 @@ class SH_UTILITY_EXPORT Vector2i
 /*************************************************************/
 
 FORCEINLINE Vector2i
-Vector2i::operator+(const Vector2i& _other) const
+Vector2i::operator+(const Vector2i& other) const
 {
-  return Vector2i(x + _other.x, y + _other.y);
+  return Vector2i(x + other.x, y + other.y);
 }
 
 FORCEINLINE Vector2i
-Vector2i::operator-(const Vector2i& _other) const
+Vector2i::operator-(const Vector2i& other) const
 {
-  return Vector2i(x - _other.x, y - _other.y);
+  return Vector2i(x - other.x, y - other.y);
 }
 
 FORCEINLINE Vector2i
-Vector2i::operator*(const int32& _delta) const
+Vector2i::operator*(const int32& delta) const
 {
-  return Vector2i(x * _delta, y * _delta);
+  return Vector2i(x * delta, y * delta);
 }
 
 FORCEINLINE Vector2i&
-Vector2i::operator+=(const Vector2i& _other)
+Vector2i::operator+=(const Vector2i& other)
 {
-  x += _other.x;
-  y += _other.y;
+  x += other.x;
+  y += other.y;
 
   return *this;
 }
 
 FORCEINLINE Vector2i&
-Vector2i::operator-=(const Vector2i& _other)
+Vector2i::operator-=(const Vector2i& other)
 {
-  x -= _other.x;
-  y -= _other.y;
+  x -= other.x;
+  y -= other.y;
 
   return *this;
 }

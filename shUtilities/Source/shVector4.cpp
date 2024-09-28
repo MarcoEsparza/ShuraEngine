@@ -20,12 +20,12 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector4::Vector4(const Vector4& _other)
+Vector4::Vector4(const Vector4& other)
 {
-  x = _other.x;
-  y = _other.y;
-  z = _other.z;
-  w = _other.w;
+  x = other.x;
+  y = other.y;
+  z = other.z;
+  w = other.w;
 }
 
 /*************************************************************/
@@ -36,15 +36,15 @@ Vector4::Vector4(const Vector4& _other)
 
 
 float
-Vector4::dot(const Vector4& _other) const
+Vector4::dot(const Vector4& other) const
 {
-  return ((x * _other.x) + (y * _other.y) + (z * _other.z) + (w * _other.w));
+  return ((x * other.x) + (y * other.y) + (z * other.z) + (w * other.w));
 }
 
 float
 Vector4::mag() const
 {
-  float lenght = (x * x) + (y * y) + (z * z) + (w * w);
+  const float lenght = (x * x) + (y * y) + (z * z) + (w * w);
 
   return Math::sqrt(lenght);
 }
@@ -52,7 +52,7 @@ Vector4::mag() const
 void
 Vector4::normalize()
 {
-  float invMag = 1 / mag();
+  const float invMag = 1 / mag();
   if (invMag != 0.0f) {
     x *= invMag;
     y *= invMag;
@@ -70,7 +70,7 @@ Vector4::normalize()
 Vector4
 Vector4::getNormalized() const
 {
-  float invMag = 1 / mag();
+  const float invMag = 1 / mag();
   if (invMag != 0.0f) {
     
     return Vector4(x * invMag,
@@ -87,9 +87,9 @@ Vector4::getNormalized() const
 }
 
 Vector4
-Vector4::lerp(const Vector4& _other,
-              const float& _time) const
+Vector4::lerp(const Vector4& other,
+              const float time) const
 {
-  return *this + (_other - *this) * _time;
+  return *this + (other - *this) * time;
 }
 }

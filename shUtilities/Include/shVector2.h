@@ -47,9 +47,9 @@ class SH_UTILITY_EXPORT  Vector2
   /*
   *  Copy constructor.
   * 
-  *  @param Vector2 _other: The Vector2 to be copied.
+  *  @param Vector2 other: The Vector2 to be copied.
   */
-  Vector2(const Vector2& _other);
+  Vector2(const Vector2& other);
 
   /*
   *  Default destructor.
@@ -65,12 +65,12 @@ class SH_UTILITY_EXPORT  Vector2
   /*
   *  Calculates the dot product of two given Vector2s.
   * 
-  *  @param Vector2 _other: To calculate with this Vector2.
+  *  @param Vector2 other: To calculate with this Vector2.
   * 
   *  @return float The result of the dot product.
   */
   float
-  dot(const Vector2& _other) const;
+  dot(const Vector2& other) const;
 
   /*
   *  Calculates the magnitude of the Vector2.
@@ -105,35 +105,35 @@ class SH_UTILITY_EXPORT  Vector2
   /*
   *  Calculates the cross product of the Vector2.
   *
-  *  @param Vector2 _other: To calculate with this Vector2.
+  *  @param Vector2 other: To calculate with this Vector2.
   *
   *  @return Vector2 The ortogonal Vector2 between this and the other Vector2.
   */
   float
-  scalarProjection(const Vector2& _other) const;
+  scalarProjection(const Vector2& other) const;
 
   /*
   *  Calculates the of a Vector2 to another Vector2.
   *
-  *  @param Vector2 _other: To calculate over this.
+  *  @param Vector2 other: To calculate over this.
   *
   *  @return Vector2 The ortogonal Vector2 between this and the other Vector2.
   */
   Vector2
-  vectorProjection(const Vector2& _other) const;
+  vectorProjection(const Vector2& other) const;
 
   /*
   *  Calculates the linear interpolate between two Vector2.
   *  @brief This Vector2 is taken as the min value.
   *
-  *  @param Vector2 _other: Max value.
+  *  @param Vector2 other: Max value.
   * 
-  *  @param float _time: Time.
+  *  @param float time: Alpha.
   *
   *  @return Vector2 The result of the linear interpolation.
   */
   Vector2
-  lerp(const Vector2& _other, const float& _time) const;
+  lerp(const Vector2& other, const float time) const;
 
   /*************************************************************/
   /*
@@ -175,7 +175,7 @@ class SH_UTILITY_EXPORT  Vector2
   *  @return Vector2 The result of the multiplication.
   */
   FORCEINLINE Vector2
-  operator*(const float& delta) const;
+  operator*(const float delta) const;
 
   /*
   *  Operator to sum a Vector2 values and other Vector2 values and store the
@@ -238,7 +238,7 @@ Vector2::operator-(const Vector2& other) const
 }
 
 FORCEINLINE Vector2
-Vector2::operator*(const float& delta) const
+Vector2::operator*(const float delta) const
 {
   return Vector2(x * delta, y * delta);
 }

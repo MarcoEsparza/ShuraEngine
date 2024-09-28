@@ -68,13 +68,13 @@ TEST_CASE("Platform Types") {
 /*************************************************************/
 TEST_CASE("Platform Math") {
   REQUIRE(Math::sqrt(130.25f) == Approx(11.41271f));
-  REQUIRE(Math::sqrtf(433.42f) == Approx(20.81874f));
   REQUIRE(Math::pow(15.21f, 3.5f) == Approx(13723.10059f));
   REQUIRE(Math::lerp(11.0f, 43.2f, 2.5f) == (91.5f));
   REQUIRE(Math::min(12.0f, 3.0f) == (3.0f));
   REQUIRE(Math::max(12.0f, 3.0f) == (12.0f));
   REQUIRE(Math::clamp(8.3f, 130.2f, 27.8f) == (130.2f));
   REQUIRE(Math::fmod(154.0f, 41.1f) == Approx(30.7f));
+  REQUIRE(Math::PI == Approx(3.1415).epsilon(0.01f));
 }
 
 /*************************************************************/
@@ -258,7 +258,7 @@ TEST_CASE("Quaternion") {
   REQUIRE(quat_5.y == Approx(0.36875f));
   REQUIRE(quat_5.z == Approx(0.49576f));
   Quaternion quat_6;
-  quat_6.radAngles(vec3f);
+  quat_6.fromAngle(vec3f);
   REQUIRE(quat_6.w == Approx(quat_5.w));
   REQUIRE(quat_6.x == Approx(quat_5.x));
   REQUIRE(quat_6.y == Approx(quat_5.y));
@@ -291,7 +291,7 @@ TEST_CASE("Matrix4") {
                 16.0f, 65.8f, 72.4f, 33.3f,
                 43.5f, 1.0f, 22.0f, 45.0f,
                 17.2f, 32.0f, 39.7f, 143.0f);
-  const Matrix4 mat_1 = Matrix4::identity();
+  const Matrix4 mat_1 = identity;
   const Quaternion q(132.0f, 44.2f, 98.4f, 176.3f);
   Matrix4* mat_2 = new Matrix4(q);
   Vector4 v1(43.5f, 24.8f, 88.3f, 35.7f);
@@ -299,7 +299,7 @@ TEST_CASE("Matrix4") {
   Vector4 v3(25.1f, 67.7f, 29.6f, 68.5f);
   Vector4 v4(54.4f, 148.0, 12.7f, 1.0f);
   Matrix4 mat_3(v1, v2, v3, v4);
-  Matrix4 mat_4 = Matrix4::zeroMatrix();
+  Matrix4 mat_4 = zeroMatrix;
   const Matrix4 mat_5 = mat_2->getTransposed();
 
   mat_4.transpose(*mat_2);
@@ -368,7 +368,7 @@ TEST_CASE("Matrix4") {
   REQUIRE(mat_8.m[3][2] == Approx(0.0f));
   REQUIRE(mat_8.m[3][3] == Approx(1.0f));
 
-  Quaternion quat = mat_3.matrixToQuaternion();
+  Quaternion quat = mat_3.toQuaternion();
   REQUIRE(quat.w == Approx(0.5f));
   REQUIRE(quat.x == Approx(-47.85f));
   REQUIRE(quat.y == Approx(31.6f));
@@ -469,8 +469,12 @@ TEST_CASE("BoxAAB") {
 */
 /*************************************************************/
 TEST_CASE("BoxOBB") {
-  shBoxOBB box1;
-  shBoxOBB box2;
+  shBoxOBB box1(Vector3(0.0f, 0.0f, 0.0f),
+                Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
+                Vector3(0.0f, 0.0f, 0.0f));
+  shBoxOBB box2(Vector3(0.0f, 0.0f, 0.0f),
+                Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
+                Vector3(0.0f, 0.0f, 0.0f));
 
   REQUIRE(Math::boxBoxIntersect(box1, box2) == (false));
 }
@@ -529,8 +533,20 @@ TEST_CASE("Plane") {
 */
 /*************************************************************/
 TEST_CASE("Module") {
-  class SubModule : public Module<SubModule> {
+  class SubModule : public Module<SubModule>
+  {
    public:
+     int32 TestNumber = 2412;
+  };
+
+  class SubSubModule : public SubModule
+  {
 
   };
+
+  /*SubModule::startUp<SubModule>();
+
+  REQUIRE(SubModule::instance().TestNumber == (2412));
+
+  SubModule::shutDown();*/
 }

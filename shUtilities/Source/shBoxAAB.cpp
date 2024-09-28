@@ -18,10 +18,10 @@
 
 namespace shEngineSDK {
 
-shBoxAAB::shBoxAAB(const Vector3& _pos, const Vector3& _size)
+shBoxAAB::shBoxAAB(const Vector3& pos, const Vector3& size)
 {
-  min = _pos;
-  max = min + _size;
+  min = pos;
+  max = min + size;
 }
 
 /*************************************************************/
@@ -31,15 +31,26 @@ shBoxAAB::shBoxAAB(const Vector3& _pos, const Vector3& _size)
 /*************************************************************/
 
 void
-shBoxAAB::setPosition(const Vector3& _pos)
+shBoxAAB::setPosition(const Vector3& pos)
 {
-  min = _pos;
+  min = pos;
 }
 
 void
-shBoxAAB::setSize(const Vector3& _size)
+shBoxAAB::setSize(const Vector3& size)
 {
-  max = min + _size;
+  max = min + size;
 }
 
+Vector3
+shBoxAAB::getMinPosition() const
+{
+  return min;
+}
+
+Vector3
+shBoxAAB::getMaxPosition() const
+{
+  return max;
+}
 }

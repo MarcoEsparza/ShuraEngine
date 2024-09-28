@@ -56,14 +56,14 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @param Matrix4
   */
-  Matrix4(const Matrix4& _other);
+  Matrix4(const Matrix4& other);
 
   /*
   *  Constructor to create a rotation Matrix4 from a Quaternion
   *
   *  @param Quaternion
   */
-  explicit Matrix4(const Quaternion& _q);
+  explicit Matrix4(const Quaternion& quat);
 
   /*
   *  Constructor to create Matrix4 from four Vector4.
@@ -76,10 +76,10 @@ class SH_UTILITY_EXPORT Matrix4
   * 
   *  @param Vector4
   */
-  Matrix4(const Vector4& _vec1,
-          const Vector4& _vec2,
-          const Vector4& _vec3,
-          const Vector4& _vec4);
+  Matrix4(const Vector4& vec1,
+          const Vector4& vec2,
+          const Vector4& vec3,
+          const Vector4& vec4);
 
   /*
   *  Default destructor.
@@ -93,26 +93,6 @@ class SH_UTILITY_EXPORT Matrix4
   /*************************************************************/
 
   /*
-  *  Creates an identity matrix.
-  *
-  *  @param
-  *
-  *  @return Matrix4 The identity matrix.
-  */
-  FORCEINLINE static Matrix4
-  identity();
-
-  /*
-  *  Creates a matrix with values in 0.
-  *
-  *  @param
-  *
-  *  @return Matrix4.
-  */
-  FORCEINLINE static Matrix4
-  zeroMatrix();
-
-  /*
   *  This Matrix convert into the transpose matrix from another Matrix4.
   *
   *  @param Matrix4 _other: The another Matrix4.
@@ -120,7 +100,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return
   */
   void
-  transpose(const Matrix4& _other);
+  transpose(const Matrix4& other);
 
   /*
   *  Transpose this Matrix4.
@@ -150,7 +130,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The translation matrix.
   */
   Matrix4
-  createTranslationMatrix(const Vector3& _vec) const;
+  createTranslationMatrix(const Vector3& vec) const;
 
   /*
   *  Convert a Quaternion to a Matrix4.
@@ -160,7 +140,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  quaternionToMatrix(const Quaternion& _q) const;
+  quaternionToMatrix(const Quaternion& quat) const;
 
   /*
   *  Convert this Matrix4 to a Quaternion.
@@ -170,47 +150,47 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Quaternion The resultant Quaternion from this Matrix4.
   */
   Quaternion
-  matrixToQuaternion() const;
+  toQuaternion() const;
 
   /*
   *  Creates a scale matrix.
   *
-  *  @param Vector3 _vec: The 3 dimensional vector with the scale info.
+  *  @param Vector3 vec: The 3 dimensional vector with the scale info.
   *
   *  @return Matrix4 The scale matrix.
   */
   Matrix4
-  createScaleMatrix(const Vector3& _vec) const;
+  createScaleMatrix(const Vector3& vec) const;
 
   /*
   *  Transorms the direction of a Vector3 with the Matrix4 info.
   *
-  *  @param Vector3 _vec: The Vector3 to be transformed.
+  *  @param Vector3 vec: The Vector3 to be transformed.
   *
   *  @return Vector3 The transformed Vector3.
   */
   Vector3
-  transformDirection(const Vector3& _vec) const;
+  transformDirection(const Vector3& vec) const;
 
   /*
   *  Create a rotation matrix for the x axis with a given angle.
   *
-  *  @param  float _angle: The given angle
+  *  @param  float angle: The given angle
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationXMatrix(const float _angle) const;
+  createRotationXMatrix(const float angle) const;
 
   /*
   *  Create a rotation matrix for the y axis with a given angle.
   *
-  *  @param  float _angle: The given angle
+  *  @param  float angle: The given angle
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationYMatrix(const float _angle) const;
+  createRotationYMatrix(const float angle) const;
 
   /*
   *  Create a rotation matrix for the z axis with a given angle.
@@ -220,7 +200,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationZMatrix(const float _angle) const;
+  createRotationZMatrix(const float angle) const;
 
   /*************************************************************/
   /*
@@ -238,7 +218,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4
-  operator+(const Matrix4& _other);
+  operator+(const Matrix4& other) const;
 
   /*
   *  The substraction of two Matrix4.
@@ -250,7 +230,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4
-  operator-(const Matrix4& _other);
+  operator-(const Matrix4& other) const;
 
   /*
   *  The multiplication of two Matrix4.
@@ -262,7 +242,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4
-  operator*(const Matrix4& _other) const;
+  operator*(const Matrix4& other) const;
 
   /*
   *  The multiplication of a Matrix4 and a constant.
@@ -274,7 +254,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4
-  operator*(const float _delta);
+  operator*(const float delta) const;
 
   /*
   *  Operator to sum a Matrix4 values and other Matrix4 values and store
@@ -287,7 +267,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4&
-  operator+=(const Matrix4& _other);
+  operator+=(const Matrix4& other);
 
   /*
   *  Operator to substract a Matrix4 values and other Matrix4 values and
@@ -300,7 +280,7 @@ public:
   *  @return Matrix4
   */
   FORCEINLINE Matrix4&
-  operator-=(const Matrix4& _other);
+  operator-=(const Matrix4& other);
 
   /*************************************************************/
   /*
@@ -316,88 +296,86 @@ public:
 
 /*************************************************************/
 /*
+*  Static variables
+*/
+/*************************************************************/
+
+static const Matrix4 identity = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
+                                        0.0f, 1.0f, 0.0f, 0.0f,
+                                        0.0f, 0.0f, 1.0f, 0.0f,
+                                        0.0f, 0.0f, 0.0f, 1.0f);
+
+static const Matrix4 zeroMatrix = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 0.0f);
+
+/*************************************************************/
+/*
 *  Implementations
 */
 /*************************************************************/
 
 FORCEINLINE Matrix4
-Matrix4::identity()
+Matrix4::operator+(const Matrix4& other) const
 {
-  return Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
-                 0.0f, 1.0f, 0.0f, 0.0f,
-                 0.0f, 0.0f, 1.0f, 0.0f,
-                 0.0f, 0.0f, 0.0f, 1.0f);
+  return Matrix4(m[0][0] + other.m[0][0],
+                 m[0][1] + other.m[0][1],
+                 m[0][2] + other.m[0][2],
+                 m[0][3] + other.m[0][3],
+
+                 m[1][0] + other.m[1][0],
+                 m[1][1] + other.m[1][1],
+                 m[1][2] + other.m[1][2],
+                 m[1][3] + other.m[1][3],
+
+                 m[2][0] + other.m[2][0],
+                 m[2][1] + other.m[2][1],
+                 m[2][2] + other.m[2][2],
+                 m[2][3] + other.m[2][3],
+
+                 m[3][0] + other.m[3][0],
+                 m[3][1] + other.m[3][1],
+                 m[3][2] + other.m[3][2],
+                 m[3][3] + other.m[3][3]);
 }
 
 FORCEINLINE Matrix4
-Matrix4::zeroMatrix()
+Matrix4::operator-(const Matrix4& other) const
 {
-  return Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
-                 0.0f, 0.0f, 0.0f, 0.0f,
-                 0.0f, 0.0f, 0.0f, 0.0f,
-                 0.0f, 0.0f, 0.0f, 0.0f);
+  return Matrix4(m[0][0] - other.m[0][0],
+                 m[0][1] - other.m[0][1],
+                 m[0][2] - other.m[0][2],
+                 m[0][3] - other.m[0][3],
+
+                 m[1][0] - other.m[1][0],
+                 m[1][1] - other.m[1][1],
+                 m[1][2] - other.m[1][2],
+                 m[1][3] - other.m[1][3],
+
+                 m[2][0] - other.m[2][0],
+                 m[2][1] - other.m[2][1],
+                 m[2][2] - other.m[2][2],
+                 m[2][3] - other.m[2][3],
+
+                 m[3][0] - other.m[3][0],
+                 m[3][1] - other.m[3][1],
+                 m[3][2] - other.m[3][2],
+                 m[3][3] - other.m[3][3]);
 }
 
 FORCEINLINE Matrix4
-Matrix4::operator+(const Matrix4& _other)
+Matrix4::operator*(const Matrix4& other) const
 {
-  return Matrix4(m[0][0] + _other.m[0][0],
-                 m[0][1] + _other.m[0][1],
-                 m[0][2] + _other.m[0][2],
-                 m[0][3] + _other.m[0][3],
+  Matrix4 mat = zeroMatrix;
 
-                 m[1][0] + _other.m[1][0],
-                 m[1][1] + _other.m[1][1],
-                 m[1][2] + _other.m[1][2],
-                 m[1][3] + _other.m[1][3],
-
-                 m[2][0] + _other.m[2][0],
-                 m[2][1] + _other.m[2][1],
-                 m[2][2] + _other.m[2][2],
-                 m[2][3] + _other.m[2][3],
-
-                 m[3][0] + _other.m[3][0],
-                 m[3][1] + _other.m[3][1],
-                 m[3][2] + _other.m[3][2],
-                 m[3][3] + _other.m[3][3]);
-}
-
-FORCEINLINE Matrix4
-Matrix4::operator-(const Matrix4& _other)
-{
-  return Matrix4(m[0][0] - _other.m[0][0],
-                 m[0][1] - _other.m[0][1],
-                 m[0][2] - _other.m[0][2],
-                 m[0][3] - _other.m[0][3],
-
-                 m[1][0] - _other.m[1][0],
-                 m[1][1] - _other.m[1][1],
-                 m[1][2] - _other.m[1][2],
-                 m[1][3] - _other.m[1][3],
-
-                 m[2][0] - _other.m[2][0],
-                 m[2][1] - _other.m[2][1],
-                 m[2][2] - _other.m[2][2],
-                 m[2][3] - _other.m[2][3],
-
-                 m[3][0] - _other.m[3][0],
-                 m[3][1] - _other.m[3][1],
-                 m[3][2] - _other.m[3][2],
-                 m[3][3] - _other.m[3][3]);
-}
-
-FORCEINLINE Matrix4
-Matrix4::operator*(const Matrix4& _other) const
-{
-  Matrix4 mat = Matrix4::zeroMatrix();
-
-  for (int i = 0; i < 4; ++i)
+  for (int8 i = 0; i < 4; ++i)
   {
-    for (int j = 0; j < 4; ++j)
+    for (int8 j = 0; j < 4; ++j)
     {
-      for (int k = 0; k < 4; ++k)
+      for (int8 k = 0; k < 4; ++k)
       {
-        mat.m[i][j] += this->m[i][k] * _other.m[k][j];
+        mat.m[i][j] += this->m[i][k] * other.m[k][j];
       }
     }
   }
@@ -406,77 +384,77 @@ Matrix4::operator*(const Matrix4& _other) const
 }
 
 FORCEINLINE Matrix4
-Matrix4::operator*(const float _delta)
+Matrix4::operator*(const float delta) const
 {
-  return Matrix4(m[0][0] * _delta,
-                 m[0][1] * _delta,
-                 m[0][2] * _delta,
-                 m[0][3] * _delta,
+  return Matrix4(m[0][0] * delta,
+                 m[0][1] * delta,
+                 m[0][2] * delta,
+                 m[0][3] * delta,
 
-                 m[1][0] * _delta,
-                 m[1][1] * _delta,
-                 m[1][2] * _delta,
-                 m[1][3] * _delta,
+                 m[1][0] * delta,
+                 m[1][1] * delta,
+                 m[1][2] * delta,
+                 m[1][3] * delta,
 
-                 m[2][0] * _delta,
-                 m[2][1] * _delta,
-                 m[2][2] * _delta,
-                 m[2][3] * _delta,
+                 m[2][0] * delta,
+                 m[2][1] * delta,
+                 m[2][2] * delta,
+                 m[2][3] * delta,
 
-                 m[3][0] * _delta,
-                 m[3][1] * _delta,
-                 m[3][2] * _delta,
-                 m[3][3] * _delta);
+                 m[3][0] * delta,
+                 m[3][1] * delta,
+                 m[3][2] * delta,
+                 m[3][3] * delta);
 }
 
 FORCEINLINE Matrix4&
-Matrix4::operator+=(const Matrix4& _other)
+Matrix4::operator+=(const Matrix4& other)
 {
-  m[0][0] += _other.m[0][0];
-  m[0][1] += _other.m[0][1];
-  m[0][2] += _other.m[0][2];
-  m[0][3] += _other.m[0][3];
+  m[0][0] += other.m[0][0];
+  m[0][1] += other.m[0][1];
+  m[0][2] += other.m[0][2];
+  m[0][3] += other.m[0][3];
 
-  m[1][0] += _other.m[1][0];
-  m[1][1] += _other.m[1][1];
-  m[1][2] += _other.m[1][2];
-  m[1][3] += _other.m[1][3];
+  m[1][0] += other.m[1][0];
+  m[1][1] += other.m[1][1];
+  m[1][2] += other.m[1][2];
+  m[1][3] += other.m[1][3];
 
-  m[2][0] += _other.m[2][0];
-  m[2][1] += _other.m[2][1];
-  m[2][2] += _other.m[2][2];
-  m[2][3] += _other.m[2][3];
+  m[2][0] += other.m[2][0];
+  m[2][1] += other.m[2][1];
+  m[2][2] += other.m[2][2];
+  m[2][3] += other.m[2][3];
 
-  m[3][0] += _other.m[3][0];
-  m[3][1] += _other.m[3][1];
-  m[3][2] += _other.m[3][2];
-  m[3][3] += _other.m[3][3];
+  m[3][0] += other.m[3][0];
+  m[3][1] += other.m[3][1];
+  m[3][2] += other.m[3][2];
+  m[3][3] += other.m[3][3];
 
   return *this;
 }
 
 FORCEINLINE Matrix4&
-Matrix4::operator-=(const Matrix4& _other)
+Matrix4::operator-=(const Matrix4& other)
 {
-  m[0][0] -= _other.m[0][0];
-  m[0][1] -= _other.m[0][1];
-  m[0][2] -= _other.m[0][2];
-  m[0][3] -= _other.m[0][3];
+  m[0][0] -= other.m[0][0];
+  m[0][1] -= other.m[0][1];
+  m[0][2] -= other.m[0][2];
+  m[0][3] -= other.m[0][3];
 
-  m[1][0] -= _other.m[1][0];
-  m[1][1] -= _other.m[1][1];
-  m[1][2] -= _other.m[1][2];
-  m[1][3] -= _other.m[1][3];
+  m[1][0] -= other.m[1][0];
+  m[1][1] -= other.m[1][1];
+  m[1][2] -= other.m[1][2];
+  m[1][3] -= other.m[1][3];
 
-  m[2][0] -= _other.m[2][0];
-  m[2][1] -= _other.m[2][1];
-  m[2][2] -= _other.m[2][2];
-  m[2][3] -= _other.m[2][3];
+  m[2][0] -= other.m[2][0];
+  m[2][1] -= other.m[2][1];
+  m[2][2] -= other.m[2][2];
+  m[2][3] -= other.m[2][3];
 
-  m[3][0] -= _other.m[3][0];
-  m[3][1] -= _other.m[3][1];
-  m[3][2] -= _other.m[3][2];
-  m[3][3] -= _other.m[3][3];
+  m[3][0] -= other.m[3][0];
+  m[3][1] -= other.m[3][1];
+  m[3][2] -= other.m[3][2];
+  m[3][3] -= other.m[3][3];
 
   return *this;
 }

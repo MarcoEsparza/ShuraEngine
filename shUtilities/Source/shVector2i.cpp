@@ -20,10 +20,10 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-Vector2i::Vector2i(const Vector2i& _other)
+Vector2i::Vector2i(const Vector2i& other)
 {
-  x = _other.x;
-  y = _other.y;
+  x = other.x;
+  y = other.y;
 }
 
 /*************************************************************/
@@ -34,21 +34,21 @@ Vector2i::Vector2i(const Vector2i& _other)
 
 
 int32
-Vector2i::dot(const Vector2i& _other) const
+Vector2i::dot(const Vector2i& other) const
 {
-  return (x * _other.x + y * _other.y);
+  return (x * other.x + y * other.y);
 }
 
 float
 Vector2i::mag() const
 {
-  return Math::sqrtf(static_cast<float>(x * x + y * y));
+  return Math::sqrt(static_cast<float>(x * x + y * y));
 }
 
 Vector2i
-Vector2i::lerp(const Vector2i& _other,
-               const int32& _time) const
+Vector2i::lerp(const Vector2i& other,
+               const int32 time) const
 {
-  return (*this + (_other + *this) * _time);
+  return (*this + (other + *this) * time);
 }
 }

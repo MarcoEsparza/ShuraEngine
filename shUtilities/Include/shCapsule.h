@@ -32,14 +32,14 @@ class SH_UTILITY_EXPORT shCapsule
   /*
   *  Constructor that initialize the capsule values.
   * 
-  *  @param const float _r: The radius.
+  *  @param const float _radius: The radius.
   * 
-  *  @param const Vector3& _pA: 
+  *  @param const Vector3& pA: Point A.
   * 
-  *  @param const Vector3& _pB: 
+  *  @param const Vector3& pB: Point B.
   */
-  shCapsule(const float _r, const Vector3& _pA, const Vector3& _pB)
-            : radius(_r), pointA(_pA), pointB(_pB) {}
+  shCapsule(const float _radius, const Vector3& pA, const Vector3& pB)
+            : radius(_radius), pointA(pA), pointB(pB) {}
   /*
   *  Default destructor.
   */
@@ -54,14 +54,14 @@ class SH_UTILITY_EXPORT shCapsule
   /*
   *  Set the min and max values for the capsule.
   * 
-  *  @param const Vector3& _pA: Desired first point value.
+  *  @param const Vector3& pA: Desired first point value.
   * 
-  *  @param const Vector3& _pB: Desired second point value.
+  *  @param const Vector3& pB: Desired second point value.
   * 
   *  @return
   */
   void
-  setPosition(const Vector3& _pA, const Vector3& _pB);
+  setPosition(const Vector3& pA, const Vector3& pB);
 
   /*
   *  Set the capsule radius.
@@ -71,7 +71,37 @@ class SH_UTILITY_EXPORT shCapsule
   *  @return
   */
   void
-  setRadius(const float& _radius);
+  setRadius(const float _radius);
+
+  /*
+  *  Returns capsule point A.
+  *
+  *  @param
+  *
+  *  @return Vector3
+  */
+  Vector3
+  getPointA() const;
+
+  /*
+  *  Returns capsule point B.
+  *
+  *  @param
+  *
+  *  @return Vector3
+  */
+  Vector3
+  getPointB() const;
+
+  /*
+  * Returns capsule radius.
+  *
+  *  @param
+  *
+  *  @return float
+  */
+  float
+  getRadius();
 
   /*************************************************************/
   /*

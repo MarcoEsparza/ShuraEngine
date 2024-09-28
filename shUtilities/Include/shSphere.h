@@ -34,10 +34,10 @@ class SH_UTILITY_EXPORT shSphere
   * 
   *  @param const Vector3& _center: Desired center.
   * 
-  *  @param const float _r: Desired radius.
+  *  @param const float _radius: Desired radius.
   */
-  shSphere(const Vector3& _center, const float _r)
-           : center(_center), radius(_r) {}
+  shSphere(const Vector3& _center, const float _radius)
+           : center(_center), radius(_radius) {}
   /*
   *  Default destructor.
   */
@@ -52,7 +52,7 @@ class SH_UTILITY_EXPORT shSphere
   /*
   *  Set the center of the sphere.
   * 
-  *  @param const Vector3& _center: Desired center.
+  *  @param Vector3& _center: Desired center.
   * 
   *  @return
   */
@@ -62,19 +62,39 @@ class SH_UTILITY_EXPORT shSphere
   /*
   *  Set the radius of the sphere.
   *  
-  *  @param const float _radius: Desired radius.
+  *  @param float _radius: Desired radius.
   * 
   *  @return
   */
   void
-  setSize(const float _radius);
+  setRadius(const float _radius);
+
+  /*
+  *  Returns sphere center.
+  *
+  *  @param 
+  *
+  *  @return Vector3
+  */
+  Vector3
+  getCenter() const;
+
+  /*
+  *  Returns sphere radius.
+  *
+  *  @param
+  *
+  *  @return float
+  */
+  float
+  getRadius() const;
 
   /*************************************************************/
   /*
   *  Variables
   */
   /*************************************************************/
- public:
+public:
    /*
    *  The sphere radius.
    */

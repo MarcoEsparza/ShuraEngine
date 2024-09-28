@@ -32,11 +32,11 @@ class SH_UTILITY_EXPORT shBoxAAB
   /*
   *  Constructor to initialize box values.
   * 
-  *  @param const Vector3& _pos: Desired min value.
+  *  @param const Vector3& pos: Desired min value.
   * 
-  *  @param const Vector3& _size: Compute max value with size and min value.
+  *  @param const Vector3& size: Compute max value with size and min value.
   */
-  shBoxAAB(const Vector3& _pos, const Vector3& _size);
+  shBoxAAB(const Vector3& pos, const Vector3& size);
   /*
   *  Default destructor.
   */
@@ -51,22 +51,42 @@ class SH_UTILITY_EXPORT shBoxAAB
   /*
   *  Set the min values for the box.
   *
-  *  @param const Vector3& _pos: Desired min value.
+  *  @param const Vector3& pos: Desired min value.
   *
   *  @return
   */
   void
-  setPosition(const Vector3& _pos);
+  setPosition(const Vector3& pos);
 
   /*
   *  Compute the max values with given size and the position.
   *
-  *  @param const Vector3& _size: Set the max values with this plus position.
+  *  @param const Vector3& size: Set the max values with this plus position.
   *
   *  @return
   */
   void
-  setSize(const Vector3& _size);
+  setSize(const Vector3& size);
+
+  /*
+  *  Returns box min position values.
+  *
+  *  @param
+  *
+  *  @return
+  */
+  Vector3
+  getMinPosition() const;
+
+  /*
+  *  Returns box max position values.
+  *
+  *  @param
+  *
+  *  @return
+  */
+  Vector3
+  getMaxPosition() const;
 
   /*************************************************************/
   /*
