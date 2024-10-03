@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxOBB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/03
 *  @brief   Math class for Oriented Bounding-Box.
 *
 *  Math class for Oriented Bounding-Box.
@@ -20,23 +20,21 @@
 #include "shVector3.h"
 
 namespace shEngineSDK {
-/*
-*  Math class for Oriented Bounding-Box.
+/**
+*  @brief Math class for Oriented Bounding-Box.
 */
 class SH_UTILITY_EXPORT shBoxOBB
 {
  public:
-  /*
-  *  Default constructor.
+  /**
+  *  @brief Default constructor.
   */
   shBoxOBB() = default;
-  /*
-  *  Constructor that initialize box values.
+  /**
+  *  @brief Constructor that initialize box values.
   * 
   *  @param Vector3& _center: Center values.
-  * 
   *  @param Quaternion& _rotation: Rotation values.
-  * 
   *  @param Vector3& _extent: Extent values.
   */
   shBoxOBB(const Vector3& _center,
@@ -44,8 +42,8 @@ class SH_UTILITY_EXPORT shBoxOBB
            const Vector3 _extent)
            : center(_center), rotation(_rotation), extent(_extent) {}
   
-  /*
-  *  Default destructor.
+  /**
+  *  @brief Default destructor.
   */
   ~shBoxOBB() = default;
 
@@ -55,76 +53,84 @@ class SH_UTILITY_EXPORT shBoxOBB
   */
   /*************************************************************/
 
-  /*
-  *  Sets box center.
+  /**
+  *  @brief Sets box center.
   *
   *  @param Vector3& _center
-  *
-  *  @return
   */
   void
   setCenter(const Vector3& _center);
 
-  /*
-  *  Sets box rotation.
+  /**
+  *  @brief Sets box rotation.
   *
   *  @param Quaternion& _rotation
-  *
-  *  @return
   */
   void
   setRotation(const Quaternion& _rotation);
 
-  /*
-  *  Sets box extent.
+  /**
+  *  @brief Sets box extent.
   *
   *  @param Vector3& _extent
-  *
-  *  @return
   */
   void
   setExtent(const Vector3& _extent);
 
-  /*
-  *  Returns box center.
-  *
-  *  @param
-  *
+  /**
+  *  @brief Returns box center.
+  * 
   *  @return Vector3
   */
   Vector3
   getCenter() const;
 
-  /*
-  *  Returns box rotation.
-  *
-  *  @param
+  /**
+  *  @brief Returns box rotation.
   *
   *  @return Quaternion
   */
   Quaternion
   getRotation() const;
 
-  /*
-  *  Returns box extent.
-  *
-  *  @param
+  /**
+  *  @brief Returns box extent.
   *
   *  @return Vector3
   */
   Vector3
   getExtent() const;
 
-  /*
-  *  Calculate corners for intersecction.
-  *  // TODO: not finished yet.
+  /**
+  *  @brief Project the box corners on the axis.
   *
-  *  @param shBoxOBB& box
-  *
-  *  @return
+  *  @param Vector3& axis
+  *  @param float& min: Reference is needed, it will save the result
+  *  @param float& max: Reference is needed, it will save the result
   */
-  Vector3
-  getCorners(const shBoxOBB& box);
+  void
+  projectOnAxis(const Vector3& axis, float& min, float& max) const;
+
+  /**
+  *  @brief Checks for an intersection on the axis.
+  *
+  *  @param float min1
+  *  @param float max1
+  *  @param float min2
+  *  @param float max2
+  *
+  *  @return bool
+  */
+  bool
+  overlapOnProjection(float min1, float max1, float min2, float max2) const;
+
+  /**
+  *  @brief Calculate the box corners.
+  *
+  *  @return Array<Vector3, 8> Return the corners.
+  */
+  Array<Vector3, 8>
+  getCorners() const;
 
   /*************************************************************/
   /*
@@ -132,17 +138,19 @@ class SH_UTILITY_EXPORT shBoxOBB
   */
   /*************************************************************/
  public:
-   /*
-   *  Box center.
-   */
-   Vector3 center;
-   /*
-   *  Rotation in radians.
-   */
-   Quaternion rotation;
-   /*
-   *  Half size.
-   */
-   Vector3 extent;
+  /**
+  *  @brief Box center.
+  */
+  Vector3 center;
+
+  /**
+  *  @brief Rotation in radians.
+  */
+  Quaternion rotation;
+
+  /**
+  *  @brief Half size of the box, how much its "extending" in all axes.
+  */
+  Vector3 extent;
 };
 }

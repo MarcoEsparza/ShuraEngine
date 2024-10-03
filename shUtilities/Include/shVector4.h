@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/03
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -21,43 +21,40 @@
 
 namespace shEngineSDK {
 /*
-*  Vector4 with float
+*  @brief Vector4 with float.
 *  
-*  Sample usage:
-*  Vector4 myVector4;
-*  Vector4 myVector4(1.0f, 1.0f);
-*  Vector4* ptrVector4 = new Vector4(); The constructor may take arguments.
+*  @brief Sample usage:
+*  @brief Vector4 myVector4;
+*  @brief Vector4 myVector4(1.0f, 1.0f);
+*  @brief Vector4* ptrVector4 = new Vector4(); The constructor may take arguments.
 */
 class SH_UTILITY_EXPORT Vector4
 {
  public:
-  /*
-  *  Default constructor: initialize Vector4 values to 0.
+  /**
+  *  @brief Default constructor: initialize Vector4 values to 0.
   */
   Vector4() = default;
 
-  /*
-  *  Constructor to initialize values to the given numbers.
+  /**
+  *  @brief Constructor to initialize values to the given numbers.
   *
   *  @param float _x: X value.
-  * 
   *  @param float _y: Y value.
-  * 
   *  @param float _z: Z value.
-  * 
   *  @param float _w: W value.
   */
   Vector4(const float _x, const float _y, const float _z, const float _w) :
           x(_x), y(_y), z(_z), w(_w) {}
 
-  /*
-  *  Copy constructor
+  /**
+  *  @brief Copy constructor
   *
   *  @param Vector4 other
   */
   Vector4(const Vector4& other);
 
-  /*
+  /**
   *  Default destructor.
   */
   ~Vector4() = default;
@@ -68,8 +65,8 @@ class SH_UTILITY_EXPORT Vector4
   */
   /*************************************************************/
 
-  /*
-  *  Calculates the dot product of this Vector4 and a given Vector4.
+  /**
+  *  @brief Calculates the dot product of this Vector4 and a given Vector4.
   *
   *  @param Vector4 other: To calculate with this Vector4.
   * 
@@ -78,42 +75,33 @@ class SH_UTILITY_EXPORT Vector4
   float
   dot(const Vector4& other) const;
 
-  /*
-  *  Calculates the magnitude of the Vector4.
-  *
-  *  @param
+  /**
+  *  @brief Calculates the magnitude of the Vector4.
   *
   *  @return float The magnitude of this Vector4.
   */
   float
   mag() const;
 
-  /*
-  *  Normalize this Vector4.
-  *
-  *  @param
-  *
-  *  @return void
+  /**
+  *  @brief Normalize this Vector4.
   */
   void
   normalize();
 
-  /*
-  *  Get this Vector4 normalized.
-  *
-  *  @param
+  /**
+  *  @brief Get this Vector4 normalized.
   *
   *  @return Vector4 The normalized Vector4.
   */
   Vector4
   getNormalized() const;
 
-  /*
-  *  Linear interpolation between two given Vector4.
+  /**
+  *  @brief Linear interpolation between two given Vector4.
   *  @brief This Vector4 is taken as the min value.
   *
   *  @param Vector4 other: Max value.
-  * 
   *  @param float time: Alpha.
   *
   *  @return Vector4 Interpolated Vector4.
@@ -127,11 +115,10 @@ class SH_UTILITY_EXPORT Vector4
   */
   /*************************************************************/
  public:
-  /*
-  *  Operator to sum a Vector4 values and other Vector4 values.
+  /**
+  *  @brief Operator to sum a Vector4 values and other Vector4 values.
   *
   *  @param lValue-Vector4.
-  * 
   *  @param rValue-Vector4.
   *
   *  @return Vector4.
@@ -139,11 +126,10 @@ class SH_UTILITY_EXPORT Vector4
   FORCEINLINE Vector4
   operator+(const Vector4& other) const;
 
-  /*
-  *  Operator to substract a Vector4 values and other Vector4 values.
+  /**
+  *  @brief Operator to substract a Vector4 values and other Vector4 values.
   *
   *  @param lValue-Vector4.
-  * 
   *  @param rValue-Vector4.
   *
   *  @return Vector4.
@@ -151,11 +137,10 @@ class SH_UTILITY_EXPORT Vector4
   FORCEINLINE Vector4
   operator-(const Vector4& other) const;
 
-  /*
-  *  Operator to multiply the values of a Vector4 with a float.
+  /**
+  *  @brief Operator to multiply the values of a Vector4 with a float.
   *
   *  @param lValue-Vector4.
-  * 
   *  @param rValue-float.
   *
   *  @return Vector4 The result of the multiplication.
@@ -163,12 +148,11 @@ class SH_UTILITY_EXPORT Vector4
   FORCEINLINE Vector4
   operator*(const float delta) const;
 
-  /*
-  *  Operator to sum a Vector4 values and other Vector4 values and store the
-  *  result in the first Vector4.
+  /**
+  *  @brief Operator to sum a Vector4 values and other Vector4 values and store
+  *         the result in the first Vector4.
   *
   *  @param lValue-Vector4.
-  * 
   *  @param rValue-Vector4.
   * 
   *  @return Vector4 This.
@@ -176,12 +160,11 @@ class SH_UTILITY_EXPORT Vector4
   FORCEINLINE Vector4&
   operator+=(const Vector4& other);
 
-  /*
-  *  Operator to substract a Vector4 values and other Vector4 values and
-  *  store the result in the first Vector4.
+  /**
+  *  @brief Operator to substract a Vector4 values and other Vector4 values and
+  *         store the result in the first Vector4.
   *
   *  @param lValue-Vector4.
-  * 
   *  @param rValue-Vector4.
   * 
   *  @return Vector4 This.
@@ -195,22 +178,25 @@ class SH_UTILITY_EXPORT Vector4
   */
   /*************************************************************/
  public:
-   /*
-   * Vector4 X value.
-   */
-   float x;
-   /*
-   * Vector4 Y value.
-   */
-   float y;
-   /*
-   * Vector4 Z value.
-   */
-   float z;
-   /*
-   * Vector4 W value.
-   */
-   float w;
+  /**
+  * @brief Vector4 X value.
+  */
+  float x;
+
+  /**
+  * @brief Vector4 Y value.
+  */
+  float y;
+
+  /**
+  * @brief Vector4 Z value.
+  */
+  float z;
+
+  /**
+  * @brief Vector4 W value.
+  */
+  float w;
 };
 
 /*************************************************************/

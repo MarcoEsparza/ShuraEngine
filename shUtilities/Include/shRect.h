@@ -2,7 +2,7 @@
 /*
 *  @file    shRect.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/03
 *  @brief   Math class for rectangle figure.
 *
 *  Math class for rectangle figure.
@@ -19,26 +19,25 @@
 #include "shVector2.h"
 
 namespace shEngineSDK {
-/*
-*  Math class for rectangle figure.
+/**
+*  @brief Math class for rectangle figure.
 */
 class SH_UTILITY_EXPORT shRect
 {
  public:
-  /*
-  *  Default constructor.
+  /**
+  *  @brief Default constructor.
   */
   shRect() = default;
-  /*
-  *  Constructor to initialize rect values.
+  /**
+  *  @brief Constructor to initialize rect values.
   * 
   *  @param const Vector2& pos: Desired min value.
-  * 
   *  @param const Vector2& size: Compute max value with size and min value.
   */
   shRect(const Vector2& pos, const Vector2& size);
-  /*
-  *  Default destructor.
+  /**
+  *  @brief Default destructor.
   */
   ~shRect() = default;
   
@@ -48,40 +47,32 @@ class SH_UTILITY_EXPORT shRect
   */
   /*************************************************************/
 
-  /*
-  *  Set the min values for the rect.
+  /**
+  *  @brief Set the min values for the rect.
   * 
   *  @param const Vector2& pos: Desired min value.
-  * 
-  *  @return
   */
   void
   setPosition(const Vector2& pos);
 
-  /*
-  *  Compute the max values with given size and the position.
+  /**
+  *  @brief Compute the max values with given size and the position.
   *  
   *  @param const Vector2& size: Set the max values with this plus position.
-  * 
-  *  @return
   */
   void
   setSize(const Vector2& size);
 
-  /*
-  *  Returns rect min position values.
-  *
-  *  @param
+  /**
+  *  @brief Returns rect min position values.
   *
   *  @return Vector2
   */
   Vector2
   getMinPosition() const;
 
-  /*
-  *  Returns rect max position values.
-  *
-  *  @param
+  /**
+  *  @brief Returns rect max position values.
   *
   *  @return Vector2
   */
@@ -94,13 +85,14 @@ class SH_UTILITY_EXPORT shRect
   */
   /*************************************************************/
  public:
-   /*
-   *  Minimum values for X and Y.
-   */
-   Vector2 min;
-   /*
-   *  Maximum values for X and Y.
-   */
-   Vector2 max;
+  /**
+  *  @brief Minimum values for X and Y.
+  */
+  Vector2 min;
+
+  /**
+  *  @brief Maximum values for X and Y.
+  */
+  Vector2 max;
 };
 }

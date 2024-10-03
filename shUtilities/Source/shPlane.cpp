@@ -15,6 +15,7 @@
 */
 /*************************************************************/
 #include "shPlane.h"
+#include "shMath.h"
 
 namespace shEngineSDK {
 
@@ -46,5 +47,18 @@ float
 shPlane::getDistance() const
 {
   return distance;
+}
+
+float
+shPlane::pointToPlaneDistance(const Vector3& point) const
+{
+  const float srqNormal = Math::sqrt(normal.x * normal.x +
+                                     normal.y * normal.y +
+                                     normal.z * normal.z);
+
+  return (normal.x * point.x +
+          normal.y * point.y +
+          normal.z * point.z +
+          distance) / srqNormal;
 }
 }

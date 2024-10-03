@@ -174,11 +174,25 @@ PlatformMath::pointBoxIntersect(const Vector3& point, const shBoxAAB& box)
           point.z <= box.max.z);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::pointBoxIntersect(const Vector3& point, const shBoxOBB& box)
 {
-  return false;
+  Vector3 right, up, forward;
+  box.rotation.toAxes(right, up, forward);
+
+  const Vector3 localPoint = point - box.center;
+
+  float projRight = localPoint.dot(right);
+  float projUp = localPoint.dot(up);
+  float projForward = localPoint.dot(forward);
+
+  if (projRight < -box.extent.x || projRight > box.extent.x &&
+      projUp < -box.extent.y || projUp > box.extent.y &&
+      projForward < -box.extent.z || projForward > box.extent.z) {
+    return false;
+  }
+
+  return true;
 }
 
 bool
@@ -194,11 +208,26 @@ PlatformMath::pointSphereIntersect(const Vector3& point, const shSphere& sph)
   return distance < sph.radius;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::pointCapsuleIntersect(const Vector3& point, const shCapsule& cap)
 {
-  return false;
+  const Vector3 pointAB = cap.pointB - cap.pointA;
+  const Vector3 pointAP = point - cap.pointA;
+  const Vector3 abNormalized = pointAB.getNormalized();
+
+  float proj = pointAP.dot(abNormalized);
+
+  if (proj < 0) {
+    proj = 0;
+  }
+  else if (proj > pointAB.mag()) {
+    proj = pointAB.mag();
+  }
+
+  const Vector3 closestPoint = cap.pointA + abNormalized * proj;
+  const Vector3 diff = point - closestPoint;
+
+  return (diff.mag() <= cap.radius);
 }
 
 bool
@@ -210,11 +239,12 @@ PlatformMath::pointRectIntersect(const Vector2& point, const shRect& rect)
           point.y <= rect.max.y);
 }
 
-//TODO: finish this function.
 bool
-PlatformMath::pointPlaneIntersect(const Vector2& point, const shPlane& plane)
+PlatformMath::pointPlaneIntersect(const Vector3& point, const shPlane& plane)
 {
-  return false;
+  const float distance = plane.pointToPlaneDistance(point);
+
+  return PlatformMath::abs(distance) < SMALL_NUMBER;
 }
 
 bool
@@ -228,32 +258,183 @@ PlatformMath::boxBoxIntersect(const shBoxAAB& box, const shBoxAAB& box1)
           box.max.z >= box1.min.z);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxBoxIntersect(const shBoxOBB& box, const shBoxOBB& box1)
 {
-  return false;
+  Vector<Vector3> axes;
+  axes.resize(15);
+
+  Vector<Vector3> axes1;
+  axes1.resize(3);
+
+  Vector<Vector3> axes2;
+  axes2.resize(3);
+
+  box.rotation.toAxes(axes1[0], axes1[1], axes1[2]);
+  for (uint8 i = 0; i < 3; ++i) {
+    axes[i] = axes1[i];
+  }
+
+  uint8 index = 3;
+  box1.rotation.toAxes(axes2[0], axes2[1], axes2[2]);
+  for (uint8 i = 0; i < 3; ++i) {
+    axes[index + i] = axes1[i];
+  }
+  
+  index = 6;
+  for (uint8 i = 0; i < 3; ++i) {
+    for (uint8 j = 0; j < 3; ++j) {
+      axes[index++] = axes1[i].cross(axes2[j]);
+    }
+  }
+
+  for (uint8 i = 0; i < 15; ++i) {
+    float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+
+    box.projectOnAxis(axes[i], min1, max1);
+    box1.projectOnAxis(axes[i], min2, max2);
+
+    if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxBoxIntersect(const shBoxAAB& boxA, const shBoxOBB& boxO)
 {
-  return false;
+  Vector<Vector3> aabbAxes = { Vector3(1.0f,0.0f,0.0f),
+                               Vector3(0.0f,1.0f,0.0f),
+                               Vector3(0.0f,0.0f,1.0f) };
+
+  Vector<Vector3> obbAxes;
+  obbAxes.resize(3);
+  boxO.rotation.toAxes(obbAxes[0], obbAxes[1], obbAxes[2]);
+
+  // Project on aabb axes
+  for (uint8 i = 0; i < 3; ++i) {
+    float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+
+    boxA.projectOnAxis(aabbAxes[i], min1, max1);
+    boxO.projectOnAxis(aabbAxes[i], min2, max2);
+
+    if (!boxO.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  // Project on obb axes
+  for (uint8 i = 0; i < 3; ++i) {
+    float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+
+    boxA.projectOnAxis(obbAxes[i], min1, max1);
+    boxO.projectOnAxis(obbAxes[i], min2, max2);
+
+    if (!boxO.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  // Axis combination
+  for (uint8 i = 0; i < 3; ++i) {
+    for (uint8 j = 0; j < 3; ++j) {
+      Vector3 axis = aabbAxes[i].cross(obbAxes[j]);
+
+      if (axis.x == 0 && axis.y == 0 && axis.z == 0) {
+        continue;
+      }
+
+      float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+      boxA.projectOnAxis(axis, min1, max1);
+      boxO.projectOnAxis(axis, min2, max2);
+
+      if (!boxO.overlapOnProjection(min1, max1, min2, max2)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxCapsuleIntersect(const shBoxAAB& box, const shCapsule& cap)
 {
-  return false;
+  Vector3 closestPoint(0.0f, 0.0f, 0.0f);
+
+  closestPoint.x = (PlatformMath::max(box.min.x, PlatformMath::min(cap.pointA.x, box.max.x)));
+  closestPoint.y = (PlatformMath::max(box.min.y, PlatformMath::min(cap.pointA.y, box.max.y)));
+  closestPoint.z = (PlatformMath::max(box.min.z, PlatformMath::min(cap.pointA.z, box.max.z)));
+
+  const Vector3 diffA = closestPoint - cap.pointA;
+  const float distA = diffA.mag();
+
+  closestPoint.x = (PlatformMath::max(box.min.x, PlatformMath::min(cap.pointB.x, box.max.x)));
+  closestPoint.y = (PlatformMath::max(box.min.y, PlatformMath::min(cap.pointB.y, box.max.y)));
+  closestPoint.z = (PlatformMath::max(box.min.z, PlatformMath::min(cap.pointB.z, box.max.z)));
+
+  const Vector3 diffB = closestPoint - cap.pointB;
+  const float distB = diffB.mag();
+
+  return (distA <= cap.radius || distB <= cap.radius);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxCapsuleIntersect(const shBoxOBB& box, const shCapsule& cap)
 {
-  return false;
+  Vector<Vector3> obbAxes;
+  obbAxes.resize(3);
+  box.rotation.toAxes(obbAxes[0], obbAxes[1], obbAxes[2]);
+
+  // Projection on obb axis
+  for (uint8 i = 0; i < 3; ++i) {
+    float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+
+    box.projectOnAxis(obbAxes[i], min1, max1);
+    cap.projectOnAxis(obbAxes[i], min2, max2);
+
+    if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  // Projection on capsule dir
+  Vector3 capDir = cap.pointB - cap.pointA;
+  capDir.normalize();
+  Vector<Vector3> capAxes = { capDir, Vector3(capDir.y, -capDir.x, 0.0f) };
+
+  for (uint8 i = 0; i < 2; ++i) {
+    float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+    box.projectOnAxis(capAxes[i], min1, max1);
+    cap.projectOnAxis(capAxes[i], min2, max2);
+
+    if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  // Axis combination
+  for (uint8 i = 0; i < 3; ++i) {
+    for (uint8 j = 0; j < 2; ++j) {
+      Vector3 axis = obbAxes[i].cross(capAxes[j]);
+
+      if (axis.x == 0 && axis.y == 0 && axis.z == 0) {
+        continue;
+      }
+
+      float min1 = 0, max1 = 0, min2 = 0, max2 = 0;
+      box.projectOnAxis(axis, min1, max1);
+      cap.projectOnAxis(axis, min2, max2);
+
+      if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 bool
@@ -268,10 +449,29 @@ PlatformMath::boxPlaneIntersect(const shBoxAAB& box, const shPlane& plane)
   return abs(distance) <= projRadius;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxPlaneIntersect(const shBoxOBB& box, const shPlane& plane)
 {
+  auto corners = box.getCorners();
+
+  bool allPositive = true;
+  bool allNegative = true;
+
+  for (const auto& corner : corners) {
+    float distance = plane.normal.dot(corner) - plane.distance;
+
+    if (distance > 0) {
+      allNegative = false;
+    }
+    else if (distance < 0) {
+      allPositive = false;
+    }
+
+    if (!allPositive && !allNegative) {
+      return true;
+    }
+  }
+
   return false;
 }
 

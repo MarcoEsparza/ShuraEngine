@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/03
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -24,23 +24,23 @@
 #include "shVector4.h"
 
 namespace shEngineSDK {
-/*
-*  Matrix4x4, double array, use double brackets to access to the matrix values.
+/**
+*  @brief Matrix4x4, double array, use double brackets to access to the matrix values.
 * 
-*  Sample usage:
-*  Matrix4 myMatrix;
-*  myMatrix.m[0][0] = 1.0f;
+*  @brief Sample usage:
+*  @brief Matrix4 myMatrix;
+*  @brief myMatrix.m[0][0] = 1.0f;
 */
 class SH_UTILITY_EXPORT Matrix4
 {
  public:
-  /*
-  *  Default constructor.
+  /**
+  *  @brief Default constructor.
   */
   Matrix4() = default;
 
-  /*
-  *  Constructor to initialize values to the given numbers.
+  /**
+  *  @brief Constructor to initialize values to the given numbers.
   */
   Matrix4(float m00, float m01, float m02, float m03,
           float m10, float m11, float m12, float m13,
@@ -51,38 +51,35 @@ class SH_UTILITY_EXPORT Matrix4
             {m20, m21, m22, m23},
             {m30, m31, m32, m33}} {}
 
-  /*
-  *  Copy constructor
+  /**
+  *  @brief Copy constructor
   *
   *  @param Matrix4
   */
   Matrix4(const Matrix4& other);
 
-  /*
-  *  Constructor to create a rotation Matrix4 from a Quaternion
+  /**
+  *  @brief Constructor to create a rotation Matrix4 from a Quaternion
   *
   *  @param Quaternion
   */
   explicit Matrix4(const Quaternion& quat);
 
-  /*
-  *  Constructor to create Matrix4 from four Vector4.
+  /**
+  *  @brief Constructor to create Matrix4 from four Vector4.
   *
-  *  @param Vector4
-  * 
-  *  @param Vector4
-  * 
-  *  @param Vector4
-  * 
-  *  @param Vector4
+  *  @param Vector4& vec1
+  *  @param Vector4& vec2
+  *  @param Vector4& vec3
+  *  @param Vector4& vec4
   */
   Matrix4(const Vector4& vec1,
           const Vector4& vec2,
           const Vector4& vec3,
           const Vector4& vec4);
 
-  /*
-  *  Default destructor.
+  /**
+  *  @brief Default destructor.
   */
   ~Matrix4() = default;
 
@@ -92,38 +89,32 @@ class SH_UTILITY_EXPORT Matrix4
   */
   /*************************************************************/
 
-  /*
-  *  This Matrix convert into the transpose matrix from another Matrix4.
+  /**
+  *  @brief This Matrix convert into the transpose matrix from another Matrix4.
   *
   *  @param Matrix4 _other: The another Matrix4.
-  *
-  *  @return
   */
   void
   transpose(const Matrix4& other);
 
-  /*
-  *  Transpose this Matrix4.
-  *
-  *  @param
+  /**
+  *  @brief Transpose this Matrix4.
   *
   *  @return Matrix4 The transposed Matrix4.
   */
   Matrix4
   getTransposed() const;
 
-  /*
-  *  Get the inverse of this Matrix4.
-  *
-  *  @param
+  /**
+  *  @brief Get the inverse of this Matrix4.
   *
   *  @return Matrix4 The inversed Matrix4.
   */
   Matrix4
   getInversed() const;
 
-  /*
-  *  Creates a translation matrix.
+  /**
+  *  @brief Creates a translation matrix.
   *
   *  @param Vector3 _vec: The 3 dimensional vector with the translate info.
   *
@@ -132,8 +123,8 @@ class SH_UTILITY_EXPORT Matrix4
   Matrix4
   createTranslationMatrix(const Vector3& vec) const;
 
-  /*
-  *  Convert a Quaternion to a Matrix4.
+  /**
+  *  @brief Convert a Quaternion to a Matrix4.
   *
   *  @param Quaternion _q: The Quaternion to convert.
   *
@@ -142,18 +133,16 @@ class SH_UTILITY_EXPORT Matrix4
   Matrix4
   quaternionToMatrix(const Quaternion& quat) const;
 
-  /*
-  *  Convert this Matrix4 to a Quaternion.
-  *
-  *  @param
+  /**
+  *  @brief Convert this Matrix4 to a Quaternion.
   *
   *  @return Quaternion The resultant Quaternion from this Matrix4.
   */
   Quaternion
   toQuaternion() const;
 
-  /*
-  *  Creates a scale matrix.
+  /**
+  *  @brief Creates a scale matrix.
   *
   *  @param Vector3 vec: The 3 dimensional vector with the scale info.
   *
@@ -162,8 +151,8 @@ class SH_UTILITY_EXPORT Matrix4
   Matrix4
   createScaleMatrix(const Vector3& vec) const;
 
-  /*
-  *  Transorms the direction of a Vector3 with the Matrix4 info.
+  /**
+  *  @brief Transforms the direction of a Vector3 with the Matrix4 info.
   *
   *  @param Vector3 vec: The Vector3 to be transformed.
   *
@@ -172,8 +161,8 @@ class SH_UTILITY_EXPORT Matrix4
   Vector3
   transformDirection(const Vector3& vec) const;
 
-  /*
-  *  Create a rotation matrix for the x axis with a given angle.
+  /**
+  *  @brief Create a rotation matrix for the x axis with a given angle.
   *
   *  @param  float angle: The given angle
   *
@@ -182,8 +171,8 @@ class SH_UTILITY_EXPORT Matrix4
   Matrix4
   createRotationXMatrix(const float angle) const;
 
-  /*
-  *  Create a rotation matrix for the y axis with a given angle.
+  /**
+  *  @brief Create a rotation matrix for the y axis with a given angle.
   *
   *  @param  float angle: The given angle
   *
@@ -192,8 +181,8 @@ class SH_UTILITY_EXPORT Matrix4
   Matrix4
   createRotationYMatrix(const float angle) const;
 
-  /*
-  *  Create a rotation matrix for the z axis with a given angle.
+  /**
+  *  @brief Create a rotation matrix for the z axis with a given angle.
   *
   *  @param  float _angle: The given angle
   *
@@ -208,11 +197,10 @@ class SH_UTILITY_EXPORT Matrix4
   */
   /*************************************************************/
 public:
-  /*
-  *  The sum of two Matrix4.
+  /**
+  *  @brief The sum of two Matrix4.
   *
   *  @param lValue-Matrix4.
-  *
   *  @param rValue-Matrix4.
   *
   *  @return Matrix4
@@ -220,11 +208,10 @@ public:
   FORCEINLINE Matrix4
   operator+(const Matrix4& other) const;
 
-  /*
-  *  The substraction of two Matrix4.
+  /**
+  *  @brief The substraction of two Matrix4.
   *
   *  @param lValue-Matrix4.
-  *
   *  @param rValue-Matrix4.
   *
   *  @return Matrix4
@@ -232,11 +219,10 @@ public:
   FORCEINLINE Matrix4
   operator-(const Matrix4& other) const;
 
-  /*
-  *  The multiplication of two Matrix4.
+  /**
+  *  @brief The multiplication of two Matrix4.
   *
   *  @param lValue-Matrix4.
-  *
   *  @param rValue-Matrix4.
   *
   *  @return Matrix4
@@ -244,11 +230,10 @@ public:
   FORCEINLINE Matrix4
   operator*(const Matrix4& other) const;
 
-  /*
-  *  The multiplication of a Matrix4 and a constant.
+  /**
+  *  @brief The multiplication of a Matrix4 and a constant.
   *
   *  @param lValue-Matrix4.
-  *
   *  @param rValue-float.
   *
   *  @return Matrix4
@@ -256,12 +241,11 @@ public:
   FORCEINLINE Matrix4
   operator*(const float delta) const;
 
-  /*
-  *  Operator to sum a Matrix4 values and other Matrix4 values and store
-  *  the result in the first Matrix4.
+  /**
+  *  @brief Operator to sum a Matrix4 values and other Matrix4 values and store
+  *         the result in the first Matrix4.
   *
   *  @param lValue-Matrix4.
-  *
   *  @param rValue-Matrix4.
   *
   *  @return Matrix4
@@ -269,12 +253,11 @@ public:
   FORCEINLINE Matrix4&
   operator+=(const Matrix4& other);
 
-  /*
-  *  Operator to substract a Matrix4 values and other Matrix4 values and
-  *  store the result in the first Matrix4.
+  /**
+  *  @brief Operator to substract a Matrix4 values and other Matrix4 values and
+  *         store the result in the first Matrix4.
   *
   *  @param lValue-Matrix4.
-  *
   *  @param rValue-Matrix4.
   *
   *  @return Matrix4
@@ -288,8 +271,8 @@ public:
   */
   /*************************************************************/
  public:
-  /*
-  *  Use double array to access values.
+  /**
+  *  @brief Use double array to access values.
   */
   float m[4][4];
 };
@@ -300,11 +283,17 @@ public:
 */
 /*************************************************************/
 
+/**
+*  @brief Matrix4 initialized with identity values.
+*/
 static const Matrix4 identity = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
                                         0.0f, 1.0f, 0.0f, 0.0f,
                                         0.0f, 0.0f, 1.0f, 0.0f,
                                         0.0f, 0.0f, 0.0f, 1.0f);
 
+/**
+*  @brief Matrix4 initialized with zero values.
+*/
 static const Matrix4 zeroMatrix = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
                                           0.0f, 0.0f, 0.0f, 0.0f,
                                           0.0f, 0.0f, 0.0f, 0.0f,

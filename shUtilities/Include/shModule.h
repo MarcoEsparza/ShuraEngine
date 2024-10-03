@@ -2,7 +2,7 @@
 /*
 *  @file    shModule.h
 *  @author  Samuel Prince (samuel.price.quezada@gmail.com)
-*  @date    2024/09/27
+*  @date    2024/10/03
 *  @brief   Represents one engine module. Essentially it is a specialized type
 *           of singleton. Module must be manually started up and shutdown
 *           before and after use.
@@ -22,7 +22,7 @@
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
-/*
+/**
 *  @brief Represents one engine module. Essentially it is a specialized type
 *         of singleton. Module must be manually started up and shutdown
 *         before and after use.
@@ -32,9 +32,9 @@ class Module
 {
  public:
 
-  /*
-  *  Returns a reference to the module instance. Module has to have been
-  *  started up first otherwise an exception will be thrown.
+  /**
+  *  @brief Returns a reference to the module instance. Module has to have been
+  *         started up first otherwise an exception will be thrown.
   */
   static T&
   instance()
@@ -50,9 +50,9 @@ class Module
     return *_instance();
   }
   
-  /*
-  *  Returns a pointer to the module instance. Module has to have been
-  *  started up first otherwise an exception will be thrown.
+  /**
+  *  @brief Returns a pointer to the module instance. Module has to have been
+  *         started up first otherwise an exception will be thrown.
   */
   static T*
   instancePtr()
@@ -68,8 +68,8 @@ class Module
     return _instance();
   }
   
-  /*
-  *  Constructs and starts the module using the specified parameters.
+  /**
+  *  @brief Constructs and starts the module using the specified parameters.
   */
   template <class... Args>
   static void
@@ -85,7 +85,7 @@ class Module
     static_cast<Module*>(_instance())->onStartUp();
   }
 
-  /*
+  /**
   *  @brief Constructs and starts a specialized type of the module.
   *         Provide type must derive from type the Module is initialized with.
   */
@@ -105,8 +105,8 @@ class Module
     static_cast<Module*>(_instance())->onStartUp();
   }
 
-  /*
-  *  Shuts down this module and frees any resources it is using.
+  /**
+  *  @brief Shuts down this module and frees any resources it is using.
   */
   static void
   shutDown()
@@ -125,8 +125,8 @@ class Module
     isDestroyed() = true;
   }
 
-  /*
-  *  Query if the module has been started.
+  /**
+  *  @brief Query if the module has been started.
   */
   static bool
   isStarted()
@@ -149,22 +149,22 @@ class Module
   Module&
   operator=(const Module&) = delete;
 
-  /*
+  /**
   * @brief Override if you want your module to be notified once it has been
   *        constructed and started.
   */
   virtual void
   onStartUp() {}
 
-  /*
-  *  Override if you want your module to be notified just before it is deleted.
+  /**
+  *  @brief Override if you want your module to be notified just before it is deleted.
   */
   virtual void
   onShutDown() {}
 
-  /*
-  *  Returns a singleton instance of this module.
-  *  Throws an exception if module is not yet initialized.
+  /**
+  *  @brief Returns a singleton instance of this module.
+  *         Throws an exception if module is not yet initialized.
   */
   static T*&
   _instance()
@@ -173,8 +173,8 @@ class Module
     return inst;
   }
 
-  /*
-  *  Checks if the module is shutdown.
+  /**
+  *  @brief Checks if the module is shutdown.
   *  @note If module was never started, this will reutn false.
   */
   static bool&
@@ -184,8 +184,8 @@ class Module
     return inst;
   }
 
-  /*
-  *  Checks if the module is started.
+  /**
+  *  @brief Checks if the module is started.
   */
   static bool&
   isStartedUp()

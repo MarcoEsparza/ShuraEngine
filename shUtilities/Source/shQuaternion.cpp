@@ -58,6 +58,16 @@ Vector3 Quaternion::toRotate() const
   return vec;
 }
 
+void
+Quaternion::toAxes(Vector3& right,
+                   Vector3& up,
+                   Vector3& forward) const
+{
+  right = Vector3(1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y));
+  up = Vector3(2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x));
+  forward = Vector3(2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y));
+}
+
 Quaternion
 Quaternion::fromEulerAngles(const Vector3& vec) const
 {

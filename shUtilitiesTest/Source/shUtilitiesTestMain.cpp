@@ -566,7 +566,7 @@ TEST_CASE("Rect") {
 TEST_CASE("Plane") {
   shPlane pln1(Vector3(3.0f, 1.5f, 2.0f), 1.0f);
   shPlane pln2(Vector3(3.0f, 1.5f, 2.0f), 1.0f);
-  Vector2 point(4.5f, 2.5f);
+  Vector3 point(4.5f, 2.5f, 1.0f);
 
   shRect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
 
