@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/14
+*  @date    2024/10/05
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -77,6 +77,20 @@ float
 PlatformMath::abs(const float value)
 {
   return std::abs(value);
+}
+
+Array<float, 4>::iterator
+PlatformMath::min_element(const Array<float, 4>::iterator first,
+                          const Array<float, 4>::iterator last)
+{
+  return std::min_element(first, last);
+}
+
+Array<float, 4>::iterator
+PlatformMath::max_element(const Array<float, 4>::iterator first,
+                          const Array<float, 4>::iterator last)
+{
+  return std::max_element(first, last);
 }
 
 /*************************************************************/
@@ -174,11 +188,25 @@ PlatformMath::pointBoxIntersect(const Vector3& point, const shBoxAAB& box)
           point.z <= box.max.z);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::pointBoxIntersect(const Vector3& point, const shBoxOBB& box)
 {
-  return false;
+  Vector3 right, up, forward;
+  box.rotation.toAxes(right, up, forward);
+
+  const Vector3 localPoint = point - box.center;
+
+  float projRight = localPoint.dot(right);
+  float projUp = localPoint.dot(up);
+  float projForward = localPoint.dot(forward);
+
+  if (projRight < -box.extent.x || projRight > box.extent.x &&
+      projUp < -box.extent.y || projUp > box.extent.y &&
+      projForward < -box.extent.z || projForward > box.extent.z) {
+    return false;
+  }
+
+  return true;
 }
 
 bool
@@ -194,27 +222,40 @@ PlatformMath::pointSphereIntersect(const Vector3& point, const shSphere& sph)
   return distance < sph.radius;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::pointCapsuleIntersect(const Vector3& point, const shCapsule& cap)
 {
-  return false;
+  const Vector3 pointAB = cap.pointB - cap.pointA;
+  const Vector3 pointAP = point - cap.pointA;
+  const Vector3 abNormalized = pointAB.getNormalized();
+
+  float proj = pointAP.dot(abNormalized);
+
+  if (proj < 0.0f) {
+    proj = 0.0f;
+  }
+  else if (proj > pointAB.mag()) {
+    proj = pointAB.mag();
+  }
+
+  const Vector3 closestPoint = cap.pointA + abNormalized * proj;
+  const Vector3 diff = point - closestPoint;
+
+  return (diff.mag() <= cap.radius);
 }
 
 bool
 PlatformMath::pointRectIntersect(const Vector2& point, const shRect& rect)
 {
-  return (point.x >= rect.min.x &&
-          point.x <= rect.max.x &&
-          point.y >= rect.min.y &&
-          point.y <= rect.max.y);
+  return rect.pointIntersect(point);
 }
 
-//TODO: finish this function.
 bool
-PlatformMath::pointPlaneIntersect(const Vector2& point, const shPlane& plane)
+PlatformMath::pointPlaneIntersect(const Vector3& point, const shPlane& plane)
 {
-  return false;
+  const float distance = plane.pointToPlaneDistance(point);
+
+  return PlatformMath::abs(distance) < SMALL_NUMBER;
 }
 
 bool
@@ -228,50 +269,233 @@ PlatformMath::boxBoxIntersect(const shBoxAAB& box, const shBoxAAB& box1)
           box.max.z >= box1.min.z);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxBoxIntersect(const shBoxOBB& box, const shBoxOBB& box1)
 {
+  Vector<Vector3> axes;
+  axes.resize(15);
+
+  Vector<Vector3> axes1;
+  axes1.resize(3);
+
+  Vector<Vector3> axes2;
+  axes2.resize(3);
+
+  box.rotation.toAxes(axes1[0], axes1[1], axes1[2]);
+  for (uint8 i = 0; i < 3; ++i) {
+    axes[i] = axes1[i];
+  }
+
+  uint8 index = 3;
+  box1.rotation.toAxes(axes2[0], axes2[1], axes2[2]);
+  for (uint8 i = 0; i < 3; ++i) {
+    axes[index + i] = axes1[i];
+  }
+  
+  index = 6;
+  for (uint8 i = 0; i < 3; ++i) {
+    for (uint8 j = 0; j < 3; ++j) {
+      axes[index++] = axes1[i].cross(axes2[j]);
+    }
+  }
+
+  for (uint8 i = 0; i < 15; ++i) {
+    float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+
+    box.projectOnAxis(axes[i], min1, max1);
+    box1.projectOnAxis(axes[i], min2, max2);
+
+    if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+      return true;
+    }
+  }
+
   return false;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxBoxIntersect(const shBoxAAB& boxA, const shBoxOBB& boxO)
 {
+  Vector<Vector3> aabbAxes = { Vector3(1.0f,0.0f,0.0f),
+                               Vector3(0.0f,1.0f,0.0f),
+                               Vector3(0.0f,0.0f,1.0f) };
+
+  Vector<Vector3> obbAxes;
+  obbAxes.resize(3);
+  boxO.rotation.toAxes(obbAxes[0], obbAxes[1], obbAxes[2]);
+
+  // Project on aabb axes
+  for (uint8 i = 0; i < 3; ++i) {
+    float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+
+    boxA.projectOnAxis(aabbAxes[i], min1, max1);
+    boxO.projectOnAxis(aabbAxes[i], min2, max2);
+
+    if (!boxO.overlapOnProjection(min1, max1, min2, max2)) {
+      return true;
+    }
+  }
+
+  // Project on obb axes
+  for (uint8 i = 0; i < 3; ++i) {
+    float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+
+    boxA.projectOnAxis(obbAxes[i], min1, max1);
+    boxO.projectOnAxis(obbAxes[i], min2, max2);
+
+    if (!boxO.overlapOnProjection(min1, max1, min2, max2)) {
+      return true;
+    }
+  }
+
+  // Axis combination
+  for (uint8 i = 0; i < 3; ++i) {
+    for (uint8 j = 0; j < 3; ++j) {
+      Vector3 axis = aabbAxes[i].cross(obbAxes[j]);
+
+      if (axis.x == 0 && axis.y == 0 && axis.z == 0) {
+        continue;
+      }
+
+      float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+      boxA.projectOnAxis(axis, min1, max1);
+      boxO.projectOnAxis(axis, min2, max2);
+
+      if (!boxO.overlapOnProjection(min1, max1, min2, max2)) {
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxCapsuleIntersect(const shBoxAAB& box, const shCapsule& cap)
 {
-  return false;
+  Vector3 closestPoint(0.0f, 0.0f, 0.0f);
+
+  closestPoint.x = (PlatformMath::max(box.min.x, PlatformMath::min(cap.pointA.x, box.max.x)));
+  closestPoint.y = (PlatformMath::max(box.min.y, PlatformMath::min(cap.pointA.y, box.max.y)));
+  closestPoint.z = (PlatformMath::max(box.min.z, PlatformMath::min(cap.pointA.z, box.max.z)));
+
+  const Vector3 diffA = closestPoint - cap.pointA;
+  const float distA = diffA.mag();
+
+  closestPoint.x = (PlatformMath::max(box.min.x, PlatformMath::min(cap.pointB.x, box.max.x)));
+  closestPoint.y = (PlatformMath::max(box.min.y, PlatformMath::min(cap.pointB.y, box.max.y)));
+  closestPoint.z = (PlatformMath::max(box.min.z, PlatformMath::min(cap.pointB.z, box.max.z)));
+
+  const Vector3 diffB = closestPoint - cap.pointB;
+  const float distB = diffB.mag();
+
+  return (distA <= cap.radius || distB <= cap.radius);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxCapsuleIntersect(const shBoxOBB& box, const shCapsule& cap)
 {
-  return false;
+  Vector<Vector3> obbAxes;
+  obbAxes.resize(3);
+  box.rotation.toAxes(obbAxes[0], obbAxes[1], obbAxes[2]);
+
+  // Projection on obb axis
+  for (uint8 i = 0; i < 3; ++i) {
+    float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+
+    box.projectOnAxis(obbAxes[i], min1, max1);
+    cap.projectOnAxis(obbAxes[i], min2, max2);
+
+    if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  // Projection on capsule dir
+  Vector3 capDir = cap.pointB - cap.pointA;
+  capDir.normalize();
+  Vector<Vector3> capAxes = { capDir, Vector3(capDir.y, -capDir.x, 0.0f) };
+
+  for (uint8 i = 0; i < 2; ++i) {
+    float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+    box.projectOnAxis(capAxes[i], min1, max1);
+    cap.projectOnAxis(capAxes[i], min2, max2);
+
+    if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+      return false;
+    }
+  }
+
+  // Axis combination
+  for (uint8 i = 0; i < 3; ++i) {
+    for (uint8 j = 0; j < 2; ++j) {
+      Vector3 axis = obbAxes[i].cross(capAxes[j]);
+
+      if (axis.x == 0 && axis.y == 0 && axis.z == 0) {
+        continue;
+      }
+
+      float min1 = 0.0f, max1 = 0.0f, min2 = 0.0f, max2 = 0.0f;
+      box.projectOnAxis(axis, min1, max1);
+      cap.projectOnAxis(axis, min2, max2);
+
+      if (!box.overlapOnProjection(min1, max1, min2, max2)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 bool
 PlatformMath::boxPlaneIntersect(const shBoxAAB& box, const shPlane& plane)
 {
-  const float distance = plane.normal.dot(box.max - box.min) - plane.distance;
+  auto vertices = box.getVertices();
+  Array<float, 8> evaluations;
 
-  const float projRadius = box.max.x - box.min.x + abs(plane.normal.x) +
-                           box.max.y - box.min.y + abs(plane.normal.y) +
-                           box.max.z - box.min.z + abs(plane.normal.z);
+  for (uint8 i = 0; i < 8; ++i) {
+    evaluations[i] = plane.evaluate(vertices[i]);
+  }
 
-  return abs(distance) <= projRadius;
+  bool allPositive = true;
+  bool allNegative = true;
+
+  for (float val : evaluations) {
+    if (val > 0.0f) {
+      allNegative = false;
+    }
+    if (val < 0.0f) {
+      allPositive = false;
+    }
+  }
+
+  return !(allPositive || allNegative);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxPlaneIntersect(const shBoxOBB& box, const shPlane& plane)
 {
+  auto corners = box.getCorners();
+
+  bool allPositive = true;
+  bool allNegative = true;
+
+  for (const auto& corner : corners) {
+    float distance = plane.normal.dot(corner) - plane.distance;
+
+    if (distance > 0) {
+      allNegative = false;
+    }
+    else if (distance < 0) {
+      allPositive = false;
+    }
+
+    if (!allPositive && !allNegative) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -284,11 +508,28 @@ PlatformMath::boxRectIntersect(const shBoxAAB& box, const shRect& rect)
           box.max.y >= rect.min.y);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxRectIntersect(const shBoxOBB& box, const shRect& rect)
 {
-  return false;
+  Array<float, 4> projX;
+  Array<float, 4> projY;
+
+  const auto vertices = box.getCorners();
+
+  for (int8 i = 0; i < 8; ++i) {
+    projX[i % 4] = vertices[i].x;
+    projY[i % 4] = vertices[i].y;
+  }
+
+  const float minX = *min_element(projX.begin(), projX.end());
+  const float maxX = *max_element(projX.begin(), projX.end());
+  const float minY = *min_element(projY.begin(), projY.end());
+  const float maxY = *max_element(projY.begin(), projY.end());
+
+  return (minX <= rect.max.x &&
+          maxX >= rect.min.x &&
+          minY <= rect.max.y &&
+          maxY >= rect.min.y);
 }
 
 bool
@@ -315,37 +556,52 @@ PlatformMath::boxSphereIntersect(const shBoxAAB& box, const shSphere& sph)
   return distance < sph.radius;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::boxSphereIntersect(const shBoxOBB& box, const shSphere& sph)
 {
-  return false;
+  Vector3 sphereToBox = sph.center - box.center;
+  Vector3 transformedSphCenter = box.rotation.toRotate(sphereToBox);
+
+  const float clampedX = clamp(transformedSphCenter.x, -box.extent.x, box.extent.x);
+  const float clampedY = clamp(transformedSphCenter.y, -box.extent.y, box.extent.y);
+  const float clampedZ = clamp(transformedSphCenter.z, -box.extent.z, box.extent.z);
+
+  const Vector3 closestPoint = box.center +
+                               box.rotation.toRotate(Vector3(clampedX, clampedY, clampedZ));
+  const float dist = (closestPoint - sph.center).mag();
+
+  return (dist <= sph.radius);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::sphereCapsuleIntersect(const shSphere& sph, const shCapsule& cap)
 {
-  return false;
+  const Vector3 closestPoint = sph.center.closestPointOnSegment(cap.pointA, cap.pointB);
+
+  const float dist = (closestPoint - sph.center).mag();
+
+  return (dist <= (sph.radius + cap.radius));
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::spherePlaneIntersect(const shSphere& sph, const shPlane& plane)
 {
-  return false;
+  float dist = PlatformMath::abs(plane.normal.dot(sph.center) - plane.distance) /
+               plane.normal.mag();
+
+  return (dist <= sph.radius);
 }
 
 bool
 PlatformMath::sphereRectIntersect(const shSphere& sph, const shRect& rect)
 {
-  const float x = max(rect.min.x, min(sph.center.x, rect.max.x));
-  const float y = max(rect.min.y, min(sph.center.y, rect.max.y));
+  const float closestX = clamp(sph.center.x, rect.min.x, rect.max.x);
+  const float closestY = clamp(sph.center.y, rect.min.y, rect.max.y);
 
-  const  float distance = sqrt(((x - sph.center.x) * (x - sph.center.x)) +
-                               ((y - sph.center.y) * (y - sph.center.y)));
+  const float distX = sph.center.x - closestX;
+  const float distY = sph.center.x - closestY;
 
-  return distance < sph.radius;
+  return ((distX * distX + distY * distY) <= (sph.radius * sph.radius));
 }
 
 bool
@@ -390,32 +646,77 @@ PlatformMath::capsuleCapsuleIntersect(const shCapsule& cap, const shCapsule& cap
   return depth > 0;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::capsulePlaneIntersect(const shCapsule& cap, const shPlane& plane)
 {
+  float distA = plane.pointToPlaneDistance(cap.pointA);
+  float distB = plane.pointToPlaneDistance(cap.pointB);
+
+  if (distA <= cap.radius || distB >= cap.radius) {
+    return true;
+  }
+
+  const Vector3 segment = cap.pointB - cap.pointA;
+  const float t = -(plane.normal.dot(cap.pointA) - plane.distance) /
+                  plane.normal.dot(segment);
+
+  if (t >= 0.0f && t <= 1.0f) {
+    return true;
+  }
+
   return false;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::capsuleRectIntersect(const shCapsule& cap, const shRect& rect)
 {
-  return false;
+  // Capsule points projected
+  const Vector2 projCapA(cap.pointA.x, cap.pointA.y);
+  const Vector2 projCapB(cap.pointB.x, cap.pointB.y);
+
+  shSphere sphereA(cap.pointA, cap.radius);
+  shSphere sphereB(cap.pointB, cap.radius);
+
+  if(sphereRectIntersect(sphereA, rect) ||
+     sphereRectIntersect(sphereB, rect)) {
+    return true;
+  }
+
+  return rect.lineIntersect(projCapA, projCapB);
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::planePlaneIntersect(const shPlane& plane, const shPlane& plane1)
 {
-  return false;
+  const Vector3 lineDir = plane.normal.cross(plane1.normal);
+
+  if (lineDir.x == 0.0f && lineDir.y == 0.0f && lineDir.z == 0.0f) {
+    return false;
+  }
+
+  return true;
 }
 
-//TODO: finish this function.
 bool
 PlatformMath::planeRectIntersect(const shPlane& plane, const shRect& rect)
 {
-  return false;
+  auto vertices = rect.getVertices();
+  Array<float, 4> evaluations;
+
+  for (int8 i = 0; i < 4; ++i) {
+    evaluations[i] = plane.evaluate(vertices[i]);
+  }
+
+  bool allPositive = std::all_of(evaluations.begin(), evaluations.end(),
+                                 [](float val) { return val > 0.0f; });
+  bool allNegative = std::all_of(evaluations.begin(), evaluations.end(),
+                                 [](float val) { return val < 0.0f; });
+
+  if (allPositive || allNegative) {
+    return false;
+  }
+
+  return true;
 }
 
 bool

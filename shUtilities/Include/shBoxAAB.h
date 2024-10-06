@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxAAB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/05
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
@@ -19,26 +19,25 @@
 #include "shVector3.h"
 
 namespace shEngineSDK {
-/*
-*  Math class for Axis-Aligned Bounding-Box.
+/**
+*  @brief Math class for Axis-Aligned Bounding-Box.
 */
 class SH_UTILITY_EXPORT shBoxAAB
 {
  public:
-  /*
-  *  Default constructor.
+  /**
+  *  @brief Default constructor.
   */
   shBoxAAB() = default;
-  /*
-  *  Constructor to initialize box values.
+  /**
+  *  @brief Constructor to initialize box values.
   * 
   *  @param const Vector3& pos: Desired min value.
-  * 
   *  @param const Vector3& size: Compute max value with size and min value.
   */
   shBoxAAB(const Vector3& pos, const Vector3& size);
-  /*
-  *  Default destructor.
+  /**
+  *  @brief Default destructor.
   */
   ~shBoxAAB() = default;
 
@@ -48,45 +47,55 @@ class SH_UTILITY_EXPORT shBoxAAB
   */
   /*************************************************************/
 
-  /*
-  *  Set the min values for the box.
+  /**
+  *  @brief Set the min values for the box.
   *
   *  @param const Vector3& pos: Desired min value.
-  *
-  *  @return
   */
   void
   setPosition(const Vector3& pos);
 
-  /*
-  *  Compute the max values with given size and the position.
+  /**
+  *  @brief Compute the max values with given size and the position.
   *
   *  @param const Vector3& size: Set the max values with this plus position.
-  *
-  *  @return
   */
   void
   setSize(const Vector3& size);
 
-  /*
-  *  Returns box min position values.
+  /**
+  *  @brief Returns box min position values.
   *
-  *  @param
-  *
-  *  @return
+  *  @return Vector3
   */
   Vector3
   getMinPosition() const;
 
-  /*
-  *  Returns box max position values.
-  *
-  *  @param
-  *
-  *  @return
+  /**
+  *  @brief Returns box max position values.
+  * 
+  *  @return Vector3
   */
   Vector3
   getMaxPosition() const;
+
+  /**
+  *  @brief Returns box vertices.
+  *
+  *  @return Vector3
+  */
+  Array<Vector3, 8>
+  getVertices() const;
+
+  /**
+  *  @brief Project the box corners on the axis.
+  *
+  *  @param Vector3& axis
+  *  @param float& _min: Reference is needed, it will save the result
+  *  @param float& _max: Reference is needed, it will save the result
+  */
+  void
+  projectOnAxis(const Vector3& axis, float& _min, float& _max) const;
 
   /*************************************************************/
   /*
@@ -94,13 +103,14 @@ class SH_UTILITY_EXPORT shBoxAAB
   */
   /*************************************************************/
  public:
-   /*
-   *  Minimum values for X, Y and Z position
-   */
-   Vector3 min;
-   /*
-   *  Maximum values for X, Y and Z position
-   */
-   Vector3 max;
+  /**
+  *  @brief Minimum values for X, Y and Z position
+  */
+  Vector3 min;
+
+  /**
+  *  @brief Maximum values for X, Y and Z position
+  */
+  Vector3 max;
 };
 }

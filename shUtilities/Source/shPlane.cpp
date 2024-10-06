@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/05
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -15,6 +15,7 @@
 */
 /*************************************************************/
 #include "shPlane.h"
+#include "shMath.h"
 
 namespace shEngineSDK {
 
@@ -46,5 +47,16 @@ float
 shPlane::getDistance() const
 {
   return distance;
+}
+
+float
+shPlane::pointToPlaneDistance(const Vector3& point) const
+{
+  return (Math::abs(normal.dot(point) - distance) / normal.mag());
+}
+
+float shPlane::evaluate(const Vector3& point) const
+{
+  return (normal.dot(point) + distance);
 }
 }

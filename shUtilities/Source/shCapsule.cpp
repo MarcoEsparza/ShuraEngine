@@ -15,6 +15,7 @@
 */
 /*************************************************************/
 #include "shCapsule.h"
+#include "shMath.h"
 
 namespace shEngineSDK {
 
@@ -53,5 +54,22 @@ float
 shCapsule::getRadius()
 {
   return radius;
+}
+void
+shCapsule::projectOnAxis(const Vector3& axis, float& min, float& max) const
+{
+  Vector3 dir = pointB - pointA;
+  float length = Math::sqrt(dir.dot(dir));
+
+  if (length > 0.0f) {
+    dir.normalize();
+  }
+
+  float projPA = pointA.dot(axis);
+  float projPB = pointB.dot(axis);
+  float projRadius = radius * Math::abs(axis.dot(dir));
+
+  min = Math::min(projPA, projPB) - projRadius;
+  max = Math::max(projPA, projPB) + projRadius;
 }
 }
