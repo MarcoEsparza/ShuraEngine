@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/05
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -50,12 +50,13 @@ Quaternion::toEulerAngles() const
                  z * inv);
 }
 
-Vector3 Quaternion::toRotate() const
+Vector3
+Quaternion::toRotate(const Vector3& vec) const
 {
-  Vector3 vec = toEulerAngles();
-  vec.toRadians();
+  Quaternion qv(0.0f, vec.x, vec.y, vec.z);
+  Quaternion res = (*this * qv) * conjugate();
 
-  return vec;
+  return Vector3(res.x, res.y, res.z);
 }
 
 void
@@ -149,12 +150,12 @@ Quaternion::dot(const Quaternion& other) const
 }
 
 Quaternion
-Quaternion::conjugate()
+Quaternion::conjugate() const
 {
-  return Quaternion(x * -1,
-                    y * -1,
-                    z * -1,
-                    w);
+  return Quaternion(w,
+                    -x,
+                    -y,
+                    -z);
 }
 
 Quaternion
@@ -180,7 +181,7 @@ Quaternion::inverse()
 float
 Quaternion::angleTo(const Quaternion& other) const
 {
-  return (2.0f * Math::acos(Math::abs(Math::clamp(dot(other), -1, 1))));
+  return (2.0f * Math::acos(Math::abs(Math::clamp(dot(other), -1.0f, 1.0f))));
 }
 
 Quaternion

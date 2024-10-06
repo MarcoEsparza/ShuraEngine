@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/05
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -52,13 +52,11 @@ shPlane::getDistance() const
 float
 shPlane::pointToPlaneDistance(const Vector3& point) const
 {
-  const float srqNormal = Math::sqrt(normal.x * normal.x +
-                                     normal.y * normal.y +
-                                     normal.z * normal.z);
+  return (Math::abs(normal.dot(point) - distance) / normal.mag());
+}
 
-  return (normal.x * point.x +
-          normal.y * point.y +
-          normal.z * point.z +
-          distance) / srqNormal;
+float shPlane::evaluate(const Vector3& point) const
+{
+  return (normal.dot(point) + distance);
 }
 }

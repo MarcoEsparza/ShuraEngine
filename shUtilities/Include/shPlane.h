@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2024/10/05
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -89,6 +89,16 @@ class SH_UTILITY_EXPORT shPlane
   */
   float
   pointToPlaneDistance(const Vector3& point) const;
+
+  /**
+  *  @brief Evaluates a point with the plane.
+  *
+  *  @param Vector3& point
+  *
+  *  @return float
+  */
+  float
+  evaluate(const Vector3& point) const;
 
   /*************************************************************/
   /*

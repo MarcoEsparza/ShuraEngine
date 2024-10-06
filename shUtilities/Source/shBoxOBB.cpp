@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxOBB.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/05
 *  @brief   Math class for Oriented Bounding-Box.
 *
 *  Math class for Oriented Bounding-Box.
@@ -86,23 +86,18 @@ Array<Vector3, 8>
 shBoxOBB::getCorners() const
 {
   Array<Vector3, 8> corners;
-  Vector3 right, up, forward;
-  rotation.toAxes(right, up, forward);
+  Vector<Vector3> axes = { Vector3(extent.x, 0.0f, 0.0f),
+                           Vector3(0.0f, extent.y, 0.0f),
+                           Vector3(0.0f, 0.0f, extent.z)};
 
-  for (int8 x = 0; x <= 1; ++x) {
-    for (int8 y = 0; y <= 1; ++y) {
-      for (int8 z = 0; z <= 1; ++z) {
-        corners[x * 4 + y * 2 + z] = {
-            center.x + (x * 2 - 1) * extent.x * right.x +
-            (y * 2 - 1) * extent.y * up.x +
-            (z * 2 - 1) * extent.z * forward.x,
-            center.y + (x * 2 - 1) * extent.x * right.y +
-            (y * 2 - 1) * extent.y * up.y +
-            (z * 2 - 1) * extent.z * forward.y,
-            center.z + (x * 2 - 1) * extent.x * right.z +
-            (y * 2 - 1) * extent.y * up.z +
-            (z * 2 - 1) * extent.z * forward.z
-        };
+  for (uint8 i = 0; i < 8; ++i) {
+    Vector3 corner = center;
+    for (uint8 j = 0; j < 3; ++j) {
+      if (i & (1 << j)) {
+        corner = corner + rotation.toRotate(axes[j]);
+      }
+      else {
+        corner = corner - rotation.toRotate(axes[j]);
       }
     }
   }

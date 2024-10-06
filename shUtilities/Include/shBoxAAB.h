@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxAAB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2024/10/05
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
@@ -78,6 +78,14 @@ class SH_UTILITY_EXPORT shBoxAAB
   */
   Vector3
   getMaxPosition() const;
+
+  /**
+  *  @brief Returns box vertices.
+  *
+  *  @return Vector3
+  */
+  Array<Vector3, 8>
+  getVertices() const;
 
   /**
   *  @brief Project the box corners on the axis.

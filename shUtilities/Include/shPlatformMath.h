@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2024/10/05
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -137,6 +137,28 @@ public:
   */
   static float
   abs(const float value);
+
+  /**
+  *  @brief Computes the min element of two given arrays.
+  * 
+  *  @param const Array<float, 4>::iterator first
+  *  @param const Array<float, 4>::iterator last
+  * 
+  *  @return const Array<float, 4>::iterator
+  */
+  static Array<float, 4>::iterator
+  min_element(const Array<float, 4>::iterator first, const Array<float, 4>::iterator last);
+
+  /**
+  *  @brief Computes the max element of two given arrays.
+  *
+  *  @param const Array<float, 4>::iterator first
+  *  @param const Array<float, 4>::iterator last
+  *
+  *  @return const Array<float, 4>::iterator
+  */
+  static Array<float, 4>::iterator
+  max_element(const Array<float, 4>::iterator first, const Array<float, 4>::iterator last);
   
   /*************************************************************/
   /*

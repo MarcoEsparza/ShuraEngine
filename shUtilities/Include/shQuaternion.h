@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2024/10/05
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -82,12 +82,14 @@ class SH_UTILITY_EXPORT Quaternion
   toEulerAngles() const;
 
   /**
-  *  @brief Transform Quaternion to Vector3 in radians
+  *  @brief Transform Quaternion to Vector3
   *
+  *  @param Vector3& vec
+  * 
   *  @return Vector3
   */
   Vector3
-  toRotate() const;
+  toRotate(const Vector3& vec) const;
 
   /**
   *  @brief Transform three given Vectors3 to axes vectors for a rotation matrix3.
@@ -155,7 +157,7 @@ class SH_UTILITY_EXPORT Quaternion
   *  @return Quaternion
   */
   Quaternion
-  conjugate();
+  conjugate() const;
 
   /**
   *  @brief Get the inverse rotation of the Quaternion.

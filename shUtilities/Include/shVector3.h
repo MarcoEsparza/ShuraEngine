@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2024/10/05
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -165,6 +165,16 @@ class SH_UTILITY_EXPORT Vector3
   */
   Vector3
   toRadians();
+
+  /*
+  *  @breif Computes the closest point betwwen two given Vector3 to this.
+  * 
+  *  @param Vector3& other
+  * 
+  *  @return Vector3
+  */
+  Vector3
+  closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const;
 
   /*************************************************************/
   /*

@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2024/10/05
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -144,5 +144,23 @@ Vector3::toRadians()
   return Vector3(x * Math::DEG2RAD,
                  y * Math::DEG2RAD, 
                  z * Math::DEG2RAD);
+}
+
+Vector3
+Vector3::closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const
+{
+  const Vector3 abVec = vec2 - vec1;
+  const float t = (dot(abVec) / abVec.dot(abVec));
+
+  if (t < 0) {
+    return vec1;
+  }
+  else if (t > 1) {
+    return vec2;
+  }
+
+  return Vector3((vec1.x + t * abVec.x),
+                 (vec1.y + t * abVec.y),
+                 (vec1.z + t * abVec.z));
 }
 }
