@@ -22,6 +22,8 @@
 #include <cmath>
 #include <assert.h>
 #include <algorithm>
+#include <utility>
+#include <memory>
 
 /*************************************************************/
 /*
@@ -38,6 +40,8 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
+#include <queue>
+#include <list>
 
 /*************************************************************/
 /*
@@ -55,49 +59,55 @@
 #include <iostream>
 
 namespace shEngineSDK {
- /*
+ /**
  * @brief Fixed-size array sequence container class, holds its elements in a
- * strict linear sequence.
+ *        strict linear sequence.
  */
 template <typename T, SIZE_T size>
 using Array = std::array<T, size>;
 
-/*
-*  Shared pointer that will be used for Shura Engine.
+/**
+*  @brief Shared pointer that will be used for Shura Engine.
 */
 template <typename T>
 using SPtr = std::shared_ptr<T>;
 
-/*
-*  Weak pointer that will be used for Shura Engine.
+/**
+*  @brief Weak pointer that will be used for Shura Engine.
 */
 template <typename T>
 using WPtr = std::weak_ptr<T>;
 
-/*
-*  Vector wrapper to use along the engine.
+/**
+*  @brief Vector wrapper to use along the engine.
 */
 template <typename T>
 using Vector = std::vector<T>;
 
-/*
-*  String wrapper to use along the engine.
+/**
+*  @brief String wrapper to use along the engine.
 */
 using String = std::string;
 
-/*
-*  WString wrapper to use along the engine.
+/**
+*  @brief WString wrapper to use along the engine.
 */
 using WString = std::wstring;
 
-/*
-*  Stringstream wrapper to use along the engine.
+/**
+*  @brief Stringstream wrapper to use along the engine.
 */
 using StringStream = std::stringstream;
 
-/*
-*  UnorderedMap to use along the engine.
+/**
+*  @brief UnorderedMap to use along the engine.
 */
 template <typename T, typename U>
 using UMap = std::unordered_map<T, U>;
+
+/**
+*  @brief Queue wrapper to use along the engine.
+*/
+template <typename T>
+using Queue = std::queue<T>;
 }
