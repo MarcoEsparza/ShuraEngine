@@ -54,6 +54,9 @@
 #include <fstream>
 #include <iostream>
 
+//Missing one
+#include <memory>
+
 namespace shEngineSDK {
  /*
  * @brief Fixed-size array sequence container class, holds its elements in a

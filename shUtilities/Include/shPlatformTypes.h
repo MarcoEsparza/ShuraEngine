@@ -36,6 +36,7 @@ using std::int8_t;
 using std::int16_t;
 using std::int32_t;
 using std::int64_t;
+using std::size_t;
 
 /*************************************************************/
 /*
@@ -85,5 +86,5 @@ using TYPE_OF_NULL = int32;
 *  SIZE_T is an arquitecture dependent data type
 */
 /*************************************************************/
-using SIZE_T = size_t;
+using SIZE_T = std::size_t;
 }
