@@ -110,4 +110,6 @@ using UMap = std::unordered_map<T, U>;
 */
 template <typename T>
 using Queue = std::queue<T>;
+
+using std::make_shared;
 }

@@ -32,10 +32,10 @@ int main()
   desc.width = 1000;
   desc.height = 600;
 
-  bool clased = false;
+  bool closed = false;
 
   Screen mainScreen;
-  SPtr<ScreenEventHandle> eventQ;
+  SPtr<ScreenEventHandle> eventQ = make_shared<ScreenEventHandle>();
 
   if (!mainScreen.init(desc, eventQ)) {
     return -1;

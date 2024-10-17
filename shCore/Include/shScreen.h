@@ -21,7 +21,8 @@
 namespace shEngineSDK {
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
-using PlatformScreen = void*;
+struct HWND__;
+using PlatformScreen = HWND__*;
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
 using PlatformScreen = void*;
 #endif
@@ -117,7 +118,7 @@ class SH_CORE_EXPORT Screen
   *  @return bool True if initialized, false if failed.
   */
   bool
-  init(ScreenDesc desc, SPtr<ScreenEventHandle> eventHandler);
+  init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler);
 
   /**
   *  @brief Close Screen.
@@ -131,7 +132,7 @@ class SH_CORE_EXPORT Screen
   *  @return uint32
   */
   FORCEINLINE uint32
-  getWidth();
+  getWidth() const;
 
   /**
   *  @brief Get Screen height.
@@ -139,7 +140,7 @@ class SH_CORE_EXPORT Screen
   *  @return uint32
   */
   FORCEINLINE uint32
-  getHeight();
+  getHeight() const;
 
   /**
   *  @brief Get the Screen handler.
@@ -147,48 +148,48 @@ class SH_CORE_EXPORT Screen
   *  @return PlatformScreen
   */
   FORCEINLINE PlatformScreen
-  getPlatformHandler();
+  getPlatformHandler() const;
 
  private:
   /**
   * @brief Screen width.
   */
-  uint32 m_width;
+  uint32 m_width = 0;
   /**
   * @brief Screen height.
   */
-  uint32 m_height;
+  uint32 m_height = 0;
 
   /**
   *  @brief Screen position in the X axis.
   */
-  uint32 m_posX;
+  uint32 m_posX = 0;
 
   /**
   *  @brief Screen position in the Y axis.
   */
-  uint32 m_posY;
+  uint32 m_posY = 0;
 
   /**
   *  @brief Screen handler.
   */
-  PlatformScreen m_screenHandle;
+  PlatformScreen m_screenHandle = NULL;
 };
 
 FORCEINLINE uint32
-Screen::getWidth()
+Screen::getWidth() const
 {
   return m_width;
 }
 
 FORCEINLINE uint32
-Screen::getHeight()
+Screen::getHeight() const
 {
   return m_height;
 }
 
 FORCEINLINE PlatformScreen
-Screen::getPlatformHandler()
+Screen::getPlatformHandler() const
 {
   return m_screenHandle;
 }

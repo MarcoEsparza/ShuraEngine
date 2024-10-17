@@ -90,14 +90,6 @@ class SH_CORE_EXPORT ScreenEventHandle
   SIZE_T
   getSize();
 
-  /**
-  *  @brief pushEvents on queue.
-  * 
-  *  @bug This function has windows.h elements
-  */
-  long long
-  pushEvent(MSG msg, WPtr<Screen> screen);
-
   friend class Screen;
 
  protected:

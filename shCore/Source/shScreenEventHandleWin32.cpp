@@ -81,22 +81,18 @@ ScreenEventHandle::getSize()
   return m_queue.size();
 }
 
-// TODO: finish this
-long long
-ScreenEventHandle::pushEvent(MSG msg, WPtr<Screen> screen)
+LONG_PTR CALLBACK
+windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  auto pScreen = screen.lock();
-
-  uint32 message = msg.message;
   LRESULT result = 0;
   RECT currenScreenRect = { -1,-1,-1,-1 };
 
-  Event ev = Event(shEventType::E::kNone, pScreen);
+  //Event ev = Event(shEventType::E::kNone, pScreen);
 
-  switch (message) {
+  switch (msg) {
   case WM_CREATE:
   {
-    ev = Event(shEventType::E::kCreate, pScreen);
+    //ev = Event(shEventType::E::kCreate, pScreen);
     break;
   }
   case WM_PAINT:
@@ -111,7 +107,7 @@ ScreenEventHandle::pushEvent(MSG msg, WPtr<Screen> screen)
   case WM_CLOSE:
   case WM_DESTROY:
   {
-    ev = Event(shEventType::E::kClose, pScreen);
+    //ev = Event(shEventType::E::kClose, pScreen);
     break;
   }
   case WM_SETFOCUS:
@@ -207,7 +203,7 @@ ScreenEventHandle::pushEvent(MSG msg, WPtr<Screen> screen)
   {
     shKey::E key;
 
-    switch (msg.wParam)
+    switch (wParam)
     {
     case VK_ESCAPE:
       key = shKey::E::kEscape;
