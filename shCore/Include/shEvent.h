@@ -2,12 +2,12 @@
 /*
 *  @file    shEvent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/08
-*  @brief   
+*  @date    2024/10/17
+*  @brief   Event types structures and enums.
 *
-*  
+*  Event types structures and enums.
 * 
-*  @bug     
+*  @bug     No bug known
 */
 /*************************************************************/
 #pragma once
@@ -20,8 +20,6 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
-class Screen;
-
 namespace shEventType {
 /**
 *  @brief Type of event enumeration.
@@ -209,7 +207,7 @@ enum SH_CORE_EXPORT E
   kLBracket,
   kRBracket,
   kEnter,
-  kControl,
+  kLControl,
   kA,
   kS,
   kD,
@@ -629,73 +627,64 @@ class SH_CORE_EXPORT Event
   *  @brief None Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(shEventType::E _type, SPtr<Screen> _screen);
+  explicit Event(shEventType::E _type) : type(_type) {}
 
   /**
   *  @brief Focus Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(FocusData _data, WPtr<Screen> _screen);
+  explicit Event(FocusData _data);
 
   /**
   *  @brief Resize Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(ResizeData _data, WPtr<Screen> _screen);
+  explicit Event(ResizeData _data);
 
   /**
   *  @brief Dpi Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(DpiData _data, WPtr<Screen> _screen);
+  explicit Event(DpiData _data);
 
   /**
   *  @brief Keyboard Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(KeyboardData _data, WPtr<Screen> _screen);
+  explicit Event(KeyboardData _data);
 
   /**
   *  @brief MouseMove Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(MouseMoveData _data, WPtr<Screen> _screen);
+  explicit Event(MouseMoveData _data);
 
   /**
   *  @brief MouseInput Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(MouseInputData _data, WPtr<Screen> _screen);
+  explicit Event(MouseInputData _data);
 
   /**
   *  @brief MouseWheel Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(MouseWheelData _data, WPtr<Screen> _screen);
+  explicit Event(MouseWheelData _data);
 
   /**
   *  @brief MouseRaw Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
-  *  @param WPtr<Screen> _screen: Pointer to the screen.
   */
-  Event(MouseRawData _data, WPtr<Screen> _screen);
+  explicit Event(MouseRawData _data);
 
   /**
   *  @brief Default destructor.
@@ -734,11 +723,6 @@ class SH_CORE_EXPORT Event
   *  @brief Type of event.
   */
   shEventType::E type;
-
-  /**
-  *  @brief The screen the event is part of.
-  */
-  SPtr<Screen> screen;
 };
 
 /*************************************************************/
@@ -750,6 +734,6 @@ class SH_CORE_EXPORT Event
 FORCEINLINE bool
 Event::operator==(const Event& other) const
 {
-  return type == other.type && screen == other.screen;
+  return type == other.type;
 }
 }

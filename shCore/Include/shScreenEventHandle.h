@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/08
+*  @date    2024/10/17
 *  @brief   Base screen event handler
 *
 *  Base screen event handler
@@ -89,6 +89,38 @@ class SH_CORE_EXPORT ScreenEventHandle
   */
   SIZE_T
   getSize();
+
+  /**
+  *  @brief Return the previous mouse position in X axis.
+  *
+  *  @return uint32
+  */
+  uint32
+  getPreviousMouseX() const;
+
+  /**
+  *  @brief Return the previous mouse position in Y axis.
+  *
+  *  @return uint32
+  */
+  uint32
+  getPreviousMouseY() const;
+
+  /**
+  *  @brief Sets the previous mouse position in X axis.
+  *
+  *  @param uint32 pos
+  */
+  void
+  setPreviousMouseX(uint32 pos);
+
+  /**
+  *  @brief Sets the previous mouse position in Y axis.
+  *
+  *  @param uint32 pos
+  */
+  void
+  setPreviousMouseY(uint32 pos);
 
   friend class Screen;
 

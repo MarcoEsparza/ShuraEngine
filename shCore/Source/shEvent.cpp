@@ -2,12 +2,12 @@
 /*
 *  @file    shEvent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/08
-*  @brief
+*  @date    2024/10/17
+*  @brief   Event types structures and enums.
 *
+*  Event types structures and enums.
 *
-*
-*  @bug
+*  @bug     No bug known
 */
 /*************************************************************/
 
@@ -129,72 +129,50 @@ const UMap<const char*, shKey::E> KeyConvertion::sCharToKeyMap = {
 */
 /*************************************************************/
 
-Event::Event(shEventType::E _type, SPtr<Screen> _screen)
+Event::Event(FocusData _data)
 {
-  screen = _screen;
-  type = _type;
-}
-
-Event::Event(FocusData _data, WPtr<Screen> _screen)
-{
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kFocus;
   data.focus = _data;
 }
 
-Event::Event(ResizeData _data, WPtr<Screen> _screen)
+Event::Event(ResizeData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kResize;
   data.resize = _data;
 }
 
-Event::Event(DpiData _data, WPtr<Screen> _screen)
+Event::Event(DpiData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kDPI;
   data.dpi = _data;
 }
 
-Event::Event(KeyboardData _data, WPtr<Screen> _screen)
+Event::Event(KeyboardData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kKeyboard;
   data.keyboard = _data;
 }
 
-Event::Event(MouseMoveData _data, WPtr<Screen> _screen)
+Event::Event(MouseMoveData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kMouseMove;
   data.mouseMove = _data;
 }
 
-Event::Event(MouseInputData _data, WPtr<Screen> _screen)
+Event::Event(MouseInputData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kMouseInput;
   data.mouseInput = _data;
 }
 
-Event::Event(MouseWheelData _data, WPtr<Screen> _screen)
+Event::Event(MouseWheelData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kMouseWheel;
   data.mouseWheel = _data;
 }
 
-Event::Event(MouseRawData _data, WPtr<Screen> _screen)
+Event::Event(MouseRawData _data)
 {
-  auto sc = _screen.lock();
-  screen = sc;
   type = shEventType::E::kMouseRaw;
   data.mouseRaw = _data;
 }

@@ -7,7 +7,7 @@
 *
 *  Here is the main to test the window initialize.
 * 
-*  @bug     No bug known.
+*  @bug     Not creating the window.
 */
 /*************************************************************/
 

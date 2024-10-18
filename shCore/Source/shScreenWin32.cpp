@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/08
+*  @date    2024/10/17
 *  @brief   Base screen
 *
 *  Base screen
@@ -29,28 +29,51 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
 {
   HINSTANCE hinstance = GetModuleHandle(nullptr);
 
-  WNDCLASS wc = { };
+  WNDCLASSEX wc = { };
   wc.lpfnWndProc = windowProc;
   wc.hInstance = hinstance;
   wc.lpszClassName = desc.name.c_str();
   wc.cbWndExtra = sizeof(ScreenEventHandle*);
+  wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+  wc.style = CS_DBLCLKS;
+  wc.cbSize = sizeof(WNDCLASSEX);
+  wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+  wc.lpszMenuName = NULL;
+  wc.cbClsExtra = 0;
 
-  RegisterClass(&wc);
+  if (desc.iconPath != "") {
+    HICON hIcon = reinterpret_cast<HICON>(::LoadImage(hinstance,
+                                          desc.iconPath.c_str(),
+                                          IMAGE_ICON,
+                                          32,
+                                          32,
+                                          LR_LOADFROMFILE));
+    if (!hIcon) {
+      MessageBox(nullptr, "Couldn't load image", "Error", MB_ICONERROR);
+    }
 
-  HWND hwnd = CreateWindowEx(WS_EX_APPWINDOW,
-                                  desc.name.c_str(),
-                                  desc.title.c_str(),
-                                  WS_OVERLAPPEDWINDOW,
-                                  desc.positionX,
-                                  desc.positionY,
-                                  desc.width,
-                                  desc.height,
-                                  NULL,
-                                  NULL,
-                                  hinstance,
-                                  NULL);
+    wc.hIcon = hIcon;
+    wc.hIconSm = hIcon;
+  }
+  else {
+    wc.hIcon = NULL;
+    wc.hIconSm = NULL;
+  }
 
-  m_screenHandle = reinterpret_cast<HWND__*>(hwnd);
+  RegisterClassEx(&wc);
+
+  m_screenHandle = reinterpret_cast<HWND__*>(CreateWindowEx(WS_EX_APPWINDOW,
+                                                            desc.name.c_str(),
+                                                            desc.title.c_str(),
+                                                            WS_OVERLAPPEDWINDOW,
+                                                            desc.positionX,
+                                                            desc.positionY,
+                                                            desc.width,
+                                                            desc.height,
+                                                            nullptr,
+                                                            nullptr,
+                                                            hinstance,
+                                                            nullptr));
 
   if (m_screenHandle == NULL) {
     SH_ASSERT("Screen.init()");
