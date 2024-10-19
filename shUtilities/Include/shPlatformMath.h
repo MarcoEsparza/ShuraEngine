@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2024/10/18
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -77,9 +77,9 @@ public:
   *  @param float B: Second value.
   *  @param float alpha: Alpha to calculate with previous numbers.
   *
-  *  @return T The result of the linear interpolation.
+  *  @return float The result of the linear interpolation.
   */
-  FORCEINLINE static float
+  static float
   lerp(const float A, const float B, const float alpha);
 
   /**
@@ -111,9 +111,9 @@ public:
   *  @param float min: Min value.
   *  @param float max: Max value.
   *
-  *  @return T The result of the clamp.
+  *  @return float The result of the clamp.
   */
-  FORCEINLINE static float
+  static float
   clamp(const float x, const float min, const float max);
 
   /**
@@ -615,22 +615,4 @@ public:
   */
   static const float SMALL_NUMBER;
 };
-
-/*************************************************************/
-/*
-*  Implementations
-*/
-/*************************************************************/
-
-FORCEINLINE float
-PlatformMath::lerp(const float A, const float B, const float alpha)
-{
-  return (A + (B - A) * alpha);
-}
-
-FORCEINLINE float
-PlatformMath::clamp(const float x, const float min, const float max)
-{
-  return x < min ? min : x < max ? x : max;
-}
 }
