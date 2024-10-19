@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2024/10/18
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -37,33 +37,33 @@ class SH_UTILITY_EXPORT Matrix4
   /**
   *  @brief Default constructor.
   */
-  Matrix4() = default;
+  FORCEINLINE Matrix4() = default;
 
   /**
   *  @brief Constructor to initialize values to the given numbers.
   */
-  Matrix4(float m00, float m01, float m02, float m03,
-          float m10, float m11, float m12, float m13,
-          float m20, float m21, float m22, float m23,
-          float m30, float m31, float m32, float m33)  :
-          m{{m00, m01, m02, m03},
-            {m10, m11, m12, m13},
-            {m20, m21, m22, m23},
-            {m30, m31, m32, m33}} {}
+  FORCEINLINE Matrix4(float m00, float m01, float m02, float m03,
+                      float m10, float m11, float m12, float m13,
+                      float m20, float m21, float m22, float m23,
+                      float m30, float m31, float m32, float m33)  :
+                      m{{m00, m01, m02, m03},
+                        {m10, m11, m12, m13},
+                        {m20, m21, m22, m23},
+                        {m30, m31, m32, m33}} {}
 
   /**
   *  @brief Copy constructor
   *
   *  @param Matrix4
   */
-  Matrix4(const Matrix4& other);
+  FORCEINLINE Matrix4(const Matrix4& other);
 
   /**
   *  @brief Constructor to create a rotation Matrix4 from a Quaternion
   *
   *  @param Quaternion
   */
-  explicit Matrix4(const Quaternion& quat);
+  FORCEINLINE explicit Matrix4(const Quaternion& quat);
 
   /**
   *  @brief Constructor to create Matrix4 from four Vector4.
@@ -81,7 +81,7 @@ class SH_UTILITY_EXPORT Matrix4
   /**
   *  @brief Default destructor.
   */
-  ~Matrix4() = default;
+  virtual ~Matrix4() = default;
 
   /*************************************************************/
   /*
@@ -275,6 +275,66 @@ public:
   *  @brief Use double array to access values.
   */
   float m[4][4];
+};
+
+/**
+*  @brief View Matrix for graphics.
+*/
+class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  FORCEINLINE ViewMatrix() = default;
+
+  /**
+  *  @brief Constructor to initialize matrix values.
+  * 
+  *  @param Vector3& camPos
+  *  @param Vector3& targetPos
+  *  @param Vector3& upVector
+  */
+  ViewMatrix(const Vector3& camPos,
+             const Vector3& targetPos,
+             const Vector3& upVector);
+
+  /**
+  *  @brief Default destructor.
+  */
+  FORCEINLINE ~ViewMatrix() = default;
+};
+
+/**
+*  @brief Projection Matrix for graphics.
+*/
+class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  FORCEINLINE ProjectionMatrix() = default;
+
+  /**
+  *  @brief Constructor to initialize matrix values.
+  * 
+  *  @param const float halfFOV
+  *  @param const float width
+  *  @param const float height
+  *  @param const float minZ
+  *  @param const float maxZ
+  */
+  ProjectionMatrix(const float halfFOV,
+                   const float width,
+                   const float height,
+                   const float minZ,
+                   const float maxZ);
+
+  /**
+  *  @brief Default destructor.
+  */
+  FORCEINLINE ~ProjectionMatrix() = default;
 };
 
 /*************************************************************/
