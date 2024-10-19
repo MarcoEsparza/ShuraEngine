@@ -13,5 +13,72 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{c6cffa7c-90ad-4870-9ddc-c9809b66e3f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Externals">
+      <UniqueIdentifier>{46fea9f9-b740-4dd4-9d32-bd87a70879a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Colors">
+      <UniqueIdentifier>{6f4793a1-fdcb-4fae-ae1a-feb650adae06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Colors">
+      <UniqueIdentifier>{6f215799-1a3f-4083-863e-266ee0cdafd4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\shDX11GraphicsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shRenderTargetView.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDevice.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDepthStencilView.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shBuffers.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shInputLayout.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSamplerState.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shTexture.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSwapChain.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shShader.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\stb_image.h">
+      <Filter>Header Files\Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shPrerequisitesDX11Graphics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shColor.h">
+      <Filter>Header Files\Colors</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shLinearColor.h">
+      <Filter>Header Files\Colors</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\shDX11GraphicsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shColor.cpp">
+      <Filter>Source Files\Colors</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shLinearColor.cpp">
+      <Filter>Source Files\Colors</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
