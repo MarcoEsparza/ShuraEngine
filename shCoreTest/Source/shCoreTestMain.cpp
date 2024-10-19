@@ -44,7 +44,7 @@ int main()
 
   bool isRunning = true;
 
-  while (!isRunning) {
+  while (isRunning) {
     eventQ->update();
 
     while (!eventQ->empty()) {

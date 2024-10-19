@@ -32,7 +32,7 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
   m_height = desc.height;
   HINSTANCE hInstance = GetModuleHandle(nullptr);
 
-  WNDCLASSEX wc = { };
+  WNDCLASSEXA wc = { };
   wc.cbSize = sizeof(WNDCLASSEX);
   wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
   wc.lpfnWndProc = windowProc;
@@ -64,7 +64,7 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
     wc.hIconSm = NULL;
   }
 
-  SH_ASSERT(RegisterClassEx(&wc));
+  SH_ASSERT(RegisterClassExA(&wc));
 
   uint32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
   uint32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -85,20 +85,18 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
     }
   }
 
-  m_screenHandle = CreateWindowEx(0,
-                                  wc.lpszClassName,
-                                  desc.title.c_str(),
-                                  WS_OVERLAPPEDWINDOW,
-                                  CW_USEDEFAULT,
-                                  CW_USEDEFAULT,
-                                  m_width,
-                                  m_height,
-                                  nullptr,
-                                  nullptr,
-                                  hInstance,
-                                  nullptr);
-
-  DWORD error = GetLastError();
+  m_screenHandle = CreateWindowExA(0,
+                                   wc.lpszClassName,
+                                   desc.title.c_str(),
+                                   WS_OVERLAPPEDWINDOW,
+                                   CW_USEDEFAULT,
+                                   CW_USEDEFAULT,
+                                   m_width,
+                                   m_height,
+                                   nullptr,
+                                   nullptr,
+                                   hInstance,
+                                   nullptr);
 
   SH_ASSERT(m_screenHandle != nullptr);
 
