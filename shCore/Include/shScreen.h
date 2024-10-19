@@ -18,8 +18,6 @@
 #include "shPrerequisitesCore.h"
 #include "shScreenEventHandle.h"
 
-namespace shEngineSDK {
-
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 struct HWND__;
 using PlatformScreen = HWND__*;
@@ -27,10 +25,11 @@ using PlatformScreen = HWND__*;
 using PlatformScreen = void*;
 #endif
 
+namespace shEngineSDK {
 /**
 *  @brief Structure for screen description.
 */
-struct ScreenDesc
+struct SH_CORE_EXPORT ScreenDesc
 {
   /*************************************************************/
   /*
@@ -173,7 +172,12 @@ class SH_CORE_EXPORT Screen
   /**
   *  @brief Screen handler.
   */
-  PlatformScreen m_screenHandle = NULL;
+  PlatformScreen m_screenHandle = nullptr;
+
+  /**
+  *  @brief EventQueue
+  */
+  SPtr<ScreenEventHandle> m_eventQueue = std::make_shared<ScreenEventHandle>();
 };
 
 FORCEINLINE uint32

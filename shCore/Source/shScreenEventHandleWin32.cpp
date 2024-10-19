@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/17
+*  @date    2024/10/19
 *  @brief   Base screen event handler for windows.
 *
 *  Base screen event handler for windows.
@@ -105,7 +105,7 @@ ScreenEventHandle::setPreviousMouseY(uint32 pos)
   m_prevMouseY = pos;
 }
 
-LONG_PTR CALLBACK
+LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   LRESULT result = 0;
@@ -685,6 +685,15 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         currenScreenRect = *prcNewWindow;
       }
     }
+
+    break;
+  }
+  case WM_GETMINMAXINFO:
+  {
+    MINMAXINFO* min_max = reinterpret_cast<MINMAXINFO*>(lParam);
+
+    min_max->ptMinTrackSize.x = 200;
+    min_max->ptMinTrackSize.y = 200;
 
     break;
   }
