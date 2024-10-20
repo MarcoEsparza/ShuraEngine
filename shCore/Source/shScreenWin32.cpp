@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/08
+*  @date    2024/10/19
 *  @brief   Base screen
 *
 *  Base screen
@@ -21,56 +21,102 @@
 #include "Windows.h"
 
 namespace shEngineSDK {
-bool
-Screen::init(ScreenDesc desc, SPtr<ScreenEventHandle> eventHandler)
-{
-  HINSTANCE hinstance = GetModuleHandle(nullptr);
+LRESULT CALLBACK
+windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-  WNDCLASS wc = { };
-  wc.lpfnWndProc = win32Proc;
-  wc.hInstance = hinstance;
+bool
+Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle> eventHandler)
+{
+  m_eventQueue = eventHandler;
+  m_width = desc.width;
+  m_height = desc.height;
+  HINSTANCE hInstance = GetModuleHandle(nullptr);
+
+  WNDCLASSEXA wc = { };
+  wc.cbSize = sizeof(WNDCLASSEX);
+  wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+  wc.lpfnWndProc = windowProc;
+  wc.cbWndExtra = 0;
+  wc.cbClsExtra = 0;
+  wc.hInstance = hInstance;
+  wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+  wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+  wc.lpszMenuName = nullptr;
   wc.lpszClassName = desc.name.c_str();
   wc.cbWndExtra = sizeof(ScreenEventHandle*);
 
-  RegisterClass(&wc);
-  
-  int32 nFrameWidth = ::GetSystemMetrics(SM_CXSIZEFRAME) + 5;
-  int32 nFrameHeight = ::GetSystemMetrics(SM_CYSIZEFRAME) + 5;
-  int32 nCaptionHeight = ::GetSystemMetrics(SM_CYCAPTION);
+  if (desc.iconPath != "") {
+    HICON hIcon = reinterpret_cast<HICON>(::LoadImage(hInstance,
+                                          desc.iconPath.c_str(),
+                                          IMAGE_ICON,
+                                          32,
+                                          32,
+                                          LR_LOADFROMFILE));
+    if (!hIcon) {
+      MessageBox(nullptr, "Couldn't load image", "Error", MB_ICONERROR);
+    }
 
-  int32 nStyle = WS_OVERLAPPEDWINDOW;
-
-  HWND hwnd = CreateWindowEx(WS_EX_APPWINDOW,
-                             desc.name.c_str(),
-                             desc.title.c_str(),
-                             nStyle,
-                             desc.positionX,
-                             desc.positionY,
-                             desc.width + (2 * nFrameWidth),
-                             desc.height + (2 * nFrameHeight) + nCaptionHeight,
-                             NULL,
-                             NULL,
-                             hinstance,
-                             NULL);
-
-  if (hwnd == NULL) {
-    SH_ASSERT("Screen.init()");
-    return false;
+    wc.hIcon = hIcon;
+    wc.hIconSm = hIcon;
+  }
+  else {
+    wc.hIcon = nullptr;
+    wc.hIconSm = nullptr;
   }
 
-  ShowWindow(hwnd, SW_SHOW);
+  SH_ASSERT(RegisterClassExA(&wc));
 
-  SetForegroundWindow(hwnd);
+  uint32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
+  uint32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-  SetFocus(hwnd);
+  if (desc.fullscreen) {
+    DEVMODE dmScreenSettings;
+    memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+    dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+    dmScreenSettings.dmPelsWidth = screenWidth;
+    dmScreenSettings.dmPelsHeight = screenHeight;
+    dmScreenSettings.dmBitsPerPel = 32;
+    dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
-  RECT clientRect;
-  GetClientRect(hwnd, &clientRect);
-  m_screenHandle = hwnd;
-  m_width = clientRect.right - clientRect.left;
-  m_height = clientRect.bottom - clientRect.top;
+    if ((desc.width != screenWidth) && (desc.height != screenHeight)) {
+      if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL) {
+        // Stay windowed
+      }
+    }
+  }
 
-  SetWindowLongPtrW(hwnd, 0, reinterpret_cast<LONG_PTR>(eventHandler.get()));
+  m_screenHandle = CreateWindowExA(0,
+                                   wc.lpszClassName,
+                                   desc.title.c_str(),
+                                   WS_OVERLAPPEDWINDOW,
+                                   CW_USEDEFAULT,
+                                   CW_USEDEFAULT,
+                                   m_width,
+                                   m_height,
+                                   nullptr,
+                                   nullptr,
+                                   hInstance,
+                                   nullptr);
+
+  SH_ASSERT(m_screenHandle != nullptr);
+
+  m_eventQueue->m_initialized = true;
+
+  if (desc.visible) {
+    ShowWindow(m_screenHandle, SW_SHOW);
+
+    SetForegroundWindow(m_screenHandle);
+
+    SetFocus(m_screenHandle);
+
+    SetWindowLongPtrA(m_screenHandle,
+                      0,
+                      reinterpret_cast<LONG_PTR>(m_eventQueue.get()));
+
+    SetWindowLongPtrA(m_screenHandle,
+                      1,
+                      reinterpret_cast<LONG_PTR>(&m_prevMousePos));
+  }
 
   return true;
 }
@@ -78,22 +124,8 @@ Screen::init(ScreenDesc desc, SPtr<ScreenEventHandle> eventHandler)
 void
 Screen::close()
 {
-  DestroyWindow(reinterpret_cast<HWND>(m_screenHandle));
+  DestroyWindow(m_screenHandle);
   PostQuitMessage(0);
-}
-
-// TODO: finish this
-LONG_PTR CALLBACK
-win32Proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-  MSG message;
-  message.hwnd = hwnd;
-  message.wParam = wParam;
-  message.lParam = lParam;
-  message.message = msg;
-  message.time = 0;
-
-  //LRESULT result = 
 }
 }
 

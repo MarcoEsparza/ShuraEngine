@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/08
+*  @date    2024/10/20
 *  @brief   Base screen event handler
 *
 *  Base screen event handler
@@ -49,7 +49,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   * 
   *  @return Queue<Event>
   */
-  Queue<Event>
+  Queue<Event>&
   getQueue();
 
   /**
@@ -58,14 +58,14 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @return bool True if is empty, false is otherwise.
   */
   bool
-  empty();
+  empty() const;
 
   /**
   *  @brief Returns the front element on queue.
   * 
   *  @return Event
   */
-  Event
+  Event&
   front();
 
   /**
@@ -75,12 +75,20 @@ class SH_CORE_EXPORT ScreenEventHandle
   pop();
 
   /**
+  *  @brief Emplace element on queue.
+  * 
+  *  @param Event& ev
+  */
+  void
+  emplace(const Event& ev);
+
+  /**
   *  @brief Set the processing mode
   * 
   *  @param shProcessingMode::E mode
   */
   void
-  setProcessingNode(shProcessingMode::E mode);
+  setProcessingMode(const shProcessingMode::E& mode);
 
   /**
   *  @brief Return the size
@@ -88,15 +96,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @return SIZE_T
   */
   SIZE_T
-  getSize();
-
-  /**
-  *  @brief pushEvents on queue.
-  * 
-  *  @bug This function has windows.h elements
-  */
-  long long
-  pushEvent(MSG msg, WPtr<Screen> screen);
+  getSize() const;
 
   friend class Screen;
 
@@ -110,16 +110,6 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @brief Is initialized?
   */
   bool m_initialized;
-
-  /**
-  *  @brief Previous mouse position in X axis.
-  */
-  uint32 m_prevMouseX;
-
-  /**
-  *  @brief Previous mouse position in Y axis.
-  */
-  uint32 m_prevMouseY;
 
   /**
   *  @brief Event queue.

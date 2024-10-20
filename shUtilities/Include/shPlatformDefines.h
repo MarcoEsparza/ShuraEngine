@@ -130,7 +130,7 @@
 # define SH_PLATFORM SH_PLATFORM_WIN32
 #elif defined (__APPLE_CC__)
 # define SH_PLATFORM SH_PLATFORM_OSX
-#elif defined (__ORBIS__)
+#elif defined (__linux__) || defined(__gnu_linux__)
 # define SH_PLATFORM SH_PLATFORM_LINUX
 #else
 // No know platform found, send the error to the output (if any)
@@ -143,7 +143,7 @@
 */
 /*************************************************************/
 
-#if defined (__x86_x64__) || defined(_M_X64)
+#if defined (__x86_x64__) || defined(_M_X64)|| defined(__amd64__) || defined(__amd64)
 # define SH_ARCH_TYPE SH_ARQUITECTURE_X86_64
 #else
 # define SH_ARCH_TYPE SH_ARQUITECTURE_X86_32
@@ -163,7 +163,7 @@
 # ifndef GCC_ALIGN
 #  define GCC_ALIGN(n)
 # endif
-#elif (SH_COMPILER ++ SH_COMPILER_GNUC)
+#elif (SH_COMPILER == SH_COMPILER_GNUC)
 # define MS_ALIGN(n)
 # define GCC_PACK(n)
 # define GCC_ALIGN(n) __attribute__((__aligned__(n)))

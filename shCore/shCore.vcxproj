@@ -19,13 +19,29 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\shColor.h" />
+    <ClInclude Include="include\shDevice.h" />
+    <ClInclude Include="include\shBuffers.h" />
+    <ClInclude Include="include\shDepthStencil.h" />
+    <ClInclude Include="Include\shEventData.h" />
     <ClInclude Include="Include\shEvent.h" />
+    <ClInclude Include="include\shGraphicsManager.h" />
+    <ClInclude Include="include\shInputLayout.h" />
+    <ClInclude Include="include\shLinearColor.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
+    <ClInclude Include="include\shRenderTargetView.h" />
+    <ClInclude Include="include\shSamplerState.h" />
     <ClInclude Include="Include\shScreen.h" />
+    <ClInclude Include="include\shEventEnums.h" />
     <ClInclude Include="Include\shScreenEventHandle.h" />
+    <ClInclude Include="include\shShader.h" />
+    <ClInclude Include="include\shSwapChain.h" />
+    <ClInclude Include="include\shTexture.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shEvent.cpp" />
+    <ClCompile Include="source\shColor.cpp" />
+    <ClCompile Include="source\shGraphicsManager.cpp" />
+    <ClCompile Include="source\shLinearColor.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
   </ItemGroup>
@@ -106,13 +122,14 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Include/;$(SolutionDir)/shUtilities/Include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>shUtilitiesd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,7 +141,7 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Include/;$(SolutionDir)/shUtilities/Include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +150,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>shUtilities.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,13 +160,14 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Include/;$(SolutionDir)/shUtilities/Include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>shUtilitiesd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,7 +179,7 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Include/;$(SolutionDir)/shUtilities/Include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -169,6 +188,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>shUtilities.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

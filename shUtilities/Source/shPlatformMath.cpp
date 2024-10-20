@@ -2,7 +2,7 @@
 /*
 *  @file    shSPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2024/10/18
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -56,6 +56,12 @@ PlatformMath::pow(const float value, const float vPow)
 }
 
 float
+PlatformMath::lerp(const float A, const float B, const float alpha)
+{
+  return (A + (B - A) * alpha);
+}
+
+float
 PlatformMath::min(const float x, const float y)
 {
   return std::min(x, y);
@@ -65,6 +71,12 @@ float
 PlatformMath::max(const float x, const float y)
 {
   return std::max(x, y);
+}
+
+float
+PlatformMath::clamp(const float x, const float min, const float max)
+{
+  return x < min ? min : x < max ? x : max;
 }
 
 float
