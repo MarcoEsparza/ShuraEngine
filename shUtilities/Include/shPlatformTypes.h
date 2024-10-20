@@ -21,6 +21,7 @@
 /*************************************************************/
 
 #include <cstdint>
+#include <cstdlib>
 #include "shPlatformDefines.h"
 
 /*
