@@ -34,7 +34,7 @@ int main()
   desc.iconPath = "resources/ShuraIcon.ico";
 
   Screen mainScreen;
-  SPtr<ScreenEventHandle> eventQ = std::make_shared<ScreenEventHandle>();
+  SPtr<ScreenEventHandle> eventQ = make_shared<ScreenEventHandle>();
 
   if (!mainScreen.init(desc, eventQ.get())) {
     return -1;

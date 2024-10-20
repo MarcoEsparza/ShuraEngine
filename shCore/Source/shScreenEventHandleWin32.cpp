@@ -712,7 +712,6 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
   if (ev.type != shEventType::E::kNone) {
     if (eventQ != nullptr) {
-      //eventQ->getQueue().emplace(ev);
       eventQ->emplace(ev);
     }
   }
