@@ -28,6 +28,18 @@
     <Filter Include="Source Files\Event">
       <UniqueIdentifier>{cc5a8eb1-4e7a-4099-b7ac-28fdf336b250}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GraphicsManager">
+      <UniqueIdentifier>{2c90ddcb-9c23-49b2-96ba-454948ddc75e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GraphicsManager">
+      <UniqueIdentifier>{5b932fb4-4ca9-4366-9b52-9b3eb7843eab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Colors">
+      <UniqueIdentifier>{30e1e187-bc12-4dd4-be42-777f6c0a1848}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Colors">
+      <UniqueIdentifier>{dc8dc13c-81dc-4666-9c2e-c82bb673c1db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -48,6 +60,42 @@
     <ClInclude Include="include\shEventEnums.h">
       <Filter>Header Files\Event</Filter>
     </ClInclude>
+    <ClInclude Include="include\shGraphicsManager.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shTexture.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shBuffers.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDevice.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDepthStencil.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shInputLayout.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shRenderTargetView.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSamplerState.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shShader.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSwapChain.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shColor.h">
+      <Filter>Header Files\Colors</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shLinearColor.h">
+      <Filter>Header Files\Colors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -55,6 +103,15 @@
     </ClCompile>
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp">
       <Filter>Source Files\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shGraphicsManager.cpp">
+      <Filter>Source Files\GraphicsManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shColor.cpp">
+      <Filter>Source Files\Colors</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shLinearColor.cpp">
+      <Filter>Source Files\Colors</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
