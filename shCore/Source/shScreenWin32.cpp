@@ -25,7 +25,7 @@ LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
+Screen::init(const ScreenDesc& desc, ScreenEventHandle* eventHandler)
 {
   m_eventQueue = eventHandler;
   m_width = desc.width;
@@ -60,8 +60,8 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
     wc.hIconSm = hIcon;
   }
   else {
-    wc.hIcon = NULL;
-    wc.hIconSm = NULL;
+    wc.hIcon = nullptr;
+    wc.hIconSm = nullptr;
   }
 
   SH_ASSERT(RegisterClassExA(&wc));
@@ -100,16 +100,18 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
 
   SH_ASSERT(m_screenHandle != nullptr);
 
+  m_eventQueue->m_initialized = true;
+
   if (desc.visible) {
-    ShowWindow(reinterpret_cast<HWND>(m_screenHandle), SW_SHOW);
+    ShowWindow(m_screenHandle, SW_SHOW);
 
-    SetForegroundWindow(reinterpret_cast<HWND>(m_screenHandle));
+    SetForegroundWindow(m_screenHandle);
 
-    SetFocus(reinterpret_cast<HWND>(m_screenHandle));
+    SetFocus(m_screenHandle);
 
-    SetWindowLongPtrW(reinterpret_cast<HWND>(m_screenHandle),
-                                             0,
-                                             reinterpret_cast<LONG_PTR>(m_eventQueue.get()));
+    SetWindowLongPtrA(m_screenHandle,
+                      0,
+                      reinterpret_cast<LONG_PTR>(m_eventQueue));
   }
 
   return true;
@@ -118,7 +120,7 @@ Screen::init(ScreenDesc& desc, SPtr<ScreenEventHandle> eventHandler)
 void
 Screen::close()
 {
-  DestroyWindow(reinterpret_cast<HWND>(m_screenHandle));
+  DestroyWindow(m_screenHandle);
   PostQuitMessage(0);
 }
 }

@@ -7,7 +7,7 @@
 *
 *  Here is the main to test the window initialize.
 * 
-*  @bug     Not creating the window.
+*  @bug     No bug known.
 */
 /*************************************************************/
 
@@ -33,12 +33,10 @@ int main()
   desc.height = 600;
   desc.iconPath = "resources/ShuraIcon.ico";
 
-  bool closed = false;
-
   Screen mainScreen;
   SPtr<ScreenEventHandle> eventQ = std::make_shared<ScreenEventHandle>();
 
-  if (!mainScreen.init(desc, eventQ)) {
+  if (!mainScreen.init(desc, eventQ.get())) {
     return -1;
   }
 
@@ -48,7 +46,7 @@ int main()
     eventQ->update();
 
     while (!eventQ->empty()) {
-      const Event& ev = eventQ->front();
+      auto ev = eventQ->front();
 
       if (ev.type == shEventType::E::kMouseInput) {
         const MouseInputData mouse = ev.data.mouseInput;

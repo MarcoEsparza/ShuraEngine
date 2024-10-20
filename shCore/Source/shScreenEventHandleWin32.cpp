@@ -28,12 +28,12 @@ ScreenEventHandle::update()
 
   for (;;) {
     if (m_processingMode == shProcessingMode::E::kPoll) {
-      if (!PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+      if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
         break;
       }
     }
     else {
-      GetMessage(&msg, NULL, 0, 0);
+      GetMessage(&msg, nullptr, 0, 0);
     }
 
     if (msg.message == WM_QUIT) {
@@ -52,7 +52,7 @@ ScreenEventHandle::getQueue()
 }
 
 bool
-ScreenEventHandle::empty()
+ScreenEventHandle::empty() const
 {
   return m_queue.empty();
 }
@@ -70,13 +70,19 @@ ScreenEventHandle::pop()
 }
 
 void
-ScreenEventHandle::setProcessingNode(shProcessingMode::E mode)
+ScreenEventHandle::emplace(const Event& ev)
+{
+  m_queue.emplace(ev);
+}
+
+void
+ScreenEventHandle::setProcessingMode(const shProcessingMode::E& mode)
 {
   m_processingMode = mode;
 }
 
 SIZE_T
-ScreenEventHandle::getSize()
+ScreenEventHandle::getSize() const
 {
   return m_queue.size();
 }
@@ -108,12 +114,12 @@ ScreenEventHandle::setPreviousMouseY(uint32 pos)
 LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  LRESULT result = 0;
+  LRESULT result = DefWindowProc(hwnd, msg, wParam, lParam);
   RECT currenScreenRect = { -1,-1,-1,-1 };
 
   Event ev = Event(shEventType::E::kNone);
 
-  ScreenEventHandle* eventQ = reinterpret_cast<ScreenEventHandle*>(GetWindowLongPtr(hwnd, 0));
+  ScreenEventHandle* eventQ = reinterpret_cast<ScreenEventHandle*>(GetWindowLongPtrA(hwnd, 0));
 
   switch (msg) {
   case WM_CREATE:
@@ -265,7 +271,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     UINT dwSize;
     GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam),
                     RID_INPUT,
-                    NULL,
+                    nullptr,
                     &dwSize,
                     sizeof(RAWINPUTHEADER));
 
@@ -317,8 +323,10 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     
     GetClientRect(hwnd, &area);
 
-    ev = Event(MouseMoveData(static_cast<uint32>(area.left <= x && x <= area.right ? x - area.left : 0xFFFFFFFF),
-                             static_cast<uint32>(area.top <= y && y <= area.bottom ? x - area.top : 0xFFFFFFFF),
+    ev = Event(MouseMoveData(static_cast<uint32>(area.left <= x && x <= area.right ? x -
+                                                 area.left : 0xFFFFFFFF),
+                             static_cast<uint32>(area.top <= y && y <= area.bottom ? x -
+                                                 area.top : 0xFFFFFFFF),
                              static_cast<uint32>(x),
                              static_cast<uint32>(y),
                              static_cast<uint32>(x - eventQ->getPreviousMouseX()),
@@ -666,7 +674,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     width = rectp->right - rectp->left;
     height = rectp->bottom - rectp->top;
 
-    RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
+    RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 
     ev = Event(ResizeData(width, height, true));
     result = WVR_REDRAW;
@@ -702,8 +710,11 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     break;
   }
 
-  if (ev.type != shEventType::kNone) {
-    eventQ->getQueue().emplace(ev);
+  if (ev.type != shEventType::E::kNone) {
+    if (eventQ != nullptr) {
+      //eventQ->getQueue().emplace(ev);
+      eventQ->emplace(ev);
+    }
   }
 
   if (!(currenScreenRect.right == currenScreenRect.left &&
@@ -711,17 +722,13 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         currenScreenRect.right == currenScreenRect.bottom &&
         currenScreenRect.right == -1)) {
     SetWindowPos(hwnd,
-                 NULL,
+                 nullptr,
                  currenScreenRect.left,
                  currenScreenRect.top,
                  currenScreenRect.right - currenScreenRect.left,
                  currenScreenRect.bottom - currenScreenRect.top,
                  SWP_NOZORDER | SWP_NOACTIVATE);
   }
-
-  SetWindowLongPtrW(hwnd,
-                    0,
-                    reinterpret_cast<LONG_PTR>(eventQ));
 
   return result;
 }

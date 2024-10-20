@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/17
+*  @date    2024/10/19
 *  @brief   Base screen event handler
 *
 *  Base screen event handler
@@ -58,7 +58,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @return bool True if is empty, false is otherwise.
   */
   bool
-  empty();
+  empty() const;
 
   /**
   *  @brief Returns the front element on queue.
@@ -75,12 +75,20 @@ class SH_CORE_EXPORT ScreenEventHandle
   pop();
 
   /**
+  *  @brief Emplace element on queue.
+  * 
+  *  @param Event& ev
+  */
+  void
+  emplace(const Event& ev);
+
+  /**
   *  @brief Set the processing mode
   * 
   *  @param shProcessingMode::E mode
   */
   void
-  setProcessingNode(shProcessingMode::E mode);
+  setProcessingMode(const shProcessingMode::E& mode);
 
   /**
   *  @brief Return the size
@@ -88,7 +96,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @return SIZE_T
   */
   SIZE_T
-  getSize();
+  getSize() const;
 
   /**
   *  @brief Return the previous mouse position in X axis.

@@ -2,7 +2,7 @@
 /*
 *  @file    shEvent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/17
+*  @date    2024/10/19
 *  @brief   Event types structures and enums.
 *
 *  Event types structures and enums.
@@ -328,7 +328,7 @@ class SH_CORE_EXPORT KeyConvertion
   *
   *  @return String
   */
-  String convertKeyToString(const shKey::E key);
+  String convertKeyToString(const shKey::E& key);
 
   /**
   *  @brief Function to convert string to key.
@@ -606,6 +606,7 @@ union SH_CORE_EXPORT EventData
   *  @brief Constructor.
   */
   FORCEINLINE EventData() {}
+
   /**
   *  @brief Destructor.
   */
@@ -621,75 +622,75 @@ class SH_CORE_EXPORT Event
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE Event() = default;
+  Event() = default;
   
   /**
   *  @brief None Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(shEventType::E _type) : type(_type) {}
+  explicit Event(const shEventType::E& _type) : type(_type) {}
 
   /**
   *  @brief Focus Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(FocusData _data);
+  explicit Event(const FocusData& _data);
 
   /**
   *  @brief Resize Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(ResizeData _data);
+  explicit Event(const ResizeData& _data);
 
   /**
   *  @brief Dpi Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(DpiData _data);
+  explicit Event(const DpiData& _data);
 
   /**
   *  @brief Keyboard Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(KeyboardData _data);
+  explicit Event(const KeyboardData& _data);
 
   /**
   *  @brief MouseMove Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(MouseMoveData _data);
+  explicit Event(const MouseMoveData& _data);
 
   /**
   *  @brief MouseInput Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(MouseInputData _data);
+  explicit Event(const MouseInputData& _data);
 
   /**
   *  @brief MouseWheel Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(MouseWheelData _data);
+  explicit Event(const MouseWheelData& _data);
 
   /**
   *  @brief MouseRaw Event constructor.
   * 
   *  @param shEventType::E _type: Type of event.
   */
-  explicit Event(MouseRawData _data);
+  explicit Event(const MouseRawData& _data);
 
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE ~Event() = default;
+  ~Event() = default;
 
   /*************************************************************/
   /*

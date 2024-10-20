@@ -2,7 +2,7 @@
 /*
 *  @file    shEvent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/17
+*  @date    2024/10/19
 *  @brief   Event types structures and enums.
 *
 *  Event types structures and enums.
@@ -129,49 +129,49 @@ const UMap<const char*, shKey::E> KeyConvertion::sCharToKeyMap = {
 */
 /*************************************************************/
 
-Event::Event(FocusData _data)
+Event::Event(const FocusData& _data)
 {
   type = shEventType::E::kFocus;
   data.focus = _data;
 }
 
-Event::Event(ResizeData _data)
+Event::Event(const ResizeData& _data)
 {
   type = shEventType::E::kResize;
   data.resize = _data;
 }
 
-Event::Event(DpiData _data)
+Event::Event(const DpiData& _data)
 {
   type = shEventType::E::kDPI;
   data.dpi = _data;
 }
 
-Event::Event(KeyboardData _data)
+Event::Event(const KeyboardData& _data)
 {
   type = shEventType::E::kKeyboard;
   data.keyboard = _data;
 }
 
-Event::Event(MouseMoveData _data)
+Event::Event(const MouseMoveData& _data)
 {
   type = shEventType::E::kMouseMove;
   data.mouseMove = _data;
 }
 
-Event::Event(MouseInputData _data)
+Event::Event(const MouseInputData& _data)
 {
   type = shEventType::E::kMouseInput;
   data.mouseInput = _data;
 }
 
-Event::Event(MouseWheelData _data)
+Event::Event(const MouseWheelData& _data)
 {
   type = shEventType::E::kMouseWheel;
   data.mouseWheel = _data;
 }
 
-Event::Event(MouseRawData _data)
+Event::Event(const MouseRawData& _data)
 {
   type = shEventType::E::kMouseRaw;
   data.mouseRaw = _data;
@@ -184,7 +184,7 @@ Event::Event(MouseRawData _data)
 /*************************************************************/
 
 String
-KeyConvertion::convertKeyToString(const shKey::E key)
+KeyConvertion::convertKeyToString(const shKey::E& key)
 {
   return sKeyToCharMap[static_cast<SIZE_T>(key)];
 }
