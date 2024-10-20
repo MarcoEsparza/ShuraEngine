@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/19
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -37,7 +37,7 @@ class SH_UTILITY_EXPORT Matrix4
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE Matrix4() = default;
+  Matrix4() = default;
 
   /**
   *  @brief Constructor to initialize values to the given numbers.
@@ -56,14 +56,14 @@ class SH_UTILITY_EXPORT Matrix4
   *
   *  @param Matrix4
   */
-  FORCEINLINE Matrix4(const Matrix4& other);
+  Matrix4(const Matrix4& other);
 
   /**
   *  @brief Constructor to create a rotation Matrix4 from a Quaternion
   *
   *  @param Quaternion
   */
-  FORCEINLINE explicit Matrix4(const Quaternion& quat);
+  explicit Matrix4(const Quaternion& quat);
 
   /**
   *  @brief Constructor to create Matrix4 from four Vector4.
@@ -286,7 +286,7 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE ViewMatrix() = default;
+  ViewMatrix() = default;
 
   /**
   *  @brief Constructor to initialize matrix values.
@@ -302,7 +302,7 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE ~ViewMatrix() = default;
+  ~ViewMatrix() = default;
 };
 
 /**
@@ -314,7 +314,7 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE ProjectionMatrix() = default;
+  ProjectionMatrix() = default;
 
   /**
   *  @brief Constructor to initialize matrix values.
@@ -334,7 +334,7 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE ~ProjectionMatrix() = default;
+  ~ProjectionMatrix() = default;
 };
 
 /*************************************************************/
