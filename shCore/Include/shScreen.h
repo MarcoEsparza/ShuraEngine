@@ -2,7 +2,7 @@
 /*
 *  @file    shScreen.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/19
+*  @date    2024/10/20
 *  @brief   Base screen
 *
 *  Base screen
@@ -17,6 +17,7 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shScreenEventHandle.h"
+#include "shVector2i.h"
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 struct HWND__;
@@ -117,7 +118,7 @@ class SH_CORE_EXPORT Screen
   *  @return bool True if initialized, false if failed.
   */
   bool
-  init(const ScreenDesc& desc, ScreenEventHandle* eventHandler);
+  init(const ScreenDesc& desc, const SPtr<ScreenEventHandle> eventHandler);
 
   /**
   *  @brief Close Screen.
@@ -140,6 +141,15 @@ class SH_CORE_EXPORT Screen
   */
   FORCEINLINE uint32
   getHeight() const;
+
+
+  /**
+  *  @brief Return the previous mouse position in X axis.
+  *
+  *  @return uint32
+  */
+  FORCEINLINE Vector2i
+  getPreviousMousePos() const;
 
   /**
   *  @brief Get the Screen handler.
@@ -170,6 +180,11 @@ class SH_CORE_EXPORT Screen
   uint32 m_posY = 0;
 
   /**
+  *  @brief Previous mouse position.
+  */
+  Vector2i m_prevMousePos;
+
+  /**
   *  @brief Screen handler.
   */
   PlatformScreen m_screenHandle = nullptr;
@@ -177,7 +192,7 @@ class SH_CORE_EXPORT Screen
   /**
   *  @brief EventQueue
   */
-  ScreenEventHandle* m_eventQueue = nullptr;
+  SPtr<ScreenEventHandle> m_eventQueue = nullptr;
 };
 
 FORCEINLINE uint32
@@ -196,5 +211,11 @@ FORCEINLINE PlatformScreen
 Screen::getPlatformHandler() const
 {
   return m_screenHandle;
+}
+
+FORCEINLINE Vector2i
+Screen::getPreviousMousePos() const
+{
+  return m_prevMousePos;
 }
 }

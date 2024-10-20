@@ -19,13 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\shEventData.h" />
     <ClInclude Include="Include\shEvent.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="Include\shScreen.h" />
+    <ClInclude Include="include\shEventEnums.h" />
     <ClInclude Include="Include\shScreenEventHandle.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shEvent.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
   </ItemGroup>

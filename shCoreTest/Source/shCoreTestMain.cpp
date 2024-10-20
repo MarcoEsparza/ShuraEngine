@@ -2,7 +2,7 @@
 /*
 *  @file    shCoreTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/19
+*  @date    2024/10/20
 *  @brief   Here is the main to test the window initialize.
 *
 *  Here is the main to test the window initialize.
@@ -36,7 +36,7 @@ int main()
   Screen mainScreen;
   SPtr<ScreenEventHandle> eventQ = make_shared<ScreenEventHandle>();
 
-  if (!mainScreen.init(desc, eventQ.get())) {
+  if (!mainScreen.init(desc, eventQ)) {
     return -1;
   }
 

@@ -25,7 +25,7 @@ LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-Screen::init(const ScreenDesc& desc, ScreenEventHandle* eventHandler)
+Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle> eventHandler)
 {
   m_eventQueue = eventHandler;
   m_width = desc.width;
@@ -111,7 +111,11 @@ Screen::init(const ScreenDesc& desc, ScreenEventHandle* eventHandler)
 
     SetWindowLongPtrA(m_screenHandle,
                       0,
-                      reinterpret_cast<LONG_PTR>(m_eventQueue));
+                      reinterpret_cast<LONG_PTR>(m_eventQueue.get()));
+
+    SetWindowLongPtrA(m_screenHandle,
+                      1,
+                      reinterpret_cast<LONG_PTR>(&m_prevMousePos));
   }
 
   return true;

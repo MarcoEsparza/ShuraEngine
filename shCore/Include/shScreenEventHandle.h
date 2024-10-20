@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/19
+*  @date    2024/10/20
 *  @brief   Base screen event handler
 *
 *  Base screen event handler
@@ -49,7 +49,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   * 
   *  @return Queue<Event>
   */
-  Queue<Event>
+  Queue<Event>&
   getQueue();
 
   /**
@@ -65,7 +65,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   * 
   *  @return Event
   */
-  Event
+  Event&
   front();
 
   /**
@@ -98,38 +98,6 @@ class SH_CORE_EXPORT ScreenEventHandle
   SIZE_T
   getSize() const;
 
-  /**
-  *  @brief Return the previous mouse position in X axis.
-  *
-  *  @return uint32
-  */
-  uint32
-  getPreviousMouseX() const;
-
-  /**
-  *  @brief Return the previous mouse position in Y axis.
-  *
-  *  @return uint32
-  */
-  uint32
-  getPreviousMouseY() const;
-
-  /**
-  *  @brief Sets the previous mouse position in X axis.
-  *
-  *  @param uint32 pos
-  */
-  void
-  setPreviousMouseX(uint32 pos);
-
-  /**
-  *  @brief Sets the previous mouse position in Y axis.
-  *
-  *  @param uint32 pos
-  */
-  void
-  setPreviousMouseY(uint32 pos);
-
   friend class Screen;
 
  protected:
@@ -142,16 +110,6 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @brief Is initialized?
   */
   bool m_initialized;
-
-  /**
-  *  @brief Previous mouse position in X axis.
-  */
-  uint32 m_prevMouseX;
-
-  /**
-  *  @brief Previous mouse position in Y axis.
-  */
-  uint32 m_prevMouseY;
 
   /**
   *  @brief Event queue.

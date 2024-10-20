@@ -115,4 +115,9 @@ using Queue = std::queue<T>;
 *  @note This will change later to a wrapper.
 */
 using std::make_shared;
+
+/**
+*  @brief Byte wrapper to use along the engine.
+*/
+using Byte = std::byte;
 }

@@ -15,6 +15,7 @@
 */
 /*************************************************************/
 #include "shScreenEventHandle.h"
+#include "shVector2i.h"
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 
@@ -25,27 +26,22 @@ void
 ScreenEventHandle::update()
 {
   MSG msg = { };
-
-  for (;;) {
-    if (m_processingMode == shProcessingMode::E::kPoll) {
-      if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-        break;
+  if (m_processingMode == shProcessingMode::E::kPoll) {
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+      if (msg.message == WM_QUIT) {
+        return;
       }
+      
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
     }
-    else {
-      GetMessage(&msg, nullptr, 0, 0);
-    }
-
-    if (msg.message == WM_QUIT) {
-      return;
-    }
-
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
+  }
+  else {
+    GetMessage(&msg, nullptr, 0, 0);
   }
 }
 
-Queue<Event>
+Queue<Event>&
 ScreenEventHandle::getQueue()
 {
   return m_queue;
@@ -57,7 +53,7 @@ ScreenEventHandle::empty() const
   return m_queue.empty();
 }
 
-Event
+Event&
 ScreenEventHandle::front()
 {
   return m_queue.front();
@@ -72,7 +68,33 @@ ScreenEventHandle::pop()
 void
 ScreenEventHandle::emplace(const Event& ev)
 {
-  m_queue.emplace(ev);
+  if (ev.type == shEventType::E::kFocus) {
+    m_queue.emplace(ev.data.focus);
+  }
+  else if (ev.type == shEventType::E::kResize) {
+    m_queue.emplace(ev.data.resize);
+  }
+  else if (ev.type == shEventType::E::kDPI) {
+    m_queue.emplace(ev.data.dpi);
+  }
+  else if (ev.type == shEventType::E::kKeyboard) {
+    m_queue.emplace(ev.data.keyboard);
+  }
+  else if (ev.type == shEventType::E::kMouseMove) {
+    m_queue.emplace(ev.data.mouseMove);
+  }
+  else if (ev.type == shEventType::E::kMouseInput) {
+    m_queue.emplace(ev.data.mouseInput);
+  }
+  else if (ev.type == shEventType::E::kMouseWheel) {
+    m_queue.emplace(ev.data.mouseWheel);
+  }
+  else if (ev.type == shEventType::E::kMouseRaw) {
+    m_queue.emplace(ev.data.mouseRaw);
+  }
+  else {
+    m_queue.emplace(ev.type);
+  }
 }
 
 void
@@ -87,46 +109,18 @@ ScreenEventHandle::getSize() const
   return m_queue.size();
 }
 
-uint32
-ScreenEventHandle::getPreviousMouseX() const
-{
-  return m_prevMouseX;
-}
-
-uint32
-ScreenEventHandle::getPreviousMouseY() const
-{
-  return m_prevMouseY;
-}
-
-void
-ScreenEventHandle::setPreviousMouseX(uint32 pos)
-{
-  m_prevMouseX = pos;
-}
-
-void
-ScreenEventHandle::setPreviousMouseY(uint32 pos)
-{
-  m_prevMouseY = pos;
-}
-
 LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   LRESULT result = DefWindowProc(hwnd, msg, wParam, lParam);
   RECT currenScreenRect = { -1,-1,-1,-1 };
 
-  Event ev = Event(shEventType::E::kNone);
+  Event currentEvent = Event(shEventType::E::kNone);
 
   ScreenEventHandle* eventQ = reinterpret_cast<ScreenEventHandle*>(GetWindowLongPtrA(hwnd, 0));
+  Vector2i* prevMousePos = reinterpret_cast<Vector2i*>(GetWindowLongPtrA(hwnd, 1));
 
   switch (msg) {
-  case WM_CREATE:
-  {
-    ev = Event(shEventType::E::kCreate);
-    break;
-  }
   case WM_PAINT:
   {
     PAINTSTRUCT ps;
@@ -143,7 +137,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     FillRect(ps.hdc, &rect, borderBrush);
     EndPaint(hwnd, &ps);
 
-    ev = Event(shEventType::E::kPaint);
+    currentEvent = Event(shEventType::E::kPaint);
     break;
   }
   case WM_ERASEBKGND:
@@ -153,117 +147,117 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_CLOSE:
   case WM_DESTROY:
   {
-    ev = Event(shEventType::E::kClose);
+    currentEvent = Event(shEventType::E::kClose);
     break;
   }
   case WM_SETFOCUS:
   {
-    ev = Event(FocusData(true));
+    currentEvent = Event(FocusData(true));
     break;
   }
   case WM_KILLFOCUS:
   {
-    ev = Event(FocusData(true));
+    currentEvent = Event(FocusData(true));
     break;
   }
   case WM_MOUSEWHEEL:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseWheelData(GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseWheelData(GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_LBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseInputData(shMouseInput::E::kLeft,
-                              shButtonState::E::kPressed,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(shMouseInput::E::kLeft,
+                                        shButtonState::E::kPressed,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_LBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseInputData(shMouseInput::E::kLeft,
-                              shButtonState::E::kReleased,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(shMouseInput::E::kLeft,
+                                        shButtonState::E::kReleased,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_MBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseInputData(shMouseInput::E::kMiddle,
-                              shButtonState::E::kPressed,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(shMouseInput::E::kMiddle,
+                                        shButtonState::E::kPressed,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_MBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseInputData(shMouseInput::E::kMiddle,
-                              shButtonState::E::kReleased,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(shMouseInput::E::kMiddle,
+                                        shButtonState::E::kReleased,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_RBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseInputData(shMouseInput::E::kRight,
-                              shButtonState::E::kPressed,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(shMouseInput::E::kRight,
+                                        shButtonState::E::kPressed,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_RBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
-    ev = Event(MouseInputData(shMouseInput::E::kRight,
-                              shButtonState::E::kReleased,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(shMouseInput::E::kRight,
+                                        shButtonState::E::kReleased,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_XBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
     short x = HIWORD(wParam);
-    ev = Event(MouseInputData(x & XBUTTON1 ? shMouseInput::E::kButton4 : shMouseInput::E::kButton5,
-                              shButtonState::E::kPressed,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(x & XBUTTON1 ? shMouseInput::E::kButton4 : shMouseInput::E::kButton5,
+                                        shButtonState::E::kPressed,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_XBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
     short x = HIWORD(wParam);
-    ev = Event(MouseInputData(x & XBUTTON1 ? shMouseInput::E::kButton4 : shMouseInput::E::kButton5,
-                              shButtonState::E::kReleased,
-                              ModifierState(modifiers & MK_CONTROL,
-                                            modifiers & MK_ALT,
-                                            modifiers & MK_SHIFT,
-                                            modifiers & 0)));
+    currentEvent = Event(MouseInputData(x & XBUTTON1 ? shMouseInput::E::kButton4 : shMouseInput::E::kButton5,
+                                        shButtonState::E::kReleased,
+                                        ModifierState(modifiers & MK_CONTROL,
+                                                      modifiers & MK_ALT,
+                                                      modifiers & MK_SHIFT,
+                                                      modifiers & 0)));
     break;
   }
   case WM_INPUT:
@@ -275,20 +269,21 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     &dwSize,
                     sizeof(RAWINPUTHEADER));
 
-    LPBYTE lpb = new BYTE(static_cast<BYTE>(dwSize));
-    if (lpb == NULL) {
+    Byte* lpByte = new Byte(static_cast<Byte>(dwSize));
+
+    if (lpByte == nullptr) {
       return result;
     }
 
     if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam),
                         RID_INPUT,
-                        lpb,
+                        lpByte,
                         &dwSize,
                         sizeof(RAWINPUTHEADER) != dwSize)) {
       OutputDebugString(TEXT("GetRawInputData does not return correct size!\n"));
     }
 
-    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(lpb);
+    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(lpByte);
 
     if (raw->header.dwType == RIM_TYPEKEYBOARD) {
       raw->data.keyboard.MakeCode,
@@ -308,32 +303,34 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       raw->data.mouse.lLastY,
       raw->data.mouse.ulExtraInformation;
 
-      ev = Event(MouseRawData(static_cast<int32>(raw->data.mouse.lLastX),
-                              static_cast<int32>(raw->data.mouse.lLastY)));
+      currentEvent = Event(MouseRawData(static_cast<int32>(raw->data.mouse.lLastX),
+                                        static_cast<int32>(raw->data.mouse.lLastY)));
     }
 
-    delete[] lpb;
+    delete lpByte;
     break;
   }
   case WM_MOUSEMOVE:
   {
-    int32 x = static_cast<short>(LOWORD(lParam));
-    int32 y = static_cast<short>(HIWORD(lParam));
+    int32 x = static_cast<int32>(LOWORD(lParam));
+    int32 y = static_cast<int32>(HIWORD(lParam));
     RECT area;
     
     GetClientRect(hwnd, &area);
 
-    ev = Event(MouseMoveData(static_cast<uint32>(area.left <= x && x <= area.right ? x -
-                                                 area.left : 0xFFFFFFFF),
-                             static_cast<uint32>(area.top <= y && y <= area.bottom ? x -
-                                                 area.top : 0xFFFFFFFF),
-                             static_cast<uint32>(x),
-                             static_cast<uint32>(y),
-                             static_cast<uint32>(x - eventQ->getPreviousMouseX()),
-                             static_cast<uint32>(y - eventQ->getPreviousMouseY())));
+    if (prevMousePos != nullptr) {
+      currentEvent = Event(MouseMoveData(static_cast<uint32>(area.left <= x && x <=
+                                         area.right ? x - area.left : 0xFFFFFFFF),
+                                         static_cast<uint32>(area.top <= y && y <=
+                                         area.bottom ? x - area.top : 0xFFFFFFFF),
+                                         static_cast<uint32>(x),
+                                         static_cast<uint32>(y),
+                                         static_cast<uint32>(x - prevMousePos->x),
+                                         static_cast<uint32>(y - prevMousePos->y)));
 
-    eventQ->setPreviousMouseX(x);
-    eventQ->setPreviousMouseY(y);
+      prevMousePos->x = x;
+      prevMousePos->y = y;
+    }
 
     break;
   }
@@ -644,10 +641,10 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) {
-      ev = Event(KeyboardData(key, shButtonState::kPressed, ms));
+      currentEvent = Event(KeyboardData(key, shButtonState::kPressed, ms));
     }
     else if (msg == WM_KEYUP || msg == WM_SYSKEYUP) {
-      ev = Event(KeyboardData(key, shButtonState::kReleased, ms));
+      currentEvent = Event(KeyboardData(key, shButtonState::kReleased, ms));
     }
 
     break;
@@ -659,7 +656,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     width = static_cast<uint32>(static_cast<UINT64>(lParam) & 0xFFFF);
     height = static_cast<uint32>(static_cast<UINT64>(lParam) >> 16);
 
-    ev = Event(ResizeData(width, height, false));
+    currentEvent = Event(ResizeData(width, height, false));
 
     break;
   }
@@ -676,7 +673,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 
-    ev = Event(ResizeData(width, height, true));
+    currentEvent = Event(ResizeData(width, height, true));
     result = WVR_REDRAW;
     break;
   }
@@ -684,7 +681,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   {
     WORD curDPI = HIWORD(wParam);
     FLOAT fscale = static_cast<float>(curDPI) / USER_DEFAULT_SCREEN_DPI;
-    ev = Event(DpiData(fscale));
+    currentEvent = Event(DpiData(fscale));
 
     if (!IsZoomed(hwnd)) {
       RECT* const prcNewWindow = reinterpret_cast<RECT*>(lParam);
@@ -710,9 +707,9 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     break;
   }
 
-  if (ev.type != shEventType::E::kNone) {
+  if (currentEvent.type != shEventType::E::kNone) {
     if (eventQ != nullptr) {
-      eventQ->emplace(ev);
+      eventQ->emplace(currentEvent);
     }
   }
 
