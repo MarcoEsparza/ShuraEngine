@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11RenderTargetView.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/21
 *  @brief   DirectX11 Render Target View class wrapper.
 *
 *  DirectX11 Render Target View class wrapper.
@@ -18,18 +18,19 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
+#include "shRenderTargetView.h"
 
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Render Target View class wrapper.
 */
-class DX11RenderTargetView
+class DX11RenderTargetView : public RenderTargetView
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11RenderTargetView() = default;
+  DX11RenderTargetView() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.

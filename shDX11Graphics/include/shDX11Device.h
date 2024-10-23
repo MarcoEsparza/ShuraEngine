@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Device.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/21
 *  @brief   DirectX11 Device and DeviceContext class wrappers.
 *
 *  DirectX11 Device and DeviceContext class wrappers.
@@ -18,18 +18,19 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
+#include "shDevice.h"
 
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Device wrapper.
 */
-class DX11Device
+class DX11Device : public Device
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11Device() = default;
+  DX11Device() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.
@@ -53,13 +54,13 @@ class DX11Device
 /**
 *  @brief DirectX11 Device Context wrapper.
 */
-class DX11DeviceContext
+class DX11DeviceContext : public DeviceContext
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11DeviceContext() = default;
+  DX11DeviceContext() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.

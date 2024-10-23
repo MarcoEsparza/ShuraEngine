@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11InputLayout.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/21
 *  @brief   DirectX11 Input Layout class wrapper.
 *
 *  DirectX11 Input Layout class wrapper.
@@ -18,18 +18,19 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
+#include "shInputLayout.h"
 
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Input Layout class wrapper.
 */
-class DX11InputLayout
+class DX11InputLayout : public InputLayout
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11InputLayout() = default;
+  DX11InputLayout() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.

@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Buffers.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/21
 *  @brief   DirectX11 Vertex Buffer, Index Buffer and Constant Buffer class wrappers.
 *
 *  DirectX11 Vertex Buffer, Index Buffer and Constant Buffer class wrappers.
@@ -18,23 +18,24 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
+#include "shBuffers.h"
 
 namespace shEngineSDK {
 /**
-*  @brief DirectX11 base buffer.
+*  @brief DirectX11 Vertex Buffer class wrapper.
 */
-class DX11Buffer
+class DX11VertexBuffer : public VertexBuffer
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11Buffer() = default;
+  DX11VertexBuffer() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11Buffer();
+  FORCEINLINE virtual ~DX11VertexBuffer();
 
   friend class DX11GraphicsManager;
 
@@ -48,32 +49,7 @@ class DX11Buffer
   *  @brief DirectX11 Buffer pointer.
   */
   ID3D11Buffer* m_pBuffer = nullptr;
-};
 
-/**
-*  @brief DirectX11 Vertex Buffer class wrapper.
-*/
-class DX11VertexBuffer : public DX11Buffer
-{
- public:
-  /**
-  *  @brief Default constructor.
-  */
-  FORCEINLINE DX11VertexBuffer() = default;
-
-  /**
-  *  @brief Default destructor.
-  */
-  FORCEINLINE ~DX11VertexBuffer() = default;
-
-  friend class DX11GraphicsManager;
-
-  /*************************************************************/
-  /*
-  *  Variables
-  */
-  /*************************************************************/
- protected:
   /**
   *  @brief Buffer stride.
   */
@@ -83,18 +59,18 @@ class DX11VertexBuffer : public DX11Buffer
 /**
 *  @brief DirectX11 Index Buffer class wrapper.
 */
-class DX11IndexBuffer : public DX11Buffer
+class DX11IndexBuffer : public IndexBuffer
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11IndexBuffer() = default;
+  DX11IndexBuffer() = default;
 
   /**
-  *  @brief Default destructor.
+  *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE ~DX11IndexBuffer() = default;
+  FORCEINLINE virtual ~DX11IndexBuffer();
 
   friend class DX11GraphicsManager;
 
@@ -105,6 +81,11 @@ class DX11IndexBuffer : public DX11Buffer
   /*************************************************************/
  protected:
   /**
+  *  @brief DirectX11 Buffer pointer.
+  */
+  ID3D11Buffer* m_pBuffer = nullptr;
+
+  /**
   *  @brief Buffer format.
   */
   uint32 m_dataFormat = DXGI_FORMAT_R32_UINT;
@@ -113,20 +94,31 @@ class DX11IndexBuffer : public DX11Buffer
 /**
 *  @brief DirectX11 Constant Buffer class wrapper.
 */
-class DX11ConstantBuffer : public DX11Buffer
+class DX11ConstantBuffer : public ConstantBuffer
 {
 public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11ConstantBuffer() = default;
+  DX11ConstantBuffer() = default;
 
   /**
-  *  @brief Default destructor.
+  *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE ~DX11ConstantBuffer() = default;
+  FORCEINLINE virtual ~DX11ConstantBuffer();
 
   friend class DX11GraphicsManager;
+
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+protected:
+  /**
+  *  @brief DirectX11 Buffer pointer.
+  */
+  ID3D11Buffer* m_pBuffer = nullptr;
 };
 
 /*************************************************************/
@@ -135,7 +127,17 @@ public:
 */
 /*************************************************************/
 
-FORCEINLINE DX11Buffer::~DX11Buffer()
+FORCEINLINE DX11VertexBuffer::~DX11VertexBuffer()
+{
+  SafeRelease(m_pBuffer);
+}
+
+FORCEINLINE DX11IndexBuffer::~DX11IndexBuffer()
+{
+  SafeRelease(m_pBuffer);
+}
+
+FORCEINLINE DX11ConstantBuffer::~DX11ConstantBuffer()
 {
   SafeRelease(m_pBuffer);
 }

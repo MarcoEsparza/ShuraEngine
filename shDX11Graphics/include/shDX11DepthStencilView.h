@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11DepthStencilView.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/21
 *  @brief   DirectX11 Depth Stencil View class wrapper.
 *
 *  DirectX11 Depth Stencil View class wrapper.
@@ -18,18 +18,19 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
+#include "shDepthStencilView.h"
 
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Depth Stencil View class wrapper.
 */
-class DX11DepthStencilView
+class DX11DepthStencilView : public DepthStencilView
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11DepthStencilView() = default;
+  DX11DepthStencilView() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.
@@ -63,7 +64,11 @@ class DX11DepthStencilView
 
 FORCEINLINE DX11DepthStencilView::~DX11DepthStencilView()
 {
-  SafeRelease(m_pDepthSV);
-  SafeRelease(m_pTexture2D);
+  if (m_pDepthSV != nullptr) {
+    SafeRelease(m_pDepthSV);
+  }
+  if (m_pTexture2D != nullptr) {
+    SafeRelease(m_pTexture2D);
+  }
 }
 }

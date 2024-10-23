@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11SamplerState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/21
 *  @brief   DirectX11 Sampler State class wrapper.
 *
 *  DirectX11 Sampler State class wrapper.
@@ -18,18 +18,19 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
+#include "shSamplerState.h"
 
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Sampler State class wrapper.
 */
-class DX11SamplerState
+class DX11SamplerState : public SamplerState
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  FORCEINLINE DX11SamplerState() = default;
+  DX11SamplerState() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.

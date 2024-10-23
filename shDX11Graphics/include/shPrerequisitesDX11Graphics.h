@@ -23,7 +23,7 @@
 namespace shEngineSDK {
 template <class T>
 void SafeRelease(T * &p){
-  if (p) {
+  if (p != nullptr) {
     p->Release();
     p = nullptr;
   }
