@@ -38,7 +38,6 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
-#include <queue>
 
 /*************************************************************/
 /*
@@ -106,18 +105,7 @@ template <typename T, typename U>
 using UMap = std::unordered_map<T, U>;
 
 /*
-*  @brief Queue to use along the engine.
-*/
-template <typename T>
-using Queue = std::queue<T>;
-
-/*
 *  @note This will change later to a wrapper.
 */
 using std::make_shared;
-
-/**
-*  @brief Byte wrapper to use along the engine.
-*/
-using Byte = std::byte;
 }
