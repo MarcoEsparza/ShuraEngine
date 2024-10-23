@@ -28,6 +28,9 @@
     <Filter Include="Include\Util">
       <UniqueIdentifier>{a206cb56-d428-403f-b49d-0b977ec60b3f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Util">
+      <UniqueIdentifier>{ac9bc1ba-ca3c-4e40-b291-6a3434caf8dc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shBoxAAB.h">
@@ -90,6 +93,12 @@
     <ClInclude Include="Include\shException.h">
       <Filter>Include\Util</Filter>
     </ClInclude>
+    <ClInclude Include="include\shColor.h">
+      <Filter>Include\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shLinearColor.h">
+      <Filter>Include\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shBoxOBB.cpp">
@@ -130,6 +139,12 @@
     </ClCompile>
     <ClCompile Include="Source\shVector4.cpp">
       <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shColor.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shLinearColor.cpp">
+      <Filter>Source\Util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

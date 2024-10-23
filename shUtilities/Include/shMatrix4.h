@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/19
+*  @date    2024/10/23
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -103,7 +103,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The transposed Matrix4.
   */
   Matrix4
-  getTransposed() const;
+  getTransposed();
 
   /**
   *  @brief Get the inverse of this Matrix4.
@@ -275,6 +275,23 @@ public:
   *  @brief Use double array to access values.
   */
   float m[4][4];
+
+  /*************************************************************/
+  /*
+  *  Static variables
+  */
+  /*************************************************************/
+
+ public:
+  /**
+  *  @brief Matrix4 initialized with identity values.
+  */
+  static const Matrix4 identity;
+
+  /**
+  *  @brief Matrix4 initialized with zero values.
+  */
+  static const Matrix4 zeroMatrix;
 };
 
 /**
@@ -302,7 +319,7 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  ~ViewMatrix() = default;
+  virtual ~ViewMatrix() = default;
 };
 
 /**
@@ -334,30 +351,8 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  ~ProjectionMatrix() = default;
+  virtual ~ProjectionMatrix() = default;
 };
-
-/*************************************************************/
-/*
-*  Static variables
-*/
-/*************************************************************/
-
-/**
-*  @brief Matrix4 initialized with identity values.
-*/
-static const Matrix4 identity = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
-                                        0.0f, 1.0f, 0.0f, 0.0f,
-                                        0.0f, 0.0f, 1.0f, 0.0f,
-                                        0.0f, 0.0f, 0.0f, 1.0f);
-
-/**
-*  @brief Matrix4 initialized with zero values.
-*/
-static const Matrix4 zeroMatrix = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f);
 
 /*************************************************************/
 /*
