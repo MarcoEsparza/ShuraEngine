@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shDepthStencil.h
+*  @file    shDepthStencilView.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   DepthStencil class wrapper.
+*  @date    2024/10/21
+*  @brief   Engine Depth Stencil View class wrapper.
 *
-*  DepthStencil class wrapper.
+*  Engine Depth Stencil View class wrapper.
 *
 *  @bug     No bug known.
 */
@@ -20,14 +20,20 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
-
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11DepthStencilView;
-
 /**
-*  @brief DepthStencil wrapper.
+*  @brief Engine Depth Stencil View class.
 */
-using DepthStencil = DX11DepthStencilView;
-#endif
+class DepthStencilView
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  DepthStencilView() = default;
 
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~DepthStencilView() = default;
+};
 }

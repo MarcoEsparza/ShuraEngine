@@ -2,10 +2,10 @@
 /*
 *  @file    shTexture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   Texture clss wrappers.
+*  @date    2024/10/21
+*  @brief   Engine base Texture classes.
 *
-*  Texture clss wrappers.
+*  Engine base Texture classes.
 *
 *  @bug     No bug known.
 */
@@ -20,21 +20,37 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
+/**
+*  @brief Engine base Texture class.
+*/
+class Texture
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  Texture() = default;
 
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11Texture;
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~Texture() = default;
+};
 
 /**
-*  @brief Texture wrapper.
+*  @brief Engine base Texture2D class.
 */
-using Texture = DX11Texture;
+class Texture2D
+{
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  Texture2D() = default;
 
-class DX11Texture2D;
-
-/**
-*  @brief Texture2D wrapper.
-*/
-using Texture2D = DX11Texture2D;
-#endif
-
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~Texture2D() = default;
+};
 }

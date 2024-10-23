@@ -2,10 +2,10 @@
 /*
 *  @file    shSwapChain.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   SwapChain class wrapper.
+*  @date    2024/10/21
+*  @brief   Engine Swap Chain class.
 *
-*  SwapChain class wrapper.
+*  Engine Swap Chain class.
 *
 *  @bug     No bug known.
 */
@@ -20,14 +20,20 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
-
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11SwapChain;
-
 /**
-*  @brief SwapChain wrapper.
+*  @brief Engine Swap Chain class.
 */
-using SwapChain = DX11SwapChain;
-#endif
+class SwapChain
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  SwapChain() = default;
 
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~SwapChain() = default;
+};
 }

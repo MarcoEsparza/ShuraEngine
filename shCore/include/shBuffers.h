@@ -2,10 +2,10 @@
 /*
 *  @file    shBuffers.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   Buffer classes wrappers.
+*  @date    2024/10/21
+*  @brief   Engine Buffer classes.
 *
-*  Buffer classes wrappers.
+*  Engine Buffer classes.
 *
 *  @bug     No bug known.
 */
@@ -20,35 +20,54 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
+/**
+*  @brief Engine Vertex Buffer class.
+*/
+class VertexBuffer
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  VertexBuffer() = default;
 
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11Buffer;
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~VertexBuffer() = default;
+};
 
 /**
-*  @brief Buffer wrapper.
+*  @brief Engine Index Buffer class.
 */
-using Buffer = DX11Buffer;
+class IndexBuffer
+{
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  IndexBuffer() = default;
 
-class DX11VertexBuffer;
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~IndexBuffer() = default;
+};
 
 /**
-*  @brief VertexBuffer wrapper.
+*  @brief Engine Constant Buffer class.
 */
-using VertexBuffer = DX11VertexBuffer;
+class ConstantBuffer
+{
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  ConstantBuffer() = default;
 
-class DX11IndexBuffer;
-
-/**
-*  @brief IndexBuffer wrapper.
-*/
-using IndexBuffer = DX11IndexBuffer;
-
-class DX11ConstantBuffer;
-
-/**
-*  @brief ConstantBuffer wrapper.
-*/
-using ConstantBuffer = DX11ConstantBuffer;
-#endif
-
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~ConstantBuffer() = default;
+};
 }

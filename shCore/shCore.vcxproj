@@ -19,15 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\shColor.h" />
     <ClInclude Include="include\shDevice.h" />
     <ClInclude Include="include\shBuffers.h" />
-    <ClInclude Include="include\shDepthStencil.h" />
+    <ClInclude Include="include\shDepthStencilView.h" />
     <ClInclude Include="Include\shEventData.h" />
     <ClInclude Include="Include\shEvent.h" />
     <ClInclude Include="include\shGraphicsManager.h" />
     <ClInclude Include="include\shInputLayout.h" />
-    <ClInclude Include="include\shLinearColor.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shSamplerState.h" />
@@ -39,9 +37,7 @@
     <ClInclude Include="include\shTexture.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\shColor.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
-    <ClCompile Include="source\shLinearColor.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
   </ItemGroup>

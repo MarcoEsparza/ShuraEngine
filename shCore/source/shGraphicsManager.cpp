@@ -2,10 +2,10 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief
+*  @date    2024/10/23
+*  @brief   Graphics Manager module that uses function from loaded API.
 *
-*
+*  Graphics Manager module that uses function from loaded API.
 *
 *  @bug     No bug known.
 */
@@ -20,16 +20,224 @@
 
 namespace shEngineSDK {
 void
-GraphicsManager::init(PlatformScreen srcHandle,
-                      bool bFullScreen,
-                      bool bAntiliasing,
-                      uint32 samplesPerPixel,
-                      uint32 sampleQuality)
+GraphicsManager::initManager(const PlatformScreen& srcHandle,
+                             const bool bFullScreen,
+                             const bool bAntiliasing,
+                             const uint32 samplesPerPixel,
+                             const uint32 sampleQuality)
 {
-  internalInit(srcHandle,
-               bFullScreen,
-               bAntiliasing,
-               samplesPerPixel,
-               sampleQuality);
+  internalInit(srcHandle, bFullScreen, bAntiliasing, samplesPerPixel, sampleQuality);
+}
+
+void
+GraphicsManager::clearRenderTarget(const SPtr<RenderTargetView>& pTarget, LinearColor& color)
+{
+  internalClearRenderTarget(pTarget, color);
+}
+
+void
+GraphicsManager::clearDepthStencil(const SPtr<DepthStencilView>& pDepthSV)
+{
+  internalClearDepthStencil(pDepthSV);
+}
+
+void
+GraphicsManager::present()
+{
+  internalPresent();
+}
+
+SPtr<RenderTargetView>
+GraphicsManager::getMainRenderTargetView() const
+{
+  return internalGetMainRenderTargetView();
+}
+
+SPtr<DepthStencilView>
+GraphicsManager::getMainDepthStencil() const
+{
+  return internalGetMainDepthStencil();
+}
+
+SPtr<DeviceContext>
+GraphicsManager::getDeviceContext() const
+{
+  return internalGetDeviceContext();
+}
+
+SPtr<InputLayout>
+GraphicsManager::createInputLayout(const Vector<shInputLayoutTypes::E>& types,
+                                   const SPtr<VertexShader>& pVShader)
+{
+  return internalCreateInputLayout(types, pVShader);
+}
+
+SPtr<VertexShader>
+GraphicsManager::createVertexShader(const String& fileName,
+                                    const String& entryPoint,
+                                    const String& shaderModel)
+{
+  return internalCreateVertexShader(fileName, entryPoint, shaderModel);
+}
+
+SPtr<PixelShader>
+GraphicsManager::createPixelShader(const String& fileName,
+                                   const String& entryPoint,
+                                   const String& shaderModel)
+{
+  return internalCreatePixelShader(fileName, entryPoint, shaderModel);
+}
+
+SPtr<VertexBuffer>
+GraphicsManager::createVertexBuffer(const Vector<VertexData>& vertices, const uint32 usage)
+{
+  return internalCreateVertexBuffer(vertices, usage);
+}
+
+SPtr<IndexBuffer>
+GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint32 usage)
+{
+  return internalCreateIndexBuffer(indices, usage);
+}
+
+SPtr<ConstantBuffer>
+GraphicsManager::createConstantBuffer(const uint32 bufferSize,
+                                      const uint32 usage,
+                                      const void* pData)
+{
+  return internalCreateConstantBuffer(bufferSize, usage, pData);
+}
+
+SPtr<SamplerState>
+GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAddress)
+{
+  return internalCreateSamplerState(filter, textAddress);
+}
+
+SPtr<DepthStencilView>
+GraphicsManager::createDepthSV(const SPtr<Texture2D>& pText)
+{
+  return internalCreateDepthSV(pText);
+}
+
+SPtr<Texture2D>
+GraphicsManager::createTextureFromFile(const String& fileName)
+{
+  return internalCreateTextureFromFile(fileName);
+}
+
+SPtr<Texture2D>
+GraphicsManager::createTexture2D(const uint32 width,
+                                 const uint32 height,
+                                 const uint32 format,
+                                 const uint32 usage,
+                                 const uint32 bindFlags)
+{
+  return internalCreateTexture2D(width, height, format, usage, bindFlags);
+}
+
+void
+GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
+                                      const void* pData,
+                                      const uint32 dataSize)
+{
+  internalUpdateConstantBuffer(pCBuffer, pData, dataSize);
+}
+
+void
+GraphicsManager::setRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
+                                  const SPtr<DepthStencilView>& pDepthSV,
+                                  const uint32 numViews)
+{
+  internalSetRenderTargets(pRenderTV, pDepthSV, numViews);
+}
+
+void
+GraphicsManager::setInputLayout(const SPtr<InputLayout>& pInput)
+{
+  internalSetInputLayout(pInput);
+}
+
+void
+GraphicsManager::setVertexBuffers(const SPtr<VertexBuffer>& pVBuffer,
+                                  const uint32 startSlot,
+                                  const uint32 numBuffers,
+                                  const uint32 offset)
+{
+  internalSetVertexBuffers(pVBuffer, startSlot, numBuffers, offset);
+}
+
+void
+GraphicsManager::setIndexBuffers(const SPtr<IndexBuffer>& pIBuffer, const uint32 offset)
+{
+  internalSetIndexBuffers(pIBuffer, offset);
+}
+
+void
+GraphicsManager::vsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                                      const uint32 startSlot,
+                                      const uint32 numBuffers)
+{
+  internalVSSetConstantBuffers(pCBuffer, startSlot, numBuffers);
+}
+
+void
+GraphicsManager::psSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                                      const uint32 startSlot,
+                                      const uint32 numBuffers)
+{
+  internalPSSetConstantBuffers(pCBuffer, startSlot, numBuffers);
+}
+
+void
+GraphicsManager::setPrimitiveTopology(const uint32 primitive)
+{
+  internalSetPrimitiveTopology(primitive);
+}
+
+void
+GraphicsManager::setVertexShader(const SPtr<VertexShader>& pVShader,
+                                 const void* ppClassInstances,
+                                 const uint32 numClassInstances)
+{
+  internalSetVertexShader(pVShader, ppClassInstances, numClassInstances);
+}
+
+void
+GraphicsManager::setPixelShader(const SPtr<PixelShader>& pPShader,
+                                const void* ppClassInstances,
+                                const uint32 numClassInstances)
+{
+  internalSetPixelShader(pPShader, ppClassInstances, numClassInstances);
+}
+
+void
+GraphicsManager::setShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                       const uint32 startSlot,
+                                       const uint32 numViews)
+{
+  internalSetShaderResourceView(pShaderRV, startSlot, numViews);
+}
+
+void
+GraphicsManager::setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                                 const uint32 startSlot,
+                                 const uint32 numSamplers)
+{
+  internalSetSamplerState(pSamplerLinear, startSlot, numSamplers);
+}
+
+void
+GraphicsManager::draw(const uint32 vertexCount, const uint32 startVertexLocation)
+{
+  internalDraw(vertexCount, startVertexLocation);
+}
+
+void
+GraphicsManager::drawIndexed(const uint32 indexCount,
+                             const uint32 startIndexLocation,
+                             const uint32 baseVertexLocation)
+{
+  internalDrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
 }
 }
