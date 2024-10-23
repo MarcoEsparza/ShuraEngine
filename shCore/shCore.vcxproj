@@ -27,6 +27,7 @@
     <ClInclude Include="Include\shScreenEventHandle.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\shEvent.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
   </ItemGroup>

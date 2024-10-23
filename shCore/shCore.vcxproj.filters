@@ -56,5 +56,8 @@
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp">
       <Filter>Source Files\Event</Filter>
     </ClCompile>
+    <ClCompile Include="Source\shEvent.cpp">
+      <Filter>Source Files\Event</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

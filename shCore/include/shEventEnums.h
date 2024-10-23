@@ -2,7 +2,7 @@
 /*
 *  @file    shEventEnums.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/23
 *  @brief   Enumerators for screen events.
 *
 *  Enumerators for screen events.
@@ -23,7 +23,7 @@ namespace shEngineSDK {
 /**
 *  @brief Type of event namespace.
 */
-namespace shEventType {
+namespace shEVENT_TYPE {
 /**
 *  @brief Type of event enumeration.
 */
@@ -50,7 +50,7 @@ enum SH_CORE_EXPORT E
 /**
 *  @brief State of a button press namespace.
 */
-namespace shButtonState {
+namespace shBUTTON_STATE {
 /**
 *  @brief State of a button press enumeration.
 */
@@ -65,7 +65,7 @@ enum SH_CORE_EXPORT E
 /**
 *  @brief Mouse inputs namespace.
 */
-namespace shMouseInput {
+namespace shMOUSE_INPUT {
 /**
 *  @brief Mouse inputs enumeration.
 */
@@ -83,7 +83,7 @@ enum SH_CORE_EXPORT E
 /**
 *  @brief Key event namespace.
 */
-namespace shKey {
+namespace shKEY {
 /**
 *  @brief Key event enumeration.
 */

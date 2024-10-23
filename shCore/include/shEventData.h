@@ -2,7 +2,7 @@
 /*
 *  @file    shEventData.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/23
 *  @brief   Event data types.
 *
 *  Event data types.
@@ -30,10 +30,10 @@ struct SH_CORE_EXPORT ModifierState
   *  @brief Contructor for Modifier struct, if not given parametars, false is assumed.
   */
   FORCEINLINE ModifierState(const bool _ctrl = false,
-    const bool _alt = false,
-    const bool _shift = false,
-    const bool _meta = false)
-    : ctrl(_ctrl), alt(_alt), shift(_shift), meta(_meta) {}
+                            const bool _alt = false,
+                            const bool _shift = false,
+                            const bool _meta = false)
+                            : ctrl(_ctrl), alt(_alt), shift(_shift), meta(_meta) {}
 
   /**
   *  @brief Control keyboard modifier.
@@ -87,7 +87,7 @@ struct SH_CORE_EXPORT ResizeData
   *  @param bool _resizing
   */
   FORCEINLINE ResizeData(const uint32 _width, const uint32 _height, const bool _resizing)
-    : width(_width), height(_height), resizing(_resizing) {}
+                         : width(_width), height(_height), resizing(_resizing) {}
 
   /**
   *  @brief Screen width.
@@ -131,22 +131,24 @@ struct SH_CORE_EXPORT KeyboardData
   /**
   *  @brief Constructor.
   * 
-  *  @param shKey::E _key
-  *  @param shButtonState::E _state
+  *  @param shKEY::E _key
+  *  @param shBUTTON_STATE::E _state
   *  @param ModifierState _modifiers
   */
-  FORCEINLINE KeyboardData(shKey::E _key, shButtonState::E _state, ModifierState _modifiers)
+  FORCEINLINE KeyboardData(const shKEY::E _key,
+                           const shBUTTON_STATE::E _state,
+                           const ModifierState& _modifiers)
                            : key(_key), state(_state), modifiers(_modifiers) {}
 
   /**
   *  @brief Key to interact.
   */
-  shKey::E key;
+  shKEY::E key;
 
   /**
   *  @brief State of the key.
   */
-  shButtonState::E state;
+  shBUTTON_STATE::E state;
 
   /**
   *  @brief Keyboard modifiers.
@@ -165,8 +167,8 @@ struct SH_CORE_EXPORT MouseRawData
   *  @param int32 _deltaX
   *  @param int32 _deltaY
   */
-  FORCEINLINE MouseRawData(int32 _deltaX,
-                           int32 _deltaY)
+  FORCEINLINE MouseRawData(const int32 _deltaX,
+                           const int32 _deltaY)
                            : deltaX(_deltaX),
                              deltaY(_deltaY) {}
 
@@ -196,12 +198,12 @@ struct SH_CORE_EXPORT MouseMoveData
   *  @param int32 _deltaX
   *  @param int32 _deltaY
   */
-  FORCEINLINE MouseMoveData(uint32 _x,
-                            uint32 _y,
-                            uint32 _screenX,
-                            uint32 _screenY,
-                            int32 _deltaX,
-                            int32 _deltaY)
+  FORCEINLINE MouseMoveData(const uint32 _x,
+                            const uint32 _y,
+                            const uint32 _screenX,
+                            const uint32 _screenY,
+                            const int32 _deltaX,
+                            const int32 _deltaY)
                             : x(_x),
                               y(_y),
                               screenX(_screenX),
@@ -248,13 +250,13 @@ struct SH_CORE_EXPORT MouseInputData
   /**
   *  @brief Constructor.
   * 
-  *  @param shMouseInput::E _button
-  *  @param shButtonState::E _state
+  *  @param shMOUSE_INPUT::E _button
+  *  @param shBUTTON_STATE::E _state
   *  @param ModifierState _modifiers
   */
-  FORCEINLINE MouseInputData(shMouseInput::E _button,
-                             shButtonState::E _state,
-                             ModifierState _modifiers)
+  FORCEINLINE MouseInputData(const shMOUSE_INPUT::E _button,
+                             const shBUTTON_STATE::E _state,
+                             const ModifierState& _modifiers)
                              : button(_button),
                                state(_state),
                                modifiers(_modifiers) {}
@@ -262,12 +264,12 @@ struct SH_CORE_EXPORT MouseInputData
   /**
   *  @brief Button to interact.
   */
-  shMouseInput::E button;
+  shMOUSE_INPUT::E button;
 
   /**
   *  @brief State of button
   */
-  shButtonState::E state;
+  shBUTTON_STATE::E state;
 
   /**
   *  @brief Keyboard modifiers.
@@ -284,9 +286,9 @@ struct SH_CORE_EXPORT MouseWheelData
   *  @brief Constructor.
   * 
   *  @param double _delta
-  *  @param ModifierState _modifiers
+  *  @param ModifierState& _modifiers
   */
-  FORCEINLINE MouseWheelData(double _delta, ModifierState _modifiers)
+  FORCEINLINE MouseWheelData(const double _delta, const ModifierState& _modifiers)
                              : delta(_delta), modifiers(_modifiers) {}
 
   /**
@@ -349,46 +351,6 @@ union SH_CORE_EXPORT EventData
   *  @brief Constructor.
   */
   FORCEINLINE EventData() {}
-
-  /**
-  *  @brief Constructor for FocusData.
-  */
-  explicit FORCEINLINE EventData(FocusData _focus) : focus(_focus) {}
-
-  /**
-  *  @brief Constructor for ResizeData.
-  */
-  explicit FORCEINLINE EventData(ResizeData _resize) : resize(_resize) {}
-
-  /**
-  *  @brief Constructor for DpiData.
-  */
-  explicit FORCEINLINE EventData(DpiData _dpi) : dpi(_dpi) {}
-
-  /**
-  *  @brief Constructor for KeyboardData.
-  */
-  explicit FORCEINLINE EventData(KeyboardData _keyboard) : keyboard(_keyboard) {}
-
-  /**
-  *  @brief Constructor for MouseMoveData.
-  */
-  explicit FORCEINLINE EventData(MouseMoveData _mouseMove) : mouseMove(_mouseMove) {}
-
-  /**
-  *  @brief Constructor for MouseInputData.
-  */
-  explicit FORCEINLINE EventData(MouseInputData _mouseInput) : mouseInput(_mouseInput) {}
-
-  /**
-  *  @brief Constructor for MouseWheelData.
-  */
-  explicit FORCEINLINE EventData(MouseWheelData _mouseWheel) : mouseWheel(_mouseWheel) {}
-
-  /**
-  *  @brief Constructor for MouseRawData.
-  */
-  explicit FORCEINLINE EventData(MouseRawData _mouseRaw) : mouseRaw(_mouseRaw) {}
 
   /**
   *  @brief Destructor.

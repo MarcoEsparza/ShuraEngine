@@ -2,10 +2,10 @@
 /*
 *  @file    shEvent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   Event types structures and enums.
+*  @date    2024/10/23
+*  @brief   Event class.
 *
-*  Event types structures and enums.
+*  Event class.
 * 
 *  @bug     No bug known
 */
@@ -34,75 +34,89 @@ class SH_CORE_EXPORT Event
   Event() = default;
   
   /**
-  *  @brief None Event constructor.
+  *  @brief Type Event constructor.
   * 
-  *  @param shEventType::E _type: Type of event.
+  *  @param shEVENT_TYPE::E _type: Type of event.
   */
-  explicit FORCEINLINE Event(const shEventType::E& _type) : type(_type) {}
+  explicit FORCEINLINE Event(const shEVENT_TYPE::E& _type) : type(_type) {}
 
   /**
   *  @brief Focus Event constructor.
   * 
-  *  @param FocusData& _data
+  *  @param bool _focused
   */
-  explicit FORCEINLINE Event(const FocusData& _data)
-                             : type(shEventType::E::kFocus), data(_data) {}
+  explicit Event(const bool _focused);
 
   /**
   *  @brief Resize Event constructor.
   * 
-  *  @param ResizeData& _data
+  *  @param uint32 _width
+  *  @param uint32 _height
+  *  @param bool _resizing
   */
-  explicit FORCEINLINE Event(const ResizeData& _data)
-                             : type(shEventType::E::kResize), data(_data) {}
+  Event(const uint32 _width, const uint32 _height, const bool _resizing);
 
   /**
   *  @brief Dpi Event constructor.
   * 
-  *  @param DpiData& _data
+  *  @param float _scale
   */
-  explicit FORCEINLINE Event(const DpiData& _data)
-                             : type(shEventType::E::kDPI), data(_data) {}
+  explicit Event(const float _scale);
 
   /**
   *  @brief Keyboard Event constructor.
   * 
-  *  @param KeyboardData& _data
+  *  @param shKEY::E _key
+  *  @param shBUTTON_STATE::E _state
+  *  @param ModifierState& _modifiers
   */
-  explicit FORCEINLINE Event(const KeyboardData& _data)
-                             : type(shEventType::E::kKeyboard), data(_data) {}
+  Event(const shKEY::E _key,
+        const shBUTTON_STATE::E _state,
+        const ModifierState& _modifiers);
 
   /**
   *  @brief MouseMove Event constructor.
   * 
-  *  @param MouseMoveData& _data
+  *  @param uint32 _x
+  *  @param uint32 _y
+  *  @param uint32 _screenX
+  *  @param uint32 _screenY
+  *  @param int32 _deltaX
+  *  @param int32 _deltaY
   */
-  explicit FORCEINLINE Event(const MouseMoveData& _data)
-                             : type(shEventType::E::kMouseMove), data(_data) {}
+  Event(const uint32 _x,
+        const uint32 _y,
+        const uint32 _screenX,
+        const uint32 _screenY,
+        const int32 _deltaX,
+        const int32 _deltaY);
 
   /**
   *  @brief MouseInput Event constructor.
   * 
-  *  @param MouseInputData& _data
+  *  @param shMOUSE_INPUT::E _button
+  *  @param shBUTTON_STATE::E _state
+  *  @param ModifierState& _modifiers
   */
-  explicit FORCEINLINE Event(const MouseInputData& _data)
-                             : type(shEventType::E::kMouseInput), data(_data) {}
+  Event(const shMOUSE_INPUT::E _button,
+        const shBUTTON_STATE::E _state,
+        const ModifierState& _modifiers);
 
   /**
   *  @brief MouseWheel Event constructor.
   * 
-  *  @param MouseWheelData& _data
+  *  @param double _delta
+  *  @param ModifierState& _modifiers
   */
-  explicit FORCEINLINE Event(const MouseWheelData& _data)
-                             : type(shEventType::E::kMouseWheel), data(_data) {}
+  Event(const double _delta, const ModifierState& _modifiers);
 
   /**
   *  @brief MouseRaw Event constructor.
   * 
-  *  @param MouseRawData& _data
+  *  @param int32 _deltaX
+  *  @param int32 _deltaY
   */
-  explicit FORCEINLINE Event(const MouseRawData& _data)
-                             : type(shEventType::E::kMouseRaw), data(_data) {}
+  Event(const int32 _deltaX, const int32 _deltaY);
 
   /**
   *  @brief Default destructor.
@@ -123,7 +137,7 @@ class SH_CORE_EXPORT Event
   *  @return bool True if they are equal, false if not.
   */
   FORCEINLINE bool
-  equals(const Event& other) const;
+  typeEquals(const Event& other) const;
   
   /*************************************************************/
   /*
@@ -139,7 +153,7 @@ class SH_CORE_EXPORT Event
   /**
   *  @brief Type of event.
   */
-  shEventType::E type = shEventType::E::kNone;
+  shEVENT_TYPE::E type = shEVENT_TYPE::kNone;
 };
 
 /*************************************************************/
@@ -149,7 +163,7 @@ class SH_CORE_EXPORT Event
 /*************************************************************/
 
 FORCEINLINE bool
-Event::equals(const Event& other) const
+Event::typeEquals(const Event& other) const
 {
   return (type == other.type);
 }
