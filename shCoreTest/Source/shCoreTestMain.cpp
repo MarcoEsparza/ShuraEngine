@@ -89,10 +89,10 @@ int main()
     while (!eventQ->empty()) {
       auto ev = eventQ->front();
 
-      if (ev.type == shEventType::E::kMouseInput) {
+      if (ev.type == shEVENT_TYPE::E::kMouseInput) {
         const MouseInputData mouse = ev.data.mouseInput;
       }
-      if (ev.type == shEventType::E::kClose) {
+      if (ev.type == shEVENT_TYPE::E::kClose) {
         mainScreen.close();
         isRunning = false;
       }

@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/19
+*  @date    2024/10/23
 *  @brief   Base screen
 *
 *  Base screen
@@ -25,7 +25,7 @@ LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle> eventHandler)
+Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler)
 {
   m_eventQueue = eventHandler;
   m_width = desc.width;

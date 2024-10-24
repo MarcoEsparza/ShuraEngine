@@ -2,7 +2,7 @@
 /*
 *  @file    shScreen.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/23
 *  @brief   Base screen
 *
 *  Base screen
@@ -118,7 +118,7 @@ class SH_CORE_EXPORT Screen
   *  @return bool True if initialized, false if failed.
   */
   bool
-  init(const ScreenDesc& desc, const SPtr<ScreenEventHandle> eventHandler);
+  init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler);
 
   /**
   *  @brief Close Screen.
@@ -192,7 +192,7 @@ class SH_CORE_EXPORT Screen
   /**
   *  @brief EventQueue
   */
-  SPtr<ScreenEventHandle> m_eventQueue = nullptr;
+  SPtr<ScreenEventHandle> m_eventQueue;
 };
 
 FORCEINLINE uint32
