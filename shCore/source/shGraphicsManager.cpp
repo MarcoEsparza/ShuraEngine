@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2024/10/24
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -67,25 +67,23 @@ GraphicsManager::getDeviceContext() const
 
 SPtr<InputLayout>
 GraphicsManager::createInputLayout(const Vector<shInputLayoutTypes::E>& types,
-                                   const SPtr<VertexShader>& pVShader)
+                                   const SPtr<ProgramShader>& pShader)
 {
-  return internalCreateInputLayout(types, pVShader);
+  return internalCreateInputLayout(types, pShader);
 }
 
-SPtr<VertexShader>
-GraphicsManager::createVertexShader(const String& fileName,
-                                    const String& entryPoint,
-                                    const String& shaderModel)
+SPtr<ProgramShader>
+GraphicsManager::createProgramShader(const String& fileName,
+                                     const String& vsEntryPoint,
+                                     const String& psEntryPoint,
+                                     const String& vsShaderModel,
+                                     const String& psShaderModel)
 {
-  return internalCreateVertexShader(fileName, entryPoint, shaderModel);
-}
-
-SPtr<PixelShader>
-GraphicsManager::createPixelShader(const String& fileName,
-                                   const String& entryPoint,
-                                   const String& shaderModel)
-{
-  return internalCreatePixelShader(fileName, entryPoint, shaderModel);
+  return internalCreateVertexShader(fileName,
+                                    vsEntryPoint,
+                                    psEntryPoint,
+                                    vsShaderModel,
+                                    psShaderModel);
 }
 
 SPtr<VertexBuffer>
@@ -196,19 +194,11 @@ GraphicsManager::setPrimitiveTopology(const uint32 primitive)
 }
 
 void
-GraphicsManager::setVertexShader(const SPtr<VertexShader>& pVShader,
+GraphicsManager::setProgramShader(const SPtr<ProgramShader>& pVShader,
                                  const void* ppClassInstances,
                                  const uint32 numClassInstances)
 {
-  internalSetVertexShader(pVShader, ppClassInstances, numClassInstances);
-}
-
-void
-GraphicsManager::setPixelShader(const SPtr<PixelShader>& pPShader,
-                                const void* ppClassInstances,
-                                const uint32 numClassInstances)
-{
-  internalSetPixelShader(pPShader, ppClassInstances, numClassInstances);
+  internalSetProgramShader(pVShader, ppClassInstances, numClassInstances);
 }
 
 void

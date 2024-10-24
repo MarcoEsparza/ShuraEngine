@@ -2,10 +2,10 @@
 /*
 *  @file    shShader.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/21
-*  @brief   Engine Shader classes.
+*  @date    2024/10/24
+*  @brief   Engine Shader class.
 *
-*  Engine Shader classes.
+*  Engine Shader class.
 *
 *  @bug     No bug known.
 */
@@ -21,36 +21,19 @@
 
 namespace shEngineSDK {
 /**
-*  @brief Engine Vertex Shader class.
+*  @brief Engine Shader class.
 */
-class VertexShader
+class ProgramShader
 {
  public:
   /**
   *  @brief Default constructor.
   */
-   VertexShader() = default;
+   ProgramShader() = default;
 
   /**
   *  @brief Default destructor.
   */
-  virtual ~VertexShader() = default;
-};
-
-/**
-*  @brief Engine Pixel Shader class.
-*/
-class PixelShader
-{
-public:
-  /**
-  *  @brief Default constructor.
-  */
-  PixelShader() = default;
-
-  /**
-  *  @brief Default destructor.
-  */
-  virtual ~PixelShader() = default;
+  virtual ~ProgramShader() = default;
 };
 }
