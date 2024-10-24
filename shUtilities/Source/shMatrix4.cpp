@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/23
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -21,6 +21,21 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
+/*************************************************************/
+/*
+*  Static variables
+*/
+/*************************************************************/
+
+const Matrix4 Matrix4::identity = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 1.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 1.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 1.0f);
+
+const Matrix4 Matrix4::zeroMatrix = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 0.0f);
 
 /*************************************************************/
 /*
@@ -133,12 +148,14 @@ Matrix4::transpose(const Matrix4& other)
 }
 
 Matrix4
-Matrix4::getTransposed() const
+Matrix4::getTransposed()
 {
-  return Matrix4(m[0][0], m[1][0], m[2][0], m[3][0],
-                 m[0][1], m[1][1], m[2][1], m[3][1],
-                 m[0][2], m[1][2], m[2][2], m[3][2],
-                 m[0][3], m[1][3], m[2][3], m[3][3]);
+  m[0][0] = m[0][0]; m[0][1] = m[1][0]; m[0][2] = m[2][0]; m[0][3] = m[3][0];
+  m[1][0] = m[0][1]; m[1][1] = m[1][1]; m[1][2] = m[2][1]; m[1][3] = m[3][1];
+  m[2][0] = m[0][2]; m[2][1] = m[1][2]; m[2][2] = m[2][2]; m[2][3] = m[3][2];
+  m[3][0] = m[0][3]; m[3][1] = m[1][3]; m[3][2] = m[2][3]; m[3][3] = m[3][3];
+
+  return *this;
 }
 
 Matrix4

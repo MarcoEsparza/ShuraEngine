@@ -22,7 +22,9 @@
     <ClInclude Include="Include\shBoxAAB.h" />
     <ClInclude Include="Include\shBoxOBB.h" />
     <ClInclude Include="Include\shCapsule.h" />
+    <ClInclude Include="include\shColor.h" />
     <ClInclude Include="Include\shException.h" />
+    <ClInclude Include="include\shLinearColor.h" />
     <ClInclude Include="Include\shMath.h" />
     <ClInclude Include="Include\shMatrix4.h" />
     <ClInclude Include="Include\shModule.h" />
@@ -44,6 +46,8 @@
     <ClCompile Include="Source\shBoxAAB.cpp" />
     <ClCompile Include="Source\shBoxOBB.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
+    <ClCompile Include="source\shColor.cpp" />
+    <ClCompile Include="source\shLinearColor.cpp" />
     <ClCompile Include="Source\shMatrix4.cpp" />
     <ClCompile Include="Source\shPlane.cpp" />
     <ClCompile Include="Source\shPlatformMath.cpp" />
