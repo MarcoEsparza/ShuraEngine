@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2024/10/24
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -192,41 +192,31 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Creates Input Layout with given types and Vertex Shader.
   *
   *  @param Vector<shInputLayoutTypes::E>& types
-  *  @param SPtr<VertexShader>& pVShader
+  *  @param SPtr<ProgramShader>& pShader
   *
   *  @return SPtr<InputLayout>
   */
   SPtr<InputLayout>
   createInputLayout(const Vector<shInputLayoutTypes::E>& types,
-                    const SPtr<VertexShader>& pVShader);
+                    const SPtr<ProgramShader>& pShader);
 
   /**
-  *  @brief Creates a Vertex Shader.
+  *  @brief Creates a Program Shader.
   *
   *  @param const String& fileName
-  *  @param const String& entryPoint
-  *  @param const String& shaderModel
+  *  @param const String& vsEntryPoint
+  *  @param const String& psEntryPoint
+  *  @param const String& vsShaderModel
+  *  @param const String& psShaderModel
   *
-  *  @return SPtr<VertexShader>
+  *  @return SPtr<ProgramShader>
   */
-  SPtr<VertexShader>
-  createVertexShader(const String& fileName,
-                     const String& entryPoint,
-                     const String& shaderModel);
-
-  /**
-  *  @brief Creates a Pixel Shader.
-  *
-  *  @param const String& fileName
-  *  @param const String& entryPoint
-  *  @param const String& shaderModel
-  *
-  *  @return SPtr<PixelShader>
-  */
-  SPtr<PixelShader>
-  createPixelShader(const String& fileName,
-                    const String& entryPoint,
-                    const String& shaderModel);
+  SPtr<ProgramShader>
+  createProgramShader(const String& fileName,
+                      const String& vsEntryPoint,
+                      const String& psEntryPoint,
+                      const String& vsShaderModel,
+                      const String& psShaderModel);
 
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
@@ -416,26 +406,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Sets the Vertex Shader.
   *
-  *  @param SPtr<VertexShader>& pVShader
+  *  @param SPtr<ProgramShader>& pVShader
   *  @param void* ppClassInstances = nullptr
   *  @param uint32 numClassInstances = 0
   */
   void
-  setVertexShader(const SPtr<VertexShader>& pVShader,
+  setProgramShader(const SPtr<ProgramShader>& pVShader,
                   const void* ppClassInstances = nullptr,
                   const uint32 numClassInstances = 0);
-
-  /**
-  *  @brief Sets the Pixel Shader.
-  *
-  *  @param SPtr<PixelShader>& pPShader
-  *  @param void* ppClassInstances = nullptr
-  *  @param uint32 numClassInstances = 0
-  */
-  void
-  setPixelShader(const SPtr<PixelShader>& pPShader,
-                 const void* ppClassInstances = nullptr,
-                 const uint32 numClassInstances = 0);
 
   /**
   *  @brief Sets a shader resource.
@@ -567,13 +545,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Calls the selected API overrided function.
   * 
   *  @param Vector<shInputLayoutTypes::E>& types
-  *  @param SPtr<VertexShader>& pVShader
+  *  @param SPtr<ProgramShader>& pVShader
   *
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
   internalCreateInputLayout(const Vector<shInputLayoutTypes::E>& types,
-                            const SPtr<VertexShader>& pVShader) = 0;
+                            const SPtr<ProgramShader>& pVShader) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -582,26 +560,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param const String& entryPoint
   *  @param const String& shaderModel
   *
-  *  @return SPtr<VertexShader>
+  *  @return SPtr<ProgramShader>
   */
-  virtual SPtr<VertexShader>
+  virtual SPtr<ProgramShader>
   internalCreateVertexShader(const String& fileName,
-                             const String& entryPoint,
-                             const String& shaderModel) = 0;
-
-  /**
-  *  @brief Calls the selected API overrided function.
-  * 
-  *  @param const String& fileName
-  *  @param const String& entryPoint
-  *  @param const String& shaderModel
-  *
-  *  @return SPtr<PixelShader>
-  */
-  virtual SPtr<PixelShader>
-  internalCreatePixelShader(const String& fileName,
-                            const String& entryPoint,
-                            const String& shaderModel) = 0;
+                             const String& vsEntryPoint,
+                             const String& psEntryPoint,
+                             const String& vsShaderModel,
+                             const String& psShaderModel) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -794,21 +760,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 numClassInstances
   */
   virtual void
-  internalSetVertexShader(const SPtr<VertexShader>& pVShader,
+  internalSetProgramShader(const SPtr<ProgramShader>& pVShader,
                           const void* ppClassInstances,
                           const uint32 numClassInstances) = 0;
-
-  /**
-  *  @brief Calls the selected API overrided function.
-  * 
-  *  @param SPtr<VertexShader>& pVShader
-  *  @param void* ppClassInstances
-  *  @param uint32 numClassInstances
-  */
-  virtual void
-  internalSetPixelShader(const SPtr<PixelShader>& pPShader,
-                         const void* ppClassInstances,
-                         const uint32 numClassInstances) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
