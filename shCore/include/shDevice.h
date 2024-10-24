@@ -2,10 +2,10 @@
 /*
 *  @file    shDevice.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   Device and Device Context class wrappers.
+*  @date    2024/10/21
+*  @brief   Engine Device and Device Context classes.
 *
-*  Device and Device Context class wrappers.
+*  Engine Device and Device Context classes.
 *
 *  @bug     No bug known.
 */
@@ -20,22 +20,37 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
+/**
+*  @brief Engine Device class.
+*/
+class Device
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  Device() = default;
 
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11Device;
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~Device() = default;
+};
 
 /**
-*  @brief Device wrapper.
+*  @brief Engine Device Context class.
 */
-using Device = DX11Device;
+class DeviceContext
+{
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  DeviceContext() = default;
 
-class DX11DeviceContext;
-
-/**
-*  @brief DeviceContext wrapper.
-*/
-using DeviceContext = DX11DeviceContext;
-
-#endif
-
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~DeviceContext() = default;
+};
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/23
 *  @brief   Base screen event handler
 *
 *  Base screen event handler
@@ -13,7 +13,7 @@
 #include "shEvent.h"
 
 namespace shEngineSDK {
-namespace shProcessingMode{
+namespace shPROCESSING_MODE{
 enum SH_CORE_EXPORT E
 {
   kPoll = 0,
@@ -45,14 +45,6 @@ class SH_CORE_EXPORT ScreenEventHandle
   update();
 
   /**
-  *  @brief Get the event queue.
-  * 
-  *  @return Queue<Event>
-  */
-  Queue<Event>&
-  getQueue();
-
-  /**
   *  @brief Checks if queue is empty
   * 
   *  @return bool True if is empty, false is otherwise.
@@ -63,10 +55,10 @@ class SH_CORE_EXPORT ScreenEventHandle
   /**
   *  @brief Returns the front element on queue.
   * 
-  *  @return Event
+  *  @return const Event
   */
-  Event&
-  front();
+  const Event&
+  front() const;
 
   /**
   *  @brief Pops the last element on queue.
@@ -88,7 +80,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @param shProcessingMode::E mode
   */
   void
-  setProcessingMode(const shProcessingMode::E& mode);
+  setProcessingMode(const shPROCESSING_MODE::E& mode);
 
   /**
   *  @brief Return the size
@@ -104,7 +96,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   /**
   *  @brief Processing mode
   */
-  shProcessingMode::E m_processingMode;
+  shPROCESSING_MODE::E m_processingMode;
 
   /**
   *  @brief Is initialized?
@@ -115,20 +107,5 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @brief Event queue.
   */
   Queue<Event> m_queue;
-
-  /**
-  *  @brief Type to transform win32 key to input map.
-  */
-  typedef shKey::E Win32VKeyToDigitalInputMap[1 << (8 * sizeof(unsigned char))];
-  
-  /**
-  *  @brief Transform win32 key to input map.
-  */
-  Win32VKeyToDigitalInputMap m_vKeyToDigitalInputMap = {
-    /*NONE 0x00*/ shKey::E::kKeysMax,
-    /*VK_LBUTTON 0x01*/ shKey::E::kKeysMax,
-    /*VK_RBUTTON 0x02*/ shKey::E::kKeysMax,
-    /*VK_CANCEL 0x03*/ shKey::E::kKeysMax
-  };
 };
 }

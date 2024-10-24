@@ -2,10 +2,10 @@
 /*
 *  @file    shShader.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   Shader class wrappers.
+*  @date    2024/10/21
+*  @brief   Engine Shader classes.
 *
-*  Shader class wrappers.
+*  Engine Shader classes.
 *
 *  @bug     No bug known.
 */
@@ -20,28 +20,37 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
+/**
+*  @brief Engine Vertex Shader class.
+*/
+class VertexShader
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+   VertexShader() = default;
 
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11Shader;
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~VertexShader() = default;
+};
 
 /**
-*  @brief Shader wrapper.
+*  @brief Engine Pixel Shader class.
 */
-using Shader = DX11Shader;
+class PixelShader
+{
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  PixelShader() = default;
 
-class DX11VertexShader;
-
-/**
-*  @brief VertexShader wrapper.
-*/
-using VertexShader = DX11VertexShader;
-
-class DX11PixelShader;
-
-/**
-*  @brief PixelShader wrapper.
-*/
-using PixelShader = DX11PixelShader;
-#endif
-
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~PixelShader() = default;
+};
 }

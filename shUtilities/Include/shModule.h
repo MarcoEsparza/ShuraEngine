@@ -2,7 +2,7 @@
 /*
 *  @file    shModule.h
 *  @author  Samuel Prince (samuel.price.quezada@gmail.com)
-*  @date    2024/10/03
+*  @date    2024/10/21
 *  @brief   Represents one engine module. Essentially it is a specialized type
 *           of singleton. Module must be manually started up and shutdown
 *           before and after use.
@@ -43,7 +43,7 @@ class Module
       SH_ASSERT("Trying to access a module but it hasn't been started");
     }
   
-    if (!isDestroyed()) {
+    if (isDestroyed()) {
       SH_ASSERT("Trying to access a destroyed module");
     }
   
@@ -135,6 +135,7 @@ class Module
   }
 
  protected:
+  Module() = default;
 
   virtual
   ~Module() = default;

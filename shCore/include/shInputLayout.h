@@ -2,10 +2,10 @@
 /*
 *  @file    shInputLayout.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   InputLayout class wrapper.
+*  @date    2024/10/21
+*  @brief   Engine Input Layout class.
 *
-*  InputLayout class wrapper.
+*  Engine Input Layout class.
 *
 *  @bug     No bug known.
 */
@@ -20,14 +20,20 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
-
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11InputLayout;
-
 /**
-*  @brief InputLayout wrapper.
+*  @brief Engine Input Layout class.
 */
-using InputLayout = DX11InputLayout;
-#endif
+class InputLayout
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  InputLayout() = default;
 
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~InputLayout() = default;
+};
 }

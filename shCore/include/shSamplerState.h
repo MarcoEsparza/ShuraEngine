@@ -2,10 +2,10 @@
 /*
 *  @file    shSamplerState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   SamplerState class wrapper.
+*  @date    2024/10/21
+*  @brief   Engine Sampler State class.
 *
-*  SamplerState class wrapper.
+*  Engine Sampler State class.
 *
 *  @bug     No bug known.
 */
@@ -20,14 +20,20 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
-
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11SamplerState;
-
 /**
-*  @brief SamplerState wrapper.
+*  @brief Engine Sampler State class.
 */
-using SamplerState = DX11SamplerState;
-#endif
+class SamplerState
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  SamplerState() = default;
 
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~SamplerState() = default;
+};
 }

@@ -17,7 +17,7 @@
 *  Includes
 */
 /*************************************************************/
-#include "shPrerequisitesCore.h"
+#include "shPrerequisitesUtilities.h"
 #include "shColor.h"
 
 namespace shEngineSDK {

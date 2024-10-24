@@ -2,10 +2,10 @@
 /*
 *  @file    shRenderTargetView.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
-*  @brief   RenderTargetView class wrapper.
+*  @date    2024/10/21
+*  @brief   Engine Render Target View class.
 *
-*  RenderTargetView class wrapper.
+*  Engine Render Target View class.
 *
 *  @bug     No bug known.
 */
@@ -20,14 +20,20 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
-
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-class DX11RenderTargetView;
-
 /**
-*  @brief RenderTargetView wrapper.
+*  @brief Engine Render Target View class.
 */
-using RenderTargetView = DX11RenderTargetView;
-#endif
+class RenderTargetView
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  RenderTargetView() = default;
 
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~RenderTargetView() = default;
+};
 }
