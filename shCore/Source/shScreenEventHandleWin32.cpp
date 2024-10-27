@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2024/10/26
 *  @brief   Base screen event handler for windows.
 *
 *  Base screen event handler for windows.
@@ -126,7 +126,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
   ScreenEventHandle* eventQ =
   reinterpret_cast<ScreenEventHandle*>(GetWindowLongPtrA(hwnd, 0));
-  Vector2i* prevMousePos = reinterpret_cast<Vector2i*>(GetWindowLongPtrA(hwnd, 1));
+  Vector2i* prevMousePos = reinterpret_cast<Vector2i*>(GetWindowLongPtrA(hwnd, GWLP_USERDATA));
 
   switch (msg) {
   case WM_PAINT:
@@ -332,7 +332,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       currentEvent = Event(static_cast<uint32>(area.left <= x && x <=
                            area.right ? x - area.left : 0xFFFFFFFF),
                            static_cast<uint32>(area.top <= y && y <=
-                           area.bottom ? x - area.top : 0xFFFFFFFF),
+                           area.bottom ? y - area.top : 0xFFFFFFFF),
                            static_cast<uint32>(x),
                            static_cast<uint32>(y),
                            static_cast<uint32>(x - prevMousePos->x),
