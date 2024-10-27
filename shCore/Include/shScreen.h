@@ -2,7 +2,7 @@
 /*
 *  @file    shScreen.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2024/10/26
 *  @brief   Base screen
 *
 *  Base screen
@@ -127,6 +127,14 @@ class SH_CORE_EXPORT Screen
   close();
 
   /**
+  *  @brief Checks if is fullscreen.
+  * 
+  *  @return bool
+  */
+  FORCEINLINE bool
+  isFullscreen() const;
+
+  /**
   *  @brief Get Screen width.
   * 
   *  @return uint32
@@ -161,6 +169,11 @@ class SH_CORE_EXPORT Screen
 
  private:
   /**
+  *  @brief is fullscreen?
+  */
+  bool m_fullscreen;
+
+  /**
   * @brief Screen width.
   */
   uint32 m_width = 0;
@@ -194,6 +207,12 @@ class SH_CORE_EXPORT Screen
   */
   SPtr<ScreenEventHandle> m_eventQueue;
 };
+
+FORCEINLINE bool
+Screen::isFullscreen() const
+{
+  return m_fullscreen;
+}
 
 FORCEINLINE uint32
 Screen::getWidth() const
