@@ -35,7 +35,6 @@ SPtr<VertexBuffer> g_pVertexBuffer;
 SPtr<IndexBuffer> g_pIndexBuffer;
 SPtr<ConstantBuffer> g_pWVP;
 SPtr<SamplerState> g_pSamplerLinear;
-SPtr<DepthStencilView> g_pDepthSV;
 SPtr<Texture2D> g_pDepthSV;
 
 Vector<VertexData> g_mesh;
@@ -142,7 +141,7 @@ int main()
         if ((g_lastMousePos.x - g_mousePos.x) != 0 ||
             (g_lastMousePos.y - g_mousePos.y) != 0) {
           // TODO: Resolve this funciton.
-          updateCameraRotation();
+          //updateCameraRotation();
         }
       }
       if (ev.type == shEVENT_TYPE::kKeyboard) {
