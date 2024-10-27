@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Prerequisites">
+      <UniqueIdentifier>{55978910-79c4-4274-aad0-1f9509633c54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Screen">
+      <UniqueIdentifier>{e25744a8-2137-480a-9d25-6806ecadfd66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Screen">
+      <UniqueIdentifier>{bbab4d92-d027-4e2c-9292-9a4e0c9da7d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Event">
+      <UniqueIdentifier>{10fab7aa-d531-4b43-a364-1c1e5cfff492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Event">
+      <UniqueIdentifier>{cc5a8eb1-4e7a-4099-b7ac-28fdf336b250}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\shPrerequisitesCore.h">
+      <Filter>Header Files\Prerequisites</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\shScreen.h">
+      <Filter>Header Files\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\shEvent.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\shScreenEventHandle.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\shEventData.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shEventEnums.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\shScreenWin32.cpp">
+      <Filter>Source Files\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shScreenEventHandleWin32.cpp">
+      <Filter>Source Files\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\shEvent.cpp">
+      <Filter>Source Files\Event</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
