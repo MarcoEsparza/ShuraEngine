@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2024/10/26
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -22,7 +22,6 @@
 
 #include "shDX11Buffers.h"
 #include "shDX11Device.h"
-#include "shDX11DepthStencilView.h"
 #include "shDX11InputLayout.h"
 #include "shDX11RenderTargetView.h"
 #include "shDX11SamplerState.h"
@@ -59,18 +58,14 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief Initialize the graphics manager.
   * 
-  *  @param PlatformScreen srcHandle
-  *  @param bool bFullScreen
+  *  @param Screen& screen
   *  @param bool bAntiliasing
-  *  @param uint32 samplesPerPixel
-  *  @param uint32 sampleQuality
+  *  @param SAMPLE_DESC& sample
   */
   void
-  internalInit(const PlatformScreen& srcHandle,
-               const bool bFullScreen,
+  internalInit(const Screen& screen,
                const bool bAntiliasing,
-               const uint32 samplesPerPixel,
-               const uint32 sampleQuality) override;
+               const SAMPLE_DESC& sample) override;
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -88,7 +83,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<DepthStencilView> pDepthSV
   */
   void
-  internalClearDepthStencil(const SPtr<DepthStencilView>& pDepthSV) override;
+  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) override;
 
   /**
   *  @brief Present the swapchain.
@@ -113,7 +108,7 @@ class DX11GraphicsManager : public GraphicsManager
   * 
   *  @return SPtr<DepthStencilView>
   */
-  SPtr<DepthStencilView>
+  SPtr<Texture2D>
   internalGetMainDepthStencil() const override;
 
   /**
@@ -132,13 +127,13 @@ class DX11GraphicsManager : public GraphicsManager
   *  @brief Creates Input Layout with given descriptor and Vertex Shader.
   * 
   *  @param Vector<shInputLayoutTypes::E>& types
-  *  @param SPtr<VertexShader> pVShader
+  *  @param SPtr<ProgramShader> pVShader
   * 
   *  @return SPtr<InputLayout>
   */
-  SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<shInputLayoutTypes::E>& types,
-                            const SPtr<VertexShader>& pVShader) override;
+  virtual SPtr<InputLayout>
+  internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+                            const SPtr<ProgramShader>& pVShader) override;
 
   /**
   *  @brief Creates a Vertex Shader.
@@ -149,24 +144,12 @@ class DX11GraphicsManager : public GraphicsManager
   * 
   *  @return SPtr<VertexShader>
   */
-  SPtr<VertexShader>
-  internalCreateVertexShader(const String& fileName,
-                             const String& entryPoint,
-                             const String& shaderModel) override;
-
-  /**
-  *  @brief Creates a Pixel Shader.
-  * 
-  *  @param const String& fileName
-  *  @param const String& entryPoint
-  *  @param const String& shaderModel
-  * 
-  *  @return SPtr<PixelShader>
-  */
-  SPtr<PixelShader>
-  internalCreatePixelShader(const String& fileName,
-                            const String& entryPoint,
-                            const String& shaderModel) override;
+  virtual SPtr<ProgramShader>
+  internalCreateProgramShader(const String& fileName,
+                              const String& vsEntryPoint,
+                              const String& psEntryPoint,
+                              const String& vsShaderModel,
+                              const String& psShaderModel) override;
 
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
@@ -216,16 +199,6 @@ class DX11GraphicsManager : public GraphicsManager
   */
   SPtr<SamplerState>
   internalCreateSamplerState(const uint32 filter, const uint32 textAddress) override;
-
-  /**
-  *  @brief Creates a Depth Stencil View with given Texture2D.
-  * 
-  *  @param SPtr<Texture2D> pText
-  * 
-  *  @return SPtr<DepthStencilView>
-  */
-  SPtr<DepthStencilView>
-  internalCreateDepthSV(const SPtr<Texture2D>& pText) override;
 
   /**
   *  @brief Creates a Texture2D from file with given route.
@@ -279,12 +252,12 @@ class DX11GraphicsManager : public GraphicsManager
   *  @brief Set the render targets with number of views.
   * 
   *  @param SPtr<RenderTargetView> pRenderTV
-  *  @param SPtr<DepthStencilView> pDepthSV
+  *  @param SPtr<Texture2D> pDepthSV
   *  @param uint32 numViews
   */
   void
   internalSetRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                           const SPtr<DepthStencilView>& pDepthSV,
+                           const SPtr<Texture2D>& pDepthSV,
                            const uint32 numViews) override;
 
   /**
@@ -354,28 +327,16 @@ class DX11GraphicsManager : public GraphicsManager
   internalSetPrimitiveTopology(const uint32 primitive) override;
    
   /**
-  *  @brief Sets the Vertex Shader.
+  *  @brief Sets the Program Shader.
   * 
   *  @param SPtr<VertexShader>& pVShader
   *  @param void* ppClassInstances = nullptr
   *  @param uint32 numClassInstances = 0
   */
-  void
-  internalSetVertexShader(const SPtr<VertexShader>& pVShader,
-                          const void* ppClassInstances,
-                          const uint32 numClassInstances) override;
-
-  /**
-  *  @brief Sets the Pixel Shader.
-  * 
-  *  @param SPtr<PixelShader>& pPShader
-  *  @param void* ppClassInstances = nullptr
-  *  @param uint32 numClassInstances = 0
-  */
-  void
-  internalSetPixelShader(const SPtr<PixelShader>& pPShader,
-                         const void* ppClassInstances,
-                         const uint32 numClassInstances) override;
+  virtual void
+  internalSetProgramShader(const SPtr<ProgramShader>& pPShader,
+                           const void* ppClassInstances,
+                           const uint32 numClassInstances) override;
 
   /**
   *  @brief Sets a shader resource.
@@ -461,7 +422,7 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief The main Depth Stencil.
   */
-  SPtr<DX11DepthStencilView> m_pDepthStencil;
+  SPtr<DX11Texture2D> m_pDepthStencil;
 
   /**
   *  @brief The main Render Target View.

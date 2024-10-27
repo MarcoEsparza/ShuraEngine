@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Device.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/21
+*  @date    2024/10/26
 *  @brief   DirectX11 Device and DeviceContext class wrappers.
 *
 *  DirectX11 Device and DeviceContext class wrappers.
@@ -94,6 +94,7 @@ FORCEINLINE DX11Device::~DX11Device()
 
 FORCEINLINE DX11DeviceContext::~DX11DeviceContext()
 {
+  m_pDeviceContext->ClearState();
   SafeRelease(m_pDeviceContext);
 }
 }

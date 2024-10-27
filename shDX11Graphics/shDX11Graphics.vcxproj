@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClInclude Include="include\externals\stb_image.h" />
     <ClInclude Include="include\shDX11Buffers.h" />
-    <ClInclude Include="include\shDX11DepthStencilView.h" />
     <ClInclude Include="include\shDX11Device.h" />
     <ClInclude Include="include\shDX11InputLayout.h" />
     <ClInclude Include="include\shDX11RenderTargetView.h" />
