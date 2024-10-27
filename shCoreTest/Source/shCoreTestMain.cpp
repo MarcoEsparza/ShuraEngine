@@ -2,12 +2,12 @@
 /*
 *  @file    shCoreTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/26
 *  @brief   Here is the main to test the window initialize.
 *
 *  Here is the main to test the window initialize.
 * 
-*  @bug     No bug known.
+*  @bug     RotateCam function not working properly.
 */
 /*************************************************************/
 
@@ -19,17 +19,16 @@
 #include "shPrerequisitesCore.h"
 #include "shScreen.h"
 #include "shGraphicsManager.h"
-#include "shBoxAAB.h"
 #include "shMath.h"
-
+#include "shCamera.h"
 #include "functional"
 
 using namespace shEngineSDK;
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-SPtr<VertexShader> g_pVertexShader;
-SPtr<PixelShader> g_pPixelShader;
+SPtr<ProgramShader> g_pProgramShader;
 SPtr<InputLayout> g_pInputLayout;
 SPtr<Texture2D> g_pTexture;
 SPtr<VertexBuffer> g_pVertexBuffer;
@@ -37,15 +36,56 @@ SPtr<IndexBuffer> g_pIndexBuffer;
 SPtr<ConstantBuffer> g_pWVP;
 SPtr<SamplerState> g_pSamplerLinear;
 SPtr<DepthStencilView> g_pDepthSV;
+SPtr<Texture2D> g_pDepthSV;
 
 Vector<VertexData> g_mesh;
 Vector<uint32> g_index;
 
+FPSCamera g_Camera;
+Vector2i g_lastMousePos;
+Vector2i g_mousePos;
+Matrix4 g_world;
+
+/**
+*  @brief Initialize the graphics api assets.
+* 
+*  @param Screen& _screen
+*/
 void
 initGraphicAssets(const Screen& _screen);
 
+/**
+*  @brief Update the world matrix to move the cube.
+*  @note This is only for test.
+*
+*  @param float& transform
+*/
+void
+update(float& transform);
+
+/**
+*  @brief Render the graphics api.
+*/
 void
 render();
+
+/**
+*  @brief Updates the camera position.
+*  @note This is only for test.
+*
+*  @param float& direction
+*  @param const uint32 axis
+*/
+void
+updateCameraMove(const float& direction, const uint32 axis);
+
+/**
+*  @brief Updates the camera rotation.
+*  @note This is only for test.
+*  @bug Not working properly
+*/
+void
+updateCameraRotation();
 
 int main()
 {
@@ -53,6 +93,7 @@ int main()
   desc.name = "Test";
   desc.title = "Graphics Test";
   desc.visible = true;
+  desc.fullscreen = false;
   desc.positionX = 0;
   desc.positionY = 0;
   desc.width = 1000;
@@ -61,11 +102,13 @@ int main()
 
   Screen mainScreen;
   SPtr<ScreenEventHandle> eventQ = make_shared<ScreenEventHandle>();
+  SAMPLE_DESC sample;
+  sample.count = 1;
+  sample.quality = 1;
 
   if (!mainScreen.init(desc, eventQ)) {
     return -1;
   }
-
   HINSTANCE hGetProcIDDLL = LoadLibrary("shDX11Graphicsd.dll");
   SH_ASSERT(hGetProcIDDLL && "Could not load dll");
 
@@ -73,15 +116,12 @@ int main()
   SH_ASSERT(loadPlugin && "Could not load function");
   loadPlugin();
 
-  GraphicsManager::instance().initManager(mainScreen.getPlatformHandler(),
-                                          false,
-                                          false,
-                                          1,
-                                          1);
+  GraphicsManager::instance().initManager(mainScreen, false, sample);
   
   initGraphicAssets(mainScreen);
 
   bool isRunning = true;
+  float transform = 0.0f;
 
   while (isRunning) {
     eventQ->update();
@@ -89,10 +129,45 @@ int main()
     while (!eventQ->empty()) {
       auto ev = eventQ->front();
 
-      if (ev.type == shEVENT_TYPE::E::kMouseInput) {
+      if (ev.type == shEVENT_TYPE::kMouseInput) {
         const MouseInputData mouse = ev.data.mouseInput;
       }
-      if (ev.type == shEVENT_TYPE::E::kClose) {
+      if (ev.type == shEVENT_TYPE::kMouseMove) {
+        const MouseMoveData mousePos = ev.data.mouseMove;
+
+        g_lastMousePos = g_mousePos;
+        g_mousePos.x = mousePos.x;
+        g_mousePos.y = mousePos.y;
+
+        if ((g_lastMousePos.x - g_mousePos.x) != 0 ||
+            (g_lastMousePos.y - g_mousePos.y) != 0) {
+          // TODO: Resolve this funciton.
+          updateCameraRotation();
+        }
+      }
+      if (ev.type == shEVENT_TYPE::kKeyboard) {
+        const KeyboardData keyboard = ev.data.keyboard;
+
+        if (keyboard.key == shKEY::kW) {
+          updateCameraMove(0.5f, 2);
+        }
+        else if (keyboard.key == shKEY::kA) {
+          updateCameraMove(-0.5f, 0);
+        }
+        else if (keyboard.key == shKEY::kS) {
+          updateCameraMove(-0.5f, 2);
+        }
+        else if (keyboard.key == shKEY::kD) {
+          updateCameraMove(0.5f, 0);
+        }
+        else if (keyboard.key == shKEY::kE) {
+          updateCameraMove(0.5f, 1);
+        }
+        else if (keyboard.key == shKEY::kQ) {
+          updateCameraMove(-0.5f, 1);
+        }
+      }
+      if (ev.type == shEVENT_TYPE::kClose) {
         mainScreen.close();
         isRunning = false;
       }
@@ -100,10 +175,11 @@ int main()
       eventQ->pop();
     }
 
+    update(transform);
     render();
   }
-
-  //GraphicsManager::shutDown();
+  
+  GraphicsManager::shutDown();
 
   return 0;
 }
@@ -111,73 +187,51 @@ int main()
 void
 initGraphicAssets(const Screen& _screen)
 {
+  GraphicsManager& gManager = GraphicsManager::instance();
+
   /********************
   *  Shaders
   ********************/
 
-  g_pVertexShader = GraphicsManager::instance().createVertexShader("resources/BasicShader.hlsl",
-                                                                   "main",
-                                                                   "vs_5_0");
-  SH_ASSERT(g_pVertexShader);
+  g_pProgramShader = gManager.createProgramShader("resources/BasicShader.hlsl",
+                                                  "main",
+                                                  "mainPS",
+                                                  "vs_5_0",
+                                                  "ps_5_0");
 
-  g_pPixelShader = GraphicsManager::instance().createPixelShader("resources/BasicShader.hlsl",
-                                                                 "mainPS",
-                                                                 "ps_5_0");
-  SH_ASSERT(g_pPixelShader);
+  SH_ASSERT(g_pProgramShader);
 
   /********************
   *  Input layout
   ********************/
 
-  Vector<shInputLayoutTypes::E> ilTypes;
+  Vector<shINPUT_LAYOUT_TYPES::E> ilTypes;
 
-  ilTypes.push_back(shInputLayoutTypes::E::kPOSITION);
-  ilTypes.push_back(shInputLayoutTypes::E::kNORMAL);
-  ilTypes.push_back(shInputLayoutTypes::E::kTEXCOORD);
-  ilTypes.push_back(shInputLayoutTypes::E::kBONEINDICES);
-  ilTypes.push_back(shInputLayoutTypes::E::kBONEWEIGHTS);
+  ilTypes.push_back(shINPUT_LAYOUT_TYPES::E::kPosition);
+  ilTypes.push_back(shINPUT_LAYOUT_TYPES::E::kNormal);
+  ilTypes.push_back(shINPUT_LAYOUT_TYPES::E::kTexcoord);
 
-  g_pInputLayout = GraphicsManager::instance().createInputLayout(ilTypes, g_pVertexShader);
+  g_pInputLayout = gManager.createInputLayout(ilTypes, g_pProgramShader);
   SH_ASSERT(g_pInputLayout);
 
   /*****************************
   *  Vertex and Index buffers
   *****************************/
 
-  /*shBoxAAB box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
-  auto boxVertex = box.getVertices();
-  auto boxIndices = box.getIndices();
-
-  Vector<VertexData> cube;
-  cube.resize(8);
-
-  for (uint8 i = 0; i < 8; ++i) {
-    auto& vertex = cube[i];
-    vertex.position = boxVertex[i];
-  }
-
-  Vector<uint32> cubeIndices;
-  cubeIndices.resize(36);
-
-  for (uint8 i = 0; i < 36; ++i) {
-    auto& index = cubeIndices[i];
-    index = boxIndices[i];
-  }
-
-  g_mesh = cube;
-  g_index = cubeIndices;*/
-
   Vector<VertexData> cube;
   cube.resize(24);
 
+  // Up
   cube[0].position = Vector3(-1.0f, 1.0f, -1.0f);
-  cube[0].tex = Vector2(0.0f, 0.0f);
+  cube[0].tex = Vector2(0.0f, 1.0f);
   cube[1].position = Vector3(1.0f, 1.0f, -1.0f);
-  cube[1].tex = Vector2(1.0f, 0.0f);
+  cube[1].tex = Vector2(1.0f, 1.0f);
   cube[2].position = Vector3(1.0f, 1.0f, 1.0f);
-  cube[2].tex = Vector2(1.0f, 1.0f);
+  cube[2].tex = Vector2(1.0f, 0.0f);
   cube[3].position = Vector3(-1.0f, 1.0f, 1.0f);
-  cube[3].tex = Vector2(0.0f, 1.0f);
+  cube[3].tex = Vector2(0.0f, 0.0f);
+
+  // Down
   cube[4].position = Vector3(-1.0f, -1.0f, -1.0f);
   cube[4].tex = Vector2(0.0f, 0.0f);
   cube[5].position = Vector3(1.0f, -1.0f, -1.0f);
@@ -186,30 +240,38 @@ initGraphicAssets(const Screen& _screen)
   cube[6].tex = Vector2(1.0f, 1.0f);
   cube[7].position = Vector3(-1.0f, -1.0f, 1.0f);
   cube[7].tex = Vector2(0.0f, 1.0f);
+
+  // Left
   cube[8].position = Vector3(-1.0f, -1.0f, 1.0f);
-  cube[8].tex = Vector2(0.0f, 0.0f);
+  cube[8].tex = Vector2(0.0f, 1.0f);
   cube[9].position = Vector3(-1.0f, -1.0f, -1.0f);
-  cube[9].tex = Vector2(1.0f, 0.0f);
+  cube[9].tex = Vector2(1.0f, 1.0f);
   cube[10].position = Vector3(-1.0f, 1.0f, -1.0f);
-  cube[10].tex = Vector2(1.0f, 1.0f);
+  cube[10].tex = Vector2(1.0f, 0.0f);
   cube[11].position = Vector3(-1.0f, 1.0f, 1.0f);
-  cube[11].tex = Vector2(0.0f, 1.0f);
+  cube[11].tex = Vector2(0.0f, 0.0f);
+
+  // Right
   cube[12].position = Vector3(1.0f, -1.0f, 1.0f);
-  cube[12].tex = Vector2(0.0f, 0.0f);
+  cube[12].tex = Vector2(0.0f, 1.0f);
   cube[13].position = Vector3(1.0f, -1.0f, -1.0f);
-  cube[13].tex = Vector2(1.0f, 0.0f);
+  cube[13].tex = Vector2(1.0f, 1.0f);
   cube[14].position = Vector3(1.0f, 1.0f, -1.0f);
-  cube[14].tex = Vector2(1.0f, 1.0f);
+  cube[14].tex = Vector2(1.0f, 0.0f);
   cube[15].position = Vector3(1.0f, 1.0f, 1.0f);
-  cube[15].tex = Vector2(0.0f, 1.0f);
+  cube[15].tex = Vector2(0.0f, 0.0f);
+
+  // Front
   cube[16].position = Vector3(-1.0f, -1.0f, -1.0f);
-  cube[16].tex = Vector2(0.0f, 0.0f);
+  cube[16].tex = Vector2(0.0f, 1.0f);
   cube[17].position = Vector3(1.0f, -1.0f, -1.0f);
-  cube[17].tex = Vector2(1.0f, 0.0f);
+  cube[17].tex = Vector2(1.0f, 1.0f);
   cube[18].position = Vector3(1.0f, 1.0f, -1.0f);
-  cube[18].tex = Vector2(1.0f, 1.0f);
+  cube[18].tex = Vector2(1.0f, 0.0f);
   cube[19].position = Vector3(-1.0f, 1.0f, -1.0f);
-  cube[19].tex = Vector2(0.0f, 1.0f);
+  cube[19].tex = Vector2(0.0f, 0.0f);
+
+  // Back
   cube[20].position = Vector3(-1.0f, -1.0f, 1.0f);
   cube[20].tex = Vector2(0.0f, 0.0f);
   cube[21].position = Vector3(1.0f, -1.0f, 1.0f);
@@ -240,17 +302,17 @@ initGraphicAssets(const Screen& _screen)
   g_mesh = cube;
   g_index = indices;
 
-  g_pVertexBuffer = GraphicsManager::instance().createVertexBuffer(g_mesh);
+  g_pVertexBuffer = gManager.createVertexBuffer(g_mesh);
   SH_ASSERT(g_pVertexBuffer);
 
-  g_pIndexBuffer = GraphicsManager::instance().createIndexBuffer(g_index);
+  g_pIndexBuffer = gManager.createIndexBuffer(g_index);
   SH_ASSERT(g_pIndexBuffer);
 
   /********************
   *  Sampler state
   ********************/
 
-  g_pSamplerLinear = GraphicsManager::instance().createSamplerState();
+  g_pSamplerLinear = gManager.createSamplerState();
   SH_ASSERT(g_pSamplerLinear);
 
   /********************
@@ -258,61 +320,123 @@ initGraphicAssets(const Screen& _screen)
   ********************/
 
   String path = "resources/ShuraIconOption.png";
-  g_pTexture = GraphicsManager::instance().createTextureFromFile(path);
+  g_pTexture = gManager.createTextureFromFile(path);
   SH_ASSERT(g_pTexture);
 
   /********************
-  *  View-Projection
+  *  Camera
   ********************/
 
-  uint32 sizeWVP = sizeof(Matrix4);
-  g_pWVP = GraphicsManager::instance().createConstantBuffer(sizeWVP * 2);
+  g_world = Matrix4::identity;
+
+  uint32 sizeWVP = sizeof(Matrix4) * 3;
+  g_pWVP = gManager.createConstantBuffer(sizeWVP);
   SH_ASSERT(g_pWVP);
 
-  Vector3 eye(0.0f, 0.0f, -4.0f);
+  Vector3 eye(0.0f, 0.0f, -5.0f);
   Vector3 at(0.0f, 0.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
 
-  WorldViewProjection myWVP;
-  myWVP.view = ViewMatrix(eye, at, up);
-  myWVP.proj = ProjectionMatrix(Math::PI / 4.0f,
-                                static_cast<float>(_screen.getWidth()),
-                                static_cast<float>(_screen.getHeight()),
-                                0.1f,
-                                100.0f);
-  
-  myWVP.view.getTransposed();
-  myWVP.proj.getTransposed();
+  g_Camera.setViewData(eye, at, up);
+  g_Camera.setProjectionData(Math::PI / 4.0f,
+                             static_cast<float>(_screen.getWidth()),
+                             static_cast<float>(_screen.getHeight()),
+                             0.1f,
+                             100.0f);
 
-  GraphicsManager::instance().updateConstantBuffer(g_pWVP, &myWVP, sizeof(myWVP));
+  WorldViewProjection wvp;
+  wvp.world = g_world;
+  wvp.view.transpose(g_Camera.getView());
+  wvp.proj.transpose(g_Camera.getProjection());
+
+  gManager.updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
+  SH_ASSERT(g_pWVP);
+}
+
+void
+update(float& transform)
+{
+  transform += Math::PI * 0.000125f;
+  g_world = g_world.createRotationXMatrix(transform);
+
+  WorldViewProjection wvp;
+  wvp.world = g_world;
+  wvp.view.transpose(g_Camera.getView());
+  wvp.proj.transpose(g_Camera.getProjection());
+
+  GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
   SH_ASSERT(g_pWVP);
 }
 
 void
 render()
 {
-  auto pMainRTV = GraphicsManager::instance().getMainRenderTargetView();
-  LinearColor color(0.2f, 0.6f, 0.2f);
-  GraphicsManager::instance().clearRenderTarget(pMainRTV, color);
+  GraphicsManager& gManager = GraphicsManager::instance();
 
-  auto pDepthStencil = GraphicsManager::instance().getMainDepthStencil();
-  GraphicsManager::instance().clearDepthStencil(pDepthStencil);
-
-  GraphicsManager::instance().setRenderTargets(pMainRTV, pDepthStencil, 1);
-
-  GraphicsManager::instance().setSamplerState(g_pSamplerLinear);
-  GraphicsManager::instance().setShaderResourceView(g_pTexture);
-
-  GraphicsManager::instance().setVertexShader(g_pVertexShader);
-  GraphicsManager::instance().setPixelShader(g_pPixelShader);
-
-  GraphicsManager::instance().setInputLayout(g_pInputLayout);
-  GraphicsManager::instance().setVertexBuffers(g_pVertexBuffer);
-  GraphicsManager::instance().setIndexBuffers(g_pIndexBuffer);
-  GraphicsManager::instance().vsSetConstantBuffers(g_pWVP);
-  GraphicsManager::instance().setPrimitiveTopology();
+  auto pMainRTV = gManager.getMainRenderTargetView();
+  LinearColor color(0.0f, 0.0f, 1.0f);
+  gManager.clearRenderTarget(pMainRTV, color);
   
-  GraphicsManager::instance().drawIndexed(static_cast<uint32>(g_index.size()), 0, 0);
+  auto pDepthStencil = gManager.getMainDepthStencil();
+  gManager.clearDepthStencil(pDepthStencil);
 
-  GraphicsManager::instance().present();
+  gManager.setRenderTargets(pMainRTV, pDepthStencil, 1);
+
+  gManager.setSamplerState(g_pSamplerLinear);
+  gManager.setShaderResourceView(g_pTexture);
+
+  gManager.setProgramShader(g_pProgramShader);
+
+  gManager.setInputLayout(g_pInputLayout);
+  gManager.setVertexBuffers(g_pVertexBuffer);
+  gManager.setIndexBuffers(g_pIndexBuffer);
+  gManager.vsSetConstantBuffers(g_pWVP);
+  gManager.setPrimitiveTopology();
+  
+  gManager.drawIndexed(static_cast<uint32>(g_index.size()), 0, 0);
+
+  gManager.present();
+}
+
+void
+updateCameraMove(const float& direction, const uint32 axis)
+{
+  if (axis == 0) {
+    g_Camera.moveX(direction);
+  }
+  else if (axis == 1) {
+    g_Camera.moveY(direction);
+  }
+  else if (axis == 2) {
+    g_Camera.moveZ(direction);
+  }
+
+  WorldViewProjection wvp;
+  wvp.world = g_world;
+  wvp.view.transpose(g_Camera.getView());
+  wvp.proj.transpose(g_Camera.getProjection());
+
+  GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
+  SH_ASSERT(g_pWVP);
+}
+
+void
+updateCameraRotation()
+{
+  const float dx = static_cast<float>(g_lastMousePos.x - g_mousePos.x) * 0.005f;
+  const float dy = static_cast<float>(g_lastMousePos.y - g_mousePos.y) * 0.005f;
+
+  if (g_lastMousePos.x != g_mousePos.x ||
+    g_lastMousePos.y != g_mousePos.y)
+  {
+    g_Camera.rotateCam(dx, dy);
+  }
+
+  WorldViewProjection wvp;
+  wvp.world = g_world;
+  wvp.view.transpose(g_Camera.getView());
+  wvp.proj.transpose(g_Camera.getProjection());
+
+  GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
+  SH_ASSERT(g_pWVP);
 }

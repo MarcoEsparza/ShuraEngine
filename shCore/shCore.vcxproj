@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+<<<<<<< Updated upstream
     <ClInclude Include="include\shDevice.h" />
     <ClInclude Include="include\shBuffers.h" />
     <ClInclude Include="include\shDepthStencilView.h" />
@@ -26,6 +27,21 @@
     <ClInclude Include="Include\shEvent.h" />
     <ClInclude Include="include\shGraphicsManager.h" />
     <ClInclude Include="include\shInputLayout.h" />
+=======
+<<<<<<< Updated upstream
+    <ClInclude Include="Include\shEventData.h" />
+    <ClInclude Include="Include\shEvent.h" />
+=======
+    <ClInclude Include="Include\shCamera.h" />
+    <ClInclude Include="include\shDevice.h" />
+    <ClInclude Include="include\shBuffers.h" />
+    <ClInclude Include="Include\shEventData.h" />
+    <ClInclude Include="Include\shEvent.h" />
+    <ClInclude Include="include\shGraphicsManager.h" />
+    <ClInclude Include="Include\shGraphicTypes.h" />
+    <ClInclude Include="include\shInputLayout.h" />
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shSamplerState.h" />
@@ -37,7 +53,17 @@
     <ClInclude Include="include\shTexture.h" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< Updated upstream
     <ClCompile Include="source\shGraphicsManager.cpp" />
+=======
+<<<<<<< Updated upstream
+    <ClCompile Include="Source\shEvent.cpp" />
+=======
+    <ClCompile Include="Source\shCamera.cpp" />
+    <ClCompile Include="Source\shEvent.cpp" />
+    <ClCompile Include="source\shGraphicsManager.cpp" />
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
   </ItemGroup>
