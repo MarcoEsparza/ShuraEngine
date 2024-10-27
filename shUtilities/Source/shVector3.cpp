@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/05
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -53,11 +53,7 @@ Vector3::mag() const
 {
   const float lenght = (x * x) + (y * y) + (z * z);
 
-  if (lenght != 0) {
-    return Math::sqrt(lenght);
-  }
-  
-  return 0.0f;
+  return Math::sqrt(lenght);
 }
 
 void
@@ -79,19 +75,11 @@ Vector3::normalize()
 Vector3
 Vector3::getNormalized() const
 {
-  const float vecMag = mag();
-  if(vecMag != 0.0f) {
-    const float invMag = 1 / vecMag;
-    if (invMag != 0.0f) {
-      return Vector3(x * invMag,
-                     y * invMag,
-                     z * invMag);
-    }
-    else {
-      return Vector3(0.0f,
-                     0.0f,
-                     0.0f);
-    }
+  const float invMag = 1 / mag();
+  if (invMag != 0.0f) {
+    return Vector3(x * invMag,
+                   y * invMag,
+                   z * invMag);
   }
   else {
     return Vector3(0.0f,

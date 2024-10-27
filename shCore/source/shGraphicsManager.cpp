@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/24
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -20,11 +20,13 @@
 
 namespace shEngineSDK {
 void
-GraphicsManager::initManager(const Screen& screen,
+GraphicsManager::initManager(const PlatformScreen& srcHandle,
+                             const bool bFullScreen,
                              const bool bAntiliasing,
-                             const SAMPLE_DESC& sample)
+                             const uint32 samplesPerPixel,
+                             const uint32 sampleQuality)
 {
-  internalInit(screen, bAntiliasing, sample);
+  internalInit(srcHandle, bFullScreen, bAntiliasing, samplesPerPixel, sampleQuality);
 }
 
 void
@@ -34,7 +36,7 @@ GraphicsManager::clearRenderTarget(const SPtr<RenderTargetView>& pTarget, Linear
 }
 
 void
-GraphicsManager::clearDepthStencil(const SPtr<Texture2D>& pDepthSV)
+GraphicsManager::clearDepthStencil(const SPtr<DepthStencilView>& pDepthSV)
 {
   internalClearDepthStencil(pDepthSV);
 }
@@ -51,7 +53,7 @@ GraphicsManager::getMainRenderTargetView() const
   return internalGetMainRenderTargetView();
 }
 
-SPtr<Texture2D>
+SPtr<DepthStencilView>
 GraphicsManager::getMainDepthStencil() const
 {
   return internalGetMainDepthStencil();
@@ -64,7 +66,7 @@ GraphicsManager::getDeviceContext() const
 }
 
 SPtr<InputLayout>
-GraphicsManager::createInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+GraphicsManager::createInputLayout(const Vector<shInputLayoutTypes::E>& types,
                                    const SPtr<ProgramShader>& pShader)
 {
   return internalCreateInputLayout(types, pShader);
@@ -77,11 +79,11 @@ GraphicsManager::createProgramShader(const String& fileName,
                                      const String& vsShaderModel,
                                      const String& psShaderModel)
 {
-  return internalCreateProgramShader(fileName,
-                                     vsEntryPoint,
-                                     psEntryPoint,
-                                     vsShaderModel,
-                                     psShaderModel);
+  return internalCreateVertexShader(fileName,
+                                    vsEntryPoint,
+                                    psEntryPoint,
+                                    vsShaderModel,
+                                    psShaderModel);
 }
 
 SPtr<VertexBuffer>
@@ -110,6 +112,12 @@ GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAddres
   return internalCreateSamplerState(filter, textAddress);
 }
 
+SPtr<DepthStencilView>
+GraphicsManager::createDepthSV(const SPtr<Texture2D>& pText)
+{
+  return internalCreateDepthSV(pText);
+}
+
 SPtr<Texture2D>
 GraphicsManager::createTextureFromFile(const String& fileName)
 {
@@ -136,7 +144,7 @@ GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
 
 void
 GraphicsManager::setRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                                  const SPtr<Texture2D>& pDepthSV,
+                                  const SPtr<DepthStencilView>& pDepthSV,
                                   const uint32 numViews)
 {
   internalSetRenderTargets(pRenderTV, pDepthSV, numViews);

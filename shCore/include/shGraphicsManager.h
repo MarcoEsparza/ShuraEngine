@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/24
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -21,9 +21,9 @@
 #include "shModule.h"
 #include "shScreen.h"
 #include "shLinearColor.h"
-#include "shGraphicTypes.h"
 
 #include "shBuffers.h"
+#include "shDepthStencilView.h"
 #include "shDevice.h"
 #include "shInputLayout.h"
 #include "shRenderTargetView.h"
@@ -32,7 +32,70 @@
 #include "shSwapChain.h"
 #include "shTexture.h"
 
+#include "shVector2.h"
+#include "shVector3.h"
+#include "shVector4.h"
+#include "shMatrix4.h"
+
 namespace shEngineSDK {
+/**
+*  @brief Sample descriptor.
+*/
+typedef struct SAMPLE_DESC
+{
+  uint32 count = 0;
+  uint32 quality = 0;
+} SAMPLE_DESC;
+
+/**
+*  @brief InputLayout descriptor.
+*/
+struct InputLayoutDesc
+{
+  String semanticName;
+  uint32 semanticIndex;
+  uint32 format;
+  uint32 inputSlot;
+  uint32 aligenedByteOffset;
+  uint32 inputSlotClass;
+  uint32 instanceDataStepRate;
+};
+
+/**
+*  @brief Input Layout types enumerator namespace.
+*/
+namespace shInputLayoutTypes {
+enum E
+{
+  kPOSITION = 0,
+  kNORMAL,
+  kTEXCOORD,
+  kBONEINDICES,
+  kBONEWEIGHTS
+};
+}
+
+/**
+*  @brief Vertex struct.
+*/
+struct VertexData
+{
+  Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
+  Vector3 normal = Vector3(0.0f, 0.0f, 0.0f);
+  Vector2 tex = Vector2(0.0f, 0.0f);
+  Vector4 boneIds = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+  Vector4 boneWeights = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+};
+
+/**
+*  @brief View struct.
+*/
+struct WorldViewProjection
+{
+  ViewMatrix view;
+  ProjectionMatrix proj;
+};
+
 /**
 *  @brief Module Graphis Manager.
 */
@@ -57,14 +120,18 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Initialize the graphics manager.
   *
-  *  @param Screen& screen
+  *  @param PlatformScreen& srcHandle
+  *  @param bool bFullScreen
   *  @param bool bAntiliasing
-  *  @param SAMPLE_DESC& sample
+  *  @param uint32 samplesPerPixel
+  *  @param uint32 sampleQuality
   */
   void
-  initManager(const Screen& screen,
+  initManager(const PlatformScreen& srcHandle,
+              const bool bFullScreen,
               const bool bAntiliasing,
-              const SAMPLE_DESC& sample);
+              const uint32 samplesPerPixel,
+              const uint32 sampleQuality);
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -81,7 +148,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<DepthStencilView>& pDepthSV
   */
   void
-  clearDepthStencil(const SPtr<Texture2D>& pDepthSV);
+  clearDepthStencil(const SPtr<DepthStencilView>& pDepthSV);
 
   /**
   *  @brief Present the swapchain.
@@ -106,7 +173,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<DepthStencilView>
   */
-  SPtr<Texture2D>
+  SPtr<DepthStencilView>
   getMainDepthStencil() const;
 
   /**
@@ -130,7 +197,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<InputLayout>
   */
   SPtr<InputLayout>
-  createInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+  createInputLayout(const Vector<shInputLayoutTypes::E>& types,
                     const SPtr<ProgramShader>& pShader);
 
   /**
@@ -201,6 +268,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   createSamplerState(const uint32 filter = 21, const uint32 textAddress = 1);
 
   /**
+  *  @brief Creates a Depth Stencil View with given Texture2D.
+  *
+  *  @param SPtr<Texture2D> pText
+  *
+  *  @return SPtr<DepthStencilView>
+  */
+  SPtr<DepthStencilView>
+  createDepthSV(const SPtr<Texture2D>& pText);
+
+  /**
   *  @brief Creates a Texture2D from file with given route.
   *
   *  @param String& fileName
@@ -257,7 +334,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   void
   setRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                   const SPtr<Texture2D>& pDepthSV,
+                   const SPtr<DepthStencilView>& pDepthSV,
                    const uint32 numViews);
 
   /**
@@ -396,14 +473,18 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   *
-  *  @param Screen& screen
+  *  @param PlatformScreen& srcHandle
+  *  @param bool bFullScreen
   *  @param bool bAntiliasing
-  *  @param SAMPLE_DESC& sample
+  *  @param uint32 samplesPerPixel
+  *  @param uint32 sampleQuality
   */
   virtual void
-  internalInit(const Screen& screen,
+  internalInit(const PlatformScreen& srcHandle,
+               const bool bFullScreen,
                const bool bAntiliasing,
-               const SAMPLE_DESC& sample) = 0;
+               const uint32 samplesPerPixel,
+               const uint32 sampleQuality) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -420,7 +501,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<DepthStencilView>& pDepthSV
   */
   virtual void
-  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) = 0;
+  internalClearDepthStencil(const SPtr<DepthStencilView>& pDepthSV) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -445,7 +526,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   * 
   *  @return SPtr<DepthStencilView>
   */
-  virtual SPtr<Texture2D>
+  virtual SPtr<DepthStencilView>
   internalGetMainDepthStencil() const = 0;
 
   /**
@@ -469,8 +550,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
-                            const SPtr<ProgramShader>& pPShader) = 0;
+  internalCreateInputLayout(const Vector<shInputLayoutTypes::E>& types,
+                            const SPtr<ProgramShader>& pVShader) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -482,11 +563,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<ProgramShader>
   */
   virtual SPtr<ProgramShader>
-  internalCreateProgramShader(const String& fileName,
-                              const String& vsEntryPoint,
-                              const String& psEntryPoint,
-                              const String& vsShaderModel,
-                              const String& psShaderModel) = 0;
+  internalCreateVertexShader(const String& fileName,
+                             const String& vsEntryPoint,
+                             const String& psEntryPoint,
+                             const String& vsShaderModel,
+                             const String& psShaderModel) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -536,6 +617,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual SPtr<SamplerState>
   internalCreateSamplerState(const uint32 filter, const uint32 textAddress) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  * 
+  *  @param SPtr<Texture2D> pText
+  *
+  *  @return SPtr<DepthStencilView>
+  */
+  virtual SPtr<DepthStencilView>
+  internalCreateDepthSV(const SPtr<Texture2D>& pText) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -594,7 +685,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   internalSetRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                           const SPtr<Texture2D>& pDepthSV,
+                           const SPtr<DepthStencilView>& pDepthSV,
                            const uint32 numViews) = 0;
 
   /**

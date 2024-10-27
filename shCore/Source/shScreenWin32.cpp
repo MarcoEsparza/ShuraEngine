@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/23
 *  @brief   Base screen
 *
 *  Base screen
@@ -30,7 +30,6 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
   m_eventQueue = eventHandler;
   m_width = desc.width;
   m_height = desc.height;
-  m_fullscreen = desc.fullscreen;
   HINSTANCE hInstance = GetModuleHandle(nullptr);
 
   WNDCLASSEXA wc = { };
@@ -102,8 +101,6 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
   SH_ASSERT(m_screenHandle != nullptr);
 
   m_eventQueue->m_initialized = true;
-  m_prevMousePos.x = 0;
-  m_prevMousePos.y = 0;
 
   if (desc.visible) {
     ShowWindow(m_screenHandle, SW_SHOW);
@@ -117,7 +114,7 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
                       reinterpret_cast<LONG_PTR>(m_eventQueue.get()));
 
     SetWindowLongPtrA(m_screenHandle,
-                      GWLP_USERDATA,
+                      1,
                       reinterpret_cast<LONG_PTR>(&m_prevMousePos));
   }
 
