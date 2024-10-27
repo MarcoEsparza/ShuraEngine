@@ -38,27 +38,27 @@ Event::Event(const float _scale)
 }
 
 Event::Event(const shKEY::E _key,
-  const shBUTTON_STATE::E _state,
-  const ModifierState& _modifiers)
+             const shBUTTON_STATE::E _state,
+             const ModifierState& _modifiers)
 {
   type = shEVENT_TYPE::kKeyboard;
   data.keyboard = KeyboardData(_key, _state, _modifiers);
 }
 
 Event::Event(const uint32 _x,
-  const uint32 _y,
-  const uint32 _screenX,
-  const uint32 _screenY,
-  const int32 _deltaX,
-  const int32 _deltaY)
+             const uint32 _y,
+             const uint32 _screenX,
+             const uint32 _screenY,
+             const int32 _deltaX,
+             const int32 _deltaY)
 {
   type = shEVENT_TYPE::kMouseMove;
   data.mouseMove = MouseMoveData(_x, _y, _screenX, _screenY, _deltaX, _deltaY);
 }
 
 Event::Event(const shMOUSE_INPUT::E _button,
-  const shBUTTON_STATE::E _state,
-  const ModifierState& _modifiers)
+             const shBUTTON_STATE::E _state,
+             const ModifierState& _modifiers)
 {
   type = shEVENT_TYPE::kMouseInput;
   data.mouseInput = MouseInputData(_button, _state, _modifiers);
