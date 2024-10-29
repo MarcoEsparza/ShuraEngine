@@ -108,7 +108,8 @@ int main()
   if (!mainScreen.init(desc, eventQ)) {
     return -1;
   }
-  HINSTANCE hGetProcIDDLL = LoadLibrary("shDX11Graphicsd.dll");
+  //HINSTANCE hGetProcIDDLL = LoadLibrary("shDX11Graphicsd.dll");
+  HINSTANCE hGetProcIDDLL = LoadLibrary("shOpenGLGraphicsd.dll");
   SH_ASSERT(hGetProcIDDLL && "Could not load dll");
 
   auto loadPlugin = reinterpret_cast<void(*)()>(GetProcAddress(hGetProcIDDLL, "loadPlugin"));
