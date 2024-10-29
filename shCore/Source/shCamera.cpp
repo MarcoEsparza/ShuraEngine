@@ -2,12 +2,12 @@
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
 *
-*  @bug     RotateCam function not working properly.
+*  @bug     Camera movement not working properly.
 */
 /*************************************************************/
 
@@ -40,12 +40,6 @@ Camera::setProjectionData(const float halfFOV,
                           const float maxZ)
 {
   m_proj = ProjectionMatrix(halfFOV, width, height, minZ, maxZ);
-
-  m_halfFOV = halfFOV;
-  m_width = width;
-  m_height = height;
-  m_minZ = minZ;
-  m_maxZ = maxZ;
 }
 
 void
@@ -86,32 +80,21 @@ FPSCamera::moveZ(const float dir)
   setViewData(m_position, m_target, m_upVector);
 }
 
-// TODO: This function dont work properly, it will be fixed later.
+// TODO: Change above functions to this.
+void
+FPSCamera::move(const Vector3& direction)
+{
+
+}
+
 void
 FPSCamera::rotateCam(const float yaw, const float pitch)
 {
-  Vector3 forward = m_target - m_position;
-  forward.normalize();
-
-  Vector3 right = m_upVector.cross(forward);
-  right.normalize();
-
-  Vector3 up = forward.cross(right);
-  up.normalize();
-
-  Matrix4 rotation = Matrix4::identity;
+  Matrix4 rotation = Matrix4::IDENTITY;
   Matrix4 rotX = rotation.createRotationXMatrix(pitch);
   Matrix4 rotY = rotation.createRotationYMatrix(yaw);
   rotation = rotX * rotY;
 
-  Vector3 vecZ = rotation.transformDirection(forward);
-  Vector3 vecX = rotation.transformDirection(right);
-  Vector3 vecY = rotation.transformDirection(up);
-
-  forward += vecX.cross(vecY);
-
-  m_target = m_position + forward;
-
-  setViewData(m_position, m_target, m_upVector);
+  m_view *= rotation;
 }
 }
