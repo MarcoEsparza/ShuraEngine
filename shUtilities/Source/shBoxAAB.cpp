@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxAAB.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2024/10/23
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
@@ -19,10 +19,10 @@
 
 namespace shEngineSDK {
 
-shBoxAAB::shBoxAAB(const Vector3& pos, const Vector3& size)
+shBoxAAB::shBoxAAB(const Vector3& _min, const Vector3& _max)
 {
-  min = pos;
-  max = min + size;
+  min = _min;
+  max = _max;
 }
 
 /*************************************************************/
@@ -66,6 +66,28 @@ shBoxAAB::getVertices() const
            Vector3(max.x, max.y, min.z),
            max };
 }
+
+Array<uint32, 36>
+shBoxAAB::getIndices() const
+{
+  static Array<uint32, 36> ret{
+    0, 1, 2,
+    0, 2, 3,
+    4, 6, 5,
+    4, 7, 6,
+    4, 5, 1,
+    4, 1, 0,
+    3, 2, 6,
+    3, 6, 7,
+    1, 5, 6,
+    1, 6, 2,
+    4, 0, 3,
+    4, 3, 7
+  };
+
+  return ret;
+}
+
 void
 shBoxAAB::projectOnAxis(const Vector3& axis, float& _min, float& _max) const
 {

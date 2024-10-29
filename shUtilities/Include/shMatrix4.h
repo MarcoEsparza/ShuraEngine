@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/19
+*  @date    2024/10/28
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -81,7 +81,7 @@ class SH_UTILITY_EXPORT Matrix4
   /**
   *  @brief Default destructor.
   */
-  virtual ~Matrix4() = default;
+  ~Matrix4() = default;
 
   /*************************************************************/
   /*
@@ -103,7 +103,7 @@ class SH_UTILITY_EXPORT Matrix4
   *  @return Matrix4 The transposed Matrix4.
   */
   Matrix4
-  getTransposed() const;
+  getTransposed();
 
   /**
   *  @brief Get the inverse of this Matrix4.
@@ -265,6 +265,18 @@ public:
   FORCEINLINE Matrix4&
   operator-=(const Matrix4& other);
 
+  /**
+  *  @brief Operator to multiply a Matrix4 values and other Matrix4 values and
+  *         store the result in the first Matrix4.
+  *
+  *  @param lValue-Matrix4.
+  *  @param rValue-Matrix4.
+  *
+  *  @return Matrix4
+  */
+  FORCEINLINE Matrix4&
+  operator*=(const Matrix4& other);
+
   /*************************************************************/
   /*
   *  Variables
@@ -275,6 +287,23 @@ public:
   *  @brief Use double array to access values.
   */
   float m[4][4];
+
+  /*************************************************************/
+  /*
+  *  Static variables
+  */
+  /*************************************************************/
+
+ public:
+  /**
+  *  @brief Matrix4 initialized with identity values.
+  */
+  static const Matrix4 IDENTITY;
+
+  /**
+  *  @brief Matrix4 initialized with zero values.
+  */
+  static const Matrix4 ZEROMATRIX;
 };
 
 /**
@@ -302,7 +331,7 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  ~ViewMatrix() = default;
+  virtual ~ViewMatrix() = default;
 };
 
 /**
@@ -334,30 +363,8 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  ~ProjectionMatrix() = default;
+  virtual ~ProjectionMatrix() = default;
 };
-
-/*************************************************************/
-/*
-*  Static variables
-*/
-/*************************************************************/
-
-/**
-*  @brief Matrix4 initialized with identity values.
-*/
-static const Matrix4 identity = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
-                                        0.0f, 1.0f, 0.0f, 0.0f,
-                                        0.0f, 0.0f, 1.0f, 0.0f,
-                                        0.0f, 0.0f, 0.0f, 1.0f);
-
-/**
-*  @brief Matrix4 initialized with zero values.
-*/
-static const Matrix4 zeroMatrix = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f);
 
 /*************************************************************/
 /*
@@ -416,7 +423,7 @@ Matrix4::operator-(const Matrix4& other) const
 FORCEINLINE Matrix4
 Matrix4::operator*(const Matrix4& other) const
 {
-  Matrix4 mat = zeroMatrix;
+  Matrix4 mat = ZEROMATRIX;
 
   for (int8 i = 0; i < 4; ++i)
   {
@@ -504,6 +511,27 @@ Matrix4::operator-=(const Matrix4& other)
   m[3][1] -= other.m[3][1];
   m[3][2] -= other.m[3][2];
   m[3][3] -= other.m[3][3];
+
+  return *this;
+}
+
+FORCEINLINE Matrix4&
+Matrix4::operator*=(const Matrix4& other)
+{
+  Matrix4 mat = ZEROMATRIX;
+
+  for (int8 i = 0; i < 4; ++i)
+  {
+    for (int8 j = 0; j < 4; ++j)
+    {
+      for (int8 k = 0; k < 4; ++k)
+      {
+        mat.m[i][j] += this->m[i][k] * other.m[k][j];
+      }
+    }
+  }
+
+  *this = mat;
 
   return *this;
 }

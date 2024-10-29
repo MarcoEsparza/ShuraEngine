@@ -2,7 +2,7 @@
 /*
 *  @file    shUtilitiesTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2024/10/28
 *  @brief   Here is the main for the utilities test project
 *
 *  Here is the main for the utilities test project
@@ -25,6 +25,8 @@
 #include "shQuaternion.h"
 #include "shMatrix4.h"
 #include "shModule.h"
+#include "shColor.h"
+#include "shLinearColor.h"
 
 //#define CATCH_CONGIG_MAIN
 #include "catch.hpp"
@@ -291,7 +293,7 @@ TEST_CASE("Matrix4") {
                 16.0f, 65.8f, 72.4f, 33.3f,
                 43.5f, 1.0f, 22.0f, 45.0f,
                 17.2f, 32.0f, 39.7f, 143.0f);
-  const Matrix4 mat_1 = identity;
+  const Matrix4 mat_1 = Matrix4::IDENTITY;
   const Quaternion q(132.0f, 44.2f, 98.4f, 176.3f);
   Matrix4* mat_2 = new Matrix4(q);
   Vector4 v1(43.5f, 24.8f, 88.3f, 35.7f);
@@ -299,7 +301,7 @@ TEST_CASE("Matrix4") {
   Vector4 v3(25.1f, 67.7f, 29.6f, 68.5f);
   Vector4 v4(54.4f, 148.0, 12.7f, 1.0f);
   Matrix4 mat_3(v1, v2, v3, v4);
-  Matrix4 mat_4 = zeroMatrix;
+  Matrix4 mat_4 = Matrix4::ZEROMATRIX;
   const Matrix4 mat_5 = mat_2->getTransposed();
 
   mat_4.transpose(*mat_2);
@@ -597,4 +599,21 @@ TEST_CASE("Module") {
   REQUIRE(SubModule::instance().TestNumber == (2412));
 
   SubModule::shutDown();*/
+}
+
+/*************************************************************/
+/*
+*  Colors
+*/
+/*************************************************************/
+TEST_CASE("Colors") {
+  Color c1(255, 0, 0);
+  LinearColor lc1(1.0f, 0.0f, 0.0f);
+
+  Color c2 = lc1.toColor();
+
+  REQUIRE(c1.r == c2.r);
+  REQUIRE(c1.g == c2.g);
+  REQUIRE(c1.b == c2.b);
+  REQUIRE(c1.a == c2.a);
 }

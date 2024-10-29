@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/10/28
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -21,6 +21,21 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
+/*************************************************************/
+/*
+*  Static variables
+*/
+/*************************************************************/
+
+const Matrix4 Matrix4::IDENTITY = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 1.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 1.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 1.0f);
+
+const Matrix4 Matrix4::ZEROMATRIX = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 0.0f,
+                                            0.0f, 0.0f, 0.0f, 0.0f);
 
 /*************************************************************/
 /*
@@ -72,18 +87,18 @@ ViewMatrix::ViewMatrix(const Vector3& camPos,
                        const Vector3& upVector)
 {
   const Vector3 zAxis = (targetPos - camPos).getNormalized();
-  const Vector3 xAxis = (upVector.cross(zAxis)).getNormalized();
+  const Vector3 xAxis = upVector.cross(zAxis).getNormalized();
   const Vector3 yAxis = zAxis.cross(xAxis);
 
-  const Vector3 negCamPos(-camPos.x, -camPos.y, -camPos.z);
+  //const Vector3 negCamPos(-camPos.x, -camPos.y, -camPos.z);
 
-  m[0][0] = xAxis.x; m[0][1] = xAxis.y; m[0][2] = xAxis.z; m[0][3] = 0.0f;
-  m[1][0] = yAxis.x; m[1][1] = yAxis.y; m[1][2] = yAxis.z; m[1][3] = 0.0f;
-  m[2][0] = zAxis.x; m[2][1] = zAxis.y; m[2][2] = zAxis.z; m[2][3] = 0.0f;
+  m[0][0] = xAxis.x; m[0][1] = yAxis.x; m[0][2] = zAxis.x; m[0][3] = 0.0f;
+  m[1][0] = xAxis.y; m[1][1] = yAxis.y; m[1][2] = zAxis.y; m[1][3] = 0.0f;
+  m[2][0] = xAxis.z; m[2][1] = yAxis.z; m[2][2] = zAxis.z; m[2][3] = 0.0f;
 
-  m[3][0] = negCamPos.dot(xAxis);
-  m[3][1] = negCamPos.dot(yAxis);
-  m[3][2] = negCamPos.dot(zAxis);
+  m[3][0] = -xAxis.dot(camPos);
+  m[3][1] = -yAxis.dot(camPos);
+  m[3][2] = -zAxis.dot(camPos);
   m[3][3] = 1.0f;
 }
 
@@ -93,13 +108,13 @@ ProjectionMatrix::ProjectionMatrix(const float halfFOV,
                                    const float minZ,
                                    const float maxZ)
 {
-  m[0][0] = 1.0f / Math::tan(halfFOV);
+  m[0][0] = 1.0f / ((width / height) * Math::tan(halfFOV));
   m[0][1] = 0.0f;
   m[0][2] = 0.0f;
   m[0][3] = 0.0f;
 
   m[1][0] = 0.0f;
-  m[1][1] = width / Math::tan(halfFOV) / height;
+  m[1][1] = 1.0f / Math::tan(halfFOV);
   m[1][2] = 0.0f;
   m[1][3] = 0.0f;
 
@@ -110,7 +125,7 @@ ProjectionMatrix::ProjectionMatrix(const float halfFOV,
 
   m[3][0] = 0.0f;
   m[3][1] = 0.0f;
-  m[3][2] = (-minZ * maxZ) / (maxZ - minZ);
+  m[3][2] = -(maxZ * minZ) / (maxZ - minZ);
   m[3][3] = 0.0f;
 }
 
@@ -133,12 +148,14 @@ Matrix4::transpose(const Matrix4& other)
 }
 
 Matrix4
-Matrix4::getTransposed() const
+Matrix4::getTransposed()
 {
-  return Matrix4(m[0][0], m[1][0], m[2][0], m[3][0],
-                 m[0][1], m[1][1], m[2][1], m[3][1],
-                 m[0][2], m[1][2], m[2][2], m[3][2],
-                 m[0][3], m[1][3], m[2][3], m[3][3]);
+  m[0][0] = m[0][0]; m[0][1] = m[1][0]; m[0][2] = m[2][0]; m[0][3] = m[3][0];
+  m[1][0] = m[0][1]; m[1][1] = m[1][1]; m[1][2] = m[2][1]; m[1][3] = m[3][1];
+  m[2][0] = m[0][2]; m[2][1] = m[1][2]; m[2][2] = m[2][2]; m[2][3] = m[3][2];
+  m[3][0] = m[0][3]; m[3][1] = m[1][3]; m[3][2] = m[2][3]; m[3][3] = m[3][3];
+
+  return *this;
 }
 
 Matrix4

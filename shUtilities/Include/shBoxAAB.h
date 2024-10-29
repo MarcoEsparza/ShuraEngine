@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxAAB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2024/10/23
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
@@ -32,10 +32,10 @@ class SH_UTILITY_EXPORT shBoxAAB
   /**
   *  @brief Constructor to initialize box values.
   * 
-  *  @param const Vector3& pos: Desired min value.
-  *  @param const Vector3& size: Compute max value with size and min value.
+  *  @param const Vector3& _min
+  *  @param const Vector3& _max
   */
-  shBoxAAB(const Vector3& pos, const Vector3& size);
+  shBoxAAB(const Vector3& _min, const Vector3& _max);
   /**
   *  @brief Default destructor.
   */
@@ -82,10 +82,18 @@ class SH_UTILITY_EXPORT shBoxAAB
   /**
   *  @brief Returns box vertices.
   *
-  *  @return Vector3
+  *  @return Array<Vector3, 8>
   */
   Array<Vector3, 8>
   getVertices() const;
+
+  /**
+  *  @brief Returns box indices.
+  *
+  *  @return Array<Vector3, 36>
+  */
+  Array<uint32, 36>
+  getIndices() const;
 
   /**
   *  @brief Project the box corners on the axis.
