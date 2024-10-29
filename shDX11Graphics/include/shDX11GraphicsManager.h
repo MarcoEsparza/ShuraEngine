@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -110,14 +110,6 @@ class DX11GraphicsManager : public GraphicsManager
   */
   SPtr<Texture2D>
   internalGetMainDepthStencil() const override;
-
-  /**
-  *  @brief Returns the Device Context.
-  * 
-  *  @return SPtr<DeviceContext>
-  */
-  SPtr<DeviceContext>
-  internalGetDeviceContext() const override;
 
   /********************
   *  Creates

@@ -7,7 +7,7 @@
 *
 *  Here is the main to test the window initialize.
 * 
-*  @bug     RotateCam function not working properly.
+*  @bug     Camera movement not working properly.
 */
 /*************************************************************/
 
@@ -140,8 +140,7 @@ int main()
 
         if ((g_lastMousePos.x - g_mousePos.x) != 0 ||
             (g_lastMousePos.y - g_mousePos.y) != 0) {
-          // TODO: Resolve this funciton.
-          //updateCameraRotation();
+          updateCameraRotation();
         }
       }
       if (ev.type == shEVENT_TYPE::kKeyboard) {
@@ -326,7 +325,7 @@ initGraphicAssets(const Screen& _screen)
   *  Camera
   ********************/
 
-  g_world = Matrix4::identity;
+  g_world = Matrix4::IDENTITY;
 
   uint32 sizeWVP = sizeof(Matrix4) * 3;
   g_pWVP = gManager.createConstantBuffer(sizeWVP);
@@ -422,7 +421,7 @@ updateCameraMove(const float& direction, const uint32 axis)
 void
 updateCameraRotation()
 {
-  const float dx = static_cast<float>(g_lastMousePos.x - g_mousePos.x) * 0.005f;
+  const float dx = static_cast<float>(g_lastMousePos.x - g_mousePos.x) * -0.005f;
   const float dy = static_cast<float>(g_lastMousePos.y - g_mousePos.y) * 0.005f;
 
   if (g_lastMousePos.x != g_mousePos.x ||

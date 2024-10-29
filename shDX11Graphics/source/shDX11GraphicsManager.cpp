@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -293,12 +293,6 @@ SPtr<Texture2D>
 DX11GraphicsManager::internalGetMainDepthStencil() const
 {
   return m_pDepthStencil;
-}
-
-SPtr<DeviceContext>
-DX11GraphicsManager::internalGetDeviceContext() const
-{
-  return m_pDeviceContext;
 }
 
 SPtr<InputLayout>
