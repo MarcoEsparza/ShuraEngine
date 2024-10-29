@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -108,14 +108,6 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   SPtr<Texture2D>
   getMainDepthStencil() const;
-
-  /**
-  *  @brief Returns the Device Context.
-  *
-  *  @return SPtr<DeviceContext>
-  */
-  SPtr<DeviceContext>
-  getDeviceContext() const;
 
   /********************
   *  Creates
@@ -417,7 +409,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   * 
-  *  @param SPtr<DepthStencilView>& pDepthSV
+  *  @param SPtr<Texture2D>& pDepthSV
   */
   virtual void
   internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) = 0;
@@ -448,14 +440,6 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual SPtr<Texture2D>
   internalGetMainDepthStencil() const = 0;
 
-  /**
-  *  @brief Calls the selected API overrided function.
-  * 
-  *  @return SPtr<DeviceContext>
-  */
-  virtual SPtr<DeviceContext>
-  internalGetDeviceContext() const = 0;
-
   /********************
   *  Creates
   ********************/
@@ -476,8 +460,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Calls the selected API overrided function.
   * 
   *  @param const String& fileName
-  *  @param const String& entryPoint
-  *  @param const String& shaderModel
+  *  @param const String& vsEntryPoint
+  *  @param const String& psEntryPoint
+  *  @param const String& vsShaderModel
+  *  @param const String& psShaderModel
   *
   *  @return SPtr<ProgramShader>
   */
@@ -589,7 +575,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Calls the selected API overrided function.
   * 
   *  @param SPtr<RenderTargetView>& pRenderTV
-  *  @param SPtr<DepthStencilView>& pDepthSV
+  *  @param SPtr<Texture2D>& pDepthSV
   *  @param uint32 numViews
   */
   virtual void
@@ -670,8 +656,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   internalSetProgramShader(const SPtr<ProgramShader>& pVShader,
-                          const void* ppClassInstances,
-                          const uint32 numClassInstances) = 0;
+                           const void* ppClassInstances,
+                           const uint32 numClassInstances) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

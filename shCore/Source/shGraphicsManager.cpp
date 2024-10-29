@@ -57,12 +57,6 @@ GraphicsManager::getMainDepthStencil() const
   return internalGetMainDepthStencil();
 }
 
-SPtr<DeviceContext>
-GraphicsManager::getDeviceContext() const
-{
-  return internalGetDeviceContext();
-}
-
 SPtr<InputLayout>
 GraphicsManager::createInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
                                    const SPtr<ProgramShader>& pShader)

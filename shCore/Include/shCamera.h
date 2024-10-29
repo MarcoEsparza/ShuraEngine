@@ -2,12 +2,12 @@
 /*
 *  @file    shCamera.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
 *
-*  @bug     RotateCam function not working properly.
+*  @bug     Camera movement not working properly.
 */
 /*************************************************************/
 #pragma once
@@ -57,12 +57,7 @@ class SH_CORE_EXPORT Camera
            m_proj(halfFOV, width, height, minZ, maxZ),
            m_position(camPos),
            m_target(targetPos),
-           m_upVector(upVector),
-           m_halfFOV(halfFOV),
-           m_width(width),
-           m_height(height),
-           m_minZ(minZ),
-           m_maxZ(maxZ) {}
+           m_upVector(upVector) {}
 
   /**
   *  @brief Default destructor.
@@ -151,31 +146,6 @@ class SH_CORE_EXPORT Camera
   Vector3 m_upVector;
 
   /**
-  *  @brief Half field of view.
-  */
-  float m_halfFOV;
-
-  /**
-  *  @brief Screen width.
-  */
-  float m_width;
-
-  /**
-  *  @brief Screen height.
-  */
-  float m_height;
-
-  /**
-  *  @brief Near plane.
-  */
-  float m_minZ;
-
-  /**
-  *  @brief Far plane.
-  */
-  float m_maxZ;
-
-  /**
   *  @brief Camera rigth direction.
   */
   Vector3 m_right = { 1.0f, 0.0f, 0.0f };
@@ -200,6 +170,7 @@ class SH_CORE_EXPORT FPSCamera : public Camera
   */
   /*************************************************************/
  public:
+  // TODO: Change the move functions.
   /**
   *  @brief Move camera in the X axis.
   * 
@@ -223,6 +194,14 @@ class SH_CORE_EXPORT FPSCamera : public Camera
   */
   void
   moveZ(const float dir);
+
+  /**
+  *  @brief Move camera.
+  *
+  *  @param Vector3& direction
+  */
+  void
+  move(const Vector3& direction);
 
   /**
   *  @brief Rotate camera in the X and Y axes.
