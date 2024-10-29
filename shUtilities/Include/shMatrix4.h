@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/28
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -298,12 +298,12 @@ public:
   /**
   *  @brief Matrix4 initialized with identity values.
   */
-  static const Matrix4 identity;
+  static const Matrix4 IDENTITY;
 
   /**
   *  @brief Matrix4 initialized with zero values.
   */
-  static const Matrix4 zeroMatrix;
+  static const Matrix4 ZEROMATRIX;
 };
 
 /**
@@ -423,7 +423,7 @@ Matrix4::operator-(const Matrix4& other) const
 FORCEINLINE Matrix4
 Matrix4::operator*(const Matrix4& other) const
 {
-  Matrix4 mat = zeroMatrix;
+  Matrix4 mat = ZEROMATRIX;
 
   for (int8 i = 0; i < 4; ++i)
   {
@@ -518,7 +518,7 @@ Matrix4::operator-=(const Matrix4& other)
 FORCEINLINE Matrix4&
 Matrix4::operator*=(const Matrix4& other)
 {
-  Matrix4 mat = zeroMatrix;
+  Matrix4 mat = ZEROMATRIX;
 
   for (int8 i = 0; i < 4; ++i)
   {

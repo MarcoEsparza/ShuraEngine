@@ -2,7 +2,7 @@
 /*
 *  @file    shLinearColor.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/28
 *  @brief   LinearColor class.
 *
 *  LinearColor class.
@@ -35,13 +35,13 @@ namespace shEngineSDK {
     /**
     *  @brief Constructor to initialize values, A = 1.0f.
     *
-    *  @param float r
-    *  @param float g
-    *  @param float b
-    *  @param float a
+    *  @param float R
+    *  @param float G
+    *  @param float B
+    *  @param float A
     */
-    FORCEINLINE LinearColor(const float r, const float g, const float b, const float a = 1.0f)
-                            : R(r), G(g), B(b), A(a) {}
+    FORCEINLINE LinearColor(const float R, const float G, const float B, const float A = 1.0f)
+                            : r(R), g(G), b(B), a(A) {}
 
     /**
     *  @brief Copy constructor.
@@ -177,22 +177,22 @@ namespace shEngineSDK {
     /**
     *  @brief Red value.
     */
-    float R;
+    float r;
 
     /**
     *  @brief Green value.
     */
-    float G;
+    float g;
 
     /**
     *  @brief Blue value.
     */
-    float B;
+    float b;
 
     /**
     *  @brief Alpha value.
     */
-    float A;
+    float a;
   };
 
   /*************************************************************/
@@ -204,46 +204,46 @@ namespace shEngineSDK {
   FORCEINLINE LinearColor
     LinearColor::operator+(const LinearColor& other) const
   {
-    return LinearColor(R + other.R,
-      G + other.G,
-      B + other.B,
-      A + other.A);
+    return LinearColor(r + other.r,
+                       g + other.g,
+                       b + other.b,
+                       a + other.a);
   }
 
   FORCEINLINE LinearColor
     LinearColor::operator-(const LinearColor& other) const
   {
-    return LinearColor(R - other.R,
-      G - other.G,
-      B - other.B,
-      A - other.A);
+    return LinearColor(r - other.r,
+                       g - other.g,
+                       b - other.b,
+                       a - other.a);
   }
 
   FORCEINLINE LinearColor
     LinearColor::operator*(const LinearColor& other) const
   {
-    return LinearColor(R * other.R,
-      G * other.G,
-      B * other.B,
-      A * other.A);
+    return LinearColor(r * other.r,
+                       g * other.g,
+                       b * other.b,
+                       a * other.a);
   }
 
   FORCEINLINE LinearColor
     LinearColor::operator*(const float scalar) const
   {
-    return LinearColor(R * scalar,
-      G * scalar,
-      B * scalar,
-      A * scalar);
+    return LinearColor(r * scalar,
+                       g * scalar,
+                       b * scalar,
+                       a * scalar);
   }
 
   FORCEINLINE LinearColor&
     LinearColor::operator+=(const LinearColor& other)
   {
-    R += other.R;
-    G += other.G;
-    B += other.B;
-    A += other.A;
+    r += other.r;
+    g += other.g;
+    b += other.b;
+    a += other.a;
 
     return *this;
   }
@@ -251,10 +251,10 @@ namespace shEngineSDK {
   FORCEINLINE LinearColor&
     LinearColor::operator-=(const LinearColor& other)
   {
-    R -= other.R;
-    G -= other.G;
-    B -= other.B;
-    A -= other.A;
+    r -= other.r;
+    g -= other.g;
+    b -= other.b;
+    a -= other.a;
 
     return *this;
   }
@@ -262,10 +262,10 @@ namespace shEngineSDK {
   FORCEINLINE LinearColor&
     LinearColor::operator*=(const LinearColor& other)
   {
-    R *= other.R;
-    G *= other.G;
-    B *= other.B;
-    A *= other.A;
+    r *= other.r;
+    g *= other.g;
+    b *= other.b;
+    a *= other.a;
 
     return *this;
   }
@@ -273,10 +273,10 @@ namespace shEngineSDK {
   FORCEINLINE LinearColor&
     LinearColor::operator*=(const float scalar)
   {
-    R *= scalar;
-    G *= scalar;
-    B *= scalar;
-    A *= scalar;
+    r *= scalar;
+    g *= scalar;
+    b *= scalar;
+    a *= scalar;
 
     return *this;
   }

@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/28
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -27,12 +27,12 @@ namespace shEngineSDK {
 */
 /*************************************************************/
 
-const Matrix4 Matrix4::identity = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
+const Matrix4 Matrix4::IDENTITY = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
                                           0.0f, 1.0f, 0.0f, 0.0f,
                                           0.0f, 0.0f, 1.0f, 0.0f,
                                           0.0f, 0.0f, 0.0f, 1.0f);
 
-const Matrix4 Matrix4::zeroMatrix = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
+const Matrix4 Matrix4::ZEROMATRIX = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 0.0f);
