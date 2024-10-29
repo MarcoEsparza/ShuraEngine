@@ -2,7 +2,7 @@
 /*
 *  @file    shColor.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/28
 *  @brief   Color class.
 *
 *  Color class.
@@ -19,110 +19,110 @@
 /*************************************************************/
 #include "shPrerequisitesUtilities.h"
 namespace shEngineSDK {
+/**
+*  @brief Color class.
+*/
+class Color
+{
+ public:
   /**
-  *  @brief Color class.
+  *  @brief Default constructor.
   */
-  class Color
-  {
-  public:
-    /**
-    *  @brief Default constructor.
-    */
-    FORCEINLINE Color() = default;
+  FORCEINLINE Color() = default;
 
-    /**
-    *  @brief Constructor to initialize values, A = 255.
-    *
-    *  @param uint8 r
-    *  @param uint8 g
-    *  @param uint8 b
-    *  @param uint8 a
-    */
-    FORCEINLINE Color(const uint8 r, const uint8 g, const uint8 b, const uint8 a = 255)
-                      : R(r), G(g), B(b), A(a) {}
+  /**
+  *  @brief Constructor to initialize values, A = 255.
+  *
+  *  @param uint8 R
+  *  @param uint8 G
+  *  @param uint8 B
+  *  @param uint8 A
+  */
+  FORCEINLINE Color(const uint8 R, const uint8 G, const uint8 B, const uint8 A = 255)
+                    : r(R), g(G), b(B), a(A) {}
 
-    /**
-    *  @brief Copy constructor.
-    *
-    *  @param Color& copy
-    */
-    Color(const Color& copy);
+  /**
+  *  @brief Copy constructor.
+  *
+  *  @param Color& copy
+  */
+  Color(const Color& copy);
 
-    /**
-    *  @brief Default destructor.
-    */
-    FORCEINLINE ~Color() = default;
+  /**
+  *  @brief Default destructor.
+  */
+  FORCEINLINE ~Color() = default;
 
-    /*************************************************************/
-    /*
-    *  Variables
-    */
-    /*************************************************************/
-  public:
-    /**
-    *  @brief Red value.
-    */
-    uint8 R;
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
+  /**
+  *  @brief Red value.
+  */
+  uint8 r;
 
-    /**
-    *  @brief Green value.
-    */
-    uint8 G;
+  /**
+  *  @brief Green value.
+  */
+  uint8 g;
 
-    /**
-    *  @brief Blue value.
-    */
-    uint8 B;
+  /**
+  *  @brief Blue value.
+  */
+  uint8 b;
 
-    /**
-    *  @brief Alpha value.
-    */
-    uint8 A;
+  /**
+  *  @brief Alpha value.
+  */
+  uint8 a;
 
-    /*************************************************************/
-    /*
-    *  Static variables
-    */
-    /*************************************************************/
-  public:
-    /**
-    *  @brief Black = Color(0, 0, 0);
-    */
-    static const Color Black;
+  /*************************************************************/
+  /*
+  *  Static variables
+  */
+  /*************************************************************/
+ public:
+  /**
+  *  @brief Black = Color(0, 0, 0);
+  */
+  static const Color BLACK;
 
-    /**
-    *  @brief White = Color(255, 255, 255);
-    */
-    static const Color White;
+  /**
+  *  @brief White = Color(255, 255, 255);
+  */
+  static const Color WHITE;
 
-    /**
-    *  @brief Red = Color(255, 0, 0);
-    */
-    static const Color Red;
+  /**
+  *  @brief Red = Color(255, 0, 0);
+  */
+  static const Color RED;
 
-    /**
-    *  @brief Green = Color(0, 255, 0);
-    */
-    static const Color Green;
+  /**
+  *  @brief Green = Color(0, 255, 0);
+  */
+  static const Color GREEN;
 
-    /**
-    *  @brief Blue = Color(0, 0, 255);
-    */
-    static const Color Blue;
+  /**
+  *  @brief Blue = Color(0, 0, 255);
+  */
+  static const Color BLUE;
 
-    /**
-    *  @brief Yellow = Color(220, 220, 80);
-    */
-    static const Color Yellow;
+  /**
+  *  @brief Yellow = Color(220, 220, 80);
+  */
+  static const Color YELLOW;
 
-    /**
-    *  @brief Gray = Color(150, 150, 150);
-    */
-    static const Color Gray;
+  /**
+  *  @brief Gray = Color(150, 150, 150);
+  */
+  static const Color GRAY;
 
-    /**
-    *  @brief Purple = Color(165, 115, 206);
-    */
-    static const Color Purple;
-  };
+  /**
+  *  @brief Purple = Color(165, 115, 206);
+  */
+  static const Color PURPLE;
+};
 }

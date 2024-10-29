@@ -2,7 +2,7 @@
 /*
 *  @file    shColor.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/20
+*  @date    2024/10/28
 *  @brief   Color class.
 *
 *  Color class.
@@ -24,21 +24,21 @@ namespace shEngineSDK {
 *  Constant Variables
 */
 /*************************************************************/
-  const Color Color::Black = Color(0, 0, 0);
+  const Color Color::BLACK = Color(0, 0, 0);
 
-  const Color Color::White = Color(255, 255, 255);
+  const Color Color::WHITE = Color(255, 255, 255);
 
-  const Color Color::Red = Color(255, 0, 0);
+  const Color Color::RED = Color(255, 0, 0);
 
-  const Color Color::Green = Color(0, 255, 0);
+  const Color Color::GREEN = Color(0, 255, 0);
 
-  const Color Color::Blue = Color(0, 0, 255);
+  const Color Color::BLUE = Color(0, 0, 255);
 
-  const Color Color::Yellow = Color(220, 220, 80);
+  const Color Color::YELLOW = Color(220, 220, 80);
 
-  const Color Color::Gray = Color(150, 150, 150);
+  const Color Color::GRAY = Color(150, 150, 150);
 
-  const Color Color::Purple = Color(165, 115, 206);
+  const Color Color::PURPLE = Color(165, 115, 206);
 
 /*************************************************************/
 /*
@@ -48,9 +48,9 @@ namespace shEngineSDK {
 
   Color::Color(const Color& copy)
   {
-    R = copy.R;
-    G = copy.G;
-    B = copy.B;
-    A = copy.A;
+    r = copy.r;
+    g = copy.g;
+    b = copy.b;
+    a = copy.a;
   }
 }
