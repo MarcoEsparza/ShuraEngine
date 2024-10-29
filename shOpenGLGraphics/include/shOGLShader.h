@@ -32,8 +32,7 @@ class OGLProgramShader : public ProgramShader
  protected:
   uint32 m_vertexShader = 0;
   uint32 m_fragShader = 0;
-  uint32 m_vertexID = 0;
-  uint32 m_fragID = 0;
+  uint32 m_programID = 0;
 };
 
 FORCEINLINE OGLProgramShader::~OGLProgramShader()

@@ -100,14 +100,6 @@ class OGLGraphicsManager : public GraphicsManager
   SPtr<Texture2D>
   internalGetMainDepthStencil() const override;
 
-  /**
-  *  @brief Returns the Device Context.
-  * 
-  *  @return SPtr<DeviceContext>
-  */
-  SPtr<DeviceContext>
-  internalGetDeviceContext() const override;
-
   /********************
   *  Creates
   ********************/
@@ -364,7 +356,7 @@ class OGLGraphicsManager : public GraphicsManager
   *  @brief Draw with indices and vertices info.
   * 
   *  @param uint32 indexCount
-  *  @param uint32 StartVertexLocation
+  *  @param uint32 startIndexLocation
   *  @param uint32 baseVertexLocation
   */
   void
@@ -381,6 +373,8 @@ class OGLGraphicsManager : public GraphicsManager
   uint32 m_width = 0;
 
   uint32 m_height = 0;
+
+  GLenum m_topology;
 
   SPtr<OGLDevice> m_device;
 

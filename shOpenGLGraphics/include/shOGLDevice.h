@@ -25,6 +25,9 @@ struct HDC__;
 using HandleDC = HDC__*;
 struct HGLRC__;
 using RenderingContext = HGLRC__*;
+#else
+using HandleDC = void*;
+using RenderingContext = void*;
 #endif
 
 namespace shEngineSDK {
@@ -81,13 +84,11 @@ class OGLRenderContext : public DeviceContext
 
 FORCEINLINE OGLDevice::~OGLDevice()
 {
-  delete m_device;
-  m_device = nullptr;
+  
 }
 
 FORCEINLINE OGLRenderContext::~OGLRenderContext()
 {
-  delete m_rContext;
-  m_rContext = nullptr;
+  
 }
 }

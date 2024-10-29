@@ -30,7 +30,7 @@ class OGLSamplerState : public SamplerState
   friend class OGLGraphicsManager;
 
  protected:
-  uint32 m_samplerLinear = 0;
+  uint32 m_samplerID = 0;
 };
 
 FORCEINLINE OGLSamplerState::~OGLSamplerState()

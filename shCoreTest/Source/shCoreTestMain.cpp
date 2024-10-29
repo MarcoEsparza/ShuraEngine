@@ -108,8 +108,10 @@ int main()
   if (!mainScreen.init(desc, eventQ)) {
     return -1;
   }
-  //HINSTANCE hGetProcIDDLL = LoadLibrary("shDX11Graphicsd.dll");
   HINSTANCE hGetProcIDDLL = LoadLibrary("shOpenGLGraphicsd.dll");
+
+  auto err = GetLastError();
+
   SH_ASSERT(hGetProcIDDLL && "Could not load dll");
 
   auto loadPlugin = reinterpret_cast<void(*)()>(GetProcAddress(hGetProcIDDLL, "loadPlugin"));
@@ -141,8 +143,7 @@ int main()
 
         if ((g_lastMousePos.x - g_mousePos.x) != 0 ||
             (g_lastMousePos.y - g_mousePos.y) != 0) {
-          // TODO: Resolve this funciton.
-          //updateCameraRotation();
+          updateCameraRotation();
         }
       }
       if (ev.type == shEVENT_TYPE::kKeyboard) {
@@ -199,8 +200,8 @@ initGraphicAssets(const Screen& _screen)
                                                   "vs_5_0",
                                                   "ps_5_0");*/
 
-  g_pProgramShader = gManager.createProgramShader("resources/BasicVShader.glsl",
-                                                  "resources/BasicFragment.glsl",
+  g_pProgramShader = gManager.createProgramShader("resources/BasicVertexShader.glsl",
+                                                  "resources/BasicFragmentShader.glsl",
                                                   "",
                                                   "",
                                                   "");
@@ -388,8 +389,8 @@ render()
 
   gManager.setRenderTargets(pMainRTV, pDepthStencil, 1);
 
-  gManager.setSamplerState(g_pSamplerLinear);
   gManager.setShaderResourceView(g_pTexture);
+  gManager.setSamplerState(g_pSamplerLinear);
 
   gManager.setProgramShader(g_pProgramShader);
 

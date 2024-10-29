@@ -21,9 +21,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shDX11Graphics", "shDX11Graphics\shDX11Graphics.vcxproj", "{A819837C-01C7-4A9C-A3AF-5245375A60BD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shOpenGLGraphics", "shOpenGLGraphics\shOpenGLGraphics.vcxproj", "{F65F5918-5D4E-4AA2-A27A-F652DEA30DF7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

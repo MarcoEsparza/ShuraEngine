@@ -78,7 +78,7 @@ compileShader(uint32& shader, uint32& ID, const String& shaderData)
   }
 
   glDetachShader(programID, shader);
-  glDeleteShader(shader);
+  //glDeleteShader(shader);
 
   ID = programID;
 }
@@ -105,11 +105,12 @@ enableOpenGL(const HWND& hwnd, HDC* hdc, HGLRC* hrc)
   *hrc = wglCreateContext(*hdc);
   wglMakeCurrent(*hdc, *hrc);
 }
+#endif
 
 void
 OGLGraphicsManager::internalInit(const Screen& screen,
-                                 const bool bAntiliasing,
-                                 const SAMPLE_DESC& sample)
+                                 const bool,
+                                 const SAMPLE_DESC&)
 {
   m_device = make_shared<OGLDevice>();
   m_rContext = make_shared<OGLRenderContext>();
@@ -117,9 +118,11 @@ OGLGraphicsManager::internalInit(const Screen& screen,
   m_width = screen.getWidth();
   m_height = screen.getHeight();
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
   enableOpenGL(reinterpret_cast<HWND>(screen.getPlatformHandler()),
                reinterpret_cast<HDC*>(m_device->m_device),
                reinterpret_cast<HGLRC*>(m_rContext->m_rContext));
+#endif
 
   GLenum err = glewInit();
   if (err != GLEW_OK) {
@@ -167,7 +170,6 @@ OGLGraphicsManager::internalInit(const Screen& screen,
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-#endif
 
 void
 OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
@@ -197,32 +199,55 @@ OGLGraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
 void
 OGLGraphicsManager::internalPresent()
 {
-
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+  SwapBuffers(reinterpret_cast<HDC>(m_device->m_device));
+#endif
 }
 
 SPtr<RenderTargetView>
 OGLGraphicsManager::internalGetMainRenderTargetView() const
 {
-  return SPtr<RenderTargetView>();
+  return m_framebuffer;
 }
 
 SPtr<Texture2D>
 OGLGraphicsManager::internalGetMainDepthStencil() const
 {
-  return SPtr<Texture2D>();
-}
-
-SPtr<DeviceContext>
-OGLGraphicsManager::internalGetDeviceContext() const
-{
-  return SPtr<DeviceContext>();
+  return m_depthRender;
 }
 
 SPtr<InputLayout>
 OGLGraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
-                                              const SPtr<ProgramShader>& pVShader)
+                                              const SPtr<ProgramShader>& pPShader)
 {
-  return SPtr<InputLayout>();
+  auto pProgramShader = reinterpret_pointer_cast<OGLProgramShader>(pPShader);
+
+  pProgramShader->m_programID = glCreateProgram();
+
+  glAttachShader(pProgramShader->m_programID, pProgramShader->m_vertexShader);
+  glAttachShader(pProgramShader->m_programID, pProgramShader->m_fragShader);
+
+  for (uint8 i = 0; i < types.size(); ++i) {
+    if (types[i] == shINPUT_LAYOUT_TYPES::kPosition) {
+      glBindAttribLocation(pProgramShader->m_programID, i, "vertexPosition");
+    }
+    else if (types[i] == shINPUT_LAYOUT_TYPES::kNormal) {
+      glBindAttribLocation(pProgramShader->m_programID, i, "vertexNormal");
+    }
+    else if (types[i] == shINPUT_LAYOUT_TYPES::kTexcoord) {
+      glBindAttribLocation(pProgramShader->m_programID, i, "vertexUV");
+    }
+    else if (types[i] == shINPUT_LAYOUT_TYPES::kBoneIndices) {
+      glBindAttribLocation(pProgramShader->m_programID, i, "boneID");
+    }
+    else if (types[i] == shINPUT_LAYOUT_TYPES::kBoneWieghts) {
+      glBindAttribLocation(pProgramShader->m_programID, i, "boneWeight");
+    }
+  }
+
+  glLinkProgram(pProgramShader->m_programID);
+
+  return nullptr;
 }
 
 SPtr<ProgramShader>
@@ -257,11 +282,11 @@ OGLGraphicsManager::internalCreateProgramShader(const String& vertexFileName,
   fsFile.close();
 
   compileShader(pProgramShader->m_vertexShader,
-                pProgramShader->m_vertexID,
+                pProgramShader->m_programID,
                 vsCode);
 
   compileShader(pProgramShader->m_fragShader,
-                pProgramShader->m_fragID,
+                pProgramShader->m_programID,
                 vsCode);
 
   return pProgramShader;
@@ -269,31 +294,82 @@ OGLGraphicsManager::internalCreateProgramShader(const String& vertexFileName,
 
 SPtr<VertexBuffer>
 OGLGraphicsManager::internalCreateVertexBuffer(const Vector<VertexData>& vertices,
-                                               const uint32 usage)
+                                               const uint32)
 {
-  return SPtr<VertexBuffer>();
+  auto pVBuffer = make_shared<OGLVertexBuffer>();
+
+  glGenBuffers(1, &pVBuffer->m_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, pVBuffer->m_vbo);
+  glBufferData(GL_ARRAY_BUFFER,
+               vertices.size() * sizeof(VertexData),
+               vertices.data(),
+               GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  return pVBuffer;
 }
 
 SPtr<IndexBuffer>
 OGLGraphicsManager::internalCreateIndexBuffer(const Vector<uint32>& indices,
-                                              const uint32 usage)
+                                              const uint32)
 {
-  return SPtr<IndexBuffer>();
+  auto pIBuffer = make_shared<OGLIndexBuffer>();
+
+  glGenBuffers(1, &pIBuffer->m_ibo);
+  glBindBuffer(GL_ARRAY_BUFFER, pIBuffer->m_ibo);
+  glBufferData(GL_ARRAY_BUFFER,
+               indices.size() * sizeof(VertexData),
+               indices.data(),
+               GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  return pIBuffer;
 }
 
 SPtr<ConstantBuffer>
 OGLGraphicsManager::internalCreateConstantBuffer(const uint32 bufferSize,
-                                                 const uint32 usage,
+                                                 const uint32 bindingPoint,
                                                  const void* pData)
 {
-  return SPtr<ConstantBuffer>();
+  auto pCBuffer = make_shared<OGLConstantBuffer>();
+
+  glGenBuffers(1, &pCBuffer->m_ubo);
+  glBindBuffer(GL_ARRAY_BUFFER, pCBuffer->m_ubo);
+  glBufferData(GL_ARRAY_BUFFER,
+               bufferSize,
+               pData,
+               GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  pCBuffer->m_binding = bindingPoint;
+  glBindBufferBase(GL_UNIFORM_BUFFER, pCBuffer->m_binding, pCBuffer->m_ubo);
+
+  return pCBuffer;
 }
 
 SPtr<SamplerState>
 OGLGraphicsManager::internalCreateSamplerState(const uint32 filter,
                                                const uint32 textAddress)
 {
-  return SPtr<SamplerState>();
+  auto pSamplerLinear = make_shared<OGLSamplerState>();
+
+  glGenSamplers(1, &pSamplerLinear->m_samplerID);
+
+  // TODO: Values are temporal, it should be replaced with a translator.
+  if (textAddress == 1) {
+    glSamplerParameteri(pSamplerLinear->m_samplerID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(pSamplerLinear->m_samplerID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  }
+
+  // TODO: Values are temporal, it should be replaced with a translator.
+  if (filter == 21) {
+    glSamplerParameteri(pSamplerLinear->m_samplerID,
+                        GL_TEXTURE_MIN_FILTER,
+                        GL_LINEAR_MIPMAP_LINEAR);
+    glSamplerParameteri(pSamplerLinear->m_samplerID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  }
+
+  return pSamplerLinear;
 }
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -306,7 +382,7 @@ OGLGraphicsManager::internalCreateTextureFromFile(const String& fileName)
 
   unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
 
-  int32 pitch = width * bpp;
+  //int32 pitch = width * bpp;
 
   auto pTexture = reinterpret_pointer_cast<OGLTexture2D>(internalCreateTexture2D(width,
                                                          height,
@@ -354,51 +430,57 @@ OGLGraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCB
                                                  const void* pData,
                                                  const uint32 dataSize)
 {
+  auto pConstantBuffer = reinterpret_pointer_cast<OGLConstantBuffer>(pCBuffer);
 
+  glBindBuffer(GL_UNIFORM_BUFFER, pConstantBuffer->m_ubo);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, dataSize, pData);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void
-OGLGraphicsManager::internalSetRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                                             const SPtr<Texture2D>& pDepthSV,
-                                             const uint32 numViews)
+OGLGraphicsManager::internalSetRenderTargets(const SPtr<RenderTargetView>&,
+                                             const SPtr<Texture2D>&,
+                                             const uint32)
 {
 
 }
 
 void
-OGLGraphicsManager::internalSetInputLayout(const SPtr<InputLayout>& pInput)
+OGLGraphicsManager::internalSetInputLayout(const SPtr<InputLayout>&)
 {
 
 }
 
 void
-OGLGraphicsManager::internalSetVertexBuffers(const SPtr<VertexBuffer>& pVBuffer,
-                                             const uint32 startSlot,
-                                             const uint32 numBuffers,
-                                             const uint32 offset)
+OGLGraphicsManager::internalSetVertexBuffers(const SPtr<VertexBuffer>&,
+                                             const uint32,
+                                             const uint32,
+                                             const uint32)
+{
+  //auto pVertexBuffer = reinterpret_pointer_cast<OGLVertexBuffer>(pVBuffer);
+
+  //glBindBuffer(GL_ARRAY_BUFFER, pVertexBuffer->m_vbo);
+}
+
+void
+OGLGraphicsManager::internalSetIndexBuffers(const SPtr<IndexBuffer>&,
+                                            const uint32)
 {
 
 }
 
 void
-OGLGraphicsManager::internalSetIndexBuffers(const SPtr<IndexBuffer>& pIBuffer,
-                                            const uint32 offset)
+OGLGraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>&,
+                                                 const uint32,
+                                                 const uint32)
 {
 
 }
 
 void
-OGLGraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
-                                                 const uint32 startSlot,
-                                                 const uint32 numBuffers)
-{
-
-}
-
-void
-OGLGraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
-                                                 const uint32 startSlot,
-                                                 const uint32 numBuffers)
+OGLGraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>&,
+                                                 const uint32,
+                                                 const uint32)
 {
 
 }
@@ -406,46 +488,58 @@ OGLGraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pCB
 void
 OGLGraphicsManager::internalSetPrimitiveTopology(const uint32 primitive)
 {
-
+  if (primitive == 4) {
+    m_topology = GL_TRIANGLES;
+  }
 }
 
 void
 OGLGraphicsManager::internalSetProgramShader(const SPtr<ProgramShader>& pPShader,
-                                             const void* ppClassInstances,
-                                             const uint32 numClassInstances)
+                                             const void*,
+                                             const uint32)
 {
+  auto pProgramShader = reinterpret_pointer_cast<OGLProgramShader>(pPShader);
 
+  glUseProgram(pProgramShader->m_programID);
 }
 
 void
 OGLGraphicsManager::internalSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                                                  const uint32 startSlot,
-                                                  const uint32 numViews)
+                                                  const uint32,
+                                                  const uint32)
 {
+  auto pTexture = reinterpret_pointer_cast<OGLTexture2D>(pShaderRV);
 
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, pTexture->m_texture);
 }
 
 void
 OGLGraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                                             const uint32 startSlot,
-                                            const uint32 numSamplers)
+                                            const uint32)
 {
+  auto pSampler = reinterpret_pointer_cast<OGLSamplerState>(pSamplerLinear);
 
+  glActiveTexture(GL_TEXTURE0);
+  glBindSampler(startSlot, pSampler->m_samplerID);
 }
 
 void
-OGLGraphicsManager::internalDraw(const uint32 vertexCount, const uint32 startVertexLocation)
+OGLGraphicsManager::internalDraw(const uint32, const uint32)
 {
 
 }
 
-#if SH_PLATFORM == SH_PLATFORM_WIN32
 void
 OGLGraphicsManager::internalDrawIndexed(const uint32 indexCount,
                                         const uint32 startIndexLocation,
-                                        const uint32 baseVertexLocation)
+                                        const uint32)
 {
-  SwapBuffers(reinterpret_cast<HDC>(m_device->m_device));
+  glDrawElements(m_topology, indexCount, GL_UNSIGNED_INT, &startIndexLocation);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glUseProgram(0);
 }
-#endif
 }

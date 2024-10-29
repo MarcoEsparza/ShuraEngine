@@ -48,12 +48,7 @@ class OGLVertexBuffer : public VertexBuffer
   /**
   *  @brief OpenGL buffer.
   */
-  uint32 m_buffer = 0;
-
-  /**
-  *  @brief Buffer stride.
-  */
-  uint32 m_stride;
+  uint32 m_vbo = 0;
 };
 
 /**
@@ -83,12 +78,7 @@ class OGLIndexBuffer : public IndexBuffer
   /**
   *  @brief OpenGL buffer.
   */
-  uint32 m_buffer = 0;
-
-  /**
-  *  @brief Buffer size.
-  */
-  uint32 m_bufferSize;
+  uint32 m_ibo = 0;
 };
 
 /**
@@ -118,26 +108,26 @@ class OGLConstantBuffer : public ConstantBuffer
   /**
   *  @brief OpenGL buffer.
   */
-  uint32 m_buffer = 0;
+  uint32 m_ubo = 0;
 
   /**
   *  @brief Buffer size.
   */
-  uint32 m_bufferSize;
+  uint32 m_binding = 0;
 };
 
 FORCEINLINE OGLVertexBuffer::~OGLVertexBuffer()
 {
-  glDeleteBuffers(1, &m_buffer);
+  glDeleteBuffers(1, &m_vbo);
 }
 
 FORCEINLINE OGLIndexBuffer::~OGLIndexBuffer()
 {
-  glDeleteBuffers(1, &m_buffer);
+  glDeleteBuffers(1, &m_ibo);
 }
 
 FORCEINLINE OGLConstantBuffer::~OGLConstantBuffer()
 {
-  glDeleteBuffers(1, &m_buffer);
+  glDeleteBuffers(1, &m_ubo);
 }
 }
