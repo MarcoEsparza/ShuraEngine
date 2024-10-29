@@ -193,11 +193,17 @@ initGraphicAssets(const Screen& _screen)
   *  Shaders
   ********************/
 
-  g_pProgramShader = gManager.createProgramShader("resources/BasicShader.hlsl",
+  /*g_pProgramShader = gManager.createProgramShader("resources/BasicShader.hlsl",
                                                   "main",
                                                   "mainPS",
                                                   "vs_5_0",
-                                                  "ps_5_0");
+                                                  "ps_5_0");*/
+
+  g_pProgramShader = gManager.createProgramShader("resources/BasicVShader.glsl",
+                                                  "resources/BasicFragment.glsl",
+                                                  "",
+                                                  "",
+                                                  "");
 
   SH_ASSERT(g_pProgramShader);
 
@@ -327,7 +333,7 @@ initGraphicAssets(const Screen& _screen)
   *  Camera
   ********************/
 
-  g_world = Matrix4::identity;
+  g_world = Matrix4::IDENTITY;
 
   uint32 sizeWVP = sizeof(Matrix4) * 3;
   g_pWVP = gManager.createConstantBuffer(sizeWVP);

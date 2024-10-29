@@ -20,16 +20,70 @@
 
 using std::reinterpret_pointer_cast;
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
+#endif
 
 // TODO: Delete this, make a wrapper.
 #include "fstream"
+#include "sstream"
+
+
+namespace shEngineSDK {
 using std::fstream;
 using std::ios;
 using std::stringstream;
 
-namespace shEngineSDK {
+void
+compileShader(uint32& shader, uint32& ID, const String& shaderData)
+{
+  GLint Result = GL_FALSE;
+  int InfoLogLength;
+
+  // Compile shader
+  char const* pShaderSource = shaderData.c_str();
+  glShaderSource(shader, 1, &pShaderSource, NULL);
+  glCompileShader(shader);
+
+  // Check shader
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &Result);
+  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &InfoLogLength);
+
+  if (InfoLogLength > 0)
+  {
+    Vector<char> vsErrorMessage(InfoLogLength + 1);
+    glGetShaderInfoLog(shader,
+                       InfoLogLength,
+                       NULL,
+                       &vsErrorMessage[0]);
+  }
+
+  // Link the program
+  uint32 programID = glCreateProgram();
+  glAttachShader(programID, shader);
+  glLinkProgram(programID);
+
+  // Check the program
+  glGetShaderiv(programID, GL_COMPILE_STATUS, &Result);
+  glGetShaderiv(programID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+
+  if (InfoLogLength > 0)
+  {
+    Vector<char> vsErrorMessage(InfoLogLength + 1);
+    glGetShaderInfoLog(programID,
+                       InfoLogLength,
+                       NULL,
+                       &vsErrorMessage[0]);
+  }
+
+  glDetachShader(programID, shader);
+  glDeleteShader(shader);
+
+  ID = programID;
+}
+
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 void
 enableOpenGL(const HWND& hwnd, HDC* hdc, HGLRC* hrc)
 {
@@ -113,6 +167,7 @@ OGLGraphicsManager::internalInit(const Screen& screen,
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+#endif
 
 void
 OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
@@ -122,7 +177,7 @@ OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTar
 
   glBindBuffer(GL_FRAMEBUFFER, pFbo->m_frameObject);
   glViewport(0, 0, m_width, m_height);
-  glClearColor(color.R, color.G, color.B, color.A);
+  glClearColor(color.r, color.g, color.b, color.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -135,7 +190,7 @@ OGLGraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
   auto pDepth = reinterpret_pointer_cast<OGLDepthRender>(pDepthSV);
 
   glViewport(0, 0, m_width, m_height);
-  glClearColor(pDepth->m_color.R, pDepth->m_color.G, pDepth->m_color.B, pDepth->m_color.A);
+  glClearColor(pDepth->m_color.r, pDepth->m_color.g, pDepth->m_color.b, pDepth->m_color.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -173,9 +228,9 @@ OGLGraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES:
 SPtr<ProgramShader>
 OGLGraphicsManager::internalCreateProgramShader(const String& vertexFileName,
                                                 const String& fragFileName,
-                                                const String& psEntryPoint,
-                                                const String& vsShaderModel,
-                                                const String& psShaderModel)
+                                                const String&,
+                                                const String&,
+                                                const String&)
 {
   auto pProgramShader = make_shared<OGLProgramShader>();
 
@@ -191,6 +246,23 @@ OGLGraphicsManager::internalCreateProgramShader(const String& vertexFileName,
     return nullptr;
   }
 
+  stringstream vsSStream;
+  vsSStream << vsFile.rdbuf();
+  vsCode = vsSStream.str();
+  vsFile.close();
+
+  stringstream fsSStream;
+  fsSStream << fsFile.rdbuf();
+  fsCode = fsSStream.str();
+  fsFile.close();
+
+  compileShader(pProgramShader->m_vertexShader,
+                pProgramShader->m_vertexID,
+                vsCode);
+
+  compileShader(pProgramShader->m_fragShader,
+                pProgramShader->m_fragID,
+                vsCode);
 
   return pProgramShader;
 }
