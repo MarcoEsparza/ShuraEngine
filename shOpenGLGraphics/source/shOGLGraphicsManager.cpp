@@ -2,7 +2,7 @@
 /*
 *  @file    shOGLGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Graphics Manager for Open GL.
 *
 *  Graphics Manager for Open GL.
@@ -85,9 +85,9 @@ compileShader(uint32& shader, uint32& ID, const String& shaderData)
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 void
-enableOpenGL(const HWND& hwnd, HDC* hdc, HGLRC* hrc)
+enableOpenGL(const HWND& hwnd, HandleDC& hdc, RenderingContext& hrc)
 {
-  *hdc = GetDC(hwnd);
+  hdc = GetDC(hwnd);
 
   PIXELFORMATDESCRIPTOR pfd = { 0 };
   pfd.nSize = sizeof(pfd);
@@ -99,11 +99,11 @@ enableOpenGL(const HWND& hwnd, HDC* hdc, HGLRC* hrc)
   pfd.cStencilBits = 8;
   pfd.iLayerType = PFD_MAIN_PLANE;
 
-  int format = ChoosePixelFormat(*hdc, &pfd);
-  SetPixelFormat(*hdc, format, &pfd);
+  int format = ChoosePixelFormat(hdc, &pfd);
+  SetPixelFormat(hdc, format, &pfd);
 
-  *hrc = wglCreateContext(*hdc);
-  wglMakeCurrent(*hdc, *hrc);
+  hrc = wglCreateContext(hdc);
+  wglMakeCurrent(hdc, hrc);
 }
 #endif
 
@@ -119,31 +119,29 @@ OGLGraphicsManager::internalInit(const Screen& screen,
   m_height = screen.getHeight();
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
-  enableOpenGL(reinterpret_cast<HWND>(screen.getPlatformHandler()),
-               reinterpret_cast<HDC*>(m_device->m_device),
-               reinterpret_cast<HGLRC*>(m_rContext->m_rContext));
+  enableOpenGL(screen.getPlatformHandler(),
+               m_device->m_device,
+               m_rContext->m_rContext);
 #endif
+
+  glewExperimental = true;
 
   GLenum err = glewInit();
   if (err != GLEW_OK) {
     SH_ASSERT("Error initializing glew");
   }
 
-  glEnable(GL_DEPTH_TEST);
+  glViewport(0, 0, m_width, m_height);
 
   m_framebuffer = make_shared<OGLFrameBuffer>();
 
   glGenFramebuffers(1, &m_framebuffer->m_frameObject);
   glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer->m_frameObject);
 
-  auto pFTexture = reinterpret_pointer_cast<OGLTexture2D>(internalCreateTexture2D(
-                                                          m_width,
-                                                          m_height,
-                                                          GL_RGB,
-                                                          GL_RGB,
-                                                          GL_UNSIGNED_BYTE));
-
-  m_framebuffer->m_texture = pFTexture->m_texture;
+  glGenTextures(GL_TEXTURE_2D, &m_framebuffer->m_texture);
+  glBindTexture(GL_TEXTURE_2D, m_framebuffer->m_texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+  //glBindTexture(GL_TEXTURE_2D, 0);
 
   glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -164,11 +162,16 @@ OGLGraphicsManager::internalInit(const Screen& screen,
                             GL_DEPTH_STENCIL_ATTACHMENT,
                             GL_RENDERBUFFER,
                             m_depthRender->m_depthBuffer);
-  SH_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE);
 
-  glViewport(0, 0, m_width, m_height);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    SH_ASSERT("Framebuffer incomplete");
+  }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glEnable(GL_DEPTH_TEST);
 }
 
 void
@@ -182,8 +185,6 @@ OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTar
   glClearColor(color.r, color.g, color.b, color.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  
 }
 
 void
@@ -200,7 +201,7 @@ void
 OGLGraphicsManager::internalPresent()
 {
 #if SH_PLATFORM == SH_PLATFORM_WIN32
-  SwapBuffers(reinterpret_cast<HDC>(m_device->m_device));
+  SwapBuffers(m_device->m_device);
 #endif
 }
 
@@ -421,6 +422,7 @@ OGLGraphicsManager::internalCreateTexture2D(const uint32 width,
   glGenTextures(GL_TEXTURE_2D, &pTexture2D->m_texture);
   glBindTexture(GL_TEXTURE_2D, pTexture2D->m_texture);
   glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, usage, bindFlags, 0);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   return pTexture2D;
 }

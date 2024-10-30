@@ -2,7 +2,7 @@
 /*
 *  @file    shCoreTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/10/29
 *  @brief   Here is the main to test the window initialize.
 *
 *  Here is the main to test the window initialize.
@@ -108,10 +108,8 @@ int main()
   if (!mainScreen.init(desc, eventQ)) {
     return -1;
   }
+
   HINSTANCE hGetProcIDDLL = LoadLibrary("shOpenGLGraphicsd.dll");
-
-  auto err = GetLastError();
-
   SH_ASSERT(hGetProcIDDLL && "Could not load dll");
 
   auto loadPlugin = reinterpret_cast<void(*)()>(GetProcAddress(hGetProcIDDLL, "loadPlugin"));
