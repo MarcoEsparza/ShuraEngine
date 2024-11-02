@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/29
+*  @date    2024/11/02
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -17,6 +17,8 @@
 */
 /*************************************************************/
 #include "shDX11GraphicsManager.h"
+#include "shScreen.h"
+#include "shLinearColor.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -101,13 +103,13 @@ compileShaderFromFile(const String& fileName,
 }
 
 void
-DX11GraphicsManager::internalInit(const Screen& screen,
+DX11GraphicsManager::internalInit(const Screen* screen,
                                   const bool bAntiliasing,
-                                  const SAMPLE_DESC& sample)
+                                  const SampleDesc& sample)
 {
-  m_bFullScreen = screen.isFullscreen();
-
-  auto hWnd = reinterpret_cast<HWND>(screen.getPlatformHandler());
+  m_bFullScreen = screen->isFullscreen();
+  
+  auto hWnd = reinterpret_cast<HWND>(screen->getPlatformHandler());
   //RECT rc;
   //GetClientRect(hWnd, &rc);
 
@@ -169,8 +171,8 @@ DX11GraphicsManager::internalInit(const Screen& screen,
   scDesc.Windowed = !m_bFullScreen;
 
   if (!m_bFullScreen) {
-    scDesc.BufferDesc.Width = screen.getWidth();
-    scDesc.BufferDesc.Height = screen.getHeight();
+    scDesc.BufferDesc.Width = screen->getWidth();
+    scDesc.BufferDesc.Height = screen->getHeight();
     scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
   }
 
@@ -258,12 +260,14 @@ DX11GraphicsManager::internalInit(const Screen& screen,
 
 void
 DX11GraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
-                                               LinearColor& color)
+                                               const LinearColor& color)
 {
   auto pRTV = reinterpret_pointer_cast<DX11RenderTargetView>(pTarget);
+  
+  FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
   m_pDeviceContext->m_pDeviceContext->ClearRenderTargetView(pRTV->m_pRenderTV,
-                                                            reinterpret_cast<FLOAT*>(&color));
+                                                            colorRGBA);
 }
 
 void
@@ -278,9 +282,9 @@ DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
 }
 
 void
-DX11GraphicsManager::internalPresent()
+DX11GraphicsManager::internalPresent(uint32 syncInterval, uint32 flags)
 {
-  m_pSwapChain->m_pSwapChain->Present(0, 0);
+  m_pSwapChain->m_pSwapChain->Present(syncInterval, flags);
 }
 
 SPtr<RenderTargetView>
@@ -296,7 +300,7 @@ DX11GraphicsManager::internalGetMainDepthStencil() const
 }
 
 SPtr<InputLayout>
-DX11GraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+DX11GraphicsManager::internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                                                const SPtr<ProgramShader>& pPShader)
 {
   auto pInputLayout = make_shared<DX11InputLayout>();
@@ -316,27 +320,27 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES
     element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
     element.InstanceDataStepRate = 0;
 
-    if (types[i] == shINPUT_LAYOUT_TYPES::E::kPosition) {
+    if (types[i] == INPUT_LAYOUT_TYPES::E::kPosition) {
       element.SemanticName = "POSITION";
       element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
       byteOffset += 12;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kNormal) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::E::kNormal) {
       element.SemanticName = "NORMAL";
       element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
       byteOffset += 12;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kTexcoord) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::E::kTexcoord) {
       element.SemanticName = "TEXCOORD";
       element.Format = DXGI_FORMAT_R32G32_FLOAT;
       byteOffset += 8;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kBoneIndices) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::E::kBoneIndices) {
       element.SemanticName = "BLENDINDICES";
       element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
       byteOffset += 16;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kBoneWieghts) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::E::kBoneWieghts) {
       element.SemanticName = "BLENDWEIGHT";
       element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
       byteOffset += 16;

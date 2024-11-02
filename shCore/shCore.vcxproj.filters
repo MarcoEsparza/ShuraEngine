@@ -38,31 +38,10 @@
       <UniqueIdentifier>{30e1e187-bc12-4dd4-be42-777f6c0a1848}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Camera">
-      <UniqueIdentifier>{f42c556b-1501-405b-89bb-921926ff7108}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Camera">
-      <UniqueIdentifier>{534da53a-3e2f-4e5c-90ee-3548d26a3d6c}</UniqueIdentifier>
+      <UniqueIdentifier>{a8e3a55a-19fb-45bd-960f-50cd9446ce29}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\shPrerequisitesCore.h">
-      <Filter>Header Files\Prerequisites</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\shScreen.h">
-      <Filter>Header Files\Screen</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\shEvent.h">
-      <Filter>Header Files\Event</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\shScreenEventHandle.h">
-      <Filter>Header Files\Event</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\shEventData.h">
-      <Filter>Header Files\Event</Filter>
-    </ClInclude>
-    <ClInclude Include="include\shEventEnums.h">
-      <Filter>Header Files\Event</Filter>
-    </ClInclude>
     <ClInclude Include="include\shGraphicsManager.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
@@ -73,6 +52,9 @@
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
     <ClInclude Include="include\shDevice.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDepthStencilView.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
     <ClInclude Include="include\shInputLayout.h">
@@ -90,28 +72,46 @@
     <ClInclude Include="include\shSwapChain.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
-    <ClInclude Include="Include\shCamera.h">
+    <ClInclude Include="include\shCamera.h">
       <Filter>Header Files\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="Include\shGraphicTypes.h">
+    <ClInclude Include="include\shPrerequisitesCore.h">
+      <Filter>Header Files\Prerequisites</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shScreen.h">
+      <Filter>Header Files\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shGraphicTypes.h">
       <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shEvent.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shEventData.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shEventEnums.h">
+      <Filter>Header Files\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shScreenEventHandle.h">
+      <Filter>Header Files\Event</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shScreenWin32.cpp">
-      <Filter>Source Files\Screen</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\shScreenEventHandleWin32.cpp">
-      <Filter>Source Files\Event</Filter>
-    </ClCompile>
     <ClCompile Include="source\shGraphicsManager.cpp">
       <Filter>Source Files\GraphicsManager</Filter>
     </ClCompile>
-    <ClCompile Include="Source\shEvent.cpp">
+    <ClCompile Include="source\shScreenWin32.cpp">
+      <Filter>Source Files\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shScreenEventHandleWin32.cpp">
       <Filter>Source Files\Event</Filter>
     </ClCompile>
-    <ClCompile Include="Source\shCamera.cpp">
-      <Filter>Source Files\Camera</Filter>
+    <ClCompile Include="source\shEvent.cpp">
+      <Filter>Source Files\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shCamera.cpp">
+      <Filter>Source Files\Event</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/29
+*  @date    2024/11/02
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -28,10 +28,6 @@
 #include "shDX11Shader.h"
 #include "shDX11SwapChain.h"
 #include "shDX11Texture.h"
-
-#include "shLinearColor.h"
-
-#include "d3d11.h"
 
 namespace shEngineSDK {
 /**
@@ -63,9 +59,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SAMPLE_DESC& sample
   */
   void
-  internalInit(const Screen& screen,
+  internalInit(const Screen* screen,
                const bool bAntiliasing,
-               const SAMPLE_DESC& sample) override;
+               const SampleDesc& sample) override;
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -75,7 +71,7 @@ class DX11GraphicsManager : public GraphicsManager
   */
   void
   internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
-                            LinearColor& color) override;
+                            const LinearColor& color) override;
 
   /**
   *  @brief Clear the depth stencil.
@@ -89,7 +85,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @brief Present the swapchain.
   */
   void
-  internalPresent() override;
+  internalPresent(uint32 syncInterval, uint32 flags) override;
 
   /********************
   *  Getters
@@ -124,7 +120,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                             const SPtr<ProgramShader>& pVShader) override;
 
   /**
@@ -384,7 +380,7 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief Descriptor for sample configuration.
   */
-  SAMPLE_DESC m_multiSampleConfig;
+  SampleDesc m_multiSampleConfig;
 
   /**
   *  @brief Is fullscreen?
