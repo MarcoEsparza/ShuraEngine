@@ -174,7 +174,7 @@ int main()
       eventQ->pop();
     }
 
-    update(transform);
+    //update(transform);
     render();
   }
   

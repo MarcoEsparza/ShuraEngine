@@ -44,7 +44,6 @@ public:
 
 protected:
   uint32 m_depthBuffer = 0;
-  LinearColor m_color;
 };
 
 FORCEINLINE OGLTexture2D::~OGLTexture2D()

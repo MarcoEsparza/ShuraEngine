@@ -132,46 +132,11 @@ OGLGraphicsManager::internalInit(const Screen& screen,
   }
 
   glViewport(0, 0, m_width, m_height);
-
-  m_framebuffer = make_shared<OGLFrameBuffer>();
-
-  glGenFramebuffers(1, &m_framebuffer->m_frameObject);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer->m_frameObject);
-
-  glGenTextures(GL_TEXTURE_2D, &m_framebuffer->m_texture);
-  glBindTexture(GL_TEXTURE_2D, m_framebuffer->m_texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-  //glBindTexture(GL_TEXTURE_2D, 0);
-
-  glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(GL_FRAMEBUFFER,
-                         GL_COLOR_ATTACHMENT0,
-                         GL_TEXTURE_2D,
-                         m_framebuffer->m_texture,
-                         0);
   
   m_depthRender = make_shared<OGLDepthRender>();
-  m_depthRender->m_color = LinearColor(0.1f, 0.1f, 0.1f);
+  m_depthRender->m_depthBuffer = 0;
 
-  glGenRenderbuffers(1, &m_depthRender->m_depthBuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, m_depthRender->m_depthBuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
-
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER,
-                            GL_DEPTH_STENCIL_ATTACHMENT,
-                            GL_RENDERBUFFER,
-                            m_depthRender->m_depthBuffer);
-
-  glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    SH_ASSERT("Framebuffer incomplete");
-  }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  glEnable(GL_DEPTH_TEST);
+  //glEnable(GL_DEPTH_TEST);
 }
 
 void
@@ -181,9 +146,8 @@ OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTar
   auto pFbo = reinterpret_pointer_cast<OGLFrameBuffer>(pTarget);
 
   glBindBuffer(GL_FRAMEBUFFER, pFbo->m_frameObject);
-  glViewport(0, 0, m_width, m_height);
   glClearColor(color.r, color.g, color.b, color.a);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -192,9 +156,7 @@ OGLGraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
 {
   auto pDepth = reinterpret_pointer_cast<OGLDepthRender>(pDepthSV);
 
-  glViewport(0, 0, m_width, m_height);
-  glClearColor(pDepth->m_color.r, pDepth->m_color.g, pDepth->m_color.b, pDepth->m_color.a);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void
@@ -221,34 +183,30 @@ SPtr<InputLayout>
 OGLGraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
                                               const SPtr<ProgramShader>& pPShader)
 {
+  auto pInputLayout = make_shared<OGLInputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<OGLProgramShader>(pPShader);
-
-  pProgramShader->m_programID = glCreateProgram();
-
-  glAttachShader(pProgramShader->m_programID, pProgramShader->m_vertexShader);
-  glAttachShader(pProgramShader->m_programID, pProgramShader->m_fragShader);
 
   for (uint8 i = 0; i < types.size(); ++i) {
     if (types[i] == shINPUT_LAYOUT_TYPES::kPosition) {
-      glBindAttribLocation(pProgramShader->m_programID, i, "vertexPosition");
+      pInputLayout->m_inputData[i] = "vertexPosition";
     }
     else if (types[i] == shINPUT_LAYOUT_TYPES::kNormal) {
-      glBindAttribLocation(pProgramShader->m_programID, i, "vertexNormal");
+      pInputLayout->m_inputData[i] = "vertexNormal";
     }
     else if (types[i] == shINPUT_LAYOUT_TYPES::kTexcoord) {
-      glBindAttribLocation(pProgramShader->m_programID, i, "vertexUV");
+      pInputLayout->m_inputData[i] = "vertexUV";
     }
     else if (types[i] == shINPUT_LAYOUT_TYPES::kBoneIndices) {
-      glBindAttribLocation(pProgramShader->m_programID, i, "boneID");
+      pInputLayout->m_inputData[i] = "boneID";
     }
     else if (types[i] == shINPUT_LAYOUT_TYPES::kBoneWieghts) {
-      glBindAttribLocation(pProgramShader->m_programID, i, "boneWeight");
+      pInputLayout->m_inputData[i] = "boneWeight";
     }
   }
 
-  glLinkProgram(pProgramShader->m_programID);
+  pInputLayout->m_shaderID = pProgramShader->m_programID;
 
-  return nullptr;
+  return pInputLayout;
 }
 
 SPtr<ProgramShader>
@@ -448,9 +406,14 @@ OGLGraphicsManager::internalSetRenderTargets(const SPtr<RenderTargetView>&,
 }
 
 void
-OGLGraphicsManager::internalSetInputLayout(const SPtr<InputLayout>&)
+OGLGraphicsManager::internalSetInputLayout(const SPtr<InputLayout>& pILayout)
 {
+  auto pInputLayout = reinterpret_pointer_cast<OGLInputLayout>(pILayout);
 
+  for (uint32 i = 0; i < pInputLayout->m_inputData.size(); ++i) {
+    auto attrib = pInputLayout->m_inputData.find(i);
+    glBindAttribLocation(pInputLayout->m_shaderID, i, (*attrib).second.c_str());
+  }
 }
 
 void
@@ -501,6 +464,11 @@ OGLGraphicsManager::internalSetProgramShader(const SPtr<ProgramShader>& pPShader
                                              const uint32)
 {
   auto pProgramShader = reinterpret_pointer_cast<OGLProgramShader>(pPShader);
+
+  pProgramShader->m_programID = glCreateProgram();
+
+  glAttachShader(pProgramShader->m_programID, pProgramShader->m_vertexShader);
+  glAttachShader(pProgramShader->m_programID, pProgramShader->m_fragShader);
 
   glUseProgram(pProgramShader->m_programID);
 }
