@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/11/02
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -20,15 +20,16 @@
 
 namespace shEngineSDK {
 void
-GraphicsManager::initManager(const Screen& screen,
+GraphicsManager::initManager(const Screen* screen,
                              const bool bAntiliasing,
-                             const SAMPLE_DESC& sample)
+                             const SampleDesc& sample)
 {
   internalInit(screen, bAntiliasing, sample);
 }
 
 void
-GraphicsManager::clearRenderTarget(const SPtr<RenderTargetView>& pTarget, LinearColor& color)
+GraphicsManager::clearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+                                   const LinearColor& color)
 {
   internalClearRenderTarget(pTarget, color);
 }
@@ -40,9 +41,9 @@ GraphicsManager::clearDepthStencil(const SPtr<Texture2D>& pDepthSV)
 }
 
 void
-GraphicsManager::present()
+GraphicsManager::present(uint32 syncInterval, uint32 flags)
 {
-  internalPresent();
+  internalPresent(syncInterval, flags);
 }
 
 SPtr<RenderTargetView>
@@ -58,7 +59,7 @@ GraphicsManager::getMainDepthStencil() const
 }
 
 SPtr<InputLayout>
-GraphicsManager::createInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+GraphicsManager::createInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                                    const SPtr<ProgramShader>& pShader)
 {
   return internalCreateInputLayout(types, pShader);

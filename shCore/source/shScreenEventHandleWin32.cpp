@@ -62,23 +62,23 @@ ScreenEventHandle::pop()
 void
 ScreenEventHandle::emplace(const Event& ev)
 {
-  if (ev.type == shEVENT_TYPE::kFocus) {
+  if (ev.type == EVENT_TYPE::kFocus) {
     m_queue.emplace(ev.data.focus.focused);
   }
-  else if (ev.type == shEVENT_TYPE::kResize) {
+  else if (ev.type == EVENT_TYPE::kResize) {
     m_queue.emplace(ev.data.resize.width,
                     ev.data.resize.height,
                     ev.data.resize.resizing);
   }
-  else if (ev.type == shEVENT_TYPE::kDPI) {
+  else if (ev.type == EVENT_TYPE::kDPI) {
     m_queue.emplace(ev.data.dpi.scale);
   }
-  else if (ev.type == shEVENT_TYPE::kKeyboard) {
+  else if (ev.type == EVENT_TYPE::kKeyboard) {
     m_queue.emplace(ev.data.keyboard.key,
                     ev.data.keyboard.state,
                     ev.data.keyboard.modifiers);
   }
-  else if (ev.type == shEVENT_TYPE::kMouseMove) {
+  else if (ev.type == EVENT_TYPE::kMouseMove) {
     m_queue.emplace(ev.data.mouseMove.x,
                     ev.data.mouseMove.y,
                     ev.data.mouseMove.screenX,
@@ -86,16 +86,16 @@ ScreenEventHandle::emplace(const Event& ev)
                     ev.data.mouseMove.deltaX,
                     ev.data.mouseMove.deltaY);
   }
-  else if (ev.type == shEVENT_TYPE::kMouseInput) {
+  else if (ev.type == EVENT_TYPE::kMouseInput) {
     m_queue.emplace(ev.data.mouseInput.button,
                     ev.data.mouseInput.state,
                     ev.data.mouseInput.modifiers);
   }
-  else if (ev.type == shEVENT_TYPE::kMouseWheel) {
+  else if (ev.type == EVENT_TYPE::kMouseWheel) {
     m_queue.emplace(ev.data.mouseWheel.delta,
                     ev.data.mouseWheel.modifiers);
   }
-  else if (ev.type == shEVENT_TYPE::kMouseRaw) {
+  else if (ev.type == EVENT_TYPE::kMouseRaw) {
     m_queue.emplace(ev.data.mouseRaw.deltaX,
                     ev.data.mouseRaw.deltaY);
   }
@@ -122,7 +122,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   LRESULT result = DefWindowProc(hwnd, msg, wParam, lParam);
   RECT currenScreenRect = { -1,-1,-1,-1 };
 
-  Event currentEvent = Event(shEVENT_TYPE::E::kNone);
+  Event currentEvent = Event(EVENT_TYPE::E::kNone);
 
   ScreenEventHandle* eventQ =
   reinterpret_cast<ScreenEventHandle*>(GetWindowLongPtrA(hwnd, 0));
@@ -145,7 +145,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     FillRect(ps.hdc, &rect, borderBrush);
     EndPaint(hwnd, &ps);
 
-    currentEvent = Event(shEVENT_TYPE::E::kPaint);
+    currentEvent = Event(EVENT_TYPE::E::kPaint);
     break;
   }
   case WM_ERASEBKGND:
@@ -155,7 +155,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_CLOSE:
   case WM_DESTROY:
   {
-    currentEvent = Event(shEVENT_TYPE::E::kClose);
+    currentEvent = Event(EVENT_TYPE::E::kClose);
     break;
   }
   case WM_SETFOCUS:
@@ -181,8 +181,8 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_LBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
-    currentEvent = Event(shMOUSE_INPUT::E::kLeft,
-                         shBUTTON_STATE::E::kPressed,
+    currentEvent = Event(MOUSE_INPUT::E::kLeft,
+                         BUTTON_STATE::E::kPressed,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -192,8 +192,8 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_LBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
-    currentEvent = Event(shMOUSE_INPUT::E::kLeft,
-                         shBUTTON_STATE::E::kReleased,
+    currentEvent = Event(MOUSE_INPUT::E::kLeft,
+                         BUTTON_STATE::E::kReleased,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -203,8 +203,8 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_MBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
-    currentEvent = Event(shMOUSE_INPUT::E::kMiddle,
-                         shBUTTON_STATE::E::kPressed,
+    currentEvent = Event(MOUSE_INPUT::E::kMiddle,
+                         BUTTON_STATE::E::kPressed,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -214,8 +214,8 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_MBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
-    currentEvent = Event(shMOUSE_INPUT::E::kMiddle,
-                         shBUTTON_STATE::E::kReleased,
+    currentEvent = Event(MOUSE_INPUT::E::kMiddle,
+                         BUTTON_STATE::E::kReleased,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -225,8 +225,8 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_RBUTTONDOWN:
   {
     short modifiers = LOWORD(wParam);
-    currentEvent = Event(shMOUSE_INPUT::E::kRight,
-                         shBUTTON_STATE::E::kPressed,
+    currentEvent = Event(MOUSE_INPUT::E::kRight,
+                         BUTTON_STATE::E::kPressed,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -236,8 +236,8 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_RBUTTONUP:
   {
     short modifiers = LOWORD(wParam);
-    currentEvent = Event(shMOUSE_INPUT::E::kRight,
-                         shBUTTON_STATE::E::kReleased,
+    currentEvent = Event(MOUSE_INPUT::E::kRight,
+                         BUTTON_STATE::E::kReleased,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -248,9 +248,9 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   {
     short modifiers = LOWORD(wParam);
     short x = HIWORD(wParam);
-    currentEvent = Event(x & XBUTTON1 ? shMOUSE_INPUT::E::kButton4 :
-                         shMOUSE_INPUT::E::kButton5,
-                         shBUTTON_STATE::E::kPressed,
+    currentEvent = Event(x & XBUTTON1 ? MOUSE_INPUT::E::kButton4 :
+                         MOUSE_INPUT::E::kButton5,
+                         BUTTON_STATE::E::kPressed,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -261,9 +261,9 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   {
     short modifiers = LOWORD(wParam);
     short x = HIWORD(wParam);
-    currentEvent = Event(x & XBUTTON1 ? shMOUSE_INPUT::E::kButton4 :
-                         shMOUSE_INPUT::E::kButton5,
-                         shBUTTON_STATE::E::kReleased,
+    currentEvent = Event(x & XBUTTON1 ? MOUSE_INPUT::E::kButton4 :
+                         MOUSE_INPUT::E::kButton5,
+                         BUTTON_STATE::E::kReleased,
                          ModifierState(modifiers & MK_CONTROL,
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
@@ -350,289 +350,289 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   case WM_SYSKEYDOWN:
   case WM_SYSKEYUP:
   {
-    shKEY::E key;
+    KEY::E key;
 
     switch (wParam)
     {
     case VK_ESCAPE:
-      key = shKEY::E::kEscape;
+      key = KEY::E::kEscape;
       break;
     case 0x30:
-      key = shKEY::E::kNum0;
+      key = KEY::E::kNum0;
       break;
     case 0x31:
-      key = shKEY::E::kNum1;
+      key = KEY::E::kNum1;
       break;
     case 0x32:
-      key = shKEY::E::kNum2;
+      key = KEY::E::kNum2;
       break;
     case 0x33:
-      key = shKEY::E::kNum3;
+      key = KEY::E::kNum3;
       break;
     case 0x34:
-      key = shKEY::E::kNum4;
+      key = KEY::E::kNum4;
       break;
     case 0x35:
-      key = shKEY::E::kNum5;
+      key = KEY::E::kNum5;
       break;
     case 0x36:
-      key = shKEY::E::kNum6;
+      key = KEY::E::kNum6;
       break;
     case 0x37:
-      key = shKEY::E::kNum7;
+      key = KEY::E::kNum7;
       break;
     case 0x38:
-      key = shKEY::E::kNum8;
+      key = KEY::E::kNum8;
       break;
     case 0x39:
-      key = shKEY::E::kNum9;
+      key = KEY::E::kNum9;
       break;
     case 0x41:
-      key = shKEY::E::kA;
+      key = KEY::E::kA;
       break;
     case 0x42:
-      key = shKEY::E::kB;
+      key = KEY::E::kB;
       break;
     case 0x43:
-      key = shKEY::E::kC;
+      key = KEY::E::kC;
       break;
     case 0x44:
-      key = shKEY::E::kD;
+      key = KEY::E::kD;
       break;
     case 0x45:
-      key = shKEY::E::kE;
+      key = KEY::E::kE;
       break;
     case 0x46:
-      key = shKEY::E::kF;
+      key = KEY::E::kF;
       break;
     case 0x47:
-      key = shKEY::E::kG;
+      key = KEY::E::kG;
       break;
     case 0x48:
-      key = shKEY::E::kH;
+      key = KEY::E::kH;
       break;
     case 0x49:
-      key = shKEY::E::kI;
+      key = KEY::E::kI;
       break;
     case 0x4A:
-      key = shKEY::E::kJ;
+      key = KEY::E::kJ;
       break;
     case 0x4B:
-      key = shKEY::E::kK;
+      key = KEY::E::kK;
       break;
     case 0x4C:
-      key = shKEY::E::kL;
+      key = KEY::E::kL;
       break;
     case 0x4D:
-      key = shKEY::E::kM;
+      key = KEY::E::kM;
       break;
     case 0x4E:
-      key = shKEY::E::kN;
+      key = KEY::E::kN;
       break;
     case 0x4F:
-      key = shKEY::E::kO;
+      key = KEY::E::kO;
       break;
     case 0x50:
-      key = shKEY::E::kP;
+      key = KEY::E::kP;
       break;
     case 0x51:
-      key = shKEY::E::kQ;
+      key = KEY::E::kQ;
       break;
     case 0x52:
-      key = shKEY::E::kR;
+      key = KEY::E::kR;
       break;
     case 0x53:
-      key = shKEY::E::kS;
+      key = KEY::E::kS;
       break;
     case 0x54:
-      key = shKEY::E::kT;
+      key = KEY::E::kT;
       break;
     case 0x55:
-      key = shKEY::E::kU;
+      key = KEY::E::kU;
       break;
     case 0x56:
-      key = shKEY::E::kV;
+      key = KEY::E::kV;
       break;
     case 0x57:
-      key = shKEY::E::kW;
+      key = KEY::E::kW;
       break;
     case 0x58:
-      key = shKEY::E::kX;
+      key = KEY::E::kX;
       break;
     case 0x59:
-      key = shKEY::E::kY;
+      key = KEY::E::kY;
       break;
     case 0x5A:
-      key = shKEY::E::kZ;
+      key = KEY::E::kZ;
       break;
     case VK_SUBTRACT:
     case VK_OEM_MINUS:
-      key = shKEY::E::kMinus;
+      key = KEY::E::kMinus;
       break;
     case VK_ADD:
     case VK_OEM_PLUS:
-      key = shKEY::E::kAdd;
+      key = KEY::E::kAdd;
       break;
     case VK_MULTIPLY:
-      key = shKEY::E::kMultiply;
+      key = KEY::E::kMultiply;
       break;
     case VK_DIVIDE:
-      key = shKEY::E::kDivide;
+      key = KEY::E::kDivide;
       break;
     case VK_BACK:
-      key = shKEY::E::kBack;
+      key = KEY::E::kBack;
       break;
     case VK_RETURN:
-      key = shKEY::E::kEnter;
+      key = KEY::E::kEnter;
       break;
     case VK_DELETE:
-      key = shKEY::E::kDel;
+      key = KEY::E::kDel;
       break;
     case VK_TAB:
-      key = shKEY::E::kTab;
+      key = KEY::E::kTab;
       break;
     case VK_NUMPAD0:
-      key = shKEY::E::kNumpad0;
+      key = KEY::E::kNumpad0;
       break;
     case VK_NUMPAD1:
-      key = shKEY::E::kNumpad1;
+      key = KEY::E::kNumpad1;
       break;
     case VK_NUMPAD2:
-      key = shKEY::E::kNumpad2;
+      key = KEY::E::kNumpad2;
       break;
     case VK_NUMPAD3:
-      key = shKEY::E::kNumpad3;
+      key = KEY::E::kNumpad3;
       break;
     case VK_NUMPAD4:
-      key = shKEY::E::kNumpad4;
+      key = KEY::E::kNumpad4;
       break;
     case VK_NUMPAD5:
-      key = shKEY::E::kNumpad5;
+      key = KEY::E::kNumpad5;
       break;
     case VK_NUMPAD6:
-      key = shKEY::E::kNumpad6;
+      key = KEY::E::kNumpad6;
       break;
     case VK_NUMPAD7:
-      key = shKEY::E::kNumpad7;
+      key = KEY::E::kNumpad7;
       break;
     case VK_NUMPAD8:
-      key = shKEY::E::kNumpad8;
+      key = KEY::E::kNumpad8;
       break;
     case VK_NUMPAD9:
-      key = shKEY::E::kNumpad9;
+      key = KEY::E::kNumpad9;
       break;
     case VK_UP:
-      key = shKEY::E::kUp;
+      key = KEY::E::kUp;
       break;
     case VK_LEFT:
-      key = shKEY::E::kLeft;
+      key = KEY::E::kLeft;
       break;
     case VK_DOWN:
-      key = shKEY::E::kDown;
+      key = KEY::E::kDown;
       break;
     case VK_RIGHT:
-      key = shKEY::E::kRight;
+      key = KEY::E::kRight;
       break;
     case VK_SPACE:
-      key = shKEY::E::kSpace;
+      key = KEY::E::kSpace;
       break;
     case VK_HOME:
-      key = shKEY::E::kHome;
+      key = KEY::E::kHome;
       break;
     case VK_F1:
-      key = shKEY::E::kF1;
+      key = KEY::E::kF1;
       break;
     case VK_F2:
-      key = shKEY::E::kF2;
+      key = KEY::E::kF2;
       break;
     case VK_F3:
-      key = shKEY::E::kF3;
+      key = KEY::E::kF3;
       break;
     case VK_F4:
-      key = shKEY::E::kF4;
+      key = KEY::E::kF4;
       break;
     case VK_F5:
-      key = shKEY::E::kF5;
+      key = KEY::E::kF5;
       break;
     case VK_F6:
-      key = shKEY::E::kF6;
+      key = KEY::E::kF6;
       break;
     case VK_F7:
-      key = shKEY::E::kF7;
+      key = KEY::E::kF7;
       break;
     case VK_F8:
-      key = shKEY::E::kF8;
+      key = KEY::E::kF8;
       break;
     case VK_F9:
-      key = shKEY::E::kF9;
+      key = KEY::E::kF9;
       break;
     case VK_F10:
-      key = shKEY::E::kF10;
+      key = KEY::E::kF10;
       break;
     case VK_F11:
-      key = shKEY::E::kF11;
+      key = KEY::E::kF11;
       break;
     case VK_F12:
-      key = shKEY::E::kF12;
+      key = KEY::E::kF12;
       break;
     case VK_SHIFT:
     case VK_LSHIFT:
     case VK_RSHIFT:
-      key = shKEY::E::kLShift;
+      key = KEY::E::kLShift;
       break;
     case VK_CONTROL:
     case VK_LCONTROL:
     case VK_RCONTROL:
-      key = shKEY::E::kLControl;
+      key = KEY::E::kLControl;
       break;
     case VK_MENU:
     case VK_LMENU:
     case VK_RMENU:
-      key = shKEY::E::kLAlt;
+      key = KEY::E::kLAlt;
       break;
     case VK_LWIN:
     case VK_RWIN:
-      key = shKEY::E::kLWin;
+      key = KEY::E::kLWin;
       break;
     case VK_OEM_PERIOD:
-      key = shKEY::E::kPeriod;
+      key = KEY::E::kPeriod;
       break;
     case VK_OEM_COMMA:
-      key = shKEY::E::kComma;
+      key = KEY::E::kComma;
       break;
     case VK_OEM_1:
-      key = shKEY::E::kSemicolon;
+      key = KEY::E::kSemicolon;
       break;
     case VK_OEM_2:
-      key = shKEY::E::kBackslash;
+      key = KEY::E::kBackslash;
       break;
     case VK_OEM_3:
-      key = shKEY::E::kGrave;
+      key = KEY::E::kGrave;
       break;
     case VK_OEM_4:
-      key = shKEY::E::kLBracket;
+      key = KEY::E::kLBracket;
       break;
     case VK_OEM_6:
-      key = shKEY::E::kRBracket;
+      key = KEY::E::kRBracket;
       break;
     case VK_OEM_7:
-      key = shKEY::E::kApostrophe;
+      key = KEY::E::kApostrophe;
       break;
     default:
-      key = shKEY::E::kKeysMax;
+      key = KEY::E::kKeysMax;
     }
 
-    if (key == shKEY::E::kLControl && GetKeyState(VK_RCONTROL)) {
-      key = shKEY::E::kRControl;
+    if (key == KEY::E::kLControl && GetKeyState(VK_RCONTROL)) {
+      key = KEY::E::kRControl;
     }
-    if (key == shKEY::E::kLAlt && GetKeyState(VK_RMENU)) {
-      key = shKEY::E::kRAlt;
+    if (key == KEY::E::kLAlt && GetKeyState(VK_RMENU)) {
+      key = KEY::E::kRAlt;
     }
-    if (key == shKEY::E::kLShift && GetKeyState(VK_RSHIFT)) {
-      key = shKEY::E::kRShift;
+    if (key == KEY::E::kLShift && GetKeyState(VK_RSHIFT)) {
+      key = KEY::E::kRShift;
     }
-    if (key == shKEY::E::kLWin && GetKeyState(VK_RWIN)) {
-      key = shKEY::E::kRWin;
+    if (key == KEY::E::kLWin && GetKeyState(VK_RWIN)) {
+      key = KEY::E::kRWin;
     }
     ModifierState ms;
     ms.shift = (GetKeyState(VK_SHIFT) & 0x8000) |
@@ -642,19 +642,19 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     ms.meta = false;
 
     if (ms.shift) {
-      if (key == shKEY::E::kSemicolon) {
-        key = shKEY::E::kColon;
+      if (key == KEY::E::kSemicolon) {
+        key = KEY::E::kColon;
       }
-      if (key == shKEY::E::kApostrophe) {
-        key = shKEY::E::kQuotation;
+      if (key == KEY::E::kApostrophe) {
+        key = KEY::E::kQuotation;
       }
     }
 
     if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) {
-      currentEvent = Event(key, shBUTTON_STATE::kPressed, ms);
+      currentEvent = Event(key, BUTTON_STATE::kPressed, ms);
     }
     else if (msg == WM_KEYUP || msg == WM_SYSKEYUP) {
-      currentEvent = Event(key, shBUTTON_STATE::kReleased, ms);
+      currentEvent = Event(key, BUTTON_STATE::kReleased, ms);
     }
 
     break;
@@ -720,7 +720,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     break;
   }
 
-  if (currentEvent.type != shEVENT_TYPE::E::kNone) {
+  if (currentEvent.type != EVENT_TYPE::E::kNone) {
     if (eventQ != nullptr) {
       eventQ->emplace(currentEvent);
     }

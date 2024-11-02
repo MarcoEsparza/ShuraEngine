@@ -38,7 +38,7 @@ class SH_CORE_EXPORT Event
   * 
   *  @param shEVENT_TYPE::E _type: Type of event.
   */
-  explicit FORCEINLINE Event(const shEVENT_TYPE::E& _type) : type(_type) {}
+  explicit FORCEINLINE Event(const EVENT_TYPE::E& _type) : type(_type) {}
 
   /**
   *  @brief Focus Event constructor.
@@ -70,8 +70,8 @@ class SH_CORE_EXPORT Event
   *  @param shBUTTON_STATE::E _state
   *  @param ModifierState& _modifiers
   */
-  Event(const shKEY::E _key,
-        const shBUTTON_STATE::E _state,
+  Event(const KEY::E _key,
+        const BUTTON_STATE::E _state,
         const ModifierState& _modifiers);
 
   /**
@@ -98,8 +98,8 @@ class SH_CORE_EXPORT Event
   *  @param shBUTTON_STATE::E _state
   *  @param ModifierState& _modifiers
   */
-  Event(const shMOUSE_INPUT::E _button,
-        const shBUTTON_STATE::E _state,
+  Event(const MOUSE_INPUT::E _button,
+        const BUTTON_STATE::E _state,
         const ModifierState& _modifiers);
 
   /**
@@ -153,7 +153,7 @@ class SH_CORE_EXPORT Event
   /**
   *  @brief Type of event.
   */
-  shEVENT_TYPE::E type = shEVENT_TYPE::kNone;
+  EVENT_TYPE::E type = EVENT_TYPE::kNone;
 };
 
 /*************************************************************/
