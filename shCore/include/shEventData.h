@@ -135,20 +135,20 @@ struct SH_CORE_EXPORT KeyboardData
   *  @param shBUTTON_STATE::E _state
   *  @param ModifierState _modifiers
   */
-  FORCEINLINE KeyboardData(const shKEY::E _key,
-                           const shBUTTON_STATE::E _state,
+  FORCEINLINE KeyboardData(const KEY::E _key,
+                           const BUTTON_STATE::E _state,
                            const ModifierState& _modifiers)
                            : key(_key), state(_state), modifiers(_modifiers) {}
 
   /**
   *  @brief Key to interact.
   */
-  shKEY::E key;
+  KEY::E key;
 
   /**
   *  @brief State of the key.
   */
-  shBUTTON_STATE::E state;
+  BUTTON_STATE::E state;
 
   /**
   *  @brief Keyboard modifiers.
@@ -254,8 +254,8 @@ struct SH_CORE_EXPORT MouseInputData
   *  @param shBUTTON_STATE::E _state
   *  @param ModifierState _modifiers
   */
-  FORCEINLINE MouseInputData(const shMOUSE_INPUT::E _button,
-                             const shBUTTON_STATE::E _state,
+  FORCEINLINE MouseInputData(const MOUSE_INPUT::E _button,
+                             const BUTTON_STATE::E _state,
                              const ModifierState& _modifiers)
                              : button(_button),
                                state(_state),
@@ -264,12 +264,12 @@ struct SH_CORE_EXPORT MouseInputData
   /**
   *  @brief Button to interact.
   */
-  shMOUSE_INPUT::E button;
+  MOUSE_INPUT::E button;
 
   /**
   *  @brief State of button
   */
-  shBUTTON_STATE::E state;
+  BUTTON_STATE::E state;
 
   /**
   *  @brief Keyboard modifiers.

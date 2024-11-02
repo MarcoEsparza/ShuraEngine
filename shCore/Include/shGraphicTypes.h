@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/11/02
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
@@ -27,7 +27,7 @@ namespace shEngineSDK {
 /**
 *  @brief Sample descriptor.
 */
-struct SAMPLE_DESC
+struct SampleDesc
 {
   uint32 count = 0;
   uint32 quality = 0;
@@ -36,7 +36,7 @@ struct SAMPLE_DESC
 /**
 *  @brief Input Layout types enumerator namespace.
 */
-namespace shINPUT_LAYOUT_TYPES {
+namespace INPUT_LAYOUT_TYPES {
 enum E
 {
   kPosition = 0,

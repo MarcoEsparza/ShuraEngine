@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/29
+*  @date    2024/11/02
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -18,21 +18,27 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shModule.h"
-#include "shScreen.h"
-#include "shLinearColor.h"
 #include "shGraphicTypes.h"
-
-#include "shBuffers.h"
-#include "shDevice.h"
-#include "shInputLayout.h"
-#include "shRenderTargetView.h"
-#include "shSamplerState.h"
-#include "shShader.h"
-#include "shSwapChain.h"
-#include "shTexture.h"
+#include "shModule.h"
 
 namespace shEngineSDK {
+/*************************************************************/
+/*
+*  Forward declarations
+*/
+/*************************************************************/
+
+class LinearColor;
+class Screen;
+class VertexBuffer;
+class IndexBuffer;
+class ConstantBuffer;
+class InputLayout;
+class RenderTargetView;
+class SamplerState;
+class ProgramShader;
+class Texture2D;
+
 /**
 *  @brief Module Graphis Manager.
 */
@@ -62,9 +68,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SAMPLE_DESC& sample
   */
   void
-  initManager(const Screen& screen,
+  initManager(const Screen* screen,
               const bool bAntiliasing,
-              const SAMPLE_DESC& sample);
+              const SampleDesc& sample);
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -73,7 +79,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param LinearColor& color
   */
   void
-  clearRenderTarget(const SPtr<RenderTargetView>& pTarget, LinearColor& color);
+  clearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+                    const LinearColor& color);
 
   /**
   *  @brief Clear the depth stencil.
@@ -87,7 +94,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Present the swapchain.
   */
   void
-  present();
+  present(uint32 syncInterval = 0, uint32 flags = 0);
 
   /********************
   *  Getters
@@ -122,7 +129,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<InputLayout>
   */
   SPtr<InputLayout>
-  createInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+  createInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                     const SPtr<ProgramShader>& pShader);
 
   /**
@@ -333,7 +340,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Sets a shader resource.
   *
-  *  @param SPtr<Texture>& pShaderRV
+  *  @param SPtr<Texture2D>& pShaderRV
   *  @param uint32 startSlot = 0
   *  @param uint32 numViews = 1
   */
@@ -393,9 +400,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SAMPLE_DESC& sample
   */
   virtual void
-  internalInit(const Screen& screen,
+  internalInit(const Screen* screen,
                const bool bAntiliasing,
-               const SAMPLE_DESC& sample) = 0;
+               const SampleDesc& sample) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -404,7 +411,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param LinearColor& color
   */
   virtual void
-  internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget, LinearColor& color) = 0;
+  internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+                            const LinearColor& color) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -418,7 +426,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Calls the selected API overrided function.
   */
   virtual void
-  internalPresent() = 0;
+  internalPresent(uint32 syncInterval, uint32 flags) = 0;
 
   /********************
   *  Getters
@@ -453,7 +461,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                             const SPtr<ProgramShader>& pPShader) = 0;
 
   /**
@@ -662,7 +670,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   * 
-  *  @param SPtr<Texture>& pShaderRV
+  *  @param SPtr<Texture2D>& pShaderRV
   *  @param uint32 startSlot
   *  @param uint32 numViews
   */
