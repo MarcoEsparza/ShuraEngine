@@ -52,9 +52,9 @@ class OGLGraphicsManager : public GraphicsManager
   *  @param SAMPLE_DESC& sample
   */
   void
-  internalInit(const Screen& screen,
+  internalInit(const Screen* screen,
                const bool bAntiliasing,
-               const SAMPLE_DESC& sample) override;
+               const SampleDesc& sample) override;
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -64,7 +64,7 @@ class OGLGraphicsManager : public GraphicsManager
   */
   void
   internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
-                            LinearColor& color) override;
+                            const LinearColor& color) override;
 
   /**
   *  @brief Clear the depth stencil.
@@ -78,7 +78,7 @@ class OGLGraphicsManager : public GraphicsManager
   *  @brief Present the swapchain.
   */
   void
-  internalPresent() override;
+  internalPresent(uint32 syncInterval, uint32 flags) override;
 
   /********************
   *  Getters
@@ -113,7 +113,7 @@ class OGLGraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                             const SPtr<ProgramShader>& pVShader) override;
 
   /**

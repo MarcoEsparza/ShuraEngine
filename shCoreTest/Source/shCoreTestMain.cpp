@@ -21,6 +21,8 @@
 #include "shGraphicsManager.h"
 #include "shMath.h"
 #include "shCamera.h"
+#include "shLinearColor.h"
+
 #include "functional"
 
 using namespace shEngineSDK;
@@ -101,7 +103,7 @@ int main()
 
   Screen mainScreen;
   SPtr<ScreenEventHandle> eventQ = make_shared<ScreenEventHandle>();
-  SAMPLE_DESC sample;
+  SampleDesc sample;
   sample.count = 1;
   sample.quality = 1;
 
@@ -116,7 +118,7 @@ int main()
   SH_ASSERT(loadPlugin && "Could not load function");
   loadPlugin();
 
-  GraphicsManager::instance().initManager(mainScreen, false, sample);
+  GraphicsManager::instance().initManager(&mainScreen, false, sample);
   
   initGraphicAssets(mainScreen);
 
@@ -129,10 +131,10 @@ int main()
     while (!eventQ->empty()) {
       auto ev = eventQ->front();
 
-      if (ev.type == shEVENT_TYPE::kMouseInput) {
+      if (ev.type == EVENT_TYPE::kMouseInput) {
         const MouseInputData mouse = ev.data.mouseInput;
       }
-      if (ev.type == shEVENT_TYPE::kMouseMove) {
+      if (ev.type == EVENT_TYPE::kMouseMove) {
         const MouseMoveData mousePos = ev.data.mouseMove;
 
         g_lastMousePos = g_mousePos;
@@ -144,29 +146,29 @@ int main()
           updateCameraRotation();
         }
       }
-      if (ev.type == shEVENT_TYPE::kKeyboard) {
+      if (ev.type == EVENT_TYPE::kKeyboard) {
         const KeyboardData keyboard = ev.data.keyboard;
 
-        if (keyboard.key == shKEY::kW) {
+        if (keyboard.key == KEY::kW) {
           updateCameraMove(0.5f, 2);
         }
-        else if (keyboard.key == shKEY::kA) {
+        else if (keyboard.key == KEY::kA) {
           updateCameraMove(-0.5f, 0);
         }
-        else if (keyboard.key == shKEY::kS) {
+        else if (keyboard.key == KEY::kS) {
           updateCameraMove(-0.5f, 2);
         }
-        else if (keyboard.key == shKEY::kD) {
+        else if (keyboard.key == KEY::kD) {
           updateCameraMove(0.5f, 0);
         }
-        else if (keyboard.key == shKEY::kE) {
+        else if (keyboard.key == KEY::kE) {
           updateCameraMove(0.5f, 1);
         }
-        else if (keyboard.key == shKEY::kQ) {
+        else if (keyboard.key == KEY::kQ) {
           updateCameraMove(-0.5f, 1);
         }
       }
-      if (ev.type == shEVENT_TYPE::kClose) {
+      if (ev.type == EVENT_TYPE::kClose) {
         mainScreen.close();
         isRunning = false;
       }
@@ -210,11 +212,11 @@ initGraphicAssets(const Screen& _screen)
   *  Input layout
   ********************/
 
-  Vector<shINPUT_LAYOUT_TYPES::E> ilTypes;
+  Vector<INPUT_LAYOUT_TYPES::E> ilTypes;
 
-  ilTypes.push_back(shINPUT_LAYOUT_TYPES::E::kPosition);
-  ilTypes.push_back(shINPUT_LAYOUT_TYPES::E::kNormal);
-  ilTypes.push_back(shINPUT_LAYOUT_TYPES::E::kTexcoord);
+  ilTypes.push_back(INPUT_LAYOUT_TYPES::E::kPosition);
+  ilTypes.push_back(INPUT_LAYOUT_TYPES::E::kNormal);
+  ilTypes.push_back(INPUT_LAYOUT_TYPES::E::kTexcoord);
 
   g_pInputLayout = gManager.createInputLayout(ilTypes, g_pProgramShader);
   SH_ASSERT(g_pInputLayout);

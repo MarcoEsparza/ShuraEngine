@@ -17,6 +17,7 @@
 */
 /*************************************************************/
 #include "shOGLGraphicsManager.h"
+#include "shScreen.h"
 
 using std::reinterpret_pointer_cast;
 
@@ -108,18 +109,18 @@ enableOpenGL(const HWND& hwnd, HandleDC& hdc, RenderingContext& hrc)
 #endif
 
 void
-OGLGraphicsManager::internalInit(const Screen& screen,
+OGLGraphicsManager::internalInit(const Screen* screen,
                                  const bool,
-                                 const SAMPLE_DESC&)
+                                 const SampleDesc&)
 {
   m_device = make_shared<OGLDevice>();
   m_rContext = make_shared<OGLRenderContext>();
 
-  m_width = screen.getWidth();
-  m_height = screen.getHeight();
+  m_width = screen->getWidth();
+  m_height = screen->getHeight();
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
-  enableOpenGL(screen.getPlatformHandler(),
+  enableOpenGL(screen->getPlatformHandler(),
                m_device->m_device,
                m_rContext->m_rContext);
 #endif
@@ -141,7 +142,7 @@ OGLGraphicsManager::internalInit(const Screen& screen,
 
 void
 OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
-                                              LinearColor& color)
+                                              const LinearColor& color)
 {
   auto pFbo = reinterpret_pointer_cast<OGLFrameBuffer>(pTarget);
 
@@ -160,7 +161,7 @@ OGLGraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
 }
 
 void
-OGLGraphicsManager::internalPresent()
+OGLGraphicsManager::internalPresent(uint32, uint32)
 {
 #if SH_PLATFORM == SH_PLATFORM_WIN32
   SwapBuffers(m_device->m_device);
@@ -180,26 +181,26 @@ OGLGraphicsManager::internalGetMainDepthStencil() const
 }
 
 SPtr<InputLayout>
-OGLGraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+OGLGraphicsManager::internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
                                               const SPtr<ProgramShader>& pPShader)
 {
   auto pInputLayout = make_shared<OGLInputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<OGLProgramShader>(pPShader);
 
   for (uint8 i = 0; i < types.size(); ++i) {
-    if (types[i] == shINPUT_LAYOUT_TYPES::kPosition) {
+    if (types[i] == INPUT_LAYOUT_TYPES::kPosition) {
       pInputLayout->m_inputData[i] = "vertexPosition";
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::kNormal) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::kNormal) {
       pInputLayout->m_inputData[i] = "vertexNormal";
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::kTexcoord) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::kTexcoord) {
       pInputLayout->m_inputData[i] = "vertexUV";
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::kBoneIndices) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::kBoneIndices) {
       pInputLayout->m_inputData[i] = "boneID";
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::kBoneWieghts) {
+    else if (types[i] == INPUT_LAYOUT_TYPES::kBoneWieghts) {
       pInputLayout->m_inputData[i] = "boneWeight";
     }
   }
