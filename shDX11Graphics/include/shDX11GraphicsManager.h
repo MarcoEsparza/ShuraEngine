@@ -59,7 +59,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SAMPLE_DESC& sample
   */
   void
-  internalInit(const Screen* screen,
+  internalInit(const SPtr<Screen> screen,
                const bool bAntiliasing,
                const SampleDesc& sample) override;
 
@@ -79,7 +79,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<DepthStencilView> pDepthSV
   */
   void
-  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) override;
+  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                            uint32 flags,
+                            float depth,
+                            uint8 stencil) override;
 
   /**
   *  @brief Present the swapchain.
@@ -196,7 +199,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTextureFromFile(const String& fileName) override;
+  internalCreateTextureFromFile(const uint8* pData,
+                                const int32 width,
+                                const int32 height,
+                                const int32 bpp) override;
 
   /**
   *  @brief Creates a Texture2D.

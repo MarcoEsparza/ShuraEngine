@@ -24,16 +24,16 @@
     <ClInclude Include="include\shBuffers.h" />
     <ClInclude Include="include\shDepthStencilView.h" />
     <ClInclude Include="include\shEvent.h" />
-    <ClInclude Include="include\shEventData.h" />
-    <ClInclude Include="include\shEventEnums.h" />
+    <ClInclude Include="Include\shEventData.h" />
     <ClInclude Include="include\shGraphicsManager.h" />
     <ClInclude Include="include\shGraphicTypes.h" />
     <ClInclude Include="include\shInputLayout.h" />
-    <ClInclude Include="include\shPrerequisitesCore.h" />
+    <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shSamplerState.h" />
-    <ClInclude Include="include\shScreen.h" />
-    <ClInclude Include="include\shScreenEventHandle.h" />
+    <ClInclude Include="Include\shScreen.h" />
+    <ClInclude Include="include\shEventEnums.h" />
+    <ClInclude Include="Include\shScreenEventHandle.h" />
     <ClInclude Include="include\shShader.h" />
     <ClInclude Include="include\shSwapChain.h" />
     <ClInclude Include="include\shTexture.h" />
@@ -42,8 +42,8 @@
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
-    <ClCompile Include="source\shScreenEventHandleWin32.cpp" />
-    <ClCompile Include="source\shScreenWin32.cpp" />
+    <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
+    <ClCompile Include="Source\shScreenWin32.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

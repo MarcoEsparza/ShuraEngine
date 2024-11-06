@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/29
+*  @date    2024/11/05
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -45,7 +45,7 @@ Camera::setProjectionData(const float halfFOV,
 void
 FPSCamera::moveX(const float dir)
 {
-  Vector3 forward = m_target - m_position;
+  const Vector3 forward = m_target - m_position;
   m_right = m_upVector.cross(forward);
   m_right.normalize();
 
@@ -58,7 +58,7 @@ FPSCamera::moveX(const float dir)
 void
 FPSCamera::moveY(const float dir)
 {
-  Vector3 forward = m_target - m_position;
+  const Vector3 forward = m_target - m_position;
   m_upVector = forward.cross(m_right);
   m_upVector.normalize();
 
@@ -71,8 +71,8 @@ FPSCamera::moveY(const float dir)
 void
 FPSCamera::moveZ(const float dir)
 {
-  Vector3 forward = m_right.cross(m_upVector);
-  forward.normalize();
+  const Vector3 temp = m_right.cross(m_upVector);
+  const Vector3 forward = temp.getNormalized();
 
   m_position += forward * dir;
   m_target += forward * dir;
@@ -82,7 +82,7 @@ FPSCamera::moveZ(const float dir)
 
 // TODO: Change above functions to this.
 void
-FPSCamera::move(const Vector3& direction)
+FPSCamera::move(const Vector3&)
 {
 
 }

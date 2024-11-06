@@ -18,9 +18,12 @@
 /*************************************************************/
 #include "shGraphicsManager.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "externals/stb_image.h"
+
 namespace shEngineSDK {
 void
-GraphicsManager::initManager(const Screen* screen,
+GraphicsManager::initManager(const SPtr<Screen> screen,
                              const bool bAntiliasing,
                              const SampleDesc& sample)
 {
@@ -35,9 +38,12 @@ GraphicsManager::clearRenderTarget(const SPtr<RenderTargetView>& pTarget,
 }
 
 void
-GraphicsManager::clearDepthStencil(const SPtr<Texture2D>& pDepthSV)
+GraphicsManager::clearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                                   uint32 flags,
+                                   float depth,
+                                   uint8 stencil)
 {
-  internalClearDepthStencil(pDepthSV);
+  internalClearDepthStencil(pDepthSV, flags, depth, stencil);
 }
 
 void
@@ -108,7 +114,15 @@ GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAddres
 SPtr<Texture2D>
 GraphicsManager::createTextureFromFile(const String& fileName)
 {
-  return internalCreateTextureFromFile(fileName);
+  int32 width, height, bpp;
+
+  uint8* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+
+  auto pTexture = internalCreateTextureFromFile(data, width, height, bpp);
+
+  stbi_image_free(data);
+
+  return pTexture;
 }
 
 SPtr<Texture2D>

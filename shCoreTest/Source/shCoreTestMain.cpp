@@ -37,7 +37,6 @@ SPtr<VertexBuffer> g_pVertexBuffer;
 SPtr<IndexBuffer> g_pIndexBuffer;
 SPtr<ConstantBuffer> g_pWVP;
 SPtr<SamplerState> g_pSamplerLinear;
-SPtr<Texture2D> g_pDepthSV;
 
 Vector<VertexData> g_mesh;
 Vector<uint32> g_index;
@@ -46,6 +45,16 @@ FPSCamera g_Camera;
 Vector2i g_lastMousePos;
 Vector2i g_mousePos;
 Matrix4 g_world;
+
+/**
+*  @brief View struct.
+*/
+struct WorldViewProjection
+{
+  Matrix4 world;
+  ViewMatrix view;
+  ProjectionMatrix proj;
+};
 
 /**
 *  @brief Initialize the graphics api assets.
@@ -101,13 +110,13 @@ int main()
   desc.height = 600;
   desc.iconPath = "resources/ShuraIcon.ico";
 
-  Screen mainScreen;
+  SPtr<Screen> mainScreen = make_shared<Screen>();
   SPtr<ScreenEventHandle> eventQ = make_shared<ScreenEventHandle>();
   SampleDesc sample;
   sample.count = 1;
   sample.quality = 1;
 
-  if (!mainScreen.init(desc, eventQ)) {
+  if (!mainScreen->init(desc, eventQ)) {
     return -1;
   }
   HINSTANCE hGetProcIDDLL = LoadLibrary("shDX11Graphicsd.dll");
@@ -117,9 +126,9 @@ int main()
   SH_ASSERT(loadPlugin && "Could not load function");
   loadPlugin();
 
-  GraphicsManager::instance().initManager(&mainScreen, false, sample);
+  GraphicsManager::instance().initManager(mainScreen, false, sample);
   
-  initGraphicAssets(mainScreen);
+  initGraphicAssets(*mainScreen.get());
 
   bool isRunning = true;
   float transform = 0.0f;
@@ -168,7 +177,7 @@ int main()
         }
       }
       if (ev.type == EVENT_TYPE::kClose) {
-        mainScreen.close();
+        mainScreen->close();
         isRunning = false;
       }
 
@@ -218,89 +227,85 @@ initGraphicAssets(const Screen& _screen)
   *  Vertex and Index buffers
   *****************************/
 
-  Vector<VertexData> cube;
-  cube.resize(24);
+  g_mesh.resize(24);
 
   // Up
-  cube[0].position = Vector3(-1.0f, 1.0f, -1.0f);
-  cube[0].tex = Vector2(0.0f, 1.0f);
-  cube[1].position = Vector3(1.0f, 1.0f, -1.0f);
-  cube[1].tex = Vector2(1.0f, 1.0f);
-  cube[2].position = Vector3(1.0f, 1.0f, 1.0f);
-  cube[2].tex = Vector2(1.0f, 0.0f);
-  cube[3].position = Vector3(-1.0f, 1.0f, 1.0f);
-  cube[3].tex = Vector2(0.0f, 0.0f);
+  g_mesh[0].position = Vector3(-1.0f, 1.0f, -1.0f);
+  g_mesh[0].tex = Vector2(0.0f, 1.0f);
+  g_mesh[1].position = Vector3(1.0f, 1.0f, -1.0f);
+  g_mesh[1].tex = Vector2(1.0f, 1.0f);
+  g_mesh[2].position = Vector3(1.0f, 1.0f, 1.0f);
+  g_mesh[2].tex = Vector2(1.0f, 0.0f);
+  g_mesh[3].position = Vector3(-1.0f, 1.0f, 1.0f);
+  g_mesh[3].tex = Vector2(0.0f, 0.0f);
 
   // Down
-  cube[4].position = Vector3(-1.0f, -1.0f, -1.0f);
-  cube[4].tex = Vector2(0.0f, 0.0f);
-  cube[5].position = Vector3(1.0f, -1.0f, -1.0f);
-  cube[5].tex = Vector2(1.0f, 0.0f);
-  cube[6].position = Vector3(1.0f, -1.0f, 1.0f);
-  cube[6].tex = Vector2(1.0f, 1.0f);
-  cube[7].position = Vector3(-1.0f, -1.0f, 1.0f);
-  cube[7].tex = Vector2(0.0f, 1.0f);
+  g_mesh[4].position = Vector3(-1.0f, -1.0f, -1.0f);
+  g_mesh[4].tex = Vector2(0.0f, 0.0f);
+  g_mesh[5].position = Vector3(1.0f, -1.0f, -1.0f);
+  g_mesh[5].tex = Vector2(1.0f, 0.0f);
+  g_mesh[6].position = Vector3(1.0f, -1.0f, 1.0f);
+  g_mesh[6].tex = Vector2(1.0f, 1.0f);
+  g_mesh[7].position = Vector3(-1.0f, -1.0f, 1.0f);
+  g_mesh[7].tex = Vector2(0.0f, 1.0f);
 
   // Left
-  cube[8].position = Vector3(-1.0f, -1.0f, 1.0f);
-  cube[8].tex = Vector2(0.0f, 1.0f);
-  cube[9].position = Vector3(-1.0f, -1.0f, -1.0f);
-  cube[9].tex = Vector2(1.0f, 1.0f);
-  cube[10].position = Vector3(-1.0f, 1.0f, -1.0f);
-  cube[10].tex = Vector2(1.0f, 0.0f);
-  cube[11].position = Vector3(-1.0f, 1.0f, 1.0f);
-  cube[11].tex = Vector2(0.0f, 0.0f);
+  g_mesh[8].position = Vector3(-1.0f, -1.0f, 1.0f);
+  g_mesh[8].tex = Vector2(0.0f, 1.0f);
+  g_mesh[9].position = Vector3(-1.0f, -1.0f, -1.0f);
+  g_mesh[9].tex = Vector2(1.0f, 1.0f);
+  g_mesh[10].position = Vector3(-1.0f, 1.0f, -1.0f);
+  g_mesh[10].tex = Vector2(1.0f, 0.0f);
+  g_mesh[11].position = Vector3(-1.0f, 1.0f, 1.0f);
+  g_mesh[11].tex = Vector2(0.0f, 0.0f);
 
   // Right
-  cube[12].position = Vector3(1.0f, -1.0f, 1.0f);
-  cube[12].tex = Vector2(0.0f, 1.0f);
-  cube[13].position = Vector3(1.0f, -1.0f, -1.0f);
-  cube[13].tex = Vector2(1.0f, 1.0f);
-  cube[14].position = Vector3(1.0f, 1.0f, -1.0f);
-  cube[14].tex = Vector2(1.0f, 0.0f);
-  cube[15].position = Vector3(1.0f, 1.0f, 1.0f);
-  cube[15].tex = Vector2(0.0f, 0.0f);
+  g_mesh[12].position = Vector3(1.0f, -1.0f, 1.0f);
+  g_mesh[12].tex = Vector2(0.0f, 1.0f);
+  g_mesh[13].position = Vector3(1.0f, -1.0f, -1.0f);
+  g_mesh[13].tex = Vector2(1.0f, 1.0f);
+  g_mesh[14].position = Vector3(1.0f, 1.0f, -1.0f);
+  g_mesh[14].tex = Vector2(1.0f, 0.0f);
+  g_mesh[15].position = Vector3(1.0f, 1.0f, 1.0f);
+  g_mesh[15].tex = Vector2(0.0f, 0.0f);
 
   // Front
-  cube[16].position = Vector3(-1.0f, -1.0f, -1.0f);
-  cube[16].tex = Vector2(0.0f, 1.0f);
-  cube[17].position = Vector3(1.0f, -1.0f, -1.0f);
-  cube[17].tex = Vector2(1.0f, 1.0f);
-  cube[18].position = Vector3(1.0f, 1.0f, -1.0f);
-  cube[18].tex = Vector2(1.0f, 0.0f);
-  cube[19].position = Vector3(-1.0f, 1.0f, -1.0f);
-  cube[19].tex = Vector2(0.0f, 0.0f);
+  g_mesh[16].position = Vector3(-1.0f, -1.0f, -1.0f);
+  g_mesh[16].tex = Vector2(0.0f, 1.0f);
+  g_mesh[17].position = Vector3(1.0f, -1.0f, -1.0f);
+  g_mesh[17].tex = Vector2(1.0f, 1.0f);
+  g_mesh[18].position = Vector3(1.0f, 1.0f, -1.0f);
+  g_mesh[18].tex = Vector2(1.0f, 0.0f);
+  g_mesh[19].position = Vector3(-1.0f, 1.0f, -1.0f);
+  g_mesh[19].tex = Vector2(0.0f, 0.0f);
 
   // Back
-  cube[20].position = Vector3(-1.0f, -1.0f, 1.0f);
-  cube[20].tex = Vector2(0.0f, 0.0f);
-  cube[21].position = Vector3(1.0f, -1.0f, 1.0f);
-  cube[21].tex = Vector2(1.0f, 0.0f);
-  cube[22].position = Vector3(1.0f, 1.0f, 1.0f);
-  cube[22].tex = Vector2(1.0f, 1.0f);
-  cube[23].position = Vector3(-1.0f, 1.0f, 1.0f);
-  cube[23].tex = Vector2(0.0f, 1.0f);
+  g_mesh[20].position = Vector3(-1.0f, -1.0f, 1.0f);
+  g_mesh[20].tex = Vector2(0.0f, 0.0f);
+  g_mesh[21].position = Vector3(1.0f, -1.0f, 1.0f);
+  g_mesh[21].tex = Vector2(1.0f, 0.0f);
+  g_mesh[22].position = Vector3(1.0f, 1.0f, 1.0f);
+  g_mesh[22].tex = Vector2(1.0f, 1.0f);
+  g_mesh[23].position = Vector3(-1.0f, 1.0f, 1.0f);
+  g_mesh[23].tex = Vector2(0.0f, 1.0f);
 
-  Vector<uint32> indices = { 3,1,0,
-                             2,1,3,
-                             
-                             6,4,5,
-                             7,4,6,
-                             
-                             11,9,8,
-                             10,9,11,
-                             
-                             14,12,13,
-                             15,12,14,
-                             
-                             19,17,16,
-                             18,17,19,
-                             
-                             22,20,21,
-                             23,20,22 };
-
-  g_mesh = cube;
-  g_index = indices;
+  g_index = { 3,1,0,
+              2,1,3,
+              
+              6,4,5,
+              7,4,6,
+              
+              11,9,8,
+              10,9,11,
+              
+              14,12,13,
+              15,12,14,
+              
+              19,17,16,
+              18,17,19,
+              
+              22,20,21,
+              23,20,22 };
 
   g_pVertexBuffer = gManager.createVertexBuffer(g_mesh);
   SH_ASSERT(g_pVertexBuffer);
@@ -329,8 +334,7 @@ initGraphicAssets(const Screen& _screen)
 
   g_world = Matrix4::IDENTITY;
 
-  uint32 sizeWVP = sizeof(Matrix4) * 3;
-  g_pWVP = gManager.createConstantBuffer(sizeWVP);
+  g_pWVP = gManager.createConstantBuffer(sizeof(WorldViewProjection));
   SH_ASSERT(g_pWVP);
 
   Vector3 eye(0.0f, 0.0f, -5.0f);
@@ -346,8 +350,11 @@ initGraphicAssets(const Screen& _screen)
 
   WorldViewProjection wvp;
   wvp.world = g_world;
-  wvp.view.transpose(g_Camera.getView());
-  wvp.proj.transpose(g_Camera.getProjection());
+  wvp.view = g_Camera.getView();
+  wvp.proj = g_Camera.getProjection();
+
+  wvp.view.getTransposed();
+  wvp.proj.getTransposed();
 
   gManager.updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
   SH_ASSERT(g_pWVP);
@@ -361,8 +368,11 @@ update(float& transform)
 
   WorldViewProjection wvp;
   wvp.world = g_world;
-  wvp.view.transpose(g_Camera.getView());
-  wvp.proj.transpose(g_Camera.getProjection());
+  wvp.view = g_Camera.getView();
+  wvp.proj = g_Camera.getProjection();
+
+  wvp.view.getTransposed();
+  wvp.proj.getTransposed();
 
   GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
   SH_ASSERT(g_pWVP);
@@ -413,8 +423,11 @@ updateCameraMove(const float& direction, const uint32 axis)
 
   WorldViewProjection wvp;
   wvp.world = g_world;
-  wvp.view.transpose(g_Camera.getView());
-  wvp.proj.transpose(g_Camera.getProjection());
+  wvp.view = g_Camera.getView();
+  wvp.proj = g_Camera.getProjection();
+
+  wvp.view.getTransposed();
+  wvp.proj.getTransposed();
 
   GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
   SH_ASSERT(g_pWVP);
@@ -423,8 +436,10 @@ updateCameraMove(const float& direction, const uint32 axis)
 void
 updateCameraRotation()
 {
-  const float dx = static_cast<float>(g_lastMousePos.x - g_mousePos.x) * -0.005f;
-  const float dy = static_cast<float>(g_lastMousePos.y - g_mousePos.y) * 0.005f;
+  const float cameraDelay = 0.005f;
+
+  const float dx = static_cast<float>(g_lastMousePos.x - g_mousePos.x) * -cameraDelay;
+  const float dy = static_cast<float>(g_lastMousePos.y - g_mousePos.y) * cameraDelay;
 
   if (g_lastMousePos.x != g_mousePos.x ||
     g_lastMousePos.y != g_mousePos.y)
@@ -434,8 +449,11 @@ updateCameraRotation()
 
   WorldViewProjection wvp;
   wvp.world = g_world;
-  wvp.view.transpose(g_Camera.getView());
-  wvp.proj.transpose(g_Camera.getProjection());
+  wvp.view = g_Camera.getView();
+  wvp.proj = g_Camera.getProjection();
+
+  wvp.view.getTransposed();
+  wvp.proj.getTransposed();
 
   GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
   SH_ASSERT(g_pWVP);

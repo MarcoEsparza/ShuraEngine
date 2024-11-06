@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Device.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/11/05
 *  @brief   DirectX11 Device and DeviceContext class wrappers.
 *
 *  DirectX11 Device and DeviceContext class wrappers.
@@ -18,13 +18,12 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
-#include "shDevice.h"
 
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Device wrapper.
 */
-class DX11Device : public Device
+class DX11Device
 {
  public:
   /**
@@ -54,7 +53,7 @@ class DX11Device : public Device
 /**
 *  @brief DirectX11 Device Context wrapper.
 */
-class DX11DeviceContext : public DeviceContext
+class DX11DeviceContext
 {
  public:
   /**

@@ -2,7 +2,7 @@
 /*
 *  @file    shBuffers.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/21
+*  @date    2024/11/05
 *  @brief   Engine Buffer classes.
 *
 *  Engine Buffer classes.
@@ -42,7 +42,7 @@ class VertexBuffer
 */
 class IndexBuffer
 {
-public:
+ public:
   /**
   *  @brief Default constructor.
   */
@@ -59,7 +59,7 @@ public:
 */
 class ConstantBuffer
 {
-public:
+ public:
   /**
   *  @brief Default constructor.
   */

@@ -77,10 +77,8 @@ compileShaderFromFile(const String& fileName,
                             pPixelBlob,
                             &pErrorBlob);
 
-  if (FAILED(hrVS))
-  {
-    if (nullptr != pErrorBlob)
-    {
+  if (FAILED(hrVS)) {
+    if (nullptr != pErrorBlob) {
       String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
       SafeRelease(pErrorBlob);
     }
@@ -88,10 +86,8 @@ compileShaderFromFile(const String& fileName,
     return false;
   }
 
-  if (FAILED(hrPS))
-  {
-    if (nullptr != pErrorBlob)
-    {
+  if (FAILED(hrPS)) {
+    if (nullptr != pErrorBlob) {
       String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
       SafeRelease(pErrorBlob);
     }
@@ -103,15 +99,13 @@ compileShaderFromFile(const String& fileName,
 }
 
 void
-DX11GraphicsManager::internalInit(const Screen* screen,
+DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                                   const bool bAntiliasing,
                                   const SampleDesc& sample)
 {
   m_bFullScreen = screen->isFullscreen();
   
   auto hWnd = reinterpret_cast<HWND>(screen->getPlatformHandler());
-  //RECT rc;
-  //GetClientRect(hWnd, &rc);
 
   Vector<IDXGIAdapter*> vecAdapters;
 
@@ -271,14 +265,17 @@ DX11GraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTa
 }
 
 void
-DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
+DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                                               uint32 flags,
+                                               float depth,
+                                               uint8 stencil)
 {
   auto pDTV = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
   
   m_pDeviceContext->m_pDeviceContext->ClearDepthStencilView(pDTV->m_pDepthSV,
-                                                            D3D11_CLEAR_DEPTH,
-                                                            1.0f,
-                                                            0);
+                                                            flags,
+                                                            depth,
+                                                            stencil);
 }
 
 void
@@ -375,6 +372,8 @@ DX11GraphicsManager::internalCreateProgramShader(const String& fileName,
     return nullptr;
   }
 
+
+
   throwIfFailed(m_pDevice->m_pDevice->CreateVertexShader(
                 pProgramShader->m_pVertexBlob->GetBufferPointer(),
                 pProgramShader->m_pVertexBlob->GetBufferSize(),
@@ -457,8 +456,7 @@ DX11GraphicsManager::internalCreateConstantBuffer(const uint32 bufferSize,
   desc.MiscFlags = 0;
 
   D3D11_SUBRESOURCE_DATA initData;
-  if (pData)
-  {
+  if (pData) {
     initData.pSysMem = pData;
     initData.SysMemPitch = bufferSize;
     initData.SysMemSlicePitch = 0;
@@ -492,16 +490,12 @@ DX11GraphicsManager::internalCreateSamplerState(const uint32 filter, const uint3
   return pSampleLinear;
 }
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "externals/stb_image.h"
-
 SPtr<Texture2D>
-DX11GraphicsManager::internalCreateTextureFromFile(const String& fileName)
+DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
+                                                   const int32 width,
+                                                   const int32 height,
+                                                   const int32 bpp)
 {
-  int32 width, height, bpp;
-
-  unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-
   int32 pitch = width * bpp;
 
   auto pTexture = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
@@ -514,11 +508,9 @@ DX11GraphicsManager::internalCreateTextureFromFile(const String& fileName)
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D,
                                                         0,
                                                         nullptr,
-                                                        data,
+                                                        pData,
                                                         pitch,
                                                         0);
-
-  stbi_image_free(data);
   return pTexture;
 }
 
