@@ -109,7 +109,7 @@ enableOpenGL(const HWND& hwnd, HandleDC& hdc, RenderingContext& hrc)
 #endif
 
 void
-OGLGraphicsManager::internalInit(const Screen* screen,
+OGLGraphicsManager::internalInit(const SPtr<Screen> screen,
                                  const bool,
                                  const SampleDesc&)
 {
@@ -153,7 +153,10 @@ OGLGraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTar
 }
 
 void
-OGLGraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
+OGLGraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                                              uint32 flags,
+                                              float depth,
+                                              uint8 stencil)
 {
   auto pDepth = reinterpret_pointer_cast<OGLDepthRender>(pDepthSV);
 
@@ -181,26 +184,26 @@ OGLGraphicsManager::internalGetMainDepthStencil() const
 }
 
 SPtr<InputLayout>
-OGLGraphicsManager::internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+OGLGraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
                                               const SPtr<ProgramShader>& pPShader)
 {
   auto pInputLayout = make_shared<OGLInputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<OGLProgramShader>(pPShader);
 
-  for (uint8 i = 0; i < types.size(); ++i) {
-    if (types[i] == INPUT_LAYOUT_TYPES::kPosition) {
+  for (uint8 i = 0; i < desc.size(); ++i) {
+    if (desc[i].type == INPUT_LAYOUT_TYPES::kPosition) {
       pInputLayout->m_inputData[i] = "vertexPosition";
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::kNormal) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kNormal) {
       pInputLayout->m_inputData[i] = "vertexNormal";
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::kTexcoord) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kTexcoord) {
       pInputLayout->m_inputData[i] = "vertexUV";
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::kBoneIndices) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneIndices) {
       pInputLayout->m_inputData[i] = "boneID";
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::kBoneWieghts) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneWieghts) {
       pInputLayout->m_inputData[i] = "boneWeight";
     }
   }
@@ -336,14 +339,11 @@ OGLGraphicsManager::internalCreateSamplerState(const uint32 filter,
 #include "externals/stb_image.h"
 
 SPtr<Texture2D>
-OGLGraphicsManager::internalCreateTextureFromFile(const String& fileName)
+OGLGraphicsManager::internalCreateTextureFromFile(const uint8* pData,
+                                                  const int32 width,
+                                                  const int32 height,
+                                                  const int32 bpp)
 {
-  int32 width, height, bpp;
-
-  unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-
-  //int32 pitch = width * bpp;
-
   auto pTexture = reinterpret_pointer_cast<OGLTexture2D>(internalCreateTexture2D(width,
                                                          height,
                                                          GL_RGBA8,
@@ -359,12 +359,10 @@ OGLGraphicsManager::internalCreateTextureFromFile(const String& fileName)
                0,
                GL_RGBA8,
                GL_UNSIGNED_BYTE,
-               data);
+               pData);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glBindTexture(GL_TEXTURE_2D, 0);
-
-  stbi_image_free(data);
 
   return pTexture;
 }

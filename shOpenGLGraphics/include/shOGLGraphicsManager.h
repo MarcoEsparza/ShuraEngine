@@ -52,7 +52,7 @@ class OGLGraphicsManager : public GraphicsManager
   *  @param SAMPLE_DESC& sample
   */
   void
-  internalInit(const Screen* screen,
+  internalInit(const SPtr<Screen> screen,
                const bool bAntiliasing,
                const SampleDesc& sample) override;
 
@@ -72,7 +72,10 @@ class OGLGraphicsManager : public GraphicsManager
   *  @param SPtr<DepthStencilView> pDepthSV
   */
   void
-  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) override;
+  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                            uint32 flags,
+                            float depth,
+                            uint8 stencil) override;
 
   /**
   *  @brief Present the swapchain.
@@ -113,7 +116,7 @@ class OGLGraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<InputDesc>& types,
                             const SPtr<ProgramShader>& pVShader) override;
 
   /**
@@ -189,7 +192,10 @@ class OGLGraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTextureFromFile(const String& fileName) override;
+  internalCreateTextureFromFile(const uint8* pData,
+                                const int32 width,
+                                const int32 height,
+                                const int32 bpp) override;
 
   /**
   *  @brief Creates a Texture2D.
