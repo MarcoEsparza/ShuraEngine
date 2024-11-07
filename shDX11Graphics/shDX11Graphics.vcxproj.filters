@@ -16,16 +16,10 @@
     <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{c6cffa7c-90ad-4870-9ddc-c9809b66e3f1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Externals">
-      <UniqueIdentifier>{46fea9f9-b740-4dd4-9d32-bd87a70879a7}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shDX11GraphicsManager.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\externals\stb_image.h">
-      <Filter>Header Files\Externals</Filter>
     </ClInclude>
     <ClInclude Include="include\shPrerequisitesDX11Graphics.h">
       <Filter>Header Files</Filter>

@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/11/02
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -28,10 +28,6 @@
 #include "shDX11Shader.h"
 #include "shDX11SwapChain.h"
 #include "shDX11Texture.h"
-
-#include "shLinearColor.h"
-
-#include "d3d11.h"
 
 namespace shEngineSDK {
 /**
@@ -63,9 +59,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SAMPLE_DESC& sample
   */
   void
-  internalInit(const Screen& screen,
+  internalInit(const SPtr<Screen> screen,
                const bool bAntiliasing,
-               const SAMPLE_DESC& sample) override;
+               const SampleDesc& sample) override;
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -75,7 +71,7 @@ class DX11GraphicsManager : public GraphicsManager
   */
   void
   internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
-                            LinearColor& color) override;
+                            const LinearColor& color) override;
 
   /**
   *  @brief Clear the depth stencil.
@@ -83,13 +79,16 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<DepthStencilView> pDepthSV
   */
   void
-  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) override;
+  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                            uint32 flags,
+                            float depth,
+                            uint8 stencil) override;
 
   /**
   *  @brief Present the swapchain.
   */
   void
-  internalPresent() override;
+  internalPresent(uint32 syncInterval, uint32 flags) override;
 
   /********************
   *  Getters
@@ -111,14 +110,6 @@ class DX11GraphicsManager : public GraphicsManager
   SPtr<Texture2D>
   internalGetMainDepthStencil() const override;
 
-  /**
-  *  @brief Returns the Device Context.
-  * 
-  *  @return SPtr<DeviceContext>
-  */
-  SPtr<DeviceContext>
-  internalGetDeviceContext() const override;
-
   /********************
   *  Creates
   ********************/
@@ -132,7 +123,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<InputDesc>& desc,
                             const SPtr<ProgramShader>& pVShader) override;
 
   /**
@@ -208,7 +199,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTextureFromFile(const String& fileName) override;
+  internalCreateTextureFromFile(const uint8* pData,
+                                const int32 width,
+                                const int32 height,
+                                const int32 bpp) override;
 
   /**
   *  @brief Creates a Texture2D.
@@ -392,7 +386,7 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief Descriptor for sample configuration.
   */
-  SAMPLE_DESC m_multiSampleConfig;
+  SampleDesc m_multiSampleConfig;
 
   /**
   *  @brief Is fullscreen?

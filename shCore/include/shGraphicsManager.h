@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2024/11/06
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -63,12 +63,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Initialize the graphics manager.
   *
-  *  @param Screen& screen
+  *  @param SPtr<Screen> screen
   *  @param bool bAntiliasing
   *  @param SAMPLE_DESC& sample
   */
   void
-  initManager(const Screen* screen,
+  initManager(const SPtr<Screen> screen,
               const bool bAntiliasing,
               const SampleDesc& sample);
 
@@ -88,7 +88,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<DepthStencilView>& pDepthSV
   */
   void
-  clearDepthStencil(const SPtr<Texture2D>& pDepthSV);
+  clearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                    uint32 flags = CLEAR_FLAGS::kDepth,
+                    float depth = 1.0f,
+                    uint8 stencil = 0);
 
   /**
   *  @brief Present the swapchain.
@@ -123,13 +126,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Creates Input Layout with given types and Vertex Shader.
   *
-  *  @param Vector<shInputLayoutTypes::E>& types
+  *  @param Vector<InputDesc>& desc
   *  @param SPtr<ProgramShader>& pShader
   *
   *  @return SPtr<InputLayout>
   */
   SPtr<InputLayout>
-  createInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+  createInputLayout(const Vector<InputDesc>& desc,
                     const SPtr<ProgramShader>& pShader);
 
   /**
@@ -160,7 +163,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   SPtr<VertexBuffer>
   createVertexBuffer(const Vector<VertexData>& vertices,
-                     const uint32 usage = 0);
+                     const uint32 usage = USAGE::kDefault);
 
   /**
   *  @brief Creates a Index Buffer with given indices.
@@ -172,7 +175,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   SPtr<IndexBuffer>
   createIndexBuffer(const Vector<uint32>& indices,
-                    const uint32 usage = 0);
+                    const uint32 usage = USAGE::kDefault);
 
   /**
   *  @brief Creates a constant buffer with given data.
@@ -185,7 +188,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   SPtr<ConstantBuffer>
   createConstantBuffer(const uint32 bufferSize,
-                       const uint32 usage = 0,
+                       const uint32 usage = USAGE::kDefault,
                        const void* pData = nullptr);
 
   /**
@@ -197,7 +200,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<SamplerState>
   */
   SPtr<SamplerState>
-  createSamplerState(const uint32 filter = 21, const uint32 textAddress = 1);
+  createSamplerState(const uint32 filter = SAMPLER_FILTER::kFilterMinMagMipLinear,
+                     const uint32 textAddress = TEXTURE_ADDRESS_MODE::kWrap);
 
   /**
   *  @brief Creates a Texture2D from file with given route.
@@ -223,9 +227,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   SPtr<Texture2D>
   createTexture2D(const uint32 width,
                   const uint32 height,
-                  const uint32 format = 87,
-                  const uint32 usage = 0,
-                  const uint32 bindFlags = 8);
+                  const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                  const uint32 usage = USAGE::kDefault,
+                  const uint32 bindFlags = BIND_FLAGS::kShaderResource);
 
   /********************
   *  Update
@@ -323,13 +327,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 primitive = 4
   */
   void
-  setPrimitiveTopology(const uint32 primitive = 4);
+  setPrimitiveTopology(const uint32 primitive = PRIMITIVE_TOPOLOGY::kTrianglelist);
 
   /**
   *  @brief Sets the Vertex Shader.
   *
   *  @param SPtr<ProgramShader>& pVShader
-  *  @param void* ppClassInstances = nullptr
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
   *  @param uint32 numClassInstances = 0
   */
   void
@@ -395,12 +399,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   *
-  *  @param Screen& screen
+  *  @param SPtr<Screen> screen
   *  @param bool bAntiliasing
   *  @param SAMPLE_DESC& sample
   */
   virtual void
-  internalInit(const Screen* screen,
+  internalInit(const SPtr<Screen> screen,
                const bool bAntiliasing,
                const SampleDesc& sample) = 0;
 
@@ -420,7 +424,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<Texture2D>& pDepthSV
   */
   virtual void
-  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV) = 0;
+  internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                            uint32 flags,
+                            float depth,
+                            uint8 stencil) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -455,13 +462,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   * 
-  *  @param Vector<shInputLayoutTypes::E>& types
-  *  @param SPtr<ProgramShader>& pVShader
+  *  @param Vector<InputDesc>& desc
+  *  @param SPtr<ProgramShader>& pPShader
   *
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<InputDesc>& desc,
                             const SPtr<ProgramShader>& pPShader) = 0;
 
   /**
@@ -539,7 +546,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<Texture2D>
   */
   virtual SPtr<Texture2D>
-  internalCreateTextureFromFile(const String& fileName) = 0;
+  internalCreateTextureFromFile(const uint8* pData,
+                                const int32 width,
+                                const int32 height,
+                                const int32 bpp) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

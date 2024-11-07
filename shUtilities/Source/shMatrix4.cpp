@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/28
+*  @date    2024/11/05
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -148,10 +148,13 @@ Matrix4::transpose(const Matrix4& other)
 Matrix4
 Matrix4::getTransposed()
 {
-  m[0][0] = m[0][0]; m[0][1] = m[1][0]; m[0][2] = m[2][0]; m[0][3] = m[3][0];
-  m[1][0] = m[0][1]; m[1][1] = m[1][1]; m[1][2] = m[2][1]; m[1][3] = m[3][1];
-  m[2][0] = m[0][2]; m[2][1] = m[1][2]; m[2][2] = m[2][2]; m[2][3] = m[3][2];
-  m[3][0] = m[0][3]; m[3][1] = m[1][3]; m[3][2] = m[2][3]; m[3][3] = m[3][3];
+  Matrix4 other = *this;
+
+  for (int8 i = 0; i < 4; ++i) {
+    for (int8 j = 0; j < 4; ++j) {
+      m[j][i] = other.m[i][j];
+    }
+  }
 
   return *this;
 }

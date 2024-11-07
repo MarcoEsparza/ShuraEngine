@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/11/06
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -17,6 +17,8 @@
 */
 /*************************************************************/
 #include "shDX11GraphicsManager.h"
+#include "shScreen.h"
+#include "shLinearColor.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -75,10 +77,8 @@ compileShaderFromFile(const String& fileName,
                             pPixelBlob,
                             &pErrorBlob);
 
-  if (FAILED(hrVS))
-  {
-    if (nullptr != pErrorBlob)
-    {
+  if (FAILED(hrVS)) {
+    if (nullptr != pErrorBlob) {
       String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
       SafeRelease(pErrorBlob);
     }
@@ -86,10 +86,8 @@ compileShaderFromFile(const String& fileName,
     return false;
   }
 
-  if (FAILED(hrPS))
-  {
-    if (nullptr != pErrorBlob)
-    {
+  if (FAILED(hrPS)) {
+    if (nullptr != pErrorBlob) {
       String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
       SafeRelease(pErrorBlob);
     }
@@ -101,15 +99,13 @@ compileShaderFromFile(const String& fileName,
 }
 
 void
-DX11GraphicsManager::internalInit(const Screen& screen,
+DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                                   const bool bAntiliasing,
-                                  const SAMPLE_DESC& sample)
+                                  const SampleDesc& sample)
 {
-  m_bFullScreen = screen.isFullscreen();
-
-  auto hWnd = reinterpret_cast<HWND>(screen.getPlatformHandler());
-  //RECT rc;
-  //GetClientRect(hWnd, &rc);
+  m_bFullScreen = screen->isFullscreen();
+  
+  auto hWnd = reinterpret_cast<HWND>(screen->getPlatformHandler());
 
   Vector<IDXGIAdapter*> vecAdapters;
 
@@ -169,8 +165,8 @@ DX11GraphicsManager::internalInit(const Screen& screen,
   scDesc.Windowed = !m_bFullScreen;
 
   if (!m_bFullScreen) {
-    scDesc.BufferDesc.Width = screen.getWidth();
-    scDesc.BufferDesc.Height = screen.getHeight();
+    scDesc.BufferDesc.Width = screen->getWidth();
+    scDesc.BufferDesc.Height = screen->getHeight();
     scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
   }
 
@@ -258,29 +254,34 @@ DX11GraphicsManager::internalInit(const Screen& screen,
 
 void
 DX11GraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
-                                               LinearColor& color)
+                                               const LinearColor& color)
 {
   auto pRTV = reinterpret_pointer_cast<DX11RenderTargetView>(pTarget);
+  
+  FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
   m_pDeviceContext->m_pDeviceContext->ClearRenderTargetView(pRTV->m_pRenderTV,
-                                                            reinterpret_cast<FLOAT*>(&color));
+                                                            colorRGBA);
 }
 
 void
-DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV)
+DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+                                               uint32 flags,
+                                               float depth,
+                                               uint8 stencil)
 {
   auto pDTV = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
   
   m_pDeviceContext->m_pDeviceContext->ClearDepthStencilView(pDTV->m_pDepthSV,
-                                                            D3D11_CLEAR_DEPTH,
-                                                            1.0f,
-                                                            0);
+                                                            flags,
+                                                            depth,
+                                                            stencil);
 }
 
 void
-DX11GraphicsManager::internalPresent()
+DX11GraphicsManager::internalPresent(uint32 syncInterval, uint32 flags)
 {
-  m_pSwapChain->m_pSwapChain->Present(0, 0);
+  m_pSwapChain->m_pSwapChain->Present(syncInterval, flags);
 }
 
 SPtr<RenderTargetView>
@@ -295,57 +296,44 @@ DX11GraphicsManager::internalGetMainDepthStencil() const
   return m_pDepthStencil;
 }
 
-SPtr<DeviceContext>
-DX11GraphicsManager::internalGetDeviceContext() const
-{
-  return m_pDeviceContext;
-}
-
 SPtr<InputLayout>
-DX11GraphicsManager::internalCreateInputLayout(const Vector<shINPUT_LAYOUT_TYPES::E>& types,
+DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
                                                const SPtr<ProgramShader>& pPShader)
 {
   auto pInputLayout = make_shared<DX11InputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
 
   Vector<D3D11_INPUT_ELEMENT_DESC> dxInputDesc;
-  dxInputDesc.resize(types.size());
+  dxInputDesc.resize(desc.size());
 
   UINT byteOffset = 0;
-  for (uint32 i = 0; i < types.size(); ++i) {
+  for (uint32 i = 0; i < desc.size(); ++i) {
     auto& element = dxInputDesc[i];
     memset(&element, 0, sizeof(D3D11_INPUT_ELEMENT_DESC));
 
+    element.Format = static_cast<DXGI_FORMAT>(desc[i].format);
     element.SemanticIndex = 0;
     element.InputSlot = 0;
     element.AlignedByteOffset = byteOffset;
     element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
     element.InstanceDataStepRate = 0;
 
-    if (types[i] == shINPUT_LAYOUT_TYPES::E::kPosition) {
+    byteOffset += desc[i].size;
+
+    if (desc[i].type == INPUT_LAYOUT_TYPES::kPosition) {
       element.SemanticName = "POSITION";
-      element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-      byteOffset += 12;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kNormal) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kNormal) {
       element.SemanticName = "NORMAL";
-      element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-      byteOffset += 12;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kTexcoord) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kTexcoord) {
       element.SemanticName = "TEXCOORD";
-      element.Format = DXGI_FORMAT_R32G32_FLOAT;
-      byteOffset += 8;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kBoneIndices) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneIndices) {
       element.SemanticName = "BLENDINDICES";
-      element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-      byteOffset += 16;
     }
-    else if (types[i] == shINPUT_LAYOUT_TYPES::E::kBoneWieghts) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneWieghts) {
       element.SemanticName = "BLENDWEIGHT";
-      element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-      byteOffset += 16;
     }
   }
 
@@ -459,8 +447,7 @@ DX11GraphicsManager::internalCreateConstantBuffer(const uint32 bufferSize,
   desc.MiscFlags = 0;
 
   D3D11_SUBRESOURCE_DATA initData;
-  if (pData)
-  {
+  if (pData) {
     initData.pSysMem = pData;
     initData.SysMemPitch = bufferSize;
     initData.SysMemSlicePitch = 0;
@@ -494,16 +481,12 @@ DX11GraphicsManager::internalCreateSamplerState(const uint32 filter, const uint3
   return pSampleLinear;
 }
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "externals/stb_image.h"
-
 SPtr<Texture2D>
-DX11GraphicsManager::internalCreateTextureFromFile(const String& fileName)
+DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
+                                                   const int32 width,
+                                                   const int32 height,
+                                                   const int32 bpp)
 {
-  int32 width, height, bpp;
-
-  unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-
   int32 pitch = width * bpp;
 
   auto pTexture = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
@@ -516,11 +499,9 @@ DX11GraphicsManager::internalCreateTextureFromFile(const String& fileName)
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D,
                                                         0,
                                                         nullptr,
-                                                        data,
+                                                        pData,
                                                         pitch,
                                                         0);
-
-  stbi_image_free(data);
   return pTexture;
 }
 
