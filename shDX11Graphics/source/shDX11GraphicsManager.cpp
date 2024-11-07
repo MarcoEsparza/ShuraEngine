@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2024/11/06
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -297,50 +297,43 @@ DX11GraphicsManager::internalGetMainDepthStencil() const
 }
 
 SPtr<InputLayout>
-DX11GraphicsManager::internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
                                                const SPtr<ProgramShader>& pPShader)
 {
   auto pInputLayout = make_shared<DX11InputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
 
   Vector<D3D11_INPUT_ELEMENT_DESC> dxInputDesc;
-  dxInputDesc.resize(types.size());
+  dxInputDesc.resize(desc.size());
 
   UINT byteOffset = 0;
-  for (uint32 i = 0; i < types.size(); ++i) {
+  for (uint32 i = 0; i < desc.size(); ++i) {
     auto& element = dxInputDesc[i];
     memset(&element, 0, sizeof(D3D11_INPUT_ELEMENT_DESC));
 
+    element.Format = static_cast<DXGI_FORMAT>(desc[i].format);
     element.SemanticIndex = 0;
     element.InputSlot = 0;
     element.AlignedByteOffset = byteOffset;
     element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
     element.InstanceDataStepRate = 0;
 
-    if (types[i] == INPUT_LAYOUT_TYPES::E::kPosition) {
+    byteOffset += desc[i].size;
+
+    if (desc[i].type == INPUT_LAYOUT_TYPES::kPosition) {
       element.SemanticName = "POSITION";
-      element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-      byteOffset += 12;
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::E::kNormal) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kNormal) {
       element.SemanticName = "NORMAL";
-      element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-      byteOffset += 12;
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::E::kTexcoord) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kTexcoord) {
       element.SemanticName = "TEXCOORD";
-      element.Format = DXGI_FORMAT_R32G32_FLOAT;
-      byteOffset += 8;
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::E::kBoneIndices) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneIndices) {
       element.SemanticName = "BLENDINDICES";
-      element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-      byteOffset += 16;
     }
-    else if (types[i] == INPUT_LAYOUT_TYPES::E::kBoneWieghts) {
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneWieghts) {
       element.SemanticName = "BLENDWEIGHT";
-      element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-      byteOffset += 16;
     }
   }
 
@@ -371,8 +364,6 @@ DX11GraphicsManager::internalCreateProgramShader(const String& fileName,
                              &pProgramShader->m_pPixelBlob)) {
     return nullptr;
   }
-
-
 
   throwIfFailed(m_pDevice->m_pDevice->CreateVertexShader(
                 pProgramShader->m_pVertexBlob->GetBufferPointer(),

@@ -123,7 +123,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<InputDesc>& desc,
                             const SPtr<ProgramShader>& pVShader) override;
 
   /**

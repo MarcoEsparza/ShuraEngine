@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/05
+*  @date    2024/11/06
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
@@ -60,7 +60,7 @@ struct SH_CORE_EXPORT VertexData
 };
 
 /**
-*  @brief 
+*  @brief Filters enumerator.
 */
 namespace SAMPLER_FILTER {
 enum SH_CORE_EXPORT E
@@ -72,7 +72,7 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief
+*  @brief Address mode.
 */
 namespace TEXTURE_ADDRESS_MODE {
 enum SH_CORE_EXPORT E
@@ -86,7 +86,7 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief
+*  @brief Current supported formats.
 */
 namespace TEXTURE_FORMAT {
 enum SH_CORE_EXPORT E
@@ -114,7 +114,7 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief
+*  @brief Flags.
 */
 namespace BIND_FLAGS {
 enum SH_CORE_EXPORT E
@@ -133,7 +133,7 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief
+*  @brief Usage enumerator.
 */
 namespace USAGE {
 enum SH_CORE_EXPORT E
@@ -146,7 +146,7 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief
+*  @brief Supported topology.
 */
 namespace PRIMITIVE_TOPOLOGY {
 enum SH_CORE_EXPORT E
@@ -159,6 +159,9 @@ enum SH_CORE_EXPORT E
 };
 }
 
+/**
+*  @brief Clear flags.
+*/
 namespace CLEAR_FLAGS {
 enum E
 {
@@ -166,4 +169,14 @@ enum E
   kStencil
 };
 }
+
+/**
+*  @brief InputLayout descriptor struct.
+*/
+struct InputDesc
+{
+  INPUT_LAYOUT_TYPES::E type;
+  uint32 format;
+  uint32 size;
+};
 }

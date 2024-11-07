@@ -65,10 +65,10 @@ GraphicsManager::getMainDepthStencil() const
 }
 
 SPtr<InputLayout>
-GraphicsManager::createInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
                                    const SPtr<ProgramShader>& pShader)
 {
-  return internalCreateInputLayout(types, pShader);
+  return internalCreateInputLayout(desc, pShader);
 }
 
 SPtr<ProgramShader>

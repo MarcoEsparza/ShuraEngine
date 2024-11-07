@@ -2,7 +2,7 @@
 /*
 *  @file    shCoreTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2024/11/06
 *  @brief   Here is the main to test the window initialize.
 *
 *  Here is the main to test the window initialize.
@@ -202,6 +202,7 @@ initGraphicAssets(const Screen& _screen)
   *  Shaders
   ********************/
 
+  // TODO: Change abstraction level for file reading and change compile function.
   g_pProgramShader = gManager.createProgramShader("resources/BasicShader.hlsl",
                                                   "main",
                                                   "mainPS",
@@ -214,13 +215,23 @@ initGraphicAssets(const Screen& _screen)
   *  Input layout
   ********************/
 
-  Vector<INPUT_LAYOUT_TYPES::E> ilTypes;
+  Vector<InputDesc> ilDesc;
 
-  ilTypes.push_back(INPUT_LAYOUT_TYPES::E::kPosition);
-  ilTypes.push_back(INPUT_LAYOUT_TYPES::E::kNormal);
-  ilTypes.push_back(INPUT_LAYOUT_TYPES::E::kTexcoord);
+  ilDesc.resize(3);
 
-  g_pInputLayout = gManager.createInputLayout(ilTypes, g_pProgramShader);
+  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
+  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
+  ilDesc[0].size = 12;
+
+  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
+  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
+  ilDesc[1].size = 12;
+
+  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
+  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
+  ilDesc[2].size = 8;
+
+  g_pInputLayout = gManager.createInputLayout(ilDesc, g_pProgramShader);
   SH_ASSERT(g_pInputLayout);
 
   /*****************************

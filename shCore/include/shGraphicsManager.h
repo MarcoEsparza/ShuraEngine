@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2024/11/06
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -126,13 +126,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Creates Input Layout with given types and Vertex Shader.
   *
-  *  @param Vector<shInputLayoutTypes::E>& types
+  *  @param Vector<InputDesc>& desc
   *  @param SPtr<ProgramShader>& pShader
   *
   *  @return SPtr<InputLayout>
   */
   SPtr<InputLayout>
-  createInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+  createInputLayout(const Vector<InputDesc>& desc,
                     const SPtr<ProgramShader>& pShader);
 
   /**
@@ -462,13 +462,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   * 
-  *  @param Vector<shInputLayoutTypes::E>& types
-  *  @param SPtr<ProgramShader>& pVShader
+  *  @param Vector<InputDesc>& desc
+  *  @param SPtr<ProgramShader>& pPShader
   *
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<INPUT_LAYOUT_TYPES::E>& types,
+  internalCreateInputLayout(const Vector<InputDesc>& desc,
                             const SPtr<ProgramShader>& pPShader) = 0;
 
   /**
