@@ -331,7 +331,7 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  virtual ~ViewMatrix() = default;
+  ~ViewMatrix() = default;
 };
 
 /**
@@ -363,7 +363,7 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
   /**
   *  @brief Default destructor.
   */
-  virtual ~ProjectionMatrix() = default;
+  ~ProjectionMatrix() = default;
 };
 
 /*************************************************************/

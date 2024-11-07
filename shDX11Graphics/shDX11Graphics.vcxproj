@@ -19,37 +19,26 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\shCamera.h" />
-    <ClInclude Include="include\shDevice.h" />
-    <ClInclude Include="include\shBuffers.h" />
-    <ClInclude Include="include\shDepthStencilView.h" />
-    <ClInclude Include="include\shEvent.h" />
-    <ClInclude Include="Include\shEventData.h" />
-    <ClInclude Include="include\shGraphicsManager.h" />
-    <ClInclude Include="include\shGraphicTypes.h" />
-    <ClInclude Include="include\shInputLayout.h" />
-    <ClInclude Include="Include\shPrerequisitesCore.h" />
-    <ClInclude Include="include\shRenderTargetView.h" />
-    <ClInclude Include="include\shSamplerState.h" />
-    <ClInclude Include="Include\shScreen.h" />
-    <ClInclude Include="include\shEventEnums.h" />
-    <ClInclude Include="Include\shScreenEventHandle.h" />
-    <ClInclude Include="include\shShader.h" />
-    <ClInclude Include="include\shSwapChain.h" />
-    <ClInclude Include="include\shTexture.h" />
+    <ClInclude Include="include\shDX11Buffers.h" />
+    <ClInclude Include="include\shDX11Device.h" />
+    <ClInclude Include="include\shDX11InputLayout.h" />
+    <ClInclude Include="include\shDX11RenderTargetView.h" />
+    <ClInclude Include="include\shDX11SamplerState.h" />
+    <ClInclude Include="include\shDX11Shader.h" />
+    <ClInclude Include="include\shDX11SwapChain.h" />
+    <ClInclude Include="include\shDX11Texture.h" />
+    <ClInclude Include="include\shPrerequisitesDX11Graphics.h" />
+    <ClInclude Include="include\shDX11GraphicsManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\shCamera.cpp" />
-    <ClCompile Include="source\shEvent.cpp" />
-    <ClCompile Include="source\shGraphicsManager.cpp" />
-    <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
-    <ClCompile Include="Source\shScreenWin32.cpp" />
+    <ClCompile Include="source\shDX11GraphicsManager.cpp" />
+    <ClCompile Include="source\shDX11LoadPlugin.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{668b73e8-d359-4eef-843e-6e394d69709b}</ProjectGuid>
-    <RootNamespace>shCore</RootNamespace>
+    <ProjectGuid>{a819837c-01c7-4a9c-a3af-5245375a60bd}</ProjectGuid>
+    <RootNamespace>shDX11Graphics</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -98,18 +87,18 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)bin/$(PlatformTarget)/</OutDir>
-    <IntDir>$(SolutionDir)intermediate/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
     <TargetName>$(ProjectName)d</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)bin/$(PlatformTarget)/</OutDir>
     <IntDir>$(SolutionDir)intermediate/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>$(ProjectName)d</TargetName>
     <OutDir>$(SolutionDir)bin/$(PlatformTarget)/</OutDir>
     <IntDir>$(SolutionDir)intermediate/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
-    <TargetName>$(ProjectName)d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin/$(PlatformTarget)/</OutDir>
+    <IntDir>$(SolutionDir)intermediate/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin/$(PlatformTarget)/</OutDir>
@@ -119,17 +108,17 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(SolutionDir)/shCore/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilitiesd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d11.lib;d3dcompiler.lib;shCored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,36 +127,36 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(SolutionDir)/shCore/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilities.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d11.lib;d3dcompiler.lib;shCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(SolutionDir)/shCore/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilitiesd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d11.lib;d3dcompiler.lib;shCored.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -176,19 +165,19 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(SolutionDir)/shCore/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilities.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d11.lib;d3dcompiler.lib;shCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
