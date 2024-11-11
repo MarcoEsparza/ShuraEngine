@@ -22,6 +22,7 @@
 #include "shMath.h"
 #include "shCamera.h"
 #include "shLinearColor.h"
+#include "shResourceManager.h"
 
 #include "functional"
 
@@ -32,7 +33,6 @@ using namespace shEngineSDK;
 
 SPtr<ProgramShader> g_pProgramShader;
 SPtr<InputLayout> g_pInputLayout;
-SPtr<Texture2D> g_pTexture;
 SPtr<VertexBuffer> g_pVertexBuffer;
 SPtr<IndexBuffer> g_pIndexBuffer;
 SPtr<ConstantBuffer> g_pWVP;
@@ -45,6 +45,8 @@ FPSCamera g_Camera;
 Vector2i g_lastMousePos;
 Vector2i g_mousePos;
 Matrix4 g_world;
+
+ResourceManager g_resManager;
 
 /**
 *  @brief View struct.
@@ -158,22 +160,22 @@ int main()
         const KeyboardData keyboard = ev.data.keyboard;
 
         if (keyboard.key == KEY::kW) {
-          updateCameraMove(0.5f, 2);
+          updateCameraMove(0.1f, 2);
         }
         else if (keyboard.key == KEY::kA) {
-          updateCameraMove(-0.5f, 0);
+          updateCameraMove(-0.1f, 0);
         }
         else if (keyboard.key == KEY::kS) {
-          updateCameraMove(-0.5f, 2);
+          updateCameraMove(-0.1f, 2);
         }
         else if (keyboard.key == KEY::kD) {
-          updateCameraMove(0.5f, 0);
+          updateCameraMove(0.1f, 0);
         }
         else if (keyboard.key == KEY::kE) {
-          updateCameraMove(0.5f, 1);
+          updateCameraMove(0.1f, 1);
         }
         else if (keyboard.key == KEY::kQ) {
-          updateCameraMove(-0.5f, 1);
+          updateCameraMove(-0.1f, 1);
         }
       }
       if (ev.type == EVENT_TYPE::kClose) {
@@ -238,85 +240,27 @@ initGraphicAssets(const Screen& _screen)
   *  Vertex and Index buffers
   *****************************/
 
-  g_mesh.resize(24);
+  Vector<String> modelPaths = { "resources/Frieren.fbx",
+                                "resources/Treasure.fbx" };
 
-  // Up
-  g_mesh[0].position = Vector3(-1.0f, 1.0f, -1.0f);
-  g_mesh[0].tex = Vector2(0.0f, 1.0f);
-  g_mesh[1].position = Vector3(1.0f, 1.0f, -1.0f);
-  g_mesh[1].tex = Vector2(1.0f, 1.0f);
-  g_mesh[2].position = Vector3(1.0f, 1.0f, 1.0f);
-  g_mesh[2].tex = Vector2(1.0f, 0.0f);
-  g_mesh[3].position = Vector3(-1.0f, 1.0f, 1.0f);
-  g_mesh[3].tex = Vector2(0.0f, 0.0f);
+  for (uint8 i = 0; i < modelPaths.size(); ++i) {
+    g_resManager.loadModelFromFile(modelPaths[i]);
+  }
 
-  // Down
-  g_mesh[4].position = Vector3(-1.0f, -1.0f, -1.0f);
-  g_mesh[4].tex = Vector2(0.0f, 0.0f);
-  g_mesh[5].position = Vector3(1.0f, -1.0f, -1.0f);
-  g_mesh[5].tex = Vector2(1.0f, 0.0f);
-  g_mesh[6].position = Vector3(1.0f, -1.0f, 1.0f);
-  g_mesh[6].tex = Vector2(1.0f, 1.0f);
-  g_mesh[7].position = Vector3(-1.0f, -1.0f, 1.0f);
-  g_mesh[7].tex = Vector2(0.0f, 1.0f);
+  auto chest = g_resManager.m_loadedModels["resources/Treasure.fbx"];
 
-  // Left
-  g_mesh[8].position = Vector3(-1.0f, -1.0f, 1.0f);
-  g_mesh[8].tex = Vector2(0.0f, 1.0f);
-  g_mesh[9].position = Vector3(-1.0f, -1.0f, -1.0f);
-  g_mesh[9].tex = Vector2(1.0f, 1.0f);
-  g_mesh[10].position = Vector3(-1.0f, 1.0f, -1.0f);
-  g_mesh[10].tex = Vector2(1.0f, 0.0f);
-  g_mesh[11].position = Vector3(-1.0f, 1.0f, 1.0f);
-  g_mesh[11].tex = Vector2(0.0f, 0.0f);
+  for (uint32 i = 0; i < chest->vertices.size(); ++i) {
+    chest->vertices[i].position.x += 2.0f;
+  }
 
-  // Right
-  g_mesh[12].position = Vector3(1.0f, -1.0f, 1.0f);
-  g_mesh[12].tex = Vector2(0.0f, 1.0f);
-  g_mesh[13].position = Vector3(1.0f, -1.0f, -1.0f);
-  g_mesh[13].tex = Vector2(1.0f, 1.0f);
-  g_mesh[14].position = Vector3(1.0f, 1.0f, -1.0f);
-  g_mesh[14].tex = Vector2(1.0f, 0.0f);
-  g_mesh[15].position = Vector3(1.0f, 1.0f, 1.0f);
-  g_mesh[15].tex = Vector2(0.0f, 0.0f);
-
-  // Front
-  g_mesh[16].position = Vector3(-1.0f, -1.0f, -1.0f);
-  g_mesh[16].tex = Vector2(0.0f, 1.0f);
-  g_mesh[17].position = Vector3(1.0f, -1.0f, -1.0f);
-  g_mesh[17].tex = Vector2(1.0f, 1.0f);
-  g_mesh[18].position = Vector3(1.0f, 1.0f, -1.0f);
-  g_mesh[18].tex = Vector2(1.0f, 0.0f);
-  g_mesh[19].position = Vector3(-1.0f, 1.0f, -1.0f);
-  g_mesh[19].tex = Vector2(0.0f, 0.0f);
-
-  // Back
-  g_mesh[20].position = Vector3(-1.0f, -1.0f, 1.0f);
-  g_mesh[20].tex = Vector2(0.0f, 0.0f);
-  g_mesh[21].position = Vector3(1.0f, -1.0f, 1.0f);
-  g_mesh[21].tex = Vector2(1.0f, 0.0f);
-  g_mesh[22].position = Vector3(1.0f, 1.0f, 1.0f);
-  g_mesh[22].tex = Vector2(1.0f, 1.0f);
-  g_mesh[23].position = Vector3(-1.0f, 1.0f, 1.0f);
-  g_mesh[23].tex = Vector2(0.0f, 1.0f);
-
-  g_index = { 3,1,0,
-              2,1,3,
-              
-              6,4,5,
-              7,4,6,
-              
-              11,9,8,
-              10,9,11,
-              
-              14,12,13,
-              15,12,14,
-              
-              19,17,16,
-              18,17,19,
-              
-              22,20,21,
-              23,20,22 };
+  for (auto pModel : g_resManager.m_loadedModels) {
+    for (uint32 i = 0; i < pModel.second->vertices.size(); ++i) {
+      g_mesh.push_back(pModel.second->vertices[i]);
+    }
+    for (uint32 i = 0; i < pModel.second->indices.size(); ++i) {
+      g_index.push_back(pModel.second->indices[i]);
+    }
+  }
 
   g_pVertexBuffer = gManager.createVertexBuffer(g_mesh);
   SH_ASSERT(g_pVertexBuffer);
@@ -331,13 +275,49 @@ initGraphicAssets(const Screen& _screen)
   g_pSamplerLinear = gManager.createSamplerState();
   SH_ASSERT(g_pSamplerLinear);
 
-  /********************
-  *  Texture
-  ********************/
+  /*************************
+  *  Texture and materials
+  *************************/
 
-  String path = "resources/ShuraIconOption.png";
-  g_pTexture = gManager.createTextureFromFile(path);
-  SH_ASSERT(g_pTexture);
+  String texBody = "resources/Frieren_Col_v02.png";
+  String texCloth = "resources/FrierenClothing_Col.png";
+  String texHair = "resources/FrierenHair_Col_v02.png";
+  String texIris = "resources/FrierenIris_Col.png";
+  String texLash = "resources/FrierenLash_Col.png";
+  String texSclera = "resources/FrierenSclera_Col.png";
+  String texChest= "resources/Treasure_Color.png";
+
+  g_resManager.loadTextureFromFile(texBody);
+  g_resManager.loadTextureFromFile(texCloth);
+  g_resManager.loadTextureFromFile(texHair);
+  g_resManager.loadTextureFromFile(texIris);
+  g_resManager.loadTextureFromFile(texLash);
+  g_resManager.loadTextureFromFile(texSclera);
+  g_resManager.loadTextureFromFile(texChest);
+
+  auto frierenBodyMat = g_resManager.m_loadedMaterials["FrierenBody"];
+  frierenBodyMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texBody];
+
+  auto frierenClothMat = g_resManager.m_loadedMaterials["FrierenSkirt"];
+  frierenClothMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texCloth];
+
+  auto frierenHairMat = g_resManager.m_loadedMaterials["FrierenHair"];
+  frierenHairMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texHair];
+
+  auto frierenIrisMat = g_resManager.m_loadedMaterials["FrierenIris"];
+  frierenIrisMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texIris];
+
+  auto frierenLashMat = g_resManager.m_loadedMaterials["FrierenLash"];
+  frierenLashMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texLash];
+
+  auto frierenBrowMat = g_resManager.m_loadedMaterials["FrierenBrow"];
+  frierenBrowMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texCloth];
+
+  auto frierenScleraMat = g_resManager.m_loadedMaterials["FrierenSclera"];
+  frierenScleraMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texSclera];
+
+  auto chestMat = g_resManager.m_loadedMaterials["Treasure"];
+  chestMat->textures[TEXTURE_TYPE::kBaseColor] = g_resManager.m_loadedTextures[texChest];
 
   /********************
   *  Camera
@@ -404,7 +384,6 @@ render()
   gManager.setRenderTargets(pMainRTV, pDepthStencil, 1);
 
   gManager.setSamplerState(g_pSamplerLinear);
-  gManager.setShaderResourceView(g_pTexture);
 
   gManager.setProgramShader(g_pProgramShader);
 
@@ -413,8 +392,25 @@ render()
   gManager.setIndexBuffers(g_pIndexBuffer);
   gManager.vsSetConstantBuffers(g_pWVP);
   gManager.setPrimitiveTopology();
-  
-  gManager.drawIndexed(static_cast<uint32>(g_index.size()), 0, 0);
+
+  Vector<String> modelPaths = { "resources/Frieren.fbx",
+                                "resources/Chest.fbx" };
+
+  uint32 vertexCount = 0;
+  uint32 indexCount = 0;
+  for (auto pModel : g_resManager.m_loadedModels) {
+    for (uint32 i = 0; i < pModel.second->meshes.size(); ++i) {
+      auto mat = pModel.second->materials[pModel.second->meshes[i].matIndex];
+      gManager.setShaderResourceView(mat->textures[TEXTURE_TYPE::kBaseColor]);
+
+      gManager.drawIndexed(pModel.second->meshes[i].numIndices,
+                           indexCount,
+                           vertexCount);
+
+      indexCount += pModel.second->meshes[i].numIndices;
+      vertexCount += pModel.second->meshes[i].numVertex;
+    }
+  }
 
   gManager.present();
 }

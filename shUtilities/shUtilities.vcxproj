@@ -28,6 +28,7 @@
     <ClInclude Include="Include\shMath.h" />
     <ClInclude Include="Include\shMatrix4.h" />
     <ClInclude Include="Include\shModule.h" />
+    <ClInclude Include="include\shPath.h" />
     <ClInclude Include="Include\shPlane.h" />
     <ClInclude Include="Include\shPlatformDefines.h" />
     <ClInclude Include="Include\shPlatformMath.h" />

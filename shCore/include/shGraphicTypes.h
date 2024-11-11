@@ -163,7 +163,7 @@ enum SH_CORE_EXPORT E
 *  @brief Clear flags.
 */
 namespace CLEAR_FLAGS {
-enum E
+enum SH_CORE_EXPORT E
 {
   kDepth = 1,
   kStencil
@@ -173,10 +173,38 @@ enum E
 /**
 *  @brief InputLayout descriptor struct.
 */
-struct InputDesc
+struct SH_CORE_EXPORT InputDesc
 {
   INPUT_LAYOUT_TYPES::E type;
   uint32 format;
   uint32 size;
 };
+
+namespace TEXTURE_TYPE {
+enum SH_CORE_EXPORT E
+{
+  kNone = 0,
+  kDiffuse,
+  kSpecular,
+  kAmbient,
+  kEmissive,
+  kHeight,
+  kNormals,
+  kShininess,
+  kOpacity,
+  kDisplacement,
+  kLightMap,
+  kReflection,
+  kBaseColor,
+  kNormalCamera,
+  kEmissionColor,
+  kMetalness,
+  kDiffuseRoughness,
+  kAmbientOcclusion,
+  kUnknown,
+  kSheen,
+  kClearCoat,
+  kTransmission
+};
+}
 }
