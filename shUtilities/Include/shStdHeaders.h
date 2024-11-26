@@ -79,6 +79,12 @@ template <typename T>
 using WPtr = std::weak_ptr<T>;
 
 /*
+*  @brief Unique pointer that will be used for Shura Engine.
+*/
+template <typename T>
+using UPtr = std::unique_ptr<T>;
+
+/*
 *  @brief Vector wrapper to use along the engine.
 */
 template <typename T>

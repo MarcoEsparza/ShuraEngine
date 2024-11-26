@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shModel.h
+*  @file    sh.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
-*  @brief
+*  @date    2024/11/
+*  @brief   
 *
-*
+*  
 *
 *  @bug     No bug known.
 */
@@ -18,16 +18,23 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shGraphicTypes.h"
-#include "shMeshResource.h"
-#include "shBone.h"
-#include "shAnimator.h"
 
 namespace shEngineSDK {
-struct SH_CORE_EXPORT Model
+namespace RESOURCE_TYPE{
+enum SH_CORE_EXPORT E
 {
-  //Vector<MeshResource> meshes;
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
+  kTexture = 0,
+  kModel,
+  kAnmimation
+};
+}
+
+class SH_CORE_EXPORT Resource
+{
+ public:
+  Resource() = default;
+  virtual ~Resource() = default;
+
+  String name;
 };
 }

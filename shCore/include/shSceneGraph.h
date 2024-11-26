@@ -1,8 +1,8 @@
 /*************************************************************/
 /*
-*  @file    shModel.h
+*  @file    sh.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
+*  @date    2024/11/09
 *  @brief
 *
 *
@@ -18,16 +18,15 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shGraphicTypes.h"
-#include "shMeshResource.h"
-#include "shBone.h"
-#include "shAnimator.h"
+#include "shGameObject.h"
 
 namespace shEngineSDK {
-struct SH_CORE_EXPORT Model
+class SceneGraph
 {
-  //Vector<MeshResource> meshes;
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
+ public:
+  SceneGraph() = default;
+  virtual ~SceneGraph() = default;
+
+
 };
 }

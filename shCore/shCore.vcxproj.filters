@@ -46,6 +46,33 @@
     <Filter Include="Source Files\Resource">
       <UniqueIdentifier>{064a7fef-7aa8-42ac-acbe-7fbcf553ffde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Component">
+      <UniqueIdentifier>{ae031afd-74c4-42f5-ba46-3ba4e0af9e3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\BaseApp">
+      <UniqueIdentifier>{f1692d74-ee97-41b6-8bc5-91d349936abd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Material">
+      <UniqueIdentifier>{eb39515a-66d7-4d9d-be7c-de74a981d1dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SceneGraph">
+      <UniqueIdentifier>{eaf513bb-0d0a-4cc4-bf83-edfdfd1a5ace}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\BaseApp">
+      <UniqueIdentifier>{bfb6ab30-6b9e-4200-b55a-11ab110ba342}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Shaders">
+      <UniqueIdentifier>{e7b86f0d-938a-485b-ac2b-455d156e951c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GameObject">
+      <UniqueIdentifier>{8161df41-6f23-4be5-b84f-b5d63bc8934b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DynamicLibrary">
+      <UniqueIdentifier>{506c6fa7-7466-4652-90d9-d2264d2c2155}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DynamicLibrary">
+      <UniqueIdentifier>{a34ece26-2fe8-4315-af41-5b61c88b6510}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -108,7 +135,7 @@
     <ClInclude Include="include\shModel.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\shMesh.h">
+    <ClInclude Include="include\shMeshResource.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
     <ClInclude Include="include\shBone.h">
@@ -116,6 +143,33 @@
     </ClInclude>
     <ClInclude Include="include\shAnimator.h">
       <Filter>Header Files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shMeshComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shBaseApp.h">
+      <Filter>Header Files\BaseApp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shMaterial.h">
+      <Filter>Header Files\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shImageResource.h">
+      <Filter>Header Files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shResource.h">
+      <Filter>Header Files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSceneGraph.h">
+      <Filter>Header Files\SceneGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shGameObject.h">
+      <Filter>Header Files\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDynamicLibrary.h">
+      <Filter>Header Files\DynamicLibrary</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -139,6 +193,12 @@
     </ClCompile>
     <ClCompile Include="source\shAnimator.cpp">
       <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shBaseApp.cpp">
+      <Filter>Source Files\BaseApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shDynamicLibrary.cpp">
+      <Filter>Source Files\DynamicLibrary</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

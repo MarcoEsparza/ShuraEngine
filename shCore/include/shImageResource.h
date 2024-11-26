@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shMesh.h
+*  @file    sh.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2024/11/09
-*  @brief   Basic mesh structure for models.
+*  @brief
 *
-*  Basic mesh structure for models.
+*
 *
 *  @bug     No bug known.
 */
@@ -18,27 +18,16 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
+#include "shResource.h"
 #include "shTexture.h"
 
 namespace shEngineSDK {
-/**
-*  @brief
-*/
-struct SH_CORE_EXPORT Material
+class ImageResource : public Resource
 {
-  String name;
-  UMap<TEXTURE_TYPE::E, SPtr<Texture2D>> textures;
-};
+ public:
+  ImageResource() = default;
+  virtual ~ImageResource() = default;
 
-/**
-*  @brief
-*/
-struct SH_CORE_EXPORT Mesh
-{
-  uint32 baseVertex = 0;
-  uint32 numVertex = 0;
-  uint32 baseIndex = 0;
-  uint32 numIndices = 0;
-  uint32 matIndex = 0;
+  SPtr<Texture2D> texture;
 };
 }

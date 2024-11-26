@@ -18,14 +18,21 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shGraphicsManager.h"
-#include "shModel.h"
+#include "shResource.h"
+#include "shModule.h"
 
 struct aiScene;
 struct aiNode;
 struct aiMesh;
 
 namespace shEngineSDK {
+struct Bone;
+
+struct SH_CORE_EXPORT ResourceInfoHeader
+{
+
+};
+
 struct SH_CORE_EXPORT ModelCacheHeader
 {
   int32 numMeshes;
@@ -34,45 +41,37 @@ struct SH_CORE_EXPORT ModelCacheHeader
   int32 numPaths;
 };
 
-class SH_CORE_EXPORT ResourceManager
+class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
 {
  public:
   ResourceManager() = default;
   ~ResourceManager() = default;
 
  public:
-  void
-  loadModelFromFile(const String& fileName);
-
-  SPtr<Texture2D>
-  loadTextureFromFile(const String& fileName);
-
-  SPtr<Material>
-  loadMaterial(const String& name);
-
-  void
-  loadAnimations(const String& fileName, const SPtr<Model>& model);
+  SPtr<Resource>
+  loadResourceFromFile(const String& fileName, const RESOURCE_TYPE::E rType);
 
  private:
-  SPtr<Model>
-  isModelLoaded(const String& fileName);
+  SPtr<Resource>
+  isResourceLoaded(const String& fileName);
 
-  SPtr<Texture2D>
-  isTextureLoaded(const String& fileName);
+  SPtr<Resource>
+  loadModelFromFile(const String& fileName);
 
-  SPtr<Material>
-  isMaterialLoaded(const String& name);
+  SPtr<Resource>
+  loadTextureFromFile(const String& fileName);
+
+  SPtr<Resource>
+  loadAnimations(const String& fileName);
 
   void
-  proccessNode(const aiNode* node, const aiScene* scene, SPtr<Model>& model);
+  proccessNode(const aiNode* node, const aiScene* scene);
 
   void
-  proccessMesh(const aiMesh* mesh, const aiScene* scene, SPtr<Model>& model);
+  proccessMesh(const aiMesh* mesh, const aiScene* scene);
 
-  bool
-  readSkeleton(Bone& boneOutput,
-               aiNode* node,
-               UMap<String, Pair<int32, Matrix4>> boneInfoTable);
+  void
+  processSkeleton(const aiMesh* mesh, const aiScene* scene);
 
   void
   proccessAnimation(const aiScene* scene);
@@ -80,15 +79,13 @@ class SH_CORE_EXPORT ResourceManager
   bool
   existCacheForModel(const String& fileName);
 
-  void
+  SPtr<Resource>
   loadModelFromCache(const String& fileName);
 
   void
-  createCacheForModel(const String& fileName, SPtr<Model>& model);
+  createCacheForModel(const String& fileName);
 
  public:
-  UMap<String, SPtr<Texture2D>> m_loadedTextures;
-  UMap<String, SPtr<Model>> m_loadedModels;
-  UMap<String, SPtr<Material>> m_loadedMaterials;
+  UMap<String, SPtr<Resource>> m_loadedResources;
 };
 }

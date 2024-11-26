@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -20,8 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shAnimator.h" />
+    <ClInclude Include="include\shBaseApp.h" />
     <ClInclude Include="include\shBone.h" />
-    <ClInclude Include="include\shMesh.h" />
+    <ClInclude Include="include\shComponent.h" />
+    <ClInclude Include="include\shDynamicLibrary.h" />
+    <ClInclude Include="include\shGameObject.h" />
+    <ClInclude Include="include\shImageResource.h" />
+    <ClInclude Include="include\shMaterial.h" />
+    <ClInclude Include="include\shMeshResource.h" />
+    <ClInclude Include="include\shMeshComponent.h" />
     <ClInclude Include="include\shModel.h" />
     <ClInclude Include="include\shCamera.h" />
     <ClInclude Include="include\shDevice.h" />
@@ -34,8 +41,10 @@
     <ClInclude Include="include\shInputLayout.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
+    <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />
     <ClInclude Include="include\shSamplerState.h" />
+    <ClInclude Include="include\shSceneGraph.h" />
     <ClInclude Include="Include\shScreen.h" />
     <ClInclude Include="include\shEventEnums.h" />
     <ClInclude Include="Include\shScreenEventHandle.h" />
@@ -45,7 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shAnimator.cpp" />
+    <ClCompile Include="source\shBaseApp.cpp" />
     <ClCompile Include="source\shCamera.cpp" />
+    <ClCompile Include="source\shDynamicLibrary.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
