@@ -73,6 +73,12 @@
     <Filter Include="Source Files\DynamicLibrary">
       <UniqueIdentifier>{a34ece26-2fe8-4315-af41-5b61c88b6510}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Component">
+      <UniqueIdentifier>{43ca1792-1d41-4be6-a233-1ff4ecff9e70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SceneGraph">
+      <UniqueIdentifier>{8a28dd9a-f521-4e7a-97e1-7e17de4b10d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -132,9 +138,6 @@
     <ClInclude Include="include\shResourceManager.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\shModel.h">
-      <Filter>Header Files\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="include\shMeshResource.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
@@ -171,6 +174,9 @@
     <ClInclude Include="include\shDynamicLibrary.h">
       <Filter>Header Files\DynamicLibrary</Filter>
     </ClInclude>
+    <ClInclude Include="include\shTransformComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -199,6 +205,18 @@
     </ClCompile>
     <ClCompile Include="source\shDynamicLibrary.cpp">
       <Filter>Source Files\DynamicLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shTransformComponent.cpp">
+      <Filter>Source Files\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shSceneGraph.cpp">
+      <Filter>Source Files\SceneGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shGameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shMeshComponent.cpp">
+      <Filter>Source Files\Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

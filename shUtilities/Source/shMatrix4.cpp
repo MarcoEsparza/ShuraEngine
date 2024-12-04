@@ -404,4 +404,50 @@ Matrix4::createRotationZMatrix(const float angle) const
                  0.0f, 0.0f, 1.0f, 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
 }
+
+void
+Transform::setPosition(const Vector3& position)
+{
+  m[0][3] = position.x;
+  m[1][3] = position.y;
+  m[2][3] = position.z;
+}
+
+void
+Transform::setRotation(const Vector3& rotation)
+{
+  const Matrix4 xAxis = Matrix4::createRotationXMatrix(rotation.x);
+  const Matrix4 yAxis = Matrix4::createRotationYMatrix(rotation.y);
+  const Matrix4 zAxis = Matrix4::createRotationZMatrix(rotation.z);
+
+  *this *= xAxis;
+  *this *= yAxis;
+  *this *= zAxis;
+}
+
+void
+Transform::setScale(const Vector3& scale)
+{
+  m[0][0] = scale.x;
+  m[1][1] = scale.y;
+  m[2][2] = scale.z;
+}
+
+Vector3
+Transform::getPosition() const
+{
+  return Vector3(m[0][3],m[1][3],m[2][3]);
+}
+
+Vector3
+Transform::getRotation() const
+{
+  return Vector3();
+}
+
+Vector3
+Transform::getScale() const
+{
+  return Vector3(m[0][0], m[1][1], m[2][2]);
+}
 }

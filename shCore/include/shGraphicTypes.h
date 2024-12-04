@@ -204,7 +204,9 @@ enum SH_CORE_EXPORT E
   kUnknown,
   kSheen,
   kClearCoat,
-  kTransmission
+  kTransmission,
+
+  kTextureCount
 };
 }
 }

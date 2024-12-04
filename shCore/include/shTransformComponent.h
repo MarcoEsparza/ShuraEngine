@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shImageResource.h
+*  @file    shTransformComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2024/12/04
-*  @brief   Image Resource class.
+*  @brief   Transform Component class.
 *
-*  Image Resource class.
+*  Transform Component class.
 *
 *  @bug     No bug known.
 */
@@ -18,29 +18,38 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shResource.h"
-#include "shTexture.h"
+#include "shComponent.h"
+#include "shMatrix4.h"
 
 namespace shEngineSDK {
 /**
-*  @brief   Image Resource class.
+*  @brief Transform Component class.
 */
-class ImageResource : public Resource
+class TransformComponent : public Component
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  ImageResource() { type = RESOURCE_TYPE::kTexture; }
+  TransformComponent() { type = COMPONENT_TYPE::kTransform; }
 
   /**
   *  @brief Default destructor.
   */
-  virtual ~ImageResource() = default;
+  ~TransformComponent() = default;
 
   /**
-  *  @brief Image texture.
+  *  @brief Gets the transform data.
+  * 
+  *  @return Transform&
   */
-  SPtr<Texture2D> texture;
+  Transform&
+  getTransform();
+
+ private:
+  /**
+  *  @brief Transform data.
+  */
+  Transform m_transform;
 };
 }

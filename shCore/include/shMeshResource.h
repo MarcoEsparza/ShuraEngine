@@ -2,10 +2,10 @@
 /*
 *  @file    shMeshResource.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/09
-*  @brief   Basic mesh structure for models.
+*  @date    2024/12/04
+*  @brief   Meshes classes.
 *
-*  Basic mesh structure for models.
+*  Meshes classes.
 *
 *  @bug     No bug known.
 */
@@ -19,37 +19,97 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shResource.h"
+#include "shGraphicTypes.h"
 
 namespace shEngineSDK {
 /**
-*  @brief
+*  @brief Mesh resource base class.
 */
-struct SH_CORE_EXPORT MeshResource
+class SH_CORE_EXPORT MeshResource : public Resource
 {
-  uint32 numVertex = 0;
-  uint32 numIndices = 0;
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  MeshResource() = default;
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~MeshResource() = default;
+
+  /**
+  *  @brief Mesh VertexData
+  */
+  Vector<VertexData> vertices;
+
+  /**
+  *  @brief Mesh indices
+  */
+  Vector<uint32> indices;
 };
 
-class SH_CORE_EXPORT StaticMeshResource : public Resource
+/**
+*  @brief Static mesh data.
+*/
+class SH_CORE_EXPORT StaticMeshResource : public MeshResource
 {
  public:
-  StaticMeshResource() = default;
+  /**
+  *  @brief Default constructor.
+  */
+  StaticMeshResource() { type = RESOURCE_TYPE::kStaticMesh; }
+
+  /**
+  *  @brief Default destructor.
+  */
   ~StaticMeshResource() = default;
 
+  /**
+  *  @brief Number of vertex.
+  */
   uint32 numVertex = 0;
-  uint32 numIndices = 0;
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
+
+  /**
+  *  @brief Number of index.
+  */
+  uint32 numIndex = 0;
 };
 
-class SH_CORE_EXPORT SkeletalMeshResource : public Resource
+/**
+*  @brief Skeletal mesh data.
+*/
+class SH_CORE_EXPORT SkeletalMeshResource : public MeshResource
 {
  public:
-  SkeletalMeshResource() = default;
+  /**
+  *  @brief Default constructor.
+  */
+  SkeletalMeshResource() { type = RESOURCE_TYPE::kSkeletalMesh; }
+
+  /**
+  *  @brief Default destructor.
+  */
   ~SkeletalMeshResource() = default;
 
-  Vector<MeshResource> meshes;
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
+  /**
+  *  @brief Number of vertices.
+  */
+  Vector<uint32> numVertices;
+
+  /**
+  *  @brief Number of indices.
+  */
+  Vector<uint32> numIndices;
+
+  /**
+  *  @brief Mesh names.
+  */
+  Vector<String> meshNames;
+
+  /**
+  *  @brief Number of meshes.
+  */
+  uint32 numMeshes = 0;
 };
 }

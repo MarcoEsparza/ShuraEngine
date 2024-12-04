@@ -29,7 +29,6 @@
     <ClInclude Include="include\shMaterial.h" />
     <ClInclude Include="include\shMeshResource.h" />
     <ClInclude Include="include\shMeshComponent.h" />
-    <ClInclude Include="include\shModel.h" />
     <ClInclude Include="include\shCamera.h" />
     <ClInclude Include="include\shDevice.h" />
     <ClInclude Include="include\shBuffers.h" />
@@ -51,6 +50,7 @@
     <ClInclude Include="include\shShader.h" />
     <ClInclude Include="include\shSwapChain.h" />
     <ClInclude Include="include\shTexture.h" />
+    <ClInclude Include="include\shTransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shAnimator.cpp" />
@@ -58,10 +58,14 @@
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
+    <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
+    <ClCompile Include="source\shMeshComponent.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
+    <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
+    <ClCompile Include="source\shTransformComponent.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

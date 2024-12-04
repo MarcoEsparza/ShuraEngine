@@ -2,10 +2,11 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
-*  @brief
+*  @date    2024/12/04
+*  @brief   Resource Manager module for loading all desired resources
+*           from files.
 *
-*
+*  Resource Manager module for loading all desired resources from files.
 *
 *  @bug     No bug known.
 */
@@ -36,27 +37,33 @@ using std::ios;
 using std::getline;
 
 namespace shEngineSDK {
-SPtr<Resource>
-ResourceManager::loadResourceFromFile(const String& fileName,
-                                      const RESOURCE_TYPE::E rType)
+void
+ResourceManager::loadResourceFromFile(const String& fileName)
 {
   if (isResourceLoaded(fileName)) {
-    return m_loadedResources[fileName];
+    return;
   }
   
   SPtr<Resource> resource;
-  SystemPath extension = fileName;
+  SystemPath filePath = fileName;
   
-  if (rType == RESOURCE_TYPE::kTexture) {
-    resource = loadTextureFromFile(fileName);
+  if (filePath.extension() == ".png" ||
+      filePath.extension() == ".jpeg" ||
+      filePath.extension() == ".bmp" ||
+      filePath.extension() == ".tga" ||
+      filePath.extension() == ".hdr") {
+    loadTextureFromFile(fileName);
   }
-  else if (rType == RESOURCE_TYPE::kModel) {
-    resource = loadModelFromFile(fileName);
+  else if (filePath.extension() == ".fbx" ||
+           filePath.extension() == ".obj") {
+    loadModelFromFile(fileName);
   }
+}
 
-  m_loadedResources[fileName] = resource;
-
-  return resource;
+SPtr<Resource>
+ResourceManager::getResource(const String& resourceName)
+{
+  return isResourceLoaded(resourceName);
 }
 
 SPtr<Resource>
@@ -71,56 +78,56 @@ ResourceManager::isResourceLoaded(const String& fileName)
   return nullptr;
 }
 
-SPtr<Resource>
+void
 ResourceManager::loadModelFromFile(const String& fileName)
 {
-  SystemPath cacheFileName = fileName;
-  cacheFileName.replace_extension(".shm");
+  Assimp::Importer fileImporter;
 
-  if (existCacheForModel(cacheFileName.string())) {
-    loadModelFromCache(cacheFileName.string());
-    return SPtr<Resource>();
+  const aiScene* pScene = fileImporter.ReadFile(fileName,
+                                                aiProcessPreset_TargetRealtime_MaxQuality |
+                                                aiProcess_FlipUVs);
+
+  auto* node = pScene->mRootNode->mChildren[0];
+  auto* mesh = pScene->mMeshes[node->mMeshes[0]];
+
+  if (mesh->HasBones()) {
+    createSkeletalMesh(pScene, fileName);
   }
   else {
-    Assimp::Importer fileImporter;
-
-    const aiScene* pScene = fileImporter.ReadFile(fileName,
-      aiProcessPreset_TargetRealtime_MaxQuality |
-      aiProcess_FlipUVs);
-
-    proccessNode(pScene->mRootNode, pScene);
+    proccessStaticMeshNode(pScene->mRootNode, pScene);
   }
-
-  return SPtr<Resource>();
 }
 
-SPtr<Resource>
+void
 ResourceManager::loadTextureFromFile(const String& fileName)
 {
   auto pImage = make_shared<ImageResource>();
 
   pImage->texture = GraphicsManager::instance().createTextureFromFile(fileName);
 
-  return pImage;
+  SystemPath file = fileName;
+  pImage->name = file.filename().string();
+
+  m_loadedResources[pImage->name] = pImage;
 }
 
 void
-ResourceManager::proccessNode(const aiNode* node, const aiScene* scene)
+ResourceManager::proccessStaticMeshNode(const aiNode* node, const aiScene* scene)
 {
   for (uint32 i = 0; i < node->mNumMeshes; ++i) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    proccessMesh(mesh, scene);
+    proccessStaticMesh(mesh);
   }
 
   for (uint32 i = 0; i < node->mNumChildren; ++i) {
-    proccessNode(node->mChildren[i], scene);
+    proccessStaticMeshNode(node->mChildren[i], scene);
   }
 }
 
 void
-ResourceManager::proccessMesh(const aiMesh* mesh, const aiScene* scene)
+ResourceManager::proccessStaticMesh(const aiMesh* mesh)
 {
-  StaticMeshResource currentMesh;
+  auto currentMesh = make_shared<StaticMeshResource>();
 
   for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
     VertexData vertex;
@@ -143,24 +150,105 @@ ResourceManager::proccessMesh(const aiMesh* mesh, const aiScene* scene)
                            mesh->mTextureCoords[0][i].y);
     }
 
-    currentMesh.vertices.push_back(vertex);
+    currentMesh->vertices.push_back(vertex);
   }
 
-  currentMesh.numVertex = mesh->mNumVertices;
+  currentMesh->numVertex = mesh->mNumVertices;
 
   for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
     aiFace face = mesh->mFaces[i];
 
-    currentMesh.numIndices += face.mNumIndices;
+    currentMesh->numIndex += face.mNumIndices;
 
     for (uint32 j = 0; j < face.mNumIndices; ++j) {
-      currentMesh.indices.push_back(face.mIndices[j]);
+      currentMesh->indices.push_back(face.mIndices[j]);
     }
+  }
+  
+  currentMesh->name = mesh->mName.C_Str();
+  m_loadedResources[currentMesh->name] = currentMesh;
+}
+
+void
+ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName)
+{
+  auto skeletalMesh = make_shared<SkeletalMeshResource>();
+
+  proccessSkeletalMeshNode(scene->mRootNode, scene, skeletalMesh);
+
+  SystemPath file = fileName;
+  file.replace_extension("");
+  skeletalMesh->name = file.filename().string();
+
+  m_loadedResources[skeletalMesh->name] = skeletalMesh;
+}
+
+void
+ResourceManager::proccessSkeletalMeshNode(const aiNode* node,
+                                          const aiScene* scene,
+                                          SPtr<SkeletalMeshResource>& skeletalMesh)
+{
+  for (uint32 i = 0; i < node->mNumMeshes; ++i) {
+    aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+    proccessSkeletalMesh(mesh, scene, skeletalMesh);
+  }
+
+  for (uint32 i = 0; i < node->mNumChildren; ++i) {
+    proccessSkeletalMeshNode(node->mChildren[i], scene, skeletalMesh);
   }
 }
 
 void
-ResourceManager::processSkeleton(const aiMesh* mesh, const aiScene* scene)
+ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
+                                      const aiScene* scene,
+                                      SPtr<SkeletalMeshResource>& skeletalMesh)
+{
+  for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
+    VertexData vertex;
+
+    vertex.position = Vector3(mesh->mVertices[i].x,
+      mesh->mVertices[i].y,
+      mesh->mVertices[i].z);
+
+    if (mesh->HasNormals()) {
+      vertex.normal = Vector3(mesh->mNormals[i].x,
+        mesh->mNormals[i].y,
+        mesh->mNormals[i].z);
+    }
+    else {
+      vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    if (mesh->mTextureCoords[0]) {
+      vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
+        mesh->mTextureCoords[0][i].y);
+    }
+
+    skeletalMesh->vertices.push_back(vertex);
+  }
+
+  skeletalMesh->numVertices.push_back(mesh->mNumVertices);
+
+  uint32 indexCount = 0;
+  for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
+    aiFace face = mesh->mFaces[i];
+
+    indexCount += face.mNumIndices;
+
+    for (uint32 j = 0; j < face.mNumIndices; ++j) {
+      skeletalMesh->indices.push_back(face.mIndices[j]);
+    }
+  }
+  skeletalMesh->numIndices.push_back(indexCount);
+
+  auto mat = scene->mMaterials[mesh->mMaterialIndex];
+
+  skeletalMesh->meshNames.push_back(mat->GetName().C_Str());
+  ++skeletalMesh->numMeshes;
+}
+
+void
+ResourceManager::processSkeleton(const aiMesh* mesh, const aiScene*)
 {
   UMap<String, std::pair<int, Matrix4>> boneInfo;
   Vector<uint32> boneCounts;
@@ -194,7 +282,7 @@ ResourceManager::processSkeleton(const aiMesh* mesh, const aiScene* scene)
     for (uint32 j = 0; j < bone->mNumWeights; ++j)
     {
       uint32 id = bone->mWeights[j].mVertexId;
-      float weight = bone->mWeights[j].mWeight;
+      //float weight = bone->mWeights[j].mWeight;
       boneCounts[id]++;
 
       /*switch (boneCounts[id])
@@ -241,8 +329,9 @@ ResourceManager::processSkeleton(const aiMesh* mesh, const aiScene* scene)
   //readSkeleton(model->skeleton.bones, scene->mRootNode, boneInfo);
 }
 
+// TODO : This function.
 SPtr<Resource>
-ResourceManager::loadAnimations(const String& fileName)
+ResourceManager::loadAnimations(const String&)
 {
   /*Assimp::Importer fileImporter;
 
@@ -255,109 +344,10 @@ ResourceManager::loadAnimations(const String& fileName)
   return SPtr<Resource>();
 }
 
-
-
+// TODO : This function.
 void
 ResourceManager::proccessAnimation(const aiScene*)
 {
 
-}
-
-bool
-ResourceManager::existCacheForModel(const String& fileName)
-{
-  fstream file(fileName);
-
-  bool exist = file.good();
-
-  file.close();
-
-  return exist;
-}
-
-SPtr<Resource>
-ResourceManager::loadModelFromCache(const String& fileName)
-{
-  //SPtr<Model> model = make_shared<Model>();
-
-  fstream modelFile(fileName, ios::in | ios::binary);
-
-  if (!modelFile.is_open())
-  {
-    return SPtr<Resource>();
-  }
-
-  ModelCacheHeader mch;
-
-  modelFile.read(reinterpret_cast<char*>(&mch), sizeof(mch));
-
-  Vector<char> meshData;
-  Vector<char> verticesData;
-  Vector<char> indicesData;
-
-  //int32 meshDataSize = mch.numMeshes * sizeof(Mesh);
-  int32 verticesDataSize = mch.numVertices * sizeof(VertexData);
-  int32 indicesDataSize = mch.numIndices * sizeof(uint32);
-
-  //meshData.resize(meshDataSize);
-  verticesData.resize(verticesDataSize);
-  indicesData.resize(indicesDataSize);
-
-  //modelFile.read(reinterpret_cast<char*>(&meshData[0]), meshDataSize);
-  modelFile.read(reinterpret_cast<char*>(&verticesData[0]), verticesDataSize);
-  modelFile.read(reinterpret_cast<char*>(&indicesData[0]), indicesDataSize);
-
- /* model->meshes.resize(mch.numMeshes);
-  model->vertices.resize(mch.numVertices);
-  model->indices.resize(mch.numIndices);*/
-
-  //memcpy(model->meshes.data(), meshData.data(), meshDataSize);
-  /*memcpy(model->vertices.data(), verticesData.data(), verticesDataSize);
-  memcpy(model->indices.data(), indicesData.data(), indicesDataSize);*/
-
-  modelFile.close();
-
-  return SPtr<Resource>();
-}
-
-void
-ResourceManager::createCacheForModel(const String& fileName)
-{
-  ModelCacheHeader mch;
-
- /* mch.numMeshes = static_cast<uint32>(model->meshes.size());
-  mch.numVertices = static_cast<uint32>(model->vertices.size());
-  mch.numIndices = static_cast<uint32>(model->indices.size());*/
-
-  Vector<char> meshData;
-  Vector<char> verticesData;
-  Vector<char> indicesData;
-
-  //int32 meshDataSize = mch.numMeshes * sizeof(Mesh);
-  //int32 verticesDataSize = mch.numVertices * sizeof(VertexData);
-  //int32 indicesDataSize = mch.numIndices * sizeof(uint32);
-
-  //meshData.resize(meshDataSize);
-  //verticesData.resize(verticesDataSize);
-  //indicesData.resize(indicesDataSize);
-
-  //memcpy(meshData.data(), model->meshes.data(), meshDataSize);
-  //memcpy(verticesData.data(), model->vertices.data(), verticesDataSize);
-  //memcpy(indicesData.data(), model->indices.data(), indicesDataSize);
-
-  /*SystemPath cacheName = fileName;
-  cacheName.replace_extension(".shm");
-  fstream cacheFile(cacheName.string(), ios::out | ios::binary);
-
-  if (!cacheFile.is_open()) {
-    return;
-  }
-
-  cacheFile.write(reinterpret_cast<char*>(&mch), sizeof(mch));
-  cacheFile.write(meshData.data(), meshData.size());
-  cacheFile.write(verticesData.data(), verticesData.size());
-  cacheFile.write(indicesData.data(), indicesData.size());
-
-  cacheFile.close();*/
 }
 }

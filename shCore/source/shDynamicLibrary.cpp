@@ -1,10 +1,11 @@
+/*************************************************************/
 /*
-*  @file    sh.cpp
+*  @file    shDynamicLibrary.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/
-*  @brief
+*  @date    2024/12/04
+*  @brief   Dynamic Library object.
 *
-*
+*  Dynamic Library object.
 *
 *  @bug     No bug known.
 */
@@ -49,13 +50,13 @@ void
 DynamicLibrary::unload()
 {
   if (DYNAMIC_LIBRARY_UNLOAD(m_dynLibHandler)) {
-
+    // TODO : Finish this function.
   }
 }
 
 void*
-DynamicLibrary::getSymbol(const String& strName)
+DynamicLibrary::getSymbol(const String& symbolName)
 {
-  return static_cast<void*>(DYNAMIC_LIBRARY_GET_SYMBOL(m_dynLibHandler, strName.c_str()));
+  return static_cast<void*>(DYNAMIC_LIBRARY_GET_SYMBOL(m_dynLibHandler, symbolName.c_str()));
 }
 }

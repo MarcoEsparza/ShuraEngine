@@ -1,33 +1,27 @@
 /*************************************************************/
 /*
-*  @file    shModel.h
+*  @file    shTransformComponent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
-*  @brief
+*  @date    2024/12/04
+*  @brief   Transform Component class.
 *
-*
+*  Transform Component class.
 *
 *  @bug     No bug known.
 */
 /*************************************************************/
-#pragma once
 
 /*************************************************************/
 /*
 *  Includes
 */
 /*************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shGraphicTypes.h"
-#include "shMeshResource.h"
-#include "shBone.h"
-#include "shAnimator.h"
+#include "shTransformComponent.h"
 
 namespace shEngineSDK {
-struct SH_CORE_EXPORT Model
+Transform&
+TransformComponent::getTransform()
 {
-  //Vector<MeshResource> meshes;
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
-};
+  return m_transform;
+}
 }

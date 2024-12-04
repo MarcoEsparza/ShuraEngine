@@ -2,10 +2,11 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
-*  @brief   
+*  @date    2024/12/04
+*  @brief   Resource Manager module for loading all desired resources
+*           from files.
 *
-*  
+*  Resource Manager module for loading all desired resources from files.
 *
 *  @bug     No bug known.
 */
@@ -27,12 +28,15 @@ struct aiMesh;
 
 namespace shEngineSDK {
 struct Bone;
+class SkeletalMeshResource;
 
+// TODO : Finish this for cache creation.
 struct SH_CORE_EXPORT ResourceInfoHeader
 {
 
 };
 
+// TODO : Finish this for cache creation.
 struct SH_CORE_EXPORT ModelCacheHeader
 {
   int32 numMeshes;
@@ -41,51 +45,148 @@ struct SH_CORE_EXPORT ModelCacheHeader
   int32 numPaths;
 };
 
+/**
+*  @brief Resource Manager module for loading all desired resources from files.
+*/
 class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
 {
  public:
+  /**
+  *  @brief Default constructor.
+  */
   ResourceManager() = default;
+
+  /**
+  *  @brief Default destructor.
+  */
   ~ResourceManager() = default;
 
  public:
+  /**
+  *  @brief Load resource from desired file, clasify it and create a cache
+  *         for optimizing the next time the resource will be loaded.
+  * 
+  *  @param String& fileName.
+  */
+  void
+  loadResourceFromFile(const String& fileName);
+
+  /**
+  *  @brief Get the desired resource by its name.
+  * 
+  *  @param String& resourceName
+  */
   SPtr<Resource>
-  loadResourceFromFile(const String& fileName, const RESOURCE_TYPE::E rType);
+  getResource(const String& resourceName);
 
  private:
+  /**
+  *  @brief Checks if the resource is already loaded.
+  * 
+  *  @param String& fileName
+  */
   SPtr<Resource>
   isResourceLoaded(const String& fileName);
 
-  SPtr<Resource>
+  /**
+  *  @brief Load a model from file and create a Static or Skeletal mesh.
+  * 
+  *  @param String& fileName
+  */
+  void
   loadModelFromFile(const String& fileName);
 
-  SPtr<Resource>
+  /**
+  *  @brief Load a image and creates a texture.
+  * 
+  *  @param String& fileName
+  */
+  void
   loadTextureFromFile(const String& fileName);
 
+  /**
+  *  @brief Load an animation.
+  * 
+  *  @note This function is unfinished.
+  * 
+  *  @param String& fileName
+  */
   SPtr<Resource>
   loadAnimations(const String& fileName);
 
+  /**
+  *  @brief If the model file is for static meshes, this function process all
+  *         nodes on the loaded file scene.
+  * 
+  *  @param aiNode* node
+  *  @param aiScene* scene
+  */
   void
-  proccessNode(const aiNode* node, const aiScene* scene);
+  proccessStaticMeshNode(const aiNode* node, const aiScene* scene);
 
+  /**
+  *  @brief If the model file is for static meshes, this function process and
+  *         creates all static meshes on the file.
+  * 
+  *  @param aiMesh* mesh
+  */
   void
-  proccessMesh(const aiMesh* mesh, const aiScene* scene);
+  proccessStaticMesh(const aiMesh* mesh);
 
+  /**
+  *  @brief Creates the skeletal mesh.
+  * 
+  *  @param aiScene* scene
+  *  @param String& fileName
+  */
+  void
+  createSkeletalMesh(const aiScene* scene, const String& fileName);
+
+  /**
+  *  @brief Process all nodes on the file scene for the skeletal mesh.
+  * 
+  *  @param const aiNode* node
+  *  @param const aiScene* scene
+  *  @param SPtr<SkeletalMeshResource>& skeletalMesh
+  */
+  void
+  proccessSkeletalMeshNode(const aiNode* node,
+                           const aiScene* scene,
+                           SPtr<SkeletalMeshResource>& skeletalMesh);
+
+  /**
+  *  @brief Process the mesh on the file scene for the skeletal mesh.
+  * 
+  *  @param aiMesh* mesh
+  *  @param aiScene* scene
+  *  @param SPtr<SkeletalMeshResource>& skeletalMesh
+  */
+  void
+  proccessSkeletalMesh(const aiMesh* mesh,
+                       const aiScene* scene,
+                       SPtr<SkeletalMeshResource>& skeletalMesh);
+
+  /**
+  *  @brief Process the Skeleton.
+  * 
+  *  @param const aiMesh* mesh
+  *  @param aiScene* scene
+  */
   void
   processSkeleton(const aiMesh* mesh, const aiScene* scene);
 
+  /**
+  *  @brief Process the animation.
+  * 
+  *  @param aiScene* scene
+  */
   void
   proccessAnimation(const aiScene* scene);
 
-  bool
-  existCacheForModel(const String& fileName);
-
-  SPtr<Resource>
-  loadModelFromCache(const String& fileName);
-
-  void
-  createCacheForModel(const String& fileName);
-
- public:
+ private:
+  /**
+  *  @brief All the resources are storaged here.
+  */
   UMap<String, SPtr<Resource>> m_loadedResources;
 };
 }

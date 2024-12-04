@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/28
+*  @date    2024/12/04
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -364,6 +364,71 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
   *  @brief Default destructor.
   */
   ~ProjectionMatrix() = default;
+};
+
+/**
+*  @brief Transform class.
+*/
+class SH_UTILITY_EXPORT Transform : public Matrix4
+{
+ public:
+  /**
+  *  @breif Default constructor.
+  */
+  Transform() = default;
+
+  /**
+  *  @breif Default destructor.
+  */
+  ~Transform() = default;
+
+  /**
+  *  @breif Set the transform position.
+  * 
+  *  @param Vector3& position
+  */
+  void
+  setPosition(const Vector3& position);
+
+  /**
+  *  @breif Set the transform rotation.
+  * 
+  *  @param Vector3& rotation
+  */
+  void
+  setRotation(const Vector3& rotation);
+
+  /**
+  *  @breif Set the transform scale.
+  * 
+  *  @param Vector3& scale
+  */
+  void
+  setScale(const Vector3& scale);
+
+  /**
+  *  @breif Gets the position.
+  * 
+  *  @return Vector3
+  */
+  Vector3
+  getPosition() const;
+
+  /**
+  *  @breif Gets the rotation.
+  * 
+  *  @return Vector3
+  */
+  Vector3
+  getRotation() const;
+
+  /**
+  *  @breif Gets the Scale.
+  * 
+  *  @return Vector3
+  */
+  Vector3
+  getScale() const;
 };
 
 /*************************************************************/

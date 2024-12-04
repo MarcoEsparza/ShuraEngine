@@ -2,12 +2,12 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/
-*  @brief
+*  @date    2024/12/04
+*  @brief   Base app for engine.
 *
+*  Base app for engine.
 *
-*
-*  @bug     No bug known.
+*  @bug     Crash on render.
 */
 /*************************************************************/
 
@@ -22,9 +22,13 @@
 #include "shLinearColor.h"
 #include "shResourceManager.h"
 #include "shDynamicLibrary.h"
+#include "shMeshComponent.h"
+#include "shImageResource.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 struct WorldViewProjection
@@ -58,7 +62,6 @@ BaseApp::run(const ScreenDesc& desc, const String& dllStr)
   initGraphicAssets();
 
   m_appRunning = true;
-  float transform = 0.0f;
 
   while (m_appRunning) {
     handleEvents();
@@ -67,12 +70,6 @@ BaseApp::run(const ScreenDesc& desc, const String& dllStr)
   }
 
   GraphicsManager::shutDown();
-}
-
-void
-BaseApp::updateWorld(float& trsnform)
-{
-
 }
 
 void
@@ -138,7 +135,23 @@ BaseApp::update()
 void
 BaseApp::render()
 {
+  GraphicsManager& gManager = GraphicsManager::instance();
 
+  auto pMainRTV = gManager.getMainRenderTargetView();
+  LinearColor color(0.0f, 0.0f, 1.0f);
+  gManager.clearRenderTarget(pMainRTV, color);
+
+  auto pDepthStencil = gManager.getMainDepthStencil();
+  gManager.clearDepthStencil(pDepthStencil);
+  gManager.setRenderTargets(pMainRTV, pDepthStencil, 1);
+  gManager.setSamplerState(m_pSamplerLinear);
+  gManager.vsSetConstantBuffers(m_pWVP);
+  gManager.setPrimitiveTopology();
+
+  m_scene.drawStaticMeshesInScene(m_pStaticInputLayout);
+  m_scene.drawSkeletalMeshesInScene(m_pSkeletalInputLayout);
+
+  gManager.present();
 }
 
 void
@@ -146,21 +159,21 @@ BaseApp::initGraphicAssets()
 {
   GraphicsManager& gManager = GraphicsManager::instance();
   ResourceManager& rManager = ResourceManager::instance();
-  String resourcePath = "M:/ShuraEngine/Repo/ShuraEngine/resources";
+  String resourcePath = "M:/ShuraEngine/Repo/ShuraEngine/resources/";
 
   /********************
   *  Shaders
   ********************/
   // TODO: Change abstraction level for file reading and change compile function.
 
-  String staticShaderPath = resourcePath + "shaders/StaticPBRMaterial.hlsl";
+  String staticShaderPath = resourcePath + "shaders/StaticPBRShader.hlsl";
   m_pStaticShader = gManager.createProgramShader(staticShaderPath,
                                                  "main",
                                                  "mainPS",
                                                  "vs_5_0",
                                                  "ps_5_0");
 
-  String skeletalShaderPath = resourcePath + "shaders/SkeletalPBRMaterial.hlsl";
+  String skeletalShaderPath = resourcePath + "shaders/SkeletalPBRShader.hlsl";
   m_pSkeletalShader = gManager.createProgramShader(skeletalShaderPath,
                                                    "main",
                                                    "mainPS",
@@ -213,19 +226,6 @@ BaseApp::initGraphicAssets()
 
   m_pSkeletalInputLayout = gManager.createInputLayout(ilDesc, m_pSkeletalShader);
 
-  /*****************************
-  *  Vertex and Index buffers
-  *****************************/
-
-  Vector<String> modelPaths = { "resources/Frieren.fbx",
-                                "resources/Treasure.fbx" };
-
-  String frierenModelPath = resourcePath + "Frieren.fbx";
-  String treasureModelPath = resourcePath + "Treasure.fbx";
-
-  rManager.loadResourceFromFile(frierenModelPath, RESOURCE_TYPE::kModel);
-  rManager.loadResourceFromFile(treasureModelPath, RESOURCE_TYPE::kModel);
-
   /********************
   *  Sampler state
   ********************/
@@ -233,9 +233,15 @@ BaseApp::initGraphicAssets()
   m_pSamplerLinear = gManager.createSamplerState();
   SH_ASSERT(m_pSamplerLinear);
 
-  /*************************
-  *  Texture and materials
-  *************************/
+  /********************
+  *  Load resources
+  ********************/
+
+  String frierenModelPath = resourcePath + "Frieren.fbx";
+  String treasureModelPath = resourcePath + "Treasure.fbx";
+
+  rManager.loadResourceFromFile(treasureModelPath);
+  rManager.loadResourceFromFile(frierenModelPath);
 
   String texBody = resourcePath + "Frieren_Col_v02.png";
   String texCloth = resourcePath + "FrierenClothing_Col.png";
@@ -245,13 +251,111 @@ BaseApp::initGraphicAssets()
   String texSclera = resourcePath + "FrierenSclera_Col.png";
   String texChest = resourcePath + "Treasure_Color.png";
 
-  rManager.loadResourceFromFile(texBody, RESOURCE_TYPE::kTexture);
-  rManager.loadResourceFromFile(texCloth, RESOURCE_TYPE::kTexture);
-  rManager.loadResourceFromFile(texHair, RESOURCE_TYPE::kTexture);
-  rManager.loadResourceFromFile(texIris, RESOURCE_TYPE::kTexture);
-  rManager.loadResourceFromFile(texLash, RESOURCE_TYPE::kTexture);
-  rManager.loadResourceFromFile(texSclera, RESOURCE_TYPE::kTexture);
-  rManager.loadResourceFromFile(texChest, RESOURCE_TYPE::kTexture);
+  rManager.loadResourceFromFile(texChest);
+  rManager.loadResourceFromFile(texBody);
+  rManager.loadResourceFromFile(texCloth);
+  rManager.loadResourceFromFile(texHair);
+  rManager.loadResourceFromFile(texIris);
+  rManager.loadResourceFromFile(texLash);
+  rManager.loadResourceFromFile(texSclera);
+
+  /***********************
+  *  Create GamoObjects
+  * 
+  *  The resource loading and creating objects in this function is only
+  *  temporary while an appropiate editor is created.
+  ***********************/
+
+  auto chestGO = make_shared<GameObject>();
+  chestGO->name = "TreasureChestGO";
+
+  auto smComponent = make_shared<StaticMeshComponent>();
+
+  auto chestResource =
+  reinterpret_pointer_cast<StaticMeshResource>(rManager.getResource("Cube.002"));
+  smComponent->meshData = chestResource;
+  smComponent->material = make_shared<PBRMaterial>();
+  smComponent->material->name = "TreasureMat";
+  smComponent->material->shader = m_pStaticShader;
+  auto componentMaterial = reinterpret_pointer_cast<PBRMaterial>(smComponent->material);
+  auto chestTexture =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("Treasure_Color.png"));
+  componentMaterial->baseColor = chestTexture->texture;
+
+  auto frierenObject = make_shared<GameObject>();
+  frierenObject->name = "FrierenGO";
+
+  auto skeletalMC = make_shared<SkeletalMeshComponent>();
+  auto frierenMeshResource =
+  reinterpret_pointer_cast<SkeletalMeshResource>(rManager.getResource("Frieren"));
+  skeletalMC->setMeshData(frierenMeshResource);
+  skeletalMC->materials.resize(skeletalMC->meshData->numMeshes);
+  
+  auto frierenBodyMat = make_shared<PBRMaterial>();
+  frierenBodyMat->name = "FrirenBodyMat";
+  frierenBodyMat->shader = m_pSkeletalShader;
+  auto frierenBodyTex =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("Frieren_Col_v02.png"));
+  frierenBodyMat->baseColor = frierenBodyTex->texture;
+
+  auto frierenClothMat = make_shared<PBRMaterial>();
+  frierenClothMat->name = "FrierenClothMat";
+  frierenClothMat->shader = m_pSkeletalShader;
+  auto frierenClothTex =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("FrierenClothing_Col.png"));
+  frierenBodyMat->baseColor = frierenClothTex->texture;
+
+  auto frierenHairMat = make_shared<PBRMaterial>();
+  frierenHairMat->name = "FrierenHairMat";
+  frierenHairMat->shader = m_pSkeletalShader;
+  auto frierenHairTex =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("FrierenHair_Col_v02.png"));
+  frierenBodyMat->baseColor = frierenHairTex->texture;
+
+  auto frierenIrisMat = make_shared<PBRMaterial>();
+  frierenIrisMat->name = "FrierenIrisMat";
+  frierenIrisMat->shader = m_pSkeletalShader;
+  auto frierenIrisTex =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("FrierenIris_Col.png"));
+  frierenBodyMat->baseColor = frierenIrisTex->texture;
+
+  auto frierenLashMat = make_shared<PBRMaterial>();
+  frierenLashMat->name = "FrierenLashMat";
+  frierenLashMat->shader = m_pSkeletalShader;
+  auto frierenLashTex =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("FrierenLash_Col.png"));
+  frierenBodyMat->baseColor = frierenLashTex->texture;
+
+  auto frierenScleraMat = make_shared<PBRMaterial>();
+  frierenScleraMat->name = "FrierenScleraMat";
+  frierenScleraMat->shader = m_pSkeletalShader;
+  auto frierenScleraTex =
+  reinterpret_pointer_cast<ImageResource>(rManager.getResource("FrierenSclera_Col.png"));
+  frierenBodyMat->baseColor = frierenScleraTex->texture;
+
+  auto frierenBrowMat = make_shared<PBRMaterial>();
+  frierenBrowMat->name = "FrierenBrowMat";
+  frierenBrowMat->shader = m_pSkeletalShader;
+  frierenBodyMat->baseColor = frierenClothTex->texture;
+
+  skeletalMC->materials[0] = frierenHairMat;
+  skeletalMC->materials[1] = frierenHairMat;
+  skeletalMC->materials[2] = frierenClothMat;
+  skeletalMC->materials[3] = frierenClothMat;
+  skeletalMC->materials[4] = frierenLashMat;
+  skeletalMC->materials[5] = frierenScleraMat;
+  skeletalMC->materials[6] = frierenIrisMat;
+  skeletalMC->materials[7] = frierenClothMat;
+  skeletalMC->materials[8] = frierenBrowMat;
+  skeletalMC->materials[9] = frierenClothMat;
+  skeletalMC->materials[10] = frierenBodyMat;
+
+  chestGO->addComponent(smComponent);
+  frierenObject->addComponent(skeletalMC);
+  m_scene.addObject(chestGO);
+  m_scene.addObject(frierenObject);
+
+  m_scene.updateBuffers();
 
   /********************
   *  Camera

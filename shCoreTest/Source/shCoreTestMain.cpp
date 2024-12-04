@@ -33,15 +33,7 @@ using namespace shEngineSDK;
 
 #include "shBaseApp.h"
 
-SPtr<ProgramShader> g_pProgramShader;
-SPtr<InputLayout> g_pInputLayout;
-SPtr<VertexBuffer> g_pVertexBuffer;
-SPtr<IndexBuffer> g_pIndexBuffer;
 SPtr<ConstantBuffer> g_pWVP;
-SPtr<SamplerState> g_pSamplerLinear;
-
-Vector<VertexData> g_mesh;
-Vector<uint32> g_index;
 
 FPSCamera g_Camera;
 Vector2i g_lastMousePos;
@@ -68,12 +60,6 @@ struct WorldViewProjection
 */
 void
 update(float& transform);
-
-/**
-*  @brief Render the graphics api.
-*/
-void
-render();
 
 /**
 *  @brief Updates the camera position.
@@ -106,7 +92,7 @@ int main(int argc, const char** argv)
   desc.positionY = 0;
   desc.width = 1000;
   desc.height = 600;
-  desc.iconPath = "resources/ShuraIcon.ico";
+  desc.iconPath = "M:/ShuraEngine/Repo/ShuraEngine/resources/ShuraIcon.ico";
 
   String dllName;
 
@@ -151,52 +137,6 @@ update(float& transform)
 
   GraphicsManager::instance().updateConstantBuffer(g_pWVP, &wvp, sizeof(wvp));
   SH_ASSERT(g_pWVP);
-}
-
-void
-render()
-{
-  GraphicsManager& gManager = GraphicsManager::instance();
-
-  auto pMainRTV = gManager.getMainRenderTargetView();
-  LinearColor color(0.0f, 0.0f, 1.0f);
-  gManager.clearRenderTarget(pMainRTV, color);
-  
-  auto pDepthStencil = gManager.getMainDepthStencil();
-  gManager.clearDepthStencil(pDepthStencil);
-
-  gManager.setRenderTargets(pMainRTV, pDepthStencil, 1);
-
-  gManager.setSamplerState(g_pSamplerLinear);
-
-  gManager.setProgramShader(g_pProgramShader);
-
-  gManager.setInputLayout(g_pInputLayout);
-  gManager.setVertexBuffers(g_pVertexBuffer);
-  gManager.setIndexBuffers(g_pIndexBuffer);
-  gManager.vsSetConstantBuffers(g_pWVP);
-  gManager.setPrimitiveTopology();
-
-  Vector<String> modelPaths = { "resources/Frieren.fbx",
-                                "resources/Chest.fbx" };
-
-  uint32 vertexCount = 0;
-  uint32 indexCount = 0;
-  /*for (auto pModel : g_resManager.m_loadedModels) {
-    for (uint32 i = 0; i < pModel.second->meshes.size(); ++i) {
-      auto mat = pModel.second->materials[pModel.second->meshes[i].matIndex];
-      gManager.setShaderResourceView(mat->textures[TEXTURE_TYPE::kBaseColor]);
-
-      gManager.drawIndexed(pModel.second->meshes[i].numIndices,
-                           indexCount,
-                           vertexCount);
-
-      indexCount += pModel.second->meshes[i].numIndices;
-      vertexCount += pModel.second->meshes[i].numVertex;
-    }
-  }*/
-
-  gManager.present();
 }
 
 void
