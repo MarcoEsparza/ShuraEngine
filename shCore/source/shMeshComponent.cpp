@@ -23,13 +23,11 @@ namespace shEngineSDK {
 StaticMeshComponent::StaticMeshComponent()
 {
   type = COMPONENT_TYPE::kStaticMesh;
-  name = "StaticMeshComponent";
 }
 
 SkeletalMeshComponent::SkeletalMeshComponent()
 {
   type = COMPONENT_TYPE::kSkeletalMesh;
-  name = "SkeletalMeshComponent";
 }
 
 void
@@ -39,11 +37,11 @@ SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResourc
   Vector<VertexData> skeletalVertex;
   Vector<uint32> skeletalIndex;
 
-  for (auto vertex : meshData->vertices) {
+  for (auto& vertex : meshData->vertices) {
     skeletalVertex.push_back(vertex);
   }
 
-  for (auto index : meshData->indices) {
+  for (auto& index : meshData->indices) {
     skeletalIndex.push_back(index);
   }
 

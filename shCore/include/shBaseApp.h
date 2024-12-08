@@ -24,6 +24,7 @@
 #include "shMaterial.h"
 #include "shSceneGraph.h"
 #include "shCamera.h"
+#include "shVector2i.h"
 
 namespace shEngineSDK {
 /**
@@ -46,10 +47,10 @@ class SH_CORE_EXPORT BaseApp
   *  @brief Run app.
   * 
   *  @param ScreenDesc& desc : Descriptor to create window.
-  *  @param String& dllStr : graphic dll to use.
+  *  @param String& dllGraphicApiName : graphic dll to use.
   */
   void
-  run(const ScreenDesc& desc, const String& dllStr);
+  run(const ScreenDesc& desc, const String& dllGraphicApiName);
 
  private:
   /**
@@ -62,13 +63,31 @@ class SH_CORE_EXPORT BaseApp
   *  @brief Update all objects.
   */
   void
-  update();
+  update(const float time);
 
   /**
   *  @brief Render pipeline.
   */
   void
   render();
+
+  /**
+  *  @brief Draw the static meshes in scene.
+  */
+  void
+  drawStaticMeshesInScene();
+
+  /**
+  *  @brief Draw the skeletal meshes in scene.
+  */
+  void
+  drawSkeletalMeshesInScene();
+
+  void
+  moveCameraPosition(const float direction, const uint32 axis);
+
+  void
+  rotateCamera();
 
   /**
   *  @brief Initialize the assets that will be used.
@@ -106,6 +125,16 @@ class SH_CORE_EXPORT BaseApp
   SPtr<InputLayout> m_pSkeletalInputLayout;
 
   /**
+  *  @brief Static Mesh Vertex Buffer.
+  */
+  SPtr<VertexBuffer> m_staticVBuffer;
+
+  /**
+  *  @brief Static Mesh Index Buffer.
+  */
+  SPtr<IndexBuffer> m_staticIBuffer;
+
+  /**
   *  @brief Sampler state.
   */
   SPtr<SamplerState> m_pSamplerLinear;
@@ -139,5 +168,8 @@ class SH_CORE_EXPORT BaseApp
   *  @brief Current scene.
   */
   SceneGraph m_scene;
+
+  Vector2i m_lastMousePos;
+  Vector2i m_mousePos;
 };
 }

@@ -29,7 +29,10 @@ enum SH_CORE_EXPORT E
   kTransform = 0,
   kTexture,
   kStaticMesh,
-  kSkeletalMesh
+  kSkeletalMesh,
+  kAnimator,
+
+  kCount
 };
 }
 
@@ -48,11 +51,6 @@ class SH_CORE_EXPORT Component
   *  @brief Default destructor.
   */
   virtual ~Component() = default;
-
-  /**
-  *  @brief Component name.
-  */
-  String name;
 
   /**
   *  @brief Component type.

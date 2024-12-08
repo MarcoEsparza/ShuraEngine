@@ -19,7 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\shAnimationResource.h" />
     <ClInclude Include="include\shAnimator.h" />
+    <ClInclude Include="include\shAnimatorComponent.h" />
     <ClInclude Include="include\shBaseApp.h" />
     <ClInclude Include="include\shBone.h" />
     <ClInclude Include="include\shComponent.h" />
@@ -48,12 +50,14 @@
     <ClInclude Include="include\shEventEnums.h" />
     <ClInclude Include="Include\shScreenEventHandle.h" />
     <ClInclude Include="include\shShader.h" />
+    <ClInclude Include="include\shSkeletonResource.h" />
     <ClInclude Include="include\shSwapChain.h" />
     <ClInclude Include="include\shTexture.h" />
     <ClInclude Include="include\shTransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shAnimator.cpp" />
+    <ClCompile Include="source\shAnimatorComponent.cpp" />
     <ClCompile Include="source\shBaseApp.cpp" />
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />

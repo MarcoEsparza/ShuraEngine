@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
+*  @date    2024/12/07
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
@@ -206,7 +206,7 @@ enum SH_CORE_EXPORT E
   kClearCoat,
   kTransmission,
 
-  kTextureCount
+  kCount
 };
 }
 }

@@ -22,8 +22,11 @@
 #include "shMaterial.h"
 #include "shMeshResource.h"
 #include "shBuffers.h"
+#include "shSkeletonResource.h"
 
 namespace shEngineSDK {
+//class Component;
+
 /**
 *  @brief Static Mesh Component class.
 */
@@ -43,7 +46,7 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   /**
   *  @brief Mesh component Material.
   */
-  SPtr<Material> material;
+  //SPtr<Material> material;
 
   /**
   *  @brief Resource with mesh data.
@@ -85,6 +88,8 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   */
   SPtr<SkeletalMeshResource> meshData;
 
+  SPtr<SkeletonResource> skeletonData;
+
   /**
   *  @brief Vertex Buffer.
   */
@@ -94,5 +99,9 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   *  @brief Index Buffer.
   */
   SPtr<IndexBuffer> m_indexBuffer;
+
+  SPtr<ConstantBuffer> m_meshBuffer;
+
+  Vector<Matrix4> currentPose;
 };
 }

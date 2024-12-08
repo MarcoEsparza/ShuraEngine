@@ -21,6 +21,7 @@
 #include "shPrerequisitesCore.h"
 #include "shResource.h"
 #include "shModule.h"
+#include "shMatrix4.h"
 
 struct aiScene;
 struct aiNode;
@@ -29,6 +30,9 @@ struct aiMesh;
 namespace shEngineSDK {
 struct Bone;
 class SkeletalMeshResource;
+class SkeletonResource;
+class AnimationResource;
+class StaticMeshUnionResource;
 
 // TODO : Finish this for cache creation.
 struct SH_CORE_EXPORT ResourceInfoHeader
@@ -114,6 +118,11 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadAnimations(const String& fileName);
 
+  void
+  createStaticMesh(const String& fileName,
+    const aiNode* node,
+    const aiScene* scene);
+
   /**
   *  @brief If the model file is for static meshes, this function process all
   *         nodes on the loaded file scene.
@@ -122,7 +131,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiScene* scene
   */
   void
-  proccessStaticMeshNode(const aiNode* node, const aiScene* scene);
+  proccessStaticMeshNode(const aiNode* node,
+                         const aiScene* scene,
+                         SPtr<StaticMeshUnionResource> meshUnion);
 
   /**
   *  @brief If the model file is for static meshes, this function process and
@@ -131,7 +142,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiMesh* mesh
   */
   void
-  proccessStaticMesh(const aiMesh* mesh);
+  proccessStaticMesh(const aiMesh* mesh,
+    const aiScene* scene,
+    SPtr<StaticMeshUnionResource> meshUnion);
 
   /**
   *  @brief Creates the skeletal mesh.
@@ -152,7 +165,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   proccessSkeletalMeshNode(const aiNode* node,
                            const aiScene* scene,
-                           SPtr<SkeletalMeshResource>& skeletalMesh);
+                           SPtr<SkeletalMeshResource>& skeletalMesh,
+                           SPtr<SkeletonResource>& skeleton);
 
   /**
   *  @brief Process the mesh on the file scene for the skeletal mesh.
@@ -164,7 +178,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   proccessSkeletalMesh(const aiMesh* mesh,
                        const aiScene* scene,
-                       SPtr<SkeletalMeshResource>& skeletalMesh);
+                       SPtr<SkeletalMeshResource>& skeletalMesh,
+                       SPtr<SkeletonResource>& skeleton);
 
   /**
   *  @brief Process the Skeleton.
@@ -173,15 +188,27 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiScene* scene
   */
   void
-  processSkeleton(const aiMesh* mesh, const aiScene* scene);
+  processSkeleton(const aiMesh* mesh,
+                  const aiScene* scene,
+                  SPtr<SkeletalMeshResource>& skeletalMesh,
+                  SPtr<SkeletonResource>& skeleton);
+
+  bool
+  readSkeleton(Bone& boneOutput,
+               aiNode* node,
+               UMap<String, std::pair<int32, Matrix4>>& boneInfoTable);
 
   /**
   *  @brief Process the animation.
   * 
   *  @param aiScene* scene
+  *  @param SPtr<AnimationResource>& animation
+  *  @param uint32 index
   */
   void
-  proccessAnimation(const aiScene* scene);
+  proccessAnimation(const aiScene* scene,
+                    SPtr<AnimationResource>& animation,
+                    uint32 index);
 
  private:
   /**

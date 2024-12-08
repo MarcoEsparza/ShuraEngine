@@ -29,7 +29,11 @@ enum SH_CORE_EXPORT E
   kTexture = 0,
   kStaticMesh,
   kSkeletalMesh,
-  kAnmimation
+  kSkeleton,
+  kAnmimation,
+  kMeshUnion,
+
+  kCount
 };
 }
 

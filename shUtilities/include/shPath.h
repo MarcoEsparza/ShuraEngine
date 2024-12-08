@@ -21,14 +21,14 @@
 
 namespace shEngineSDK {
 // TODO: Finish this function to a proper path class.
-class SH_UTILITY_EXPORT Path
-{
- public:
-  Path() = default;
-  ~Path() = default;
-
-
- private:
-  SystemPath m_path;
-};
+//class SH_UTILITY_EXPORT Path
+//{
+// public:
+//  Path() = default;
+//  ~Path() = default;
+//
+//
+// private:
+//  SystemPath m_path;
+//};
 }

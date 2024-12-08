@@ -44,6 +44,7 @@ PS_INPUT main(VS_INPUT input)
   
   output.Position = mul(finalVertexPos, wvp);
   
+  //output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
   output.Normal = input.Normal;
   
   output.Tex = input.Tex;

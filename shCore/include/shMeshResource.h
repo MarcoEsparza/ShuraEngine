@@ -20,6 +20,7 @@
 #include "shPrerequisitesCore.h"
 #include "shResource.h"
 #include "shGraphicTypes.h"
+#include "shMaterial.h"
 
 namespace shEngineSDK {
 /**
@@ -36,7 +37,7 @@ public:
   /**
   *  @brief Default destructor.
   */
-  ~MeshResource() = default;
+  virtual ~MeshResource() = default;
 
   /**
   *  @brief Mesh VertexData
@@ -74,6 +75,8 @@ class SH_CORE_EXPORT StaticMeshResource : public MeshResource
   *  @brief Number of index.
   */
   uint32 numIndex = 0;
+
+  SPtr<Material> material;
 };
 
 /**
@@ -111,5 +114,15 @@ class SH_CORE_EXPORT SkeletalMeshResource : public MeshResource
   *  @brief Number of meshes.
   */
   uint32 numMeshes = 0;
+};
+
+class StaticMeshUnionResource : public Resource
+{
+ public:
+  StaticMeshUnionResource() { type = RESOURCE_TYPE::kMeshUnion; }
+  ~StaticMeshUnionResource() = default;
+
+  Vector<SPtr<StaticMeshResource>> meshes;
+  Vector<SPtr<Material>> materials;
 };
 }
