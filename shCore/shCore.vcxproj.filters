@@ -141,12 +141,6 @@
     <ClInclude Include="include\shMeshResource.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="include\shBone.h">
-      <Filter>Header Files\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="include\shAnimator.h">
-      <Filter>Header Files\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="include\shComponent.h">
       <Filter>Header Files\Component</Filter>
     </ClInclude>
@@ -204,9 +198,6 @@
       <Filter>Source Files\Camera</Filter>
     </ClCompile>
     <ClCompile Include="source\shResourceManager.cpp">
-      <Filter>Source Files\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="source\shAnimator.cpp">
       <Filter>Source Files\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\shBaseApp.cpp">

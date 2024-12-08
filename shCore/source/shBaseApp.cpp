@@ -158,15 +158,10 @@ BaseApp::update(const float time)
         for (auto& otherComp : gObject->components) {
           if (otherComp->type == COMPONENT_TYPE::kAnimator) {
             auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
-            animator->getPose(skMesh->skeletonData->bones,
-                              skMesh->currentPose,
-                              Matrix4::IDENTITY,
-                              skMesh->skeletonData->inverseTransform,
-                              0,
-                              time);
+            animator->updateAnimation(time);
 
             gManager.updateConstantBuffer(skMesh->m_meshBuffer,
-                                          skMesh->currentPose.data(),
+                                          animator->finalTransform.data(),
                                           skMesh->skeletonData->boneCount * sizeof(Matrix4));
           }
         }
@@ -588,6 +583,10 @@ BaseApp::initGraphicAssets()
   auto animRes = rManager.getResource("FrierenSalsaDancingAnimation");
   auto danceAnimation = reinterpret_pointer_cast<AnimationResource>(animRes);
   frierenAnimator->animations.push_back(danceAnimation);
+
+  frierenAnimator->playAnimation(danceAnimation);
+  frierenAnimator->finalTransform.resize(skeletalMC->skeletonData->boneCount,
+                                         Matrix4::IDENTITY);
 
   auto sponzaRes = rManager.getResource("sponza.obj");
   auto sponzaUnion = reinterpret_pointer_cast<StaticMeshUnionResource>(sponzaRes);

@@ -108,20 +108,10 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   loadTextureFromFile(const String& fileName);
 
-  /**
-  *  @brief Load an animation.
-  * 
-  *  @note This function is unfinished.
-  * 
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  loadAnimations(const String& fileName);
-
   void
   createStaticMesh(const String& fileName,
-    const aiNode* node,
-    const aiScene* scene);
+                   const aiNode* node,
+                   const aiScene* scene);
 
   /**
   *  @brief If the model file is for static meshes, this function process all
@@ -208,6 +198,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   proccessAnimation(const aiScene* scene,
                     SPtr<AnimationResource>& animation,
+                    SPtr<SkeletonResource>& skeleton,
                     uint32 index);
 
  private:

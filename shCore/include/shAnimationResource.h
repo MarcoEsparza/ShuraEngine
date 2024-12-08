@@ -21,17 +21,41 @@
 #include "shResource.h"
 #include "shVector3.h"
 #include "shVector4.h"
+#include "shQuaternion.h"
+#include "shMatrix4.h"
+#include "shSkeletonResource.h"
 
 namespace shEngineSDK {
+struct SH_CORE_EXPORT KeyPosition
+{
+  Vector3 position;
+  float timeStamp;
+};
+
+struct SH_CORE_EXPORT KeyRotation
+{
+  Quaternion orientation;
+  float timeStamp;
+};
+
+struct SH_CORE_EXPORT KeyScale
+{
+  Vector3 scale;
+  float timeStamp;
+};
+
 struct SH_CORE_EXPORT BoneTransformTrack
 {
-  Vector<float> posTimestamps;
-  Vector<float> rotTimestamps;
-  Vector<float> scaleTimestamps;
+  Vector<KeyPosition> positions;
+  Vector<KeyRotation> rotations;
+  Vector<KeyScale> scales;
+  uint32 numPositions;
+  uint32 numRotations;
+  uint32 numScalings;
 
-  Vector<Vector3> positions;
-  Vector<Vector4> rotations;
-  Vector<Vector3> scales;
+  Matrix4 localTransform;
+  String name;
+  int32 ID;
 };
 
 class AnimationResource : public Resource
@@ -43,6 +67,7 @@ class AnimationResource : public Resource
   bool hasLoop = false;
   float duration = 0.0f;
   float ticksPerSecond = 0.0f;
-  UMap<String, BoneTransformTrack> boneTransform;
+  Vector<BoneTransformTrack> boneTTracks;
+  SPtr<SkeletonResource> skeletonData;
 };
 }

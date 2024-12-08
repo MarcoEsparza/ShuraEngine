@@ -20,10 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shAnimationResource.h" />
-    <ClInclude Include="include\shAnimator.h" />
     <ClInclude Include="include\shAnimatorComponent.h" />
     <ClInclude Include="include\shBaseApp.h" />
-    <ClInclude Include="include\shBone.h" />
     <ClInclude Include="include\shComponent.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
     <ClInclude Include="include\shGameObject.h" />
@@ -56,7 +54,6 @@
     <ClInclude Include="include\shTransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\shAnimator.cpp" />
     <ClCompile Include="source\shAnimatorComponent.cpp" />
     <ClCompile Include="source\shBaseApp.cpp" />
     <ClCompile Include="source\shCamera.cpp" />

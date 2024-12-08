@@ -30,14 +30,29 @@ class AnimatorComponent : public Component
   AnimatorComponent() { type = COMPONENT_TYPE::kAnimator; }
   ~AnimatorComponent() = default;
 
-  void
+ /* void
   getPose(Bone& sBone,
           Vector<Matrix4>& pose,
           Matrix4 parentTransform,
           Matrix4 globalInvTransform,
           uint32 animIndex,
-          float timeInSeconds);
+          float timeInSeconds);*/
 
+  void
+  updateAnimation(float dt);
+
+  void
+  playAnimation(const SPtr<AnimationResource>& anim);
+
+ private:
+  void
+  calculateBoneTransform(const Bone& bone, Matrix4 parentTransform);
+
+ public:
   Vector<SPtr<AnimationResource>> animations;
+  SPtr<AnimationResource> currentAnim;
+  float currentTime;
+  float deltaTime;
+  Vector<Matrix4> finalTransform;
 };
 }

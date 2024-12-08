@@ -26,34 +26,36 @@ namespace shEngineSDK {
 /**
 *  @brief Mesh resource base class.
 */
-class SH_CORE_EXPORT MeshResource : public Resource
+struct SH_CORE_EXPORT MeshInfo
 {
-public:
+//public:
   /**
   *  @brief Default constructor.
   */
-  MeshResource() = default;
+  //Mesh() = default;
 
   /**
   *  @brief Default destructor.
   */
-  virtual ~MeshResource() = default;
+  //~Mesh() = default;
+
+  
 
   /**
-  *  @brief Mesh VertexData
+  *  @brief Number of vertex.
   */
-  Vector<VertexData> vertices;
+  uint32 numVertex = 0;
 
   /**
-  *  @brief Mesh indices
+  *  @brief Number of index.
   */
-  Vector<uint32> indices;
+  uint32 numIndex = 0;
 };
 
 /**
 *  @brief Static mesh data.
 */
-class SH_CORE_EXPORT StaticMeshResource : public MeshResource
+class SH_CORE_EXPORT StaticMeshResource : public Resource
 {
  public:
   /**
@@ -65,6 +67,16 @@ class SH_CORE_EXPORT StaticMeshResource : public MeshResource
   *  @brief Default destructor.
   */
   ~StaticMeshResource() = default;
+
+  /**
+  *  @brief Mesh VertexData
+  */
+  Vector<VertexData> vertices;
+
+  /**
+  *  @brief Mesh indices
+  */
+  Vector<uint32> indices;
 
   /**
   *  @brief Number of vertex.
@@ -82,7 +94,7 @@ class SH_CORE_EXPORT StaticMeshResource : public MeshResource
 /**
 *  @brief Skeletal mesh data.
 */
-class SH_CORE_EXPORT SkeletalMeshResource : public MeshResource
+class SH_CORE_EXPORT SkeletalMeshResource : public Resource
 {
  public:
   /**
@@ -114,6 +126,18 @@ class SH_CORE_EXPORT SkeletalMeshResource : public MeshResource
   *  @brief Number of meshes.
   */
   uint32 numMeshes = 0;
+
+  //Vector<MeshInfo> meshes;
+
+  /**
+  *  @brief Mesh VertexData
+  */
+  Vector<VertexData> vertices;
+
+  /**
+  *  @brief Mesh indices
+  */
+  Vector<uint32> indices;
 };
 
 class StaticMeshUnionResource : public Resource

@@ -26,6 +26,7 @@ struct SH_CORE_EXPORT Bone
 {
   int32 id = 0;
   Matrix4 offset;
+  Matrix4 transformation;
   String name;
   Vector<Bone> children;
 };
