@@ -26,3 +26,7 @@ endfunction()
 # Añadir subdirectorios
 add_subdirectory(shUtilities)
 add_subdirectory(shUtilitiesTest)
+add_subdirectory(shCore)
+add_subdirectory(shCoreTest)
+add_subdirectory(shDX11Graphics)
+add_subdirectory(shOpenGLGraphics)
