@@ -2,7 +2,7 @@
 /*
 *  @file    shGameObject.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2024/12/16
 *  @brief   Game Object class.
 *
 *  Game Object class.
@@ -18,10 +18,17 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shComponent.h"
 #include "shTransformComponent.h"
+#include "shVector3.h"
 
 namespace shEngineSDK {
+/*************************************************************/
+/*
+*  Forward declarations
+*/
+/*************************************************************/
+class Component;
+
 /**
 *  @brief Game Object class.
 */

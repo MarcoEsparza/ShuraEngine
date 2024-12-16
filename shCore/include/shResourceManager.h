@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2024/12/16
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -22,12 +22,24 @@
 #include "shResource.h"
 #include "shModule.h"
 #include "shMatrix4.h"
+#include "shPath.h"
+
+/*************************************************************/
+/*
+*  External forward declarations
+*/
+/*************************************************************/
 
 struct aiScene;
 struct aiNode;
 struct aiMesh;
 
 namespace shEngineSDK {
+ /*************************************************************/
+/*
+*  Internal forward declarations
+*/
+/*************************************************************/
 struct Bone;
 class SkeletalMeshResource;
 class SkeletonResource;
@@ -81,6 +93,15 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   loadResourceFromFile(const String& fileName);
 
   /**
+  *  @brief Load resource from desired file, clasify it and create a cache
+  *         for optimizing the next time the resource will be loaded.
+  *
+  *  @param Path& filePath
+  */
+  SPtr<Resource>
+  loadResourceFromFile(const Path& filePath);
+
+  /**
   *  @brief Get the desired resource by its name.
   * 
   *  @param String& resourceName
@@ -98,11 +119,19 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   isResourceLoaded(const String& fileName);
 
   /**
+  *  @brief Checks if the resource is already loaded.
+  *
+  *  @param Path& fileName
+  */
+  SPtr<Resource>
+  isResourceLoaded(const Path& fileName);
+
+  /**
   *  @brief Load a model from file and create a Static or Skeletal mesh.
   * 
   *  @param String& fileName
   */
-  void
+  SPtr<Resource>
   loadModelFromFile(const String& fileName);
 
   /**
@@ -110,7 +139,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   * 
   *  @param String& fileName
   */
-  void
+  SPtr<Resource>
   loadTextureFromFile(const String& fileName);
 
   /**
@@ -120,7 +149,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiNode* node
   *  @param aiScene* scene
   */
-  void
+  SPtr<Resource>
   createStaticMesh(const String& fileName,
                    const aiNode* node,
                    const aiScene* scene);
@@ -145,8 +174,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   void
   proccessStaticMesh(const aiMesh* mesh,
-    const aiScene* scene,
-    SPtr<StaticMeshUnionResource> meshUnion);
+                     const aiScene* scene,
+                     SPtr<StaticMeshUnionResource> meshUnion);
 
   /**
   *  @brief Creates the skeletal mesh.
@@ -154,7 +183,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiScene* scene
   *  @param String& fileName
   */
-  void
+  SPtr<Resource>
   createSkeletalMesh(const aiScene* scene, const String& fileName);
 
   /**
@@ -191,7 +220,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   void
   processSkeleton(const aiMesh* mesh,
-                  const aiScene* scene,
                   SPtr<SkeletalMeshResource>& skeletalMesh,
                   SPtr<SkeletonResource>& skeleton);
 
@@ -230,5 +258,15 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @brief All the resources are storaged here.
   */
   UMap<String, SPtr<Resource>> m_loadedResources;
+
+  /**
+  *  @brief All supported model extensions.
+  */
+  static const Vector<String> MODEL_EXTENSIONS;
+
+  /**
+  *  @brief All supported image extensions.
+  */
+  static const Vector<String> IMAGE_EXTENSIONS;
 };
 }

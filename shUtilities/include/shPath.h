@@ -113,7 +113,7 @@ class SH_UTILITY_EXPORT Path
   *  @return bool, true if a extension is equal, false if none was equal.
   */
   bool
-  compareExtensions(const Vector<String>& extensions);
+  compareExtensions(const Vector<String>& extensions) const;
 
   /*************************************************************/
   /*

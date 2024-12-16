@@ -2,7 +2,7 @@
 /*
 *  @file    shPath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2024/12/16
 *  @brief   Path class, to use for every path in the disk.
 *
 *  Path class, to use for every path in the disk.
@@ -67,7 +67,8 @@ Path::filename() const
   return m_path.filename().string();
 }
 
-bool Path::compareExtensions(const Vector<String>& extensions)
+bool
+Path::compareExtensions(const Vector<String>& extensions) const
 {
   for (auto& ext : extensions) {
     if (ext == m_path.extension()) {

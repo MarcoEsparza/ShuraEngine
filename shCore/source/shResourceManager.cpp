@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2024/12/16
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -40,6 +40,13 @@ using std::getline;
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+const Vector<String> ResourceManager::MODEL_EXTENSIONS = { ".fbx", ".obj" };
+const Vector<String> ResourceManager::IMAGE_EXTENSIONS = { ".png",
+                                                           ".jpeg",
+                                                           ".bmp",
+                                                           ".tga",
+                                                           ".hdr" };
+
 Matrix4
 aiMatrixToMatrix4(const aiMatrix4x4& aiMatrix)
 {
@@ -100,6 +107,24 @@ ResourceManager::loadResourceFromFile(const String& fileName)
 }
 
 SPtr<Resource>
+ResourceManager::loadResourceFromFile(const Path& filePath)
+{
+  SPtr<Resource> resource;
+
+  if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
+    resource = loadTextureFromFile(filePath.toString());
+  }
+  else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
+    resource = loadModelFromFile(filePath.toString());
+  }
+  else {
+    return nullptr;
+  }
+
+  return resource;
+}
+
+SPtr<Resource>
 ResourceManager::getResource(const String& resourceName)
 {
   return isResourceLoaded(resourceName);
@@ -117,7 +142,19 @@ ResourceManager::isResourceLoaded(const String& fileName)
   return nullptr;
 }
 
-void
+SPtr<Resource>
+ResourceManager::isResourceLoaded(const Path& fileName)
+{
+  auto resObj = m_loadedResources.find(fileName.toString());
+
+  if (resObj != m_loadedResources.end()) {
+    return (*resObj).second;
+  }
+
+  return nullptr;
+}
+
+SPtr<Resource>
 ResourceManager::loadModelFromFile(const String& fileName)
 {
   Assimp::Importer fileImporter;
@@ -148,14 +185,14 @@ ResourceManager::loadModelFromFile(const String& fileName)
   auto* mesh = pScene->mMeshes[node->mMeshes[0]];
 
   if (mesh->HasBones()) {
-    createSkeletalMesh(pScene, fileName);
+    return createSkeletalMesh(pScene, fileName);
   }
   else {
-    createStaticMesh(fileName, pScene->mRootNode, pScene);
+    return createStaticMesh(fileName, pScene->mRootNode, pScene);
   }
 }
 
-void
+SPtr<Resource>
 ResourceManager::loadTextureFromFile(const String& fileName)
 {
   auto pImage = make_shared<ImageResource>();
@@ -166,12 +203,14 @@ ResourceManager::loadTextureFromFile(const String& fileName)
   pImage->setName(file.filename().string());
 
   m_loadedResources[pImage->getName()] = pImage;
+
+  return pImage;
 }
 
-void
+SPtr<Resource>
 ResourceManager::createStaticMesh(const String& fileName,
-  const aiNode* node,
-  const aiScene* scene)
+                                  const aiNode* node,
+                                  const aiScene* scene)
 {
   auto meshUnion = make_shared<StaticMeshUnionResource>();
 
@@ -183,6 +222,8 @@ ResourceManager::createStaticMesh(const String& fileName,
     
     m_loadedResources[meshUnion->getName()] = meshUnion;
   }
+
+  return meshUnion;
 }
 
 void
@@ -278,7 +319,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
   meshUnion->meshes.push_back(currentMesh);
 }
 
-void
+SPtr<Resource>
 ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName)
 {
   auto skeletalMesh = make_shared<SkeletalMeshResource>();
@@ -290,22 +331,6 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   file.replace_extension("");
   skeletalMesh->setName(file.filename().string());
   skeleton->setName(file.filename().string() + "Skeleton");
-
-  //for (uint32 i = 0; i < skeletalMesh->vertices.size(); ++i)
-  //{
-  //  Vector4& boneWeigths = skeletalMesh->vertices[i].boneWeights;
-  //  float totalWeight = boneWeigths.x +
-  //                      boneWeigths.y +
-  //                      boneWeigths.z +
-  //                      boneWeigths.w;
-  //  if (totalWeight > 0.0f)
-  //  {
-  //    skeletalMesh->vertices[i].boneWeights = Vector4(boneWeigths.x / totalWeight,
-  //                                                    boneWeigths.y / totalWeight,
-  //                                                    boneWeigths.z / totalWeight,
-  //                                                    boneWeigths.w / totalWeight);
-  //  }
-  //}
 
   readSkeleton(skeleton->bones, scene->mRootNode, skeleton->boneInfo);
 
@@ -321,6 +346,8 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
     animation->setName(file.filename().string() + "Animation");
     m_loadedResources[animation->getName()] = animation;
   }
+
+  return skeletalMesh;
 }
 
 void
@@ -388,37 +415,32 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   skeletalMesh->meshNames.push_back(mat->GetName().C_Str());
   ++skeletalMesh->numMeshes;
 
-  for (uint32 i = 0; i < mesh->mNumBones; ++i) {
-    aiBone* bone = mesh->mBones[i];
-  }
-
-  processSkeleton(mesh, scene, skeletalMesh, skeleton);
+  processSkeleton(mesh, skeletalMesh, skeleton);
 }
 
 void
 setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
 {
   if (vertex.boneIds.x < 0) {
-    vertex.boneIds.x = boneID;
+    vertex.boneIds.x = static_cast<float>(boneID);
     vertex.boneWeights.x = weight;
   }
   if (vertex.boneIds.y < 0) {
-    vertex.boneIds.y = boneID;
+    vertex.boneIds.y = static_cast<float>(boneID);
     vertex.boneWeights.y = weight;
   }
   if (vertex.boneIds.z < 0) {
-    vertex.boneIds.z = boneID;
+    vertex.boneIds.z = static_cast<float>(boneID);
     vertex.boneWeights.z = weight;
   }
   if (vertex.boneIds.w < 0) {
-    vertex.boneIds.w = boneID;
+    vertex.boneIds.w = static_cast<float>(boneID);
     vertex.boneWeights.w = weight;
   }
 }
 
 void
 ResourceManager::processSkeleton(const aiMesh* mesh,
-                                 const aiScene* scene,
                                  SPtr<SkeletalMeshResource>& skeletalMesh,
                                  SPtr<SkeletonResource>& skeleton)
 {
@@ -454,7 +476,7 @@ ResourceManager::processSkeleton(const aiMesh* mesh,
     auto weights = mesh->mBones[i]->mWeights;
     int numWeights = mesh->mBones[i]->mNumWeights;
 
-    for (uint32 weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
+    for (int32 weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
       int32 vertexID = baseVertex + weights[weightIndex].mVertexId;
       float weight = weights[weightIndex].mWeight;
 
@@ -513,7 +535,7 @@ getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel) {
   for (uint32 posIndex = 0; posIndex < btt.numPositions; ++posIndex) {
     KeyPosition data;
     data.position = aiVec3ToVector3(channel->mPositionKeys[posIndex].mValue);
-    data.timeStamp = channel->mPositionKeys[posIndex].mTime;
+    data.timeStamp = static_cast<float>(channel->mPositionKeys[posIndex].mTime);
     btt.positions.push_back(data);
   }
 
@@ -522,7 +544,7 @@ getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel) {
   for (uint32 rotIndex = 0; rotIndex < btt.numRotations; ++rotIndex) {
     KeyRotation data;
     data.orientation = aiQuatToQuaternion(channel->mRotationKeys[rotIndex].mValue);
-    data.timeStamp = channel->mPositionKeys[rotIndex].mTime;
+    data.timeStamp = static_cast<float>(channel->mPositionKeys[rotIndex].mTime);
     btt.rotations.push_back(data);
   }
 
@@ -531,7 +553,7 @@ getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel) {
   for (uint32 scaleIndex = 0; scaleIndex < btt.numScalings; ++scaleIndex) {
     KeyScale data;
     data.scale = aiVec3ToVector3(channel->mPositionKeys[scaleIndex].mValue);
-    data.timeStamp = channel->mPositionKeys[scaleIndex].mTime;
+    data.timeStamp = static_cast<float>(channel->mPositionKeys[scaleIndex].mTime);
     btt.scales.push_back(data);
   }
 

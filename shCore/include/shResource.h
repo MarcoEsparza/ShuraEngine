@@ -18,6 +18,7 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
+#include "shPath.h"
 
 namespace shEngineSDK {
 /**
@@ -79,7 +80,7 @@ class SH_CORE_EXPORT Resource
   *
   *  @return String
   */
-  FORCEINLINE String
+  FORCEINLINE const String&
   getName() const { return m_name; }
 
   /**
@@ -89,6 +90,22 @@ class SH_CORE_EXPORT Resource
   */
   FORCEINLINE void
   setName(const String& name) { m_name = name; }
+
+  /**
+  *  @brief Gets the resource name.
+  *
+  *  @return String
+  */
+  FORCEINLINE const Path&
+  getPath() const { return m_path; }
+
+  /**
+  *  @brief Sets the resource name.
+  *
+  *  @param String& name
+  */
+  FORCEINLINE void
+  setPath(const Path& path) { m_path = path; }
 
   /*************************************************************/
   /*
@@ -100,6 +117,11 @@ class SH_CORE_EXPORT Resource
   *  @brief Resource name.
   */
   String m_name;
+
+  /**
+  *  @brief Resource path.
+  */
+  Path m_path;
 
   /**
   *  @brief Resource type.
