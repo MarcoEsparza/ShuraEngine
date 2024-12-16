@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    sh.h
+*  @file    shSceneGraph.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/09
-*  @brief
+*  @date    2024/12/15
+*  @brief   Scene graph class.
 *
-*
+*  Scene graph class.
 *
 *  @bug     No bug known.
 */
@@ -24,13 +24,15 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
-void
+SPtr<GameObject>
 SceneGraph::createEmptyObject(const String& objectName)
 {
   auto newObject = make_shared<GameObject>();
   newObject->name = objectName;
 
   addObject(newObject);
+
+  return newObject;
 }
 
 void

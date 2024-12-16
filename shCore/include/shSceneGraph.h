@@ -2,7 +2,7 @@
 /*
 *  @file    shSceneGraph.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/06
+*  @date    2024/12/15
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
@@ -40,12 +40,18 @@ class SceneGraph
   */
   virtual ~SceneGraph() = default;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Creates and add a empty object to the scene.
   * 
   *  @param String& objectName
   */
-  void
+  SPtr<GameObject>
   createEmptyObject(const String& objectName);
 
   /**
@@ -64,6 +70,11 @@ class SceneGraph
   const Vector<SPtr<GameObject>>&
   getGameObjectList() const;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
  private:
   /**
   *  @brief Game Objects storage.

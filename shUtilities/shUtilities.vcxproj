@@ -50,6 +50,7 @@
     <ClCompile Include="source\shColor.cpp" />
     <ClCompile Include="source\shLinearColor.cpp" />
     <ClCompile Include="Source\shMatrix4.cpp" />
+    <ClCompile Include="source\shPath.cpp" />
     <ClCompile Include="Source\shPlane.cpp" />
     <ClCompile Include="Source\shPlatformMath.cpp" />
     <ClCompile Include="Source\shQuaternion.cpp" />

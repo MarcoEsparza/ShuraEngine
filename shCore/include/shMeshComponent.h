@@ -19,13 +19,21 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shComponent.h"
-#include "shMaterial.h"
-#include "shMeshResource.h"
-#include "shBuffers.h"
-#include "shSkeletonResource.h"
 
 namespace shEngineSDK {
-//class Component;
+/*************************************************************/
+/*
+*  Forward declarations
+*/
+/*************************************************************/
+class Material;
+class StaticMeshResource;
+class SkeletalMeshResource;
+class SkeletonResource;
+class Matrix4;
+class VertexBuffer;
+class IndexBuffer;
+class ConstantBuffer;
 
 /**
 *  @brief Static Mesh Component class.
@@ -36,13 +44,19 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   /**
   *  @brief Default constructor.
   */
-  StaticMeshComponent();
+  StaticMeshComponent() : Component(COMPONENT_TYPE::kStaticMesh) {}
 
   /**
   *  @brief Default destructor.
   */
   ~StaticMeshComponent() = default;
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Mesh component Material.
   */
@@ -63,13 +77,19 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   /**
   *  @brief Default constructor.
   */
-  SkeletalMeshComponent();
+  SkeletalMeshComponent() : Component(COMPONENT_TYPE::kSkeletalMesh) {}
 
   /**
   *  @brief Default destructor.
   */
   ~SkeletalMeshComponent() = default;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Set the mesh data and creates the vertex and index buffer.
   * 
@@ -78,6 +98,12 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   void
   setMeshData(const SPtr<SkeletalMeshResource>& meshResource);
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Meshes materials.
   */
@@ -88,6 +114,9 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   */
   SPtr<SkeletalMeshResource> meshData;
 
+  /**
+  *  @brief Resource with skeleton data.
+  */
   SPtr<SkeletonResource> skeletonData;
 
   /**

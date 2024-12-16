@@ -149,5 +149,8 @@
     <ClCompile Include="source\shLinearColor.cpp">
       <Filter>Source\Util</Filter>
     </ClCompile>
+    <ClCompile Include="source\shPath.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

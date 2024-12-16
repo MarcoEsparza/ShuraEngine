@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2024/12/15
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -28,6 +28,18 @@
 
 namespace shEngineSDK {
 /**
+*  @brief Axis enum.
+*/
+namespace AXIS {
+enum E
+{
+  kX = 0,
+  kY,
+  kZ
+};
+}
+
+/**
 *  @brief Base app for engine.
 */
 class SH_CORE_EXPORT BaseApp
@@ -43,6 +55,12 @@ class SH_CORE_EXPORT BaseApp
   */
   ~BaseApp() = default;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Run app.
   * 
@@ -83,9 +101,18 @@ class SH_CORE_EXPORT BaseApp
   void
   drawSkeletalMeshesInScene();
 
+  /**
+  *  @brief Moves the editor camera with given dirextion and axis.
+  * 
+  *  @param float direction
+  *  @param AXIS::E axis
+  */
   void
-  moveCameraPosition(const float direction, const uint32 axis);
+  moveCameraPosition(const float direction, const AXIS::E axis);
 
+  /**
+  *  @brief Rotates the camera
+  */
   void
   rotateCamera();
 
@@ -98,6 +125,11 @@ class SH_CORE_EXPORT BaseApp
   void
   initGraphicAssets();
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
  private:
   /**
   *  @brief Main app window.
@@ -169,7 +201,14 @@ class SH_CORE_EXPORT BaseApp
   */
   SceneGraph m_scene;
 
+  /**
+  *  @brief Last mouse position.
+  */
   Vector2i m_lastMousePos;
+
+  /**
+  *  @brief Current mouse position.
+  */
   Vector2i m_mousePos;
 };
 }

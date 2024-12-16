@@ -65,6 +65,11 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   ~ResourceManager() = default;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
  public:
   /**
   *  @brief Load resource from desired file, clasify it and create a cache
@@ -108,6 +113,13 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   loadTextureFromFile(const String& fileName);
 
+  /**
+  *  @brief Creates the static mesh.
+  *
+  *  @param String& fileName
+  *  @param aiNode* node
+  *  @param aiScene* scene
+  */
   void
   createStaticMesh(const String& fileName,
                    const aiNode* node,
@@ -183,6 +195,13 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
                   SPtr<SkeletalMeshResource>& skeletalMesh,
                   SPtr<SkeletonResource>& skeleton);
 
+  /**
+  *  @brief Read the Skeleton.
+  *
+  *  @param Bone& boneOutput
+  *  @param aiNode* node
+  *  @param UMap<String, std::pair<int32, Matrix4>>& boneInfoTable
+  */
   bool
   readSkeleton(Bone& boneOutput,
                aiNode* node,
@@ -201,6 +220,11 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
                     SPtr<SkeletonResource>& skeleton,
                     uint32 index);
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
  private:
   /**
   *  @brief All the resources are storaged here.

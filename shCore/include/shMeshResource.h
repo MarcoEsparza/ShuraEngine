@@ -2,10 +2,10 @@
 /*
 *  @file    shMeshResource.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
-*  @brief   Meshes classes.
+*  @date    2024/12/15
+*  @brief   Mesh resource classes.
 *
-*  Meshes classes.
+*  Mesh resource classes.
 *
 *  @bug     No bug known.
 */
@@ -24,35 +24,6 @@
 
 namespace shEngineSDK {
 /**
-*  @brief Mesh resource base class.
-*/
-struct SH_CORE_EXPORT MeshInfo
-{
-//public:
-  /**
-  *  @brief Default constructor.
-  */
-  //Mesh() = default;
-
-  /**
-  *  @brief Default destructor.
-  */
-  //~Mesh() = default;
-
-  
-
-  /**
-  *  @brief Number of vertex.
-  */
-  uint32 numVertex = 0;
-
-  /**
-  *  @brief Number of index.
-  */
-  uint32 numIndex = 0;
-};
-
-/**
 *  @brief Static mesh data.
 */
 class SH_CORE_EXPORT StaticMeshResource : public Resource
@@ -61,13 +32,19 @@ class SH_CORE_EXPORT StaticMeshResource : public Resource
   /**
   *  @brief Default constructor.
   */
-  StaticMeshResource() { type = RESOURCE_TYPE::kStaticMesh; }
+  StaticMeshResource() : Resource(RESOURCE_TYPE::kStaticMesh) {}
 
   /**
   *  @brief Default destructor.
   */
   ~StaticMeshResource() = default;
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Mesh VertexData
   */
@@ -88,6 +65,9 @@ class SH_CORE_EXPORT StaticMeshResource : public Resource
   */
   uint32 numIndex = 0;
 
+  /**
+  *  @brief Material info.
+  */
   SPtr<Material> material;
 };
 
@@ -100,13 +80,19 @@ class SH_CORE_EXPORT SkeletalMeshResource : public Resource
   /**
   *  @brief Default constructor.
   */
-  SkeletalMeshResource() { type = RESOURCE_TYPE::kSkeletalMesh; }
+  SkeletalMeshResource() : Resource(RESOURCE_TYPE::kSkeletalMesh) {}
 
   /**
   *  @brief Default destructor.
   */
   ~SkeletalMeshResource() = default;
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Number of vertices.
   */
@@ -127,8 +113,6 @@ class SH_CORE_EXPORT SkeletalMeshResource : public Resource
   */
   uint32 numMeshes = 0;
 
-  //Vector<MeshInfo> meshes;
-
   /**
   *  @brief Mesh VertexData
   */
@@ -143,10 +127,30 @@ class SH_CORE_EXPORT SkeletalMeshResource : public Resource
 class StaticMeshUnionResource : public Resource
 {
  public:
-  StaticMeshUnionResource() { type = RESOURCE_TYPE::kMeshUnion; }
+  /**
+  *  @brief Default constructor.
+  */
+  StaticMeshUnionResource() : Resource(RESOURCE_TYPE::kMeshUnion) {}
+
+  /**
+  *  @brief Default destructor.
+  */
   ~StaticMeshUnionResource() = default;
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+ public:
+  /**
+  *  @brief Meshes.
+  */
   Vector<SPtr<StaticMeshResource>> meshes;
+
+  /**
+  *  @brief Materials.
+  */
   Vector<SPtr<Material>> materials;
 };
 }

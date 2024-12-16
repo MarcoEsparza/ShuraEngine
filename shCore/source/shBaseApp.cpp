@@ -20,17 +20,18 @@
 #include "shMath.h"
 #include "shCamera.h"
 #include "shLinearColor.h"
+
 #include "shResourceManager.h"
 #include "shDynamicLibrary.h"
-#include "shMeshComponent.h"
+
 #include "shImageResource.h"
+#include "shMeshResource.h"
 #include "shSkeletonResource.h"
 #include "shAnimationResource.h"
+
+#include "shMeshComponent.h"
 #include "shAnimatorComponent.h"
 #include "shTransformComponent.h"
-
-//#define WIN32_LEAN_AND_MEAN
-//#include <Windows.h>
 
 #include <chrono>
 
@@ -118,22 +119,22 @@ BaseApp::handleEvents()
       const KeyboardData keyboard = ev.data.keyboard;
 
       if (keyboard.key == KEY::kW) {
-        moveCameraPosition(0.1f, 2);
+        moveCameraPosition(0.1f, AXIS::kZ);
       }
       else if (keyboard.key == KEY::kA) {
-        moveCameraPosition(-0.1f, 0);
+        moveCameraPosition(-0.1f, AXIS::kX);
       }
       else if (keyboard.key == KEY::kS) {
-        moveCameraPosition(-0.1f, 2);
+        moveCameraPosition(-0.1f, AXIS::kZ);
       }
       else if (keyboard.key == KEY::kD) {
-        moveCameraPosition(0.1f, 0);
+        moveCameraPosition(0.1f, AXIS::kX);
       }
       else if (keyboard.key == KEY::kE) {
-        moveCameraPosition(0.1f, 1);
+        moveCameraPosition(0.1f, AXIS::kY);
       }
       else if (keyboard.key == KEY::kQ) {
-        moveCameraPosition(-0.1f, 1);
+        moveCameraPosition(-0.1f, AXIS::kY);
       }
     }
     if (ev.type == EVENT_TYPE::kClose) {
@@ -152,11 +153,11 @@ BaseApp::update(const float time)
 
   for (auto& gObject : m_scene.getGameObjectList()) {
     for (auto& component : gObject->components) {
-      if (component->type == COMPONENT_TYPE::kSkeletalMesh) {
+      if (component->getType() == COMPONENT_TYPE::kSkeletalMesh) {
         auto skMesh = reinterpret_pointer_cast<SkeletalMeshComponent>(component);
         
         for (auto& otherComp : gObject->components) {
-          if (otherComp->type == COMPONENT_TYPE::kAnimator) {
+          if (otherComp->getType() == COMPONENT_TYPE::kAnimator) {
             auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
             animator->updateAnimation(time);
 
@@ -205,7 +206,7 @@ BaseApp::drawStaticMeshesInScene()
   uint32 indexCount = 0;
   for (auto& gObject : m_scene.getGameObjectList()) {
     for (auto& component : gObject->components) {
-      if (component->type == COMPONENT_TYPE::kStaticMesh) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
         auto sMeshComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
         auto meshMat = reinterpret_pointer_cast<PBRMaterial>(sMeshComponent->meshData->material);
         gManager.setProgramShader(meshMat->shader);
@@ -233,7 +234,7 @@ BaseApp::drawSkeletalMeshesInScene()
   uint32 ibSlot = 1;
   for (auto& gObject : m_scene.getGameObjectList()) {
     for (auto& component : gObject->components) {
-      if (component->type == COMPONENT_TYPE::kSkeletalMesh) {
+      if (component->getType() == COMPONENT_TYPE::kSkeletalMesh) {
         auto sMeshComponent = reinterpret_pointer_cast<SkeletalMeshComponent>(component);
 
         gManager.setVertexBuffers(sMeshComponent->m_vertexBuffer);
@@ -262,15 +263,15 @@ BaseApp::drawSkeletalMeshesInScene()
 }
 
 void
-BaseApp::moveCameraPosition(const float direction, const uint32 axis)
+BaseApp::moveCameraPosition(const float direction, const AXIS::E axis)
 {
-  if (axis == 0) {
+  if (axis == AXIS::kX) {
     m_editorCamera.moveX(direction);
   }
-  else if (axis == 1) {
+  else if (axis == AXIS::kY) {
     m_editorCamera.moveY(direction);
   }
-  else if (axis == 2) {
+  else if (axis == AXIS::kZ) {
     m_editorCamera.moveZ(direction);
   }
 
@@ -584,7 +585,7 @@ BaseApp::initGraphicAssets()
   auto danceAnimation = reinterpret_pointer_cast<AnimationResource>(animRes);
   frierenAnimator->animations.push_back(danceAnimation);
 
-  frierenAnimator->playAnimation(danceAnimation);
+  frierenAnimator->setCurrentAnimation(danceAnimation);
   frierenAnimator->finalTransform.resize(skeletalMC->skeletonData->boneCount,
                                          Matrix4::IDENTITY);
 
@@ -688,7 +689,7 @@ BaseApp::initGraphicAssets()
     sponzaComponent->meshData = spzMeshRes;
 
     auto sponzaGO = make_shared<GameObject>();
-    sponzaGO->name = sponzaComponent->meshData->name;
+    sponzaGO->name = sponzaComponent->meshData->getName();
     sponzaGO->addComponent(sponzaComponent);
 
     for (auto& vertex : spzMeshRes->vertices) {
@@ -728,7 +729,7 @@ BaseApp::initGraphicAssets()
 
   for (auto& gObject : m_scene.getGameObjectList()) {
     for (auto& component : gObject->components) {
-      if (component->type == COMPONENT_TYPE::kStaticMesh) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
         auto sMeshComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
         for (auto& vertex : sMeshComponent->meshData->vertices) {
           smVertexData.push_back(vertex);

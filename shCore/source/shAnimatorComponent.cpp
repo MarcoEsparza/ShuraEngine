@@ -22,19 +22,19 @@
 
 namespace shEngineSDK {
 void
-AnimatorComponent::updateAnimation(float dt)
+AnimatorComponent::updateAnimation(const float elapsedTime)
 {
-  deltaTime = dt;
+  deltaTime = elapsedTime;
   
   if (currentAnim) {
-    currentTime += currentAnim->ticksPerSecond * dt;
+    currentTime += currentAnim->ticksPerSecond * elapsedTime;
     currentTime = Math::fmod(currentTime, currentAnim->duration);
     calculateBoneTransform(currentAnim->skeletonData->bones, Matrix4::IDENTITY);
   }
 }
 
 void
-AnimatorComponent::playAnimation(const SPtr<AnimationResource>& anim)
+AnimatorComponent::setCurrentAnimation(const SPtr<AnimationResource>& anim)
 {
   currentAnim = anim;
   currentTime = 0.0f;
@@ -43,10 +43,9 @@ AnimatorComponent::playAnimation(const SPtr<AnimationResource>& anim)
 float
 getScaleFactor(float lastTimeStamp, float nextTimeStamp, float animTime)
 {
-  float scaleFactor = 0.0f;
-  float midWayLenght = animTime - lastTimeStamp;
-  float framesDiff = nextTimeStamp - lastTimeStamp;
-  scaleFactor = midWayLenght / framesDiff;
+  const float midWayLenght = animTime - lastTimeStamp;
+  const float framesDiff = nextTimeStamp - lastTimeStamp;
+  const float scaleFactor = midWayLenght / framesDiff;
 
   return scaleFactor;
 }
@@ -93,14 +92,14 @@ interpolatePosition(const BoneTransformTrack* btt, float animTime)
     return Matrix4::IDENTITY;
   }
 
-  uint32 p0Index = getPositionIndex(btt, animTime);
-  uint32 p1Index = p0Index + 1;
-  float scaleFactor = getScaleFactor(btt->positions[p0Index].timeStamp,
-                                     btt->positions[p1Index].timeStamp,
-                                     animTime);
-  Vector3 finalPosition = btt->positions[p0Index].position.lerp(
-                          btt->positions[p1Index].position,
-                          scaleFactor);
+  const uint32 p0Index = getPositionIndex(btt, animTime);
+  const uint32 p1Index = p0Index + 1;
+  const float scaleFactor = getScaleFactor(btt->positions[p0Index].timeStamp,
+                                           btt->positions[p1Index].timeStamp,
+                                           animTime);
+  const Vector3 finalPosition = btt->positions[p0Index].position.lerp(
+                                btt->positions[p1Index].position,
+                                scaleFactor);
   Matrix4 translation = Matrix4::IDENTITY;
   translation = translation.createTranslationMatrix(finalPosition);
   return translation;
@@ -110,7 +109,7 @@ Matrix4
 interpolateRotation(const BoneTransformTrack* btt, float animTime)
 {
   if (btt->numRotations == 1) {
-    auto quat = btt->rotations[0].orientation;
+    Quaternion quat = btt->rotations[0].orientation;
     Matrix4 rotation(quat);
     return rotation;
   }
@@ -118,14 +117,14 @@ interpolateRotation(const BoneTransformTrack* btt, float animTime)
     return Matrix4::IDENTITY;
   }
 
-  uint32 p0Index = getRotationIndex(btt, animTime);
-  uint32 p1Index = p0Index + 1;
-  float scaleFactor = getScaleFactor(btt->rotations[p0Index].timeStamp,
-                                     btt->rotations[p1Index].timeStamp,
-                                     animTime);
-  Quaternion finalRotation = btt->rotations[p0Index].orientation.slerp(
-                             btt->rotations[p1Index].orientation,
-                             scaleFactor);
+  const uint32 p0Index = getRotationIndex(btt, animTime);
+  const uint32 p1Index = p0Index + 1;
+  const float scaleFactor = getScaleFactor(btt->rotations[p0Index].timeStamp,
+                                           btt->rotations[p1Index].timeStamp,
+                                           animTime);
+  const Quaternion finalRotation = btt->rotations[p0Index].orientation.slerp(
+                                   btt->rotations[p1Index].orientation,
+                                   scaleFactor);
   Matrix4 rotation(finalRotation);
   return rotation;
 }
@@ -142,30 +141,30 @@ interpolateScaling(const BoneTransformTrack* btt, float animTime)
     return Matrix4::IDENTITY;
   }
 
-  uint32 p0Index = getScaleIndex(btt, animTime);
-  uint32 p1Index = p0Index + 1;
-  float scaleFactor = getScaleFactor(btt->scales[p0Index].timeStamp,
-                                     btt->scales[p1Index].timeStamp,
-                                     animTime);
-  Vector3 finalScale = btt->scales[p0Index].scale.lerp(
-                       btt->scales[p1Index].scale,
-                       scaleFactor);
+  const uint32 p0Index = getScaleIndex(btt, animTime);
+  const uint32 p1Index = p0Index + 1;
+  const float scaleFactor = getScaleFactor(btt->scales[p0Index].timeStamp,
+                                           btt->scales[p1Index].timeStamp,
+                                           animTime);
+  const Vector3 finalScale = btt->scales[p0Index].scale.lerp(
+                             btt->scales[p1Index].scale,
+                             scaleFactor);
   Matrix4 scaling = Matrix4::IDENTITY;
   scaling = scaling.createScaleMatrix(finalScale);
   return scaling;
 }
 
 void
-AnimatorComponent::calculateBoneTransform(const Bone& bone, Matrix4 parentTransform)
+AnimatorComponent::calculateBoneTransform(const Bone& bone, const Matrix4& parentTransform)
 {
   String boneName = bone.name;
   Matrix4 boneTransform = bone.transformation;
 
   BoneTransformTrack* btt = nullptr;
 
-  for (uint32 i = 0; i < currentAnim->boneTTracks.size(); ++i) {
-    if (currentAnim->boneTTracks[i].name == boneName) {
-      btt = &currentAnim->boneTTracks[i];
+  for (uint32 i = 0; i < currentAnim->boneTracks.size(); ++i) {
+    if (currentAnim->boneTracks[i].name == boneName) {
+      btt = &currentAnim->boneTracks[i];
     }
   }
 
@@ -176,10 +175,10 @@ AnimatorComponent::calculateBoneTransform(const Bone& bone, Matrix4 parentTransf
     boneTransform = translation * rotation * scaling;
   }
 
-  Matrix4 globalTransform = parentTransform * boneTransform;
+  const Matrix4 globalTransform = parentTransform * boneTransform;
 
-  uint32 index = bone.id;
-  Matrix4 offset = bone.offset;
+  const uint32 index = bone.id;
+  const Matrix4 offset = bone.offset;
 
   finalTransform[index] = globalTransform * offset;
 

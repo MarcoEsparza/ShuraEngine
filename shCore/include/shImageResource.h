@@ -2,7 +2,7 @@
 /*
 *  @file    shImageResource.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2024/12/15
 *  @brief   Image Resource class.
 *
 *  Image Resource class.
@@ -31,13 +31,19 @@ class ImageResource : public Resource
   /**
   *  @brief Default constructor.
   */
-  ImageResource() { type = RESOURCE_TYPE::kTexture; }
+  ImageResource() : Resource(RESOURCE_TYPE::kTexture) {}
 
   /**
   *  @brief Default destructor.
   */
   virtual ~ImageResource() = default;
 
+  /*************************************************************/
+  /*
+  *  Variables.
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Image texture.
   */

@@ -2,7 +2,7 @@
 /*
 *  @file    shDynamicLibrary.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2024/12/15
 *  @brief   Dynamic Library object.
 *
 *  Dynamic Library object.
@@ -50,7 +50,7 @@ void
 DynamicLibrary::unload()
 {
   if (DYNAMIC_LIBRARY_UNLOAD(m_dynLibHandler)) {
-    // TODO : Finish this function.
+    SH_ASSERT("Couldnt unload dll");
   }
 }
 

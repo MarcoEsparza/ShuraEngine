@@ -18,22 +18,65 @@
 */
 /*************************************************************/
 #include "shGameObject.h"
-#include "shTransformComponent.h"
 
 namespace shEngineSDK {
-GameObject::GameObject()
-{
-  auto transform = make_shared<TransformComponent>();
-  transform->getTransform().setPosition(Vector3(0.0f, 0.0f, 0.0f));
-  transform->getTransform().setRotation(Vector3(0.0f, 0.0f, 0.0f));
-  transform->getTransform().setScale(Vector3(0.0f, 0.0f, 0.0f));
-
-  components.push_back(transform);
-}
-
 void
 GameObject::addComponent(const SPtr<Component>& comp)
 {
   components.push_back(comp);
+}
+
+void
+GameObject::removeComponent(const SPtr<Component>& comp)
+{
+  components.erase(std::find(components.begin(), components.end(), comp));
+}
+
+void
+GameObject::addChild(const SPtr<GameObject>& child)
+{
+  childs.push_back(child);
+}
+
+void
+GameObject::removeChild(const SPtr<GameObject>& child)
+{
+  childs.erase(std::find(childs.begin(), childs.end(), child));
+}
+
+Vector3
+GameObject::getPosition() const
+{
+  return Vector3();
+}
+
+Vector3
+GameObject::getRotation() const
+{
+  return Vector3();
+}
+
+Vector3
+GameObject::getScale() const
+{
+  return Vector3();
+}
+
+void
+GameObject::setPosition(const Vector3& position)
+{
+  transform.getTransform().setPosition(position);
+}
+
+void
+GameObject::setRotation(const Vector3& rotation)
+{
+  transform.getTransform().setRotation(rotation);
+}
+
+void
+GameObject::setScale(const Vector3& scale)
+{
+  transform.getTransform().setScale(scale);
 }
 }

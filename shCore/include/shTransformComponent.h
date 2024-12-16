@@ -31,13 +31,19 @@ class TransformComponent : public Component
   /**
   *  @brief Default constructor.
   */
-  TransformComponent() { type = COMPONENT_TYPE::kTransform; }
+  TransformComponent() : Component(COMPONENT_TYPE::kTransform) {}
 
   /**
   *  @brief Default destructor.
   */
   ~TransformComponent() = default;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Gets the transform data.
   * 
@@ -46,6 +52,11 @@ class TransformComponent : public Component
   Transform&
   getTransform();
 
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
  private:
   /**
   *  @brief Transform data.

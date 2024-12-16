@@ -18,18 +18,9 @@
 /*************************************************************/
 #include "shMeshComponent.h"
 #include "shGraphicsManager.h"
+#include "shMeshResource.h"
 
 namespace shEngineSDK {
-StaticMeshComponent::StaticMeshComponent()
-{
-  type = COMPONENT_TYPE::kStaticMesh;
-}
-
-SkeletalMeshComponent::SkeletalMeshComponent()
-{
-  type = COMPONENT_TYPE::kSkeletalMesh;
-}
-
 void
 SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResource)
 {

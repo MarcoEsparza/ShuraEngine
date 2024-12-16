@@ -163,9 +163,9 @@ ResourceManager::loadTextureFromFile(const String& fileName)
   pImage->texture = GraphicsManager::instance().createTextureFromFile(fileName);
 
   SystemPath file = fileName;
-  pImage->name = file.filename().string();
+  pImage->setName(file.filename().string());
 
-  m_loadedResources[pImage->name] = pImage;
+  m_loadedResources[pImage->getName()] = pImage;
 }
 
 void
@@ -179,9 +179,9 @@ ResourceManager::createStaticMesh(const String& fileName,
 
   if(meshUnion->meshes.size() > 1){
     SystemPath name = fileName;
-    meshUnion->name = name.filename().string();
+    meshUnion->setName(name.filename().string());
     
-    m_loadedResources[meshUnion->name] = meshUnion;
+    m_loadedResources[meshUnion->getName()] = meshUnion;
   }
 }
 
@@ -272,8 +272,8 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
     }
   }
 
-  currentMesh->name = mesh->mName.C_Str();
-  m_loadedResources[currentMesh->name] = currentMesh;
+  currentMesh->setName(mesh->mName.C_Str());
+  m_loadedResources[currentMesh->getName()] = currentMesh;
 
   meshUnion->meshes.push_back(currentMesh);
 }
@@ -288,8 +288,8 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
 
   SystemPath file = fileName;
   file.replace_extension("");
-  skeletalMesh->name = file.filename().string();
-  skeleton->name = file.filename().string() + "Skeleton";
+  skeletalMesh->setName(file.filename().string());
+  skeleton->setName(file.filename().string() + "Skeleton");
 
   //for (uint32 i = 0; i < skeletalMesh->vertices.size(); ++i)
   //{
@@ -312,14 +312,14 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   Matrix4 skTransform = aiMatrixToMatrix4(scene->mRootNode->mTransformation);
   skeleton->inverseTransform = skTransform.getInversed();
 
-  m_loadedResources[skeletalMesh->name] = skeletalMesh;
-  m_loadedResources[skeleton->name] = skeleton;
+  m_loadedResources[skeletalMesh->getName()] = skeletalMesh;
+  m_loadedResources[skeleton->getName()] = skeleton;
 
   if (scene->HasAnimations()) {
     auto animation = make_shared<AnimationResource>();
     proccessAnimation(scene, animation, skeleton, 1);
-    animation->name = file.filename().string() + "Animation";
-    m_loadedResources[animation->name] = animation;
+    animation->setName(file.filename().string() + "Animation");
+    m_loadedResources[animation->getName()] = animation;
   }
 }
 
@@ -566,41 +566,10 @@ ResourceManager::proccessAnimation(const aiScene* scene,
     String boneName = channel->mNodeName.C_Str();
 
     if (bInfo.find(boneName) != bInfo.end()) {
-      animation->boneTTracks.push_back(getBTTrack(boneName,
+      animation->boneTracks.push_back(getBTTrack(boneName,
                                                  bInfo[boneName].first,
                                                  channel));
     }
   }
-
-  // Load positions, rotations and scales for each bone
-  /*for (uint32 i = 0; i < anim->mNumChannels; ++i)
-  {
-    aiNodeAnim* channel = anim->mChannels[i];
-    BoneTransformTrack track;
-
-    for (uint32 j = 0; j < channel->mNumPositionKeys; ++j)
-    {
-      track.posTimestamps.push_back(static_cast<float>(channel->mPositionKeys[j].mTime));
-      track.positions.push_back(Vector3(channel->mPositionKeys[j].mValue.x,
-        channel->mPositionKeys[j].mValue.y,
-        channel->mPositionKeys[j].mValue.z));
-    }
-    for (uint32 j = 0; j < channel->mNumRotationKeys; ++j)
-    {
-      track.rotTimestamps.push_back(static_cast<float>(channel->mRotationKeys[j].mTime));
-      track.rotations.push_back(Vector4(channel->mRotationKeys[j].mValue.x,
-        channel->mRotationKeys[j].mValue.y,
-        channel->mRotationKeys[j].mValue.z,
-        channel->mRotationKeys[j].mValue.w));
-    }
-    for (uint32 j = 0; j < channel->mNumScalingKeys; ++j)
-    {
-      track.scaleTimestamps.push_back(static_cast<float>(channel->mScalingKeys[j].mTime));
-      track.scales.push_back(Vector3(channel->mScalingKeys[j].mValue.x,
-        channel->mScalingKeys[j].mValue.y,
-        channel->mScalingKeys[j].mValue.z));
-    }
-    animation->boneTransform[channel->mNodeName.C_Str()] = track;
-  }*/
 }
 }
