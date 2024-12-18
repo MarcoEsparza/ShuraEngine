@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
+*  @date    2024/12/04
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -194,8 +194,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Creates a Sampler State.
   *
-  *  @param uint32 filter = 21
-  *  @param uint32 textAddress = 1
+  *  @param uint32 filter = SAMPLER_FILTER::kFilterMinMagMipLinear
+  *  @param uint32 textAddress = TEXTURE_ADDRESS_MODE::kWrap
   *
   *  @return SPtr<SamplerState>
   */

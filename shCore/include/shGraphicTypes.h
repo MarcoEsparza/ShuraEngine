@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
+*  @date    2024/12/07
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
@@ -55,7 +55,7 @@ struct SH_CORE_EXPORT VertexData
   Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
   Vector3 normal = Vector3(0.0f, 0.0f, 0.0f);
   Vector2 tex = Vector2(0.0f, 0.0f);
-  Vector4 boneIds = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+  Vector4 boneIds = Vector4(-1.0f, -1.0f, -1.0f, -1.0f);
   Vector4 boneWeights = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 };
 
@@ -163,7 +163,7 @@ enum SH_CORE_EXPORT E
 *  @brief Clear flags.
 */
 namespace CLEAR_FLAGS {
-enum E
+enum SH_CORE_EXPORT E
 {
   kDepth = 1,
   kStencil
@@ -173,10 +173,40 @@ enum E
 /**
 *  @brief InputLayout descriptor struct.
 */
-struct InputDesc
+struct SH_CORE_EXPORT InputDesc
 {
   INPUT_LAYOUT_TYPES::E type;
   uint32 format;
   uint32 size;
 };
+
+namespace TEXTURE_TYPE {
+enum SH_CORE_EXPORT E
+{
+  kNone = 0,
+  kDiffuse,
+  kSpecular,
+  kAmbient,
+  kEmissive,
+  kHeight,
+  kNormals,
+  kShininess,
+  kOpacity,
+  kDisplacement,
+  kLightMap,
+  kReflection,
+  kBaseColor,
+  kNormalCamera,
+  kEmissionColor,
+  kMetalness,
+  kDiffuseRoughness,
+  kAmbientOcclusion,
+  kUnknown,
+  kSheen,
+  kClearCoat,
+  kTransmission,
+
+  kCount
+};
+}
 }

@@ -45,7 +45,7 @@
 *  Standard Containers defined as own
 */
 /*************************************************************/
-
+#include <filesystem>
 
 /*************************************************************/
 /*
@@ -79,6 +79,12 @@ template <typename T>
 using WPtr = std::weak_ptr<T>;
 
 /*
+*  @brief Unique pointer that will be used for Shura Engine.
+*/
+template <typename T>
+using UPtr = std::unique_ptr<T>;
+
+/*
 *  @brief Vector wrapper to use along the engine.
 */
 template <typename T>
@@ -106,6 +112,12 @@ template <typename T, typename U>
 using UMap = std::unordered_map<T, U>;
 
 /*
+*  @brief Pair to use along the engine.
+*/
+template <typename T, typename U>
+using Pair = std::pair<T, U>;
+
+/*
 *  @brief Queue to use along the engine.
 */
 template <typename T>
@@ -120,4 +132,28 @@ using std::make_shared;
 *  @brief Byte wrapper to use along the engine.
 */
 using Byte = std::byte;
+
+/**
+*  @brief
+*/
+using SystemPath = std::filesystem::path;
+}
+
+// TODO: Change to a own hash class.
+namespace std
+{
+  template<>
+  struct hash<string>
+  {
+    size_t operator()(const string& path) const
+    {
+      size_t hash = 0;
+      for (char i : path)
+      {
+        hash = 65599 * hash + i;
+      }
+
+      return hash ^ (hash >> 16);
+    }
+  };
 }
