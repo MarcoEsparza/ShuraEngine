@@ -136,6 +136,18 @@ BaseApp::handleEvents()
       else if (keyboard.key == KEY::kQ) {
         moveCameraPosition(-0.1f, AXIS::kY);
       }
+      else if (keyboard.key == KEY::kUp) {
+        
+      }
+      else if (keyboard.key == KEY::kLeft) {
+
+      }
+      else if (keyboard.key == KEY::kDown) {
+
+      }
+      else if (keyboard.key == KEY::kRight) {
+
+      }
     }
     if (ev.type == EVENT_TYPE::kClose) {
       m_mainScreen->close();
@@ -230,8 +242,6 @@ BaseApp::drawSkeletalMeshesInScene()
 
   gManager.setInputLayout(m_pSkeletalInputLayout);
 
-  uint32 vbSlot = 1;
-  uint32 ibSlot = 1;
   for (auto& gObject : m_scene.getGameObjectList()) {
     for (auto& component : gObject->components) {
       if (component->getType() == COMPONENT_TYPE::kSkeletalMesh) {
@@ -255,8 +265,6 @@ BaseApp::drawSkeletalMeshesInScene()
           indexCount += sMeshComponent->meshData->numIndices[i];
           vertexCount += sMeshComponent->meshData->numVertices[i];
         }
-        ++vbSlot;
-        ++ibSlot;
       }
     }
   }
@@ -401,7 +409,14 @@ BaseApp::initGraphicAssets()
   SPtr<ImageResource> whiteIR =
   reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(whiteTex));
 
-  
+  Path chestPath("M:/ShuraEngine/Repo/ShuraEngine/resources/Treasure.fbx");
+  Path chestTexPath("M:/ShuraEngine/Repo/ShuraEngine/resources/Treasure_Color.png");
+
+  SPtr<ImageResource> chestIR = 
+  reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(chestTexPath));
+
+  SPtr<StaticMeshResource> chestSMR =
+  reinterpret_pointer_cast<StaticMeshResource>(rManager.loadResourceFromFile(chestPath));
 
   /***********************
   *  Create GamoObjects
@@ -410,7 +425,18 @@ BaseApp::initGraphicAssets()
   *  temporary while an appropiate editor is created.
   ***********************/
 
-  
+  auto chestGO = make_shared<GameObject>();
+  auto chestSMC = make_shared<StaticMeshComponent>();
+
+  chestSMR->material->shader = m_pStaticShader;
+  auto chestPBRMat = reinterpret_pointer_cast<PBRMaterial>(chestSMR->material);
+  chestPBRMat->baseColor = chestIR->texture;
+  chestSMC->meshData = chestSMR;
+
+  chestGO->name = "TreasureChest";
+  chestGO->addComponent(chestSMC);
+
+  m_scene.addObject(chestGO);
 
   // Create Buffers for static meshes.
 

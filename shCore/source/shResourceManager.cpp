@@ -40,12 +40,24 @@ using std::getline;
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+/*************************************************************/
+/*
+*  Static Variables
+*/
+/*************************************************************/
+
 const Vector<String> ResourceManager::MODEL_EXTENSIONS = { ".fbx", ".obj" };
 const Vector<String> ResourceManager::IMAGE_EXTENSIONS = { ".png",
                                                            ".jpeg",
                                                            ".bmp",
                                                            ".tga",
                                                            ".hdr" };
+
+/*************************************************************/
+/*
+*  Non class functions
+*/
+/*************************************************************/
 
 Matrix4
 aiMatrixToMatrix4(const aiMatrix4x4& aiMatrix)
@@ -82,6 +94,72 @@ aiQuatToQuaternion(const aiQuaternion& aiQuat)
 {
   return Quaternion(aiQuat.w, aiQuat.x, aiQuat.y, aiQuat.z);
 }
+
+void
+setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
+{
+  if (vertex.boneIds.x < 0) {
+    vertex.boneIds.x = static_cast<float>(boneID);
+    vertex.boneWeights.x = weight;
+  }
+  if (vertex.boneIds.y < 0) {
+    vertex.boneIds.y = static_cast<float>(boneID);
+    vertex.boneWeights.y = weight;
+  }
+  if (vertex.boneIds.z < 0) {
+    vertex.boneIds.z = static_cast<float>(boneID);
+    vertex.boneWeights.z = weight;
+  }
+  if (vertex.boneIds.w < 0) {
+    vertex.boneIds.w = static_cast<float>(boneID);
+    vertex.boneWeights.w = weight;
+  }
+}
+
+BoneTransformTrack
+getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel)
+{
+  BoneTransformTrack btt;
+
+  btt.name = boneName;
+  btt.ID = ID;
+  btt.localTransform = Matrix4::IDENTITY;
+
+  btt.numPositions = channel->mNumPositionKeys;
+
+  for (uint32 posIndex = 0; posIndex < btt.numPositions; ++posIndex) {
+    KeyPosition data;
+    data.position = aiVec3ToVector3(channel->mPositionKeys[posIndex].mValue);
+    data.timeStamp = static_cast<float>(channel->mPositionKeys[posIndex].mTime);
+    btt.positions.push_back(data);
+  }
+
+  btt.numRotations = channel->mNumRotationKeys;
+
+  for (uint32 rotIndex = 0; rotIndex < btt.numRotations; ++rotIndex) {
+    KeyRotation data;
+    data.orientation = aiQuatToQuaternion(channel->mRotationKeys[rotIndex].mValue);
+    data.timeStamp = static_cast<float>(channel->mPositionKeys[rotIndex].mTime);
+    btt.rotations.push_back(data);
+  }
+
+  btt.numScalings = channel->mNumScalingKeys;
+
+  for (uint32 scaleIndex = 0; scaleIndex < btt.numScalings; ++scaleIndex) {
+    KeyScale data;
+    data.scale = aiVec3ToVector3(channel->mPositionKeys[scaleIndex].mValue);
+    data.timeStamp = static_cast<float>(channel->mPositionKeys[scaleIndex].mTime);
+    btt.scales.push_back(data);
+  }
+
+  return btt;
+}
+
+/*************************************************************/
+/*
+*  Resource Manager functions
+*/
+/*************************************************************/
 
 void
 ResourceManager::loadResourceFromFile(const String& fileName)
@@ -155,6 +233,21 @@ ResourceManager::isResourceLoaded(const Path& fileName)
 }
 
 SPtr<Resource>
+ResourceManager::loadTextureFromFile(const String& fileName)
+{
+  auto pImage = make_shared<ImageResource>();
+
+  pImage->texture = GraphicsManager::instance().createTextureFromFile(fileName);
+
+  SystemPath file = fileName;
+  pImage->setName(file.filename().string());
+
+  m_loadedResources[pImage->getName()] = pImage;
+
+  return pImage;
+}
+
+SPtr<Resource>
 ResourceManager::loadModelFromFile(const String& fileName)
 {
   Assimp::Importer fileImporter;
@@ -177,34 +270,24 @@ ResourceManager::loadModelFromFile(const String& fileName)
                                                 aiProcess_FlipUVs |
                                                 0);
 
-  auto* node = pScene->mRootNode->mChildren[0];
+  aiNode* node = pScene->mRootNode->mChildren[0];
 
-  if (node->mChildren == nullptr) {
+  if (node == nullptr) {
     node = pScene->mRootNode->mChildren[1];
   }
-  auto* mesh = pScene->mMeshes[node->mMeshes[0]];
+  aiMesh* mesh = pScene->mMeshes[node->mMeshes[0]];
 
   if (mesh->HasBones()) {
     return createSkeletalMesh(pScene, fileName);
   }
   else {
-    return createStaticMesh(fileName, pScene->mRootNode, pScene);
+    if (pScene->mNumMeshes == 1) {
+      return createStaticMesh(fileName, pScene->mRootNode, pScene);
+    }
+    else {
+      return createStaticMeshUnion(fileName, pScene->mRootNode, pScene);
+    }
   }
-}
-
-SPtr<Resource>
-ResourceManager::loadTextureFromFile(const String& fileName)
-{
-  auto pImage = make_shared<ImageResource>();
-
-  pImage->texture = GraphicsManager::instance().createTextureFromFile(fileName);
-
-  SystemPath file = fileName;
-  pImage->setName(file.filename().string());
-
-  m_loadedResources[pImage->getName()] = pImage;
-
-  return pImage;
 }
 
 SPtr<Resource>
@@ -212,9 +295,91 @@ ResourceManager::createStaticMesh(const String& fileName,
                                   const aiNode* node,
                                   const aiScene* scene)
 {
+  auto currentMesh = make_shared<StaticMeshResource>();
+
+  proccessStaticMeshNode(node, scene, currentMesh);
+
+  return currentMesh;
+}
+
+void
+ResourceManager::proccessStaticMeshNode(const aiNode* node,
+                                        const aiScene* scene,
+                                        SPtr<StaticMeshResource>& currentMesh)
+{
+  for (uint32 i = 0; i < node->mNumMeshes; ++i) {
+    aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+    proccessStaticMesh(mesh, scene, currentMesh);
+  }
+
+  for (uint32 i = 0; i < node->mNumChildren; ++i) {
+    proccessStaticMeshNode(node->mChildren[i], scene, currentMesh);
+  }
+}
+
+void
+ResourceManager::proccessStaticMesh(const aiMesh* mesh,
+                                    const aiScene* scene,
+                                    SPtr<StaticMeshResource>& currentMesh)
+{
+  for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
+    VertexData vertex;
+
+    vertex.position = Vector3(mesh->mVertices[i].x,
+                              mesh->mVertices[i].y,
+                              mesh->mVertices[i].z);
+
+    if (mesh->HasNormals()) {
+      vertex.normal = Vector3(mesh->mNormals[i].x,
+                              mesh->mNormals[i].y,
+                              mesh->mNormals[i].z);
+    }
+    else {
+      vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    if (mesh->mTextureCoords[0]) {
+      vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
+                           mesh->mTextureCoords[0][i].y);
+    }
+
+    currentMesh->vertices.push_back(vertex);
+  }
+
+  currentMesh->numVertex = mesh->mNumVertices;
+
+  for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
+    aiFace face = mesh->mFaces[i];
+
+    currentMesh->numIndex += face.mNumIndices;
+
+    for (uint32 j = 0; j < face.mNumIndices; ++j) {
+      currentMesh->indices.push_back(face.mIndices[j]);
+    }
+  }
+
+  auto* mat = scene->mMaterials[mesh->mMaterialIndex];
+
+  auto meshMaterial = make_shared<PBRMaterial>();
+
+  auto imgRes = m_loadedResources["White.png"];
+  auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
+  meshMaterial->baseColor = img->texture;
+  meshMaterial->name = mat->GetName().C_Str();
+  currentMesh->material = meshMaterial;
+
+  currentMesh->setName(mesh->mName.C_Str());
+  m_loadedResources[currentMesh->getName()] = currentMesh;
+}
+
+SPtr<Resource>
+ResourceManager::createStaticMeshUnion(const String& fileName,
+                                       const aiNode* node,
+                                       const aiScene* scene)
+{
   auto meshUnion = make_shared<StaticMeshUnionResource>();
 
-  proccessStaticMeshNode(node, scene, meshUnion);
+  proccessStaticMeshUnionNode(node, scene, meshUnion);
 
   if(meshUnion->meshes.size() > 1){
     SystemPath name = fileName;
@@ -227,24 +392,24 @@ ResourceManager::createStaticMesh(const String& fileName,
 }
 
 void
-ResourceManager::proccessStaticMeshNode(const aiNode* node,
-  const aiScene* scene,
-  SPtr<StaticMeshUnionResource> meshUnion)
+ResourceManager::proccessStaticMeshUnionNode(const aiNode* node,
+                                             const aiScene* scene,
+                                             SPtr<StaticMeshUnionResource> meshUnion)
 {
   for (uint32 i = 0; i < node->mNumMeshes; ++i) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    proccessStaticMesh(mesh, scene, meshUnion);
+    proccessStaticUnionMesh(mesh, scene, meshUnion);
   }
 
   for (uint32 i = 0; i < node->mNumChildren; ++i) {
-    proccessStaticMeshNode(node->mChildren[i], scene, meshUnion);
+    proccessStaticMeshUnionNode(node->mChildren[i], scene, meshUnion);
   }
 }
 
 void
-ResourceManager::proccessStaticMesh(const aiMesh* mesh,
-  const aiScene* scene,
-  SPtr<StaticMeshUnionResource> meshUnion)
+ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
+                                         const aiScene* scene,
+                                         SPtr<StaticMeshUnionResource> meshUnion)
 {
   auto currentMesh = make_shared<StaticMeshResource>();
 
@@ -419,27 +584,6 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
 }
 
 void
-setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
-{
-  if (vertex.boneIds.x < 0) {
-    vertex.boneIds.x = static_cast<float>(boneID);
-    vertex.boneWeights.x = weight;
-  }
-  if (vertex.boneIds.y < 0) {
-    vertex.boneIds.y = static_cast<float>(boneID);
-    vertex.boneWeights.y = weight;
-  }
-  if (vertex.boneIds.z < 0) {
-    vertex.boneIds.z = static_cast<float>(boneID);
-    vertex.boneWeights.z = weight;
-  }
-  if (vertex.boneIds.w < 0) {
-    vertex.boneIds.w = static_cast<float>(boneID);
-    vertex.boneWeights.w = weight;
-  }
-}
-
-void
 ResourceManager::processSkeleton(const aiMesh* mesh,
                                  SPtr<SkeletalMeshResource>& skeletalMesh,
                                  SPtr<SkeletonResource>& skeleton)
@@ -520,44 +664,6 @@ ResourceManager::readSkeleton(Bone& boneOutput,
   }
 
   return false;
-}
-
-BoneTransformTrack
-getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel) {
-  BoneTransformTrack btt;
-
-  btt.name = boneName;
-  btt.ID = ID;
-  btt.localTransform = Matrix4::IDENTITY;
-
-  btt.numPositions = channel->mNumPositionKeys;
-
-  for (uint32 posIndex = 0; posIndex < btt.numPositions; ++posIndex) {
-    KeyPosition data;
-    data.position = aiVec3ToVector3(channel->mPositionKeys[posIndex].mValue);
-    data.timeStamp = static_cast<float>(channel->mPositionKeys[posIndex].mTime);
-    btt.positions.push_back(data);
-  }
-
-  btt.numRotations = channel->mNumRotationKeys;
-
-  for (uint32 rotIndex = 0; rotIndex < btt.numRotations; ++rotIndex) {
-    KeyRotation data;
-    data.orientation = aiQuatToQuaternion(channel->mRotationKeys[rotIndex].mValue);
-    data.timeStamp = static_cast<float>(channel->mPositionKeys[rotIndex].mTime);
-    btt.rotations.push_back(data);
-  }
-
-  btt.numScalings = channel->mNumScalingKeys;
-
-  for (uint32 scaleIndex = 0; scaleIndex < btt.numScalings; ++scaleIndex) {
-    KeyScale data;
-    data.scale = aiVec3ToVector3(channel->mPositionKeys[scaleIndex].mValue);
-    data.timeStamp = static_cast<float>(channel->mPositionKeys[scaleIndex].mTime);
-    btt.scales.push_back(data);
-  }
-
-  return btt;
 }
 
 void

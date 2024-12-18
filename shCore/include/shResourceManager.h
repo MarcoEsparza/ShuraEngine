@@ -41,15 +41,16 @@ namespace shEngineSDK {
 */
 /*************************************************************/
 struct Bone;
+class StaticMeshResource;
+class StaticMeshUnionResource;
 class SkeletalMeshResource;
 class SkeletonResource;
 class AnimationResource;
-class StaticMeshUnionResource;
 
 // TODO : Finish this for cache creation.
 struct SH_CORE_EXPORT ResourceInfoHeader
 {
-
+  RESOURCE_TYPE::E type;
 };
 
 // TODO : Finish this for cache creation.
@@ -126,13 +127,11 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   isResourceLoaded(const Path& fileName);
 
-  /**
-  *  @brief Load a model from file and create a Static or Skeletal mesh.
-  * 
-  *  @param String& fileName
+  /*************************************************************/
+  /*
+  *  Texture
   */
-  SPtr<Resource>
-  loadModelFromFile(const String& fileName);
+  /*************************************************************/
 
   /**
   *  @brief Load a image and creates a texture.
@@ -141,6 +140,26 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   SPtr<Resource>
   loadTextureFromFile(const String& fileName);
+
+  /*************************************************************/
+  /*
+  *  Model loading
+  */
+  /*************************************************************/
+
+  /**
+  *  @brief Load a model from file and create a Static or Skeletal mesh.
+  * 
+  *  @param String& fileName
+  */
+  SPtr<Resource>
+  loadModelFromFile(const String& fileName);
+
+  /*************************************************************/
+  /*
+  *  Static Mesh
+  */
+  /*************************************************************/
 
   /**
   *  @brief Creates the static mesh.
@@ -164,7 +183,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   proccessStaticMeshNode(const aiNode* node,
                          const aiScene* scene,
-                         SPtr<StaticMeshUnionResource> meshUnion);
+                         SPtr<StaticMeshResource>& currentMesh);
 
   /**
   *  @brief If the model file is for static meshes, this function process and
@@ -175,7 +194,54 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   proccessStaticMesh(const aiMesh* mesh,
                      const aiScene* scene,
-                     SPtr<StaticMeshUnionResource> meshUnion);
+                     SPtr<StaticMeshResource>& currentMesh);
+
+  /*************************************************************/
+  /*
+  *  Static Mesh Union
+  */
+  /*************************************************************/
+
+  /**
+  *  @brief Creates the static mesh.
+  *
+  *  @param String& fileName
+  *  @param aiNode* node
+  *  @param aiScene* scene
+  */
+  SPtr<Resource>
+  createStaticMeshUnion(const String& fileName,
+                        const aiNode* node,
+                        const aiScene* scene);
+
+  /**
+  *  @brief If the model file is for static meshes, this function process all
+  *         nodes on the loaded file scene.
+  * 
+  *  @param aiNode* node
+  *  @param aiScene* scene
+  */
+  void
+  proccessStaticMeshUnionNode(const aiNode* node,
+                              const aiScene* scene,
+                              SPtr<StaticMeshUnionResource> meshUnion);
+
+  /**
+  *  @brief If the model file is for static meshes, this function process and
+  *         creates all static meshes on the file.
+  * 
+  *  @param aiMesh* mesh
+  */
+  void
+  proccessStaticUnionMesh(const aiMesh* mesh,
+                          const aiScene* scene,
+                          SPtr<StaticMeshUnionResource> meshUnion);
+
+  /*************************************************************/
+  /*
+  *  Skeletal mesh and skeleton
+  */
+  /*************************************************************/
 
   /**
   *  @brief Creates the skeletal mesh.
@@ -235,6 +301,12 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
                aiNode* node,
                UMap<String, std::pair<int32, Matrix4>>& boneInfoTable);
 
+  /*************************************************************/
+  /*
+  *  Animation
+  */
+  /*************************************************************/
+
   /**
   *  @brief Process the animation.
   * 
@@ -259,6 +331,12 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   UMap<String, SPtr<Resource>> m_loadedResources;
 
+  /*************************************************************/
+  /*
+  *  Static Variables
+  */
+  /*************************************************************/
+ private:
   /**
   *  @brief All supported model extensions.
   */
