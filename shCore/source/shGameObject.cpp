@@ -18,6 +18,11 @@
 */
 /*************************************************************/
 #include "shGameObject.h"
+#include "shMeshComponent.h"
+#include "shMeshResource.h"
+#include "shMath.h"
+
+using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 void
@@ -47,36 +52,69 @@ GameObject::removeChild(const SPtr<GameObject>& child)
 Vector3
 GameObject::getPosition() const
 {
-  return Vector3();
+  return transform.getPosition();
 }
 
 Vector3
 GameObject::getRotation() const
 {
-  return Vector3();
+  return transform.getRotation();
 }
 
 Vector3
 GameObject::getScale() const
 {
-  return Vector3();
+  return transform.getScale();
 }
 
 void
-GameObject::setPosition(const Vector3& position)
+GameObject::move(const Vector3& position)
 {
-  transform.getTransform().setPosition(position);
+  transform.setPosition(position);
+
+  for (auto& component : components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+      auto smComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
+      for (auto& vertex : smComponent->meshData->vertices) {
+        vertex.position.x += position.x;
+        vertex.position.y += position.y;
+        vertex.position.z += position.z;
+      }
+    }
+  }
 }
 
 void
-GameObject::setRotation(const Vector3& rotation)
+GameObject::rotate(const Vector3& rotation)
 {
-  transform.getTransform().setRotation(rotation);
+  transform.setRotation(rotation);
+
+  for (auto& component : components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+      auto smComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
+      for (auto& vertex : smComponent->meshData->vertices) {
+        vertex.position = vertex.position.rotateX(rotation.x * Math::DEG2RAD);
+        vertex.position = vertex.position.rotateY(rotation.y * Math::DEG2RAD);
+        vertex.position = vertex.position.rotateZ(rotation.z * Math::DEG2RAD);
+      }
+    }
+  }
 }
 
 void
-GameObject::setScale(const Vector3& scale)
+GameObject::scale(const Vector3& scale)
 {
-  transform.getTransform().setScale(scale);
+  transform.setScale(scale);
+
+  for (auto& component : components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+      auto smComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
+      for (auto& vertex : smComponent->meshData->vertices) {
+        vertex.position.x *= scale.x;
+        vertex.position.y *= scale.y;
+        vertex.position.z *= scale.z;
+      }
+    }
+  }
 }
 }

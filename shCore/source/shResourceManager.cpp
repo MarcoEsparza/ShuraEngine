@@ -362,7 +362,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 
   auto meshMaterial = make_shared<PBRMaterial>();
 
-  auto imgRes = m_loadedResources["White.png"];
+  auto& imgRes = m_loadedResources["White.png"];
   auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
   meshMaterial->baseColor = img->texture;
   meshMaterial->name = mat->GetName().C_Str();

@@ -93,6 +93,42 @@ BaseApp::run(const ScreenDesc& desc, const String& dllGraphicApiName)
 }
 
 void
+BaseApp::updateSMBuffers()
+{
+  GraphicsManager& gManager = GraphicsManager::instance();
+
+  Vector<VertexData> smVertexData;
+  Vector<uint32> smIndexData;
+
+  for (auto& gObject : m_scene.getGameObjectList()) {
+    for (auto& component : gObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+        auto sMeshComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
+        for (auto& vertex : sMeshComponent->meshData->vertices) {
+          smVertexData.push_back(vertex);
+        }
+        for (auto index : sMeshComponent->meshData->indices) {
+          smIndexData.push_back(index);
+        }
+      }
+    }
+  }
+
+  m_staticVBuffer = gManager.createVertexBuffer(smVertexData);
+  m_staticIBuffer = gManager.createIndexBuffer(smIndexData);
+
+  SH_ASSERT(m_staticVBuffer);
+  SH_ASSERT(m_staticIBuffer);
+}
+
+void
+BaseApp::moveChest(const Vector3& newPos)
+{
+  m_scene.getGameObjectList()[0]->move(newPos);
+  updateSMBuffers();
+}
+
+void
 BaseApp::handleEvents()
 {
   m_eventQueue->update();
@@ -137,16 +173,16 @@ BaseApp::handleEvents()
         moveCameraPosition(-0.1f, AXIS::kY);
       }
       else if (keyboard.key == KEY::kUp) {
-        
+        moveChest(Vector3(0.0f, 1.0f, 0.0f));
       }
       else if (keyboard.key == KEY::kLeft) {
-
+        moveChest(Vector3(-1.0f, 0.0f, 0.0f));
       }
       else if (keyboard.key == KEY::kDown) {
-
+        moveChest(Vector3(0.0f, -1.0f, 0.0f));
       }
       else if (keyboard.key == KEY::kRight) {
-
+        moveChest(Vector3(1.0f, 0.0f, 0.0f));
       }
     }
     if (ev.type == EVENT_TYPE::kClose) {
@@ -436,29 +472,11 @@ BaseApp::initGraphicAssets()
   chestGO->name = "TreasureChest";
   chestGO->addComponent(chestSMC);
 
+  chestGO->rotate(Vector3(90.0f, 0.0f, 180.0f));
+
   m_scene.addObject(chestGO);
 
-  // Create Buffers for static meshes.
-
-  Vector<VertexData> smVertexData;
-  Vector<uint32> smIndexData;
-
-  for (auto& gObject : m_scene.getGameObjectList()) {
-    for (auto& component : gObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-        auto sMeshComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
-        for (auto& vertex : sMeshComponent->meshData->vertices) {
-          smVertexData.push_back(vertex);
-        }
-        for (auto index : sMeshComponent->meshData->indices) {
-          smIndexData.push_back(index);
-        }
-      }
-    }
-  }
-
-  m_staticVBuffer = gManager.createVertexBuffer(smVertexData);
-  m_staticIBuffer = gManager.createIndexBuffer(smIndexData);
+  updateSMBuffers();
 
   /********************
   *  Camera

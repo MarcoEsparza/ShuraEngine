@@ -70,6 +70,18 @@ class SH_CORE_EXPORT BaseApp
   void
   run(const ScreenDesc& desc, const String& dllGraphicApiName);
 
+  /**
+  *  @brief Update the Static Mesh vertex and index buffer.
+  */
+  void
+  updateSMBuffers();
+
+  /**
+  *  @brief This function is only for testing and it will be deleted
+  */
+  void
+  moveChest(const Vector3& newPos);
+
  private:
   /**
   *  @brief Handle all events.
