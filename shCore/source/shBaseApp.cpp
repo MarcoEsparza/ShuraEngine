@@ -206,12 +206,12 @@ BaseApp::update(const float time)
         
         for (auto& otherComp : gObject->components) {
           if (otherComp->getType() == COMPONENT_TYPE::kAnimator) {
-            auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
+            /*auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
             animator->updateAnimation(time);
 
             gManager.updateConstantBuffer(skMesh->m_meshBuffer,
                                           animator->finalTransform.data(),
-                                          skMesh->skeletonData->boneCount * sizeof(Matrix4));
+                                          skMesh->skeletonData->boneCount * sizeof(Matrix4));*/
           }
         }
       }
@@ -454,6 +454,15 @@ BaseApp::initGraphicAssets()
   SPtr<StaticMeshResource> chestSMR =
   reinterpret_pointer_cast<StaticMeshResource>(rManager.loadResourceFromFile(chestPath));
 
+  Path emiliaPath("M:/ShuraEngine/Repo/ShuraEngine/resources/EmiliaDancing.fbx");
+  Path emiliaTexPath("M:/ShuraEngine/Repo/ShuraEngine/resources/Rezero_Emilia_diff.png");
+
+  SPtr<ImageResource> emiliaIR = 
+  reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(emiliaTexPath));
+
+  SPtr<SkeletalMeshResource> emiliaSMR =
+  reinterpret_pointer_cast<SkeletalMeshResource>(rManager.loadResourceFromFile(emiliaPath));
+
   /***********************
   *  Create GamoObjects
   * 
@@ -473,6 +482,17 @@ BaseApp::initGraphicAssets()
   chestGO->addComponent(chestSMC);
 
   chestGO->rotate(Vector3(90.0f, 0.0f, 180.0f));
+
+  auto emiliaGO = make_shared<GameObject>();
+  auto emiliaSMC = make_shared<SkeletalMeshComponent>();
+
+  //emiliaSMR->material->shader = m_pStaticShader;
+  //auto emiliaPBRMat = reinterpret_pointer_cast<PBRMaterial>(emiliaSMR->material);
+  //emiliaPBRMat->baseColor = emiliaIR->texture;
+  //emiliaSMC->meshData = emiliaSMR;
+
+  emiliaGO->name = "Emilia";
+  emiliaGO->addComponent(emiliaSMC);
 
   m_scene.addObject(chestGO);
 

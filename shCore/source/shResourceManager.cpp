@@ -39,6 +39,26 @@ using std::getline;
 
 using std::reinterpret_pointer_cast;
 
+/**
+*  @brief Custom flags for assimp importer
+*/
+#define CUSTOM_AI_MAX_QUALITY_FLAG (aiProcess_CalcTangentSpace      | \
+                                    aiProcess_GenSmoothNormals      | \
+                                    aiProcess_JoinIdenticalVertices | \
+                                    aiProcess_ImproveCacheLocality  | \
+                                    aiProcess_LimitBoneWeights      | \
+                                    aiProcess_SplitLargeMeshes      | \
+                                    aiProcess_Triangulate           | \
+                                    aiProcess_GenUVCoords           | \
+                                    aiProcess_SortByPType           | \
+                                    aiProcess_FindDegenerates       | \
+                                    aiProcess_FindInvalidData       | \
+                                    aiProcess_FindInstances         | \
+                                    aiProcess_ValidateDataStructure | \
+                                    aiProcess_OptimizeMeshes        | \
+                                    aiProcess_FlipUVs               | \
+                                    0)
+
 namespace shEngineSDK {
 /*************************************************************/
 /*
@@ -253,22 +273,7 @@ ResourceManager::loadModelFromFile(const String& fileName)
   Assimp::Importer fileImporter;
 
   const aiScene* pScene = fileImporter.ReadFile(fileName,
-                                                aiProcess_CalcTangentSpace | 
-                                                aiProcess_GenSmoothNormals | 
-                                                aiProcess_JoinIdenticalVertices | 
-                                                aiProcess_ImproveCacheLocality | 
-                                                aiProcess_LimitBoneWeights | 
-                                                aiProcess_SplitLargeMeshes | 
-                                                aiProcess_Triangulate | 
-                                                aiProcess_GenUVCoords | 
-                                                aiProcess_SortByPType | 
-                                                aiProcess_FindDegenerates | 
-                                                aiProcess_FindInvalidData |
-                                                aiProcess_FindInstances | 
-                                                aiProcess_ValidateDataStructure | 
-                                                aiProcess_OptimizeMeshes | 
-                                                aiProcess_FlipUVs |
-                                                0);
+                                                CUSTOM_AI_MAX_QUALITY_FLAG);
 
   aiNode* node = pScene->mRootNode->mChildren[0];
 
@@ -490,6 +495,8 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   auto skeletalMesh = make_shared<SkeletalMeshResource>();
   auto skeleton = make_shared<SkeletonResource>();
 
+  skeletalMesh->materials.resize(scene->mNumMaterials);
+
   proccessSkeletalMeshNode(scene->mRootNode, scene, skeletalMesh, skeleton);
 
   SystemPath file = fileName;
@@ -532,11 +539,24 @@ ResourceManager::proccessSkeletalMeshNode(const aiNode* node,
 }
 
 void
+ExtractBoneWeightForVertex(Vector<VertexData>& vertices, const aiMesh* mesh, const aiScene* scene)
+{
+  for (uint32 boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+    uint32 boneID = -1;
+    String boneName = mesh->mBones[boneIndex]->mName.C_Str();
+    
+  }
+}
+
+void
 ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
                                       const aiScene* scene,
                                       SPtr<SkeletalMeshResource>& skeletalMesh,
                                       SPtr<SkeletonResource>& skeleton)
 {
+  SkeletalMeshInfo currentMeshInfo;
+  Vector<VertexData> currentMeshVertices;
+
   for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
     VertexData vertex;
 
@@ -558,39 +578,49 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
                            mesh->mTextureCoords[0][i].y);
     }
 
+    currentMeshVertices.push_back(vertex);
+  }
+
+  currentMeshInfo.numVertices = currentMeshVertices.size();
+
+  ExtractBoneWeightForVertex(currentMeshVertices, mesh, scene);
+
+  for (auto& vertex : currentMeshVertices) {
     skeletalMesh->vertices.push_back(vertex);
   }
 
-  skeletalMesh->numVertices.push_back(mesh->mNumVertices);
-
-  uint32 indexCount = 0;
   for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
     aiFace face = mesh->mFaces[i];
 
-    indexCount += face.mNumIndices;
+    currentMeshInfo.numIndices += face.mNumIndices;
 
     for (uint32 j = 0; j < face.mNumIndices; ++j) {
       skeletalMesh->indices.push_back(face.mIndices[j]);
     }
   }
-  skeletalMesh->numIndices.push_back(indexCount);
 
-  auto mat = scene->mMaterials[mesh->mMaterialIndex];
+  currentMeshInfo.name = mesh->mName.C_Str();
+  currentMeshInfo.materialIndex = mesh->mMaterialIndex;
 
-  skeletalMesh->meshNames.push_back(mat->GetName().C_Str());
-  ++skeletalMesh->numMeshes;
+  if (skeletalMesh->materials[currentMeshInfo.materialIndex] == nullptr) {
+    auto meshMat = make_shared<PBRMaterial>();
+    auto& imgRes = m_loadedResources["White.png"];
+    auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
+    meshMat->baseColor = img->texture;
+    auto mat = scene->mMaterials[mesh->mMaterialIndex];
+    meshMat->name = mat->GetName().C_Str();
+    skeletalMesh->materials[currentMeshInfo.materialIndex] = meshMat;
+  }
 
-  processSkeleton(mesh, skeletalMesh, skeleton);
+  skeletalMesh->meshes.push_back(currentMeshInfo);
 }
 
 void
-ResourceManager::processSkeleton(const aiMesh* mesh,
-                                 SPtr<SkeletalMeshResource>& skeletalMesh,
-                                 SPtr<SkeletonResource>& skeleton)
+ResourceManager::processSkeleton(const aiMesh*,
+                                 SPtr<SkeletalMeshResource>&,
+                                 SPtr<SkeletonResource>&)
 {
-  Vector<uint32> boneCounts;
-  boneCounts.resize(mesh->mNumVertices, 0);
-  uint32 baseVertex = 0;
+  /*uint32 baseVertex = 0;
 
   if (skeletalMesh->numMeshes > 1) {
     for (uint32 i = 0; i < skeletalMesh->numMeshes - 1; ++i) {
@@ -628,7 +658,7 @@ ResourceManager::processSkeleton(const aiMesh* mesh,
         setVertexBoneData(skeletalMesh->vertices[vertexID], boneId, weight);
       }
     }
-  }
+  }*/
 }
 
 bool

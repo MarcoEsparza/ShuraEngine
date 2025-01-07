@@ -52,6 +52,13 @@ struct SH_CORE_EXPORT Bone
   */
   Vector<Bone> children;
 };
+
+struct BoneInfo
+{
+  int32 id;
+  Matrix4 offset;
+  String name;
+};
   
 /**
 *  @brief Skeleton info class.
@@ -99,5 +106,7 @@ class SkeletonResource : public Resource
   *  @brief Map for bone offsets.
   */
   UMap<String, std::pair<int32, Matrix4>> boneInfo;
+
+  UMap<String, BoneInfo> boneInfoMap;
 };
 }
