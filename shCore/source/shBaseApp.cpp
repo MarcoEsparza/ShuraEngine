@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2025/01/08
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -206,12 +206,12 @@ BaseApp::update(const float time)
         
         for (auto& otherComp : gObject->components) {
           if (otherComp->getType() == COMPONENT_TYPE::kAnimator) {
-            /*auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
+            auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
             animator->updateAnimation(time);
 
-            gManager.updateConstantBuffer(skMesh->m_meshBuffer,
-                                          animator->finalTransform.data(),
-                                          skMesh->skeletonData->boneCount * sizeof(Matrix4));*/
+            gManager.updateConstantBuffer(skMesh->m_bonesBuffer,
+                                          animator->finalBoneTransforms.data(),
+                                          skMesh->skeletonData->boneCount * sizeof(Matrix4));
           }
         }
       }
@@ -285,21 +285,21 @@ BaseApp::drawSkeletalMeshesInScene()
 
         gManager.setVertexBuffers(sMeshComponent->m_vertexBuffer);
         gManager.setIndexBuffers(sMeshComponent->m_indexBuffer);
-        gManager.vsSetConstantBuffers(sMeshComponent->m_meshBuffer, 1);
+        gManager.vsSetConstantBuffers(sMeshComponent->m_bonesBuffer, 1);
 
         uint32 vertexCount = 0;
         uint32 indexCount = 0;
-        for (uint32 i = 0; i < sMeshComponent->meshData->numMeshes; ++i) {
-          auto meshMat = reinterpret_pointer_cast<PBRMaterial>(sMeshComponent->materials[i]);
+        for (uint32 i = 0; i < sMeshComponent->meshData->meshes.size(); ++i) {
+          auto meshMat = reinterpret_pointer_cast<PBRMaterial>(sMeshComponent->meshData->materials[i]);
           gManager.setProgramShader(meshMat->shader);
           gManager.setShaderResourceView(meshMat->baseColor);
 
-          gManager.drawIndexed(sMeshComponent->meshData->numIndices[i],
-            indexCount,
-            vertexCount);
+          gManager.drawIndexed(sMeshComponent->meshData->meshes[i].numIndices,
+                               indexCount,
+                               vertexCount);
 
-          indexCount += sMeshComponent->meshData->numIndices[i];
-          vertexCount += sMeshComponent->meshData->numVertices[i];
+          indexCount += sMeshComponent->meshData->meshes[i].numIndices;
+          vertexCount += sMeshComponent->meshData->meshes[i].numVertices;
         }
       }
     }
@@ -486,15 +486,34 @@ BaseApp::initGraphicAssets()
   auto emiliaGO = make_shared<GameObject>();
   auto emiliaSMC = make_shared<SkeletalMeshComponent>();
 
-  //emiliaSMR->material->shader = m_pStaticShader;
-  //auto emiliaPBRMat = reinterpret_pointer_cast<PBRMaterial>(emiliaSMR->material);
-  //emiliaPBRMat->baseColor = emiliaIR->texture;
-  //emiliaSMC->meshData = emiliaSMR;
+  auto emiliaPBRMat = reinterpret_pointer_cast<PBRMaterial>(emiliaSMR->materials[0]);
+  emiliaPBRMat->shader = m_pSkeletalShader;
+  emiliaPBRMat->baseColor = emiliaIR->texture;
+  emiliaSMC->meshData = emiliaSMR;
+
+  emiliaSMC->m_vertexBuffer = gManager.createVertexBuffer(emiliaSMR->vertices);
+  emiliaSMC->m_indexBuffer = gManager.createIndexBuffer(emiliaSMR->indices);
+  
+  auto emiliaSK =
+  reinterpret_pointer_cast<SkeletonResource>(rManager.getResource("EmiliaDancingSkeleton"));
+  emiliaSMC->skeletonData = emiliaSK;
+
+  uint32 emiliaBonesSize = emiliaSK->boneCount * sizeof(Matrix4);
+
+  emiliaSMC->m_bonesBuffer = gManager.createConstantBuffer(emiliaBonesSize);
+
+  auto eAnim =
+  reinterpret_pointer_cast<AnimationResource>(rManager.getResource("EmiliaDancingAnimation"));
+
+  auto emiliaAnimator = make_shared<AnimatorComponent>();
+  emiliaAnimator->setCurrentAnimation(eAnim);
 
   emiliaGO->name = "Emilia";
   emiliaGO->addComponent(emiliaSMC);
+  emiliaGO->addComponent(emiliaAnimator);
 
   m_scene.addObject(chestGO);
+  m_scene.addObject(emiliaGO);
 
   updateSMBuffers();
 

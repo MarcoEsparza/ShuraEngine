@@ -87,15 +87,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   /**
   *  @brief Load resource from desired file, clasify it and create a cache
   *         for optimizing the next time the resource will be loaded.
-  * 
-  *  @param String& fileName.
-  */
-  void
-  loadResourceFromFile(const String& fileName);
-
-  /**
-  *  @brief Load resource from desired file, clasify it and create a cache
-  *         for optimizing the next time the resource will be loaded.
   *
   *  @param Path& filePath
   */
@@ -277,29 +268,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
                        const aiScene* scene,
                        SPtr<SkeletalMeshResource>& skeletalMesh,
                        SPtr<SkeletonResource>& skeleton);
-
-  /**
-  *  @brief Process the Skeleton.
-  * 
-  *  @param const aiMesh* mesh
-  *  @param aiScene* scene
-  */
-  void
-  processSkeleton(const aiMesh* mesh,
-                  SPtr<SkeletalMeshResource>& skeletalMesh,
-                  SPtr<SkeletonResource>& skeleton);
-
-  /**
-  *  @brief Read the Skeleton.
-  *
-  *  @param Bone& boneOutput
-  *  @param aiNode* node
-  *  @param UMap<String, std::pair<int32, Matrix4>>& boneInfoTable
-  */
-  bool
-  readSkeleton(Bone& boneOutput,
-               aiNode* node,
-               UMap<String, std::pair<int32, Matrix4>>& boneInfoTable);
 
   /*************************************************************/
   /*

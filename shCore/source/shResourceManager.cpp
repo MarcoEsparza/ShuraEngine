@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/16
+*  @date    2025/01/08
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -79,6 +79,13 @@ const Vector<String> ResourceManager::IMAGE_EXTENSIONS = { ".png",
 */
 /*************************************************************/
 
+/**
+*  @brief Tranforms an assimp aiMatrix4x4 to an engine Matrix4.
+*
+*  @param aiMatrix4x4& aiMatrix
+*
+*  @return Matrix4
+*/
 Matrix4
 aiMatrixToMatrix4(const aiMatrix4x4& aiMatrix)
 {
@@ -103,18 +110,39 @@ aiMatrixToMatrix4(const aiMatrix4x4& aiMatrix)
                  static_cast<float>(aiMatrix.d4));
 }
 
+/**
+*  @brief Tranforms an assimp aiVector3D to an engine Vector3.
+*
+*  @param aiVector3D& aiVec
+*
+*  @return Vector3
+*/
 Vector3
 aiVec3ToVector3(const aiVector3D& aiVec)
 {
   return Vector3(aiVec.x, aiVec.y, aiVec.z);
 }
 
+/**
+*  @brief Tranforms an assimp aiQuaternion to an engine Quaternion.
+*
+*  @param aiQuaternion& aiQuat
+*
+*  @return Quaternion
+*/
 Quaternion
 aiQuatToQuaternion(const aiQuaternion& aiQuat)
 {
   return Quaternion(aiQuat.w, aiQuat.x, aiQuat.y, aiQuat.z);
 }
 
+/**
+*  @brief Sets the bone ids and weights to a vertex struct.
+*
+*  @param VertexData& vertex
+*  @param int32 boneID
+*  @param float weight
+*/
 void
 setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
 {
@@ -136,6 +164,55 @@ setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
   }
 }
 
+/**
+*  @brief Extract the bone id and weight yo set to a vertex.
+*
+*  @param Vector<VertexData>& vertices
+*  @param const aiMesh* mesh
+*  @param SPtr<SkeletonResource>& skeleton
+*/
+void
+ExtractBoneWeightForVertex(Vector<VertexData>& vertices,
+                           const aiMesh* mesh,
+                           SPtr<SkeletonResource>& skeleton)
+{
+  for (uint32 boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+    int32 boneID = -1;
+    String boneName = mesh->mBones[boneIndex]->mName.C_Str();
+    if (skeleton->boneInfoMap.find(boneName) == skeleton->boneInfoMap.end()) {
+      BoneInfo newBoneInfo;
+      newBoneInfo.id = static_cast<int32>(skeleton->boneCount);
+      newBoneInfo.offset = aiMatrixToMatrix4(mesh->mBones[boneIndex]->mOffsetMatrix);
+      skeleton->boneInfoMap[boneName] = newBoneInfo;
+      boneID = static_cast<int32>(skeleton->boneCount);
+      ++skeleton->boneCount;
+    }
+    else {
+      boneID = skeleton->boneInfoMap[boneName].id;
+    }
+
+    SH_ASSERT(boneID != -1);
+    aiVertexWeight* weights = mesh->mBones[boneIndex]->mWeights;
+    uint32 numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+    for (uint32 weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
+      uint32 vertexID = weights[weightIndex].mVertexId;
+      float weight = static_cast<float>(weights[weightIndex].mWeight);
+      SH_ASSERT(vertexID <= vertices.size());
+      setVertexBoneData(vertices[vertexID], boneID, weight);
+    }
+  }
+}
+
+/**
+*  @brief Gets the keys of the animation.
+*
+*  @param String& boneName
+*  @param int32 ID
+*  @param aiNodeAnim* channel
+*
+*  @return BoneTransformTrack
+*/
 BoneTransformTrack
 getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel)
 {
@@ -175,34 +252,52 @@ getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel)
   return btt;
 }
 
+void
+ReadHierarchyData(AnimationNodeData& dest, const aiNode* src)
+{
+  SH_ASSERT(src);
+
+  dest.name = src->mName.C_Str();
+  dest.transformation = aiMatrixToMatrix4(src->mTransformation);
+  dest.childrenCount = src->mNumChildren;
+
+  for (uint32 i = 0; i < src->mNumChildren; ++i) {
+    AnimationNodeData newData;
+    ReadHierarchyData(newData, src->mChildren[i]);
+    dest.children.push_back(newData);
+  }
+}
+
+void
+ReadMissingBoneTracks(const aiAnimation* aiAnim,
+  SPtr<SkeletonResource>& skeleton,
+  SPtr<AnimationResource>& animation)
+{
+  uint32 size = aiAnim->mNumChannels;
+
+  UMap<String, BoneInfo>& boneInfoMap = skeleton->boneInfoMap;
+  uint32& boneCount = skeleton->boneCount;
+
+  for (uint32 i = 0; i < size; ++i) {
+    auto channel = aiAnim->mChannels[i];
+    String boneName = channel->mNodeName.data;
+
+    if (boneInfoMap.find(boneName) == boneInfoMap.end()) {
+      boneInfoMap[boneName].id = boneCount;
+      ++boneCount;
+    }
+
+    animation->boneTracks.push_back(getBTTrack(boneName,
+      boneInfoMap[boneName].id,
+      channel));
+  }
+}
+
 /*************************************************************/
 /*
 *  Resource Manager functions
 */
 /*************************************************************/
-
-void
-ResourceManager::loadResourceFromFile(const String& fileName)
-{
-  if (isResourceLoaded(fileName)) {
-    return;
-  }
-  
-  SPtr<Resource> resource;
-  SystemPath filePath = fileName;
-  
-  if (filePath.extension() == ".png" ||
-      filePath.extension() == ".jpeg" ||
-      filePath.extension() == ".bmp" ||
-      filePath.extension() == ".tga" ||
-      filePath.extension() == ".hdr") {
-    loadTextureFromFile(fileName);
-  }
-  else if (filePath.extension() == ".fbx" ||
-           filePath.extension() == ".obj") {
-    loadModelFromFile(fileName);
-  }
-}
 
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
@@ -296,7 +391,7 @@ ResourceManager::loadModelFromFile(const String& fileName)
 }
 
 SPtr<Resource>
-ResourceManager::createStaticMesh(const String& fileName,
+ResourceManager::createStaticMesh(const String&,
                                   const aiNode* node,
                                   const aiScene* scene)
 {
@@ -504,17 +599,12 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   skeletalMesh->setName(file.filename().string());
   skeleton->setName(file.filename().string() + "Skeleton");
 
-  readSkeleton(skeleton->bones, scene->mRootNode, skeleton->boneInfo);
-
-  Matrix4 skTransform = aiMatrixToMatrix4(scene->mRootNode->mTransformation);
-  skeleton->inverseTransform = skTransform.getInversed();
-
   m_loadedResources[skeletalMesh->getName()] = skeletalMesh;
   m_loadedResources[skeleton->getName()] = skeleton;
 
   if (scene->HasAnimations()) {
     auto animation = make_shared<AnimationResource>();
-    proccessAnimation(scene, animation, skeleton, 1);
+    proccessAnimation(scene, animation, skeleton, 0);
     animation->setName(file.filename().string() + "Animation");
     m_loadedResources[animation->getName()] = animation;
   }
@@ -535,16 +625,6 @@ ResourceManager::proccessSkeletalMeshNode(const aiNode* node,
 
   for (uint32 i = 0; i < node->mNumChildren; ++i) {
     proccessSkeletalMeshNode(node->mChildren[i], scene, skeletalMesh, skeleton);
-  }
-}
-
-void
-ExtractBoneWeightForVertex(Vector<VertexData>& vertices, const aiMesh* mesh, const aiScene* scene)
-{
-  for (uint32 boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
-    uint32 boneID = -1;
-    String boneName = mesh->mBones[boneIndex]->mName.C_Str();
-    
   }
 }
 
@@ -581,9 +661,9 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
     currentMeshVertices.push_back(vertex);
   }
 
-  currentMeshInfo.numVertices = currentMeshVertices.size();
+  currentMeshInfo.numVertices = static_cast<uint32>(currentMeshVertices.size());
 
-  ExtractBoneWeightForVertex(currentMeshVertices, mesh, scene);
+  ExtractBoneWeightForVertex(currentMeshVertices, mesh, skeleton);
 
   for (auto& vertex : currentMeshVertices) {
     skeletalMesh->vertices.push_back(vertex);
@@ -616,94 +696,13 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
 }
 
 void
-ResourceManager::processSkeleton(const aiMesh*,
-                                 SPtr<SkeletalMeshResource>&,
-                                 SPtr<SkeletonResource>&)
-{
-  /*uint32 baseVertex = 0;
-
-  if (skeletalMesh->numMeshes > 1) {
-    for (uint32 i = 0; i < skeletalMesh->numMeshes - 1; ++i) {
-      baseVertex += skeletalMesh->numVertices[i];
-    }
-    --baseVertex;
-  }
-
-  for (uint32 i = 0; i < mesh->mNumBones; ++i) {
-    aiBone* bone = mesh->mBones[i];
-
-    int32 boneId = -1;
-
-    Matrix4 boneMatrix = aiMatrixToMatrix4(bone->mOffsetMatrix);
-
-    String boneName = bone->mName.C_Str();
-
-    if (skeleton->boneInfo.find(boneName) == skeleton->boneInfo.end()) {
-      skeleton->boneInfo[boneName] = { skeleton->boneCount, boneMatrix };
-      boneId = skeleton->boneCount;
-      ++skeleton->boneCount;
-    }
-    else {
-      boneId = skeleton->boneInfo[boneName].first;
-    }
-
-    auto weights = mesh->mBones[i]->mWeights;
-    int numWeights = mesh->mBones[i]->mNumWeights;
-
-    for (int32 weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
-      int32 vertexID = baseVertex + weights[weightIndex].mVertexId;
-      float weight = weights[weightIndex].mWeight;
-
-      if (vertexID <= skeletalMesh->vertices.size()) {
-        setVertexBoneData(skeletalMesh->vertices[vertexID], boneId, weight);
-      }
-    }
-  }*/
-}
-
-bool
-ResourceManager::readSkeleton(Bone& boneOutput,
-                              aiNode* node,
-                              UMap<String, std::pair<int32, Matrix4>>& boneInfoTable)
-{
-  if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end())
-  {
-    boneOutput.name = node->mName.C_Str();
-    boneOutput.id = boneInfoTable[boneOutput.name].first;
-    boneOutput.offset = boneInfoTable[boneOutput.name].second;
-    boneOutput.transformation = aiMatrixToMatrix4(node->mTransformation);
-
-    for (uint32 i = 0; i < node->mNumChildren; ++i)
-    {
-      Bone child;
-      readSkeleton(child, node->mChildren[i], boneInfoTable);
-      boneOutput.children.push_back(child);
-    }
-
-    return true;
-  }
-  else
-  {
-    for (uint32 i = 0; i < node->mNumChildren; ++i)
-    {
-      if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable))
-      {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-void
 ResourceManager::proccessAnimation(const aiScene* scene,
                                    SPtr<AnimationResource>& animation,
                                    SPtr<SkeletonResource>& skeleton,
                                    uint32 index)
 {
   animation->skeletonData = skeleton;
-  aiAnimation* anim = scene->mAnimations[index];
+  auto anim = scene->mAnimations[index];
 
   if (anim->mTicksPerSecond != 0.0f)
   {
@@ -717,17 +716,7 @@ ResourceManager::proccessAnimation(const aiScene* scene,
   animation->hasLoop = true;
   animation->duration = static_cast<float>(anim->mDuration);
 
-  auto& bInfo = skeleton->boneInfo;
-  
-  for (uint32 i = 0; i < anim->mNumChannels; ++i) {
-    auto channel = anim->mChannels[i];
-    String boneName = channel->mNodeName.C_Str();
-
-    if (bInfo.find(boneName) != bInfo.end()) {
-      animation->boneTracks.push_back(getBTTrack(boneName,
-                                                 bInfo[boneName].first,
-                                                 channel));
-    }
-  }
+  ReadHierarchyData(animation->rootNode, scene->mRootNode);
+  ReadMissingBoneTracks(anim, skeleton, animation);
 }
 }
