@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2025/01/08
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -93,6 +93,42 @@ BaseApp::run(const ScreenDesc& desc, const String& dllGraphicApiName)
 }
 
 void
+BaseApp::updateSMBuffers()
+{
+  GraphicsManager& gManager = GraphicsManager::instance();
+
+  Vector<VertexData> smVertexData;
+  Vector<uint32> smIndexData;
+
+  for (auto& gObject : m_scene.getGameObjectList()) {
+    for (auto& component : gObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+        auto sMeshComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
+        for (auto& vertex : sMeshComponent->meshData->vertices) {
+          smVertexData.push_back(vertex);
+        }
+        for (auto index : sMeshComponent->meshData->indices) {
+          smIndexData.push_back(index);
+        }
+      }
+    }
+  }
+
+  m_staticVBuffer = gManager.createVertexBuffer(smVertexData);
+  m_staticIBuffer = gManager.createIndexBuffer(smIndexData);
+
+  SH_ASSERT(m_staticVBuffer);
+  SH_ASSERT(m_staticIBuffer);
+}
+
+void
+BaseApp::moveChest(const Vector3& newPos)
+{
+  m_scene.getGameObjectList()[0]->move(newPos);
+  updateSMBuffers();
+}
+
+void
 BaseApp::handleEvents()
 {
   m_eventQueue->update();
@@ -136,6 +172,18 @@ BaseApp::handleEvents()
       else if (keyboard.key == KEY::kQ) {
         moveCameraPosition(-0.1f, AXIS::kY);
       }
+      else if (keyboard.key == KEY::kUp) {
+        moveChest(Vector3(0.0f, 1.0f, 0.0f));
+      }
+      else if (keyboard.key == KEY::kLeft) {
+        moveChest(Vector3(-1.0f, 0.0f, 0.0f));
+      }
+      else if (keyboard.key == KEY::kDown) {
+        moveChest(Vector3(0.0f, -1.0f, 0.0f));
+      }
+      else if (keyboard.key == KEY::kRight) {
+        moveChest(Vector3(1.0f, 0.0f, 0.0f));
+      }
     }
     if (ev.type == EVENT_TYPE::kClose) {
       m_mainScreen->close();
@@ -161,8 +209,8 @@ BaseApp::update(const float time)
             auto animator = reinterpret_pointer_cast<AnimatorComponent>(otherComp);
             animator->updateAnimation(time);
 
-            gManager.updateConstantBuffer(skMesh->m_meshBuffer,
-                                          animator->finalTransform.data(),
+            gManager.updateConstantBuffer(skMesh->m_bonesBuffer,
+                                          animator->finalBoneTransforms.data(),
                                           skMesh->skeletonData->boneCount * sizeof(Matrix4));
           }
         }
@@ -230,8 +278,6 @@ BaseApp::drawSkeletalMeshesInScene()
 
   gManager.setInputLayout(m_pSkeletalInputLayout);
 
-  uint32 vbSlot = 1;
-  uint32 ibSlot = 1;
   for (auto& gObject : m_scene.getGameObjectList()) {
     for (auto& component : gObject->components) {
       if (component->getType() == COMPONENT_TYPE::kSkeletalMesh) {
@@ -239,24 +285,22 @@ BaseApp::drawSkeletalMeshesInScene()
 
         gManager.setVertexBuffers(sMeshComponent->m_vertexBuffer);
         gManager.setIndexBuffers(sMeshComponent->m_indexBuffer);
-        gManager.vsSetConstantBuffers(sMeshComponent->m_meshBuffer, 1);
+        gManager.vsSetConstantBuffers(sMeshComponent->m_bonesBuffer, 1);
 
         uint32 vertexCount = 0;
         uint32 indexCount = 0;
-        for (uint32 i = 0; i < sMeshComponent->meshData->numMeshes; ++i) {
-          auto meshMat = reinterpret_pointer_cast<PBRMaterial>(sMeshComponent->materials[i]);
+        for (uint32 i = 0; i < sMeshComponent->meshData->meshes.size(); ++i) {
+          auto meshMat = reinterpret_pointer_cast<PBRMaterial>(sMeshComponent->meshData->materials[i]);
           gManager.setProgramShader(meshMat->shader);
           gManager.setShaderResourceView(meshMat->baseColor);
 
-          gManager.drawIndexed(sMeshComponent->meshData->numIndices[i],
-            indexCount,
-            vertexCount);
+          gManager.drawIndexed(sMeshComponent->meshData->meshes[i].numIndices,
+                               indexCount,
+                               vertexCount);
 
-          indexCount += sMeshComponent->meshData->numIndices[i];
-          vertexCount += sMeshComponent->meshData->numVertices[i];
+          indexCount += sMeshComponent->meshData->meshes[i].numIndices;
+          vertexCount += sMeshComponent->meshData->meshes[i].numVertices;
         }
-        ++vbSlot;
-        ++ibSlot;
       }
     }
   }
@@ -401,7 +445,23 @@ BaseApp::initGraphicAssets()
   SPtr<ImageResource> whiteIR =
   reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(whiteTex));
 
-  
+  Path chestPath("M:/ShuraEngine/Repo/ShuraEngine/resources/Treasure.fbx");
+  Path chestTexPath("M:/ShuraEngine/Repo/ShuraEngine/resources/Treasure_Color.png");
+
+  SPtr<ImageResource> chestIR = 
+  reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(chestTexPath));
+
+  SPtr<StaticMeshResource> chestSMR =
+  reinterpret_pointer_cast<StaticMeshResource>(rManager.loadResourceFromFile(chestPath));
+
+  Path emiliaPath("M:/ShuraEngine/Repo/ShuraEngine/resources/EmiliaDancing.fbx");
+  Path emiliaTexPath("M:/ShuraEngine/Repo/ShuraEngine/resources/Rezero_Emilia_diff.png");
+
+  SPtr<ImageResource> emiliaIR = 
+  reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(emiliaTexPath));
+
+  SPtr<SkeletalMeshResource> emiliaSMR =
+  reinterpret_pointer_cast<SkeletalMeshResource>(rManager.loadResourceFromFile(emiliaPath));
 
   /***********************
   *  Create GamoObjects
@@ -410,29 +470,52 @@ BaseApp::initGraphicAssets()
   *  temporary while an appropiate editor is created.
   ***********************/
 
+  auto chestGO = make_shared<GameObject>();
+  auto chestSMC = make_shared<StaticMeshComponent>();
+
+  chestSMR->material->shader = m_pStaticShader;
+  auto chestPBRMat = reinterpret_pointer_cast<PBRMaterial>(chestSMR->material);
+  chestPBRMat->baseColor = chestIR->texture;
+  chestSMC->meshData = chestSMR;
+
+  chestGO->name = "TreasureChest";
+  chestGO->addComponent(chestSMC);
+
+  chestGO->rotate(Vector3(90.0f, 0.0f, 180.0f));
+
+  auto emiliaGO = make_shared<GameObject>();
+  auto emiliaSMC = make_shared<SkeletalMeshComponent>();
+
+  auto emiliaPBRMat = reinterpret_pointer_cast<PBRMaterial>(emiliaSMR->materials[0]);
+  emiliaPBRMat->shader = m_pSkeletalShader;
+  emiliaPBRMat->baseColor = emiliaIR->texture;
+  emiliaSMC->meshData = emiliaSMR;
+
+  emiliaSMC->m_vertexBuffer = gManager.createVertexBuffer(emiliaSMR->vertices);
+  emiliaSMC->m_indexBuffer = gManager.createIndexBuffer(emiliaSMR->indices);
   
+  auto emiliaSK =
+  reinterpret_pointer_cast<SkeletonResource>(rManager.getResource("EmiliaDancingSkeleton"));
+  emiliaSMC->skeletonData = emiliaSK;
 
-  // Create Buffers for static meshes.
+  uint32 emiliaBonesSize = emiliaSK->boneCount * sizeof(Matrix4);
 
-  Vector<VertexData> smVertexData;
-  Vector<uint32> smIndexData;
+  emiliaSMC->m_bonesBuffer = gManager.createConstantBuffer(emiliaBonesSize);
 
-  for (auto& gObject : m_scene.getGameObjectList()) {
-    for (auto& component : gObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-        auto sMeshComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
-        for (auto& vertex : sMeshComponent->meshData->vertices) {
-          smVertexData.push_back(vertex);
-        }
-        for (auto index : sMeshComponent->meshData->indices) {
-          smIndexData.push_back(index);
-        }
-      }
-    }
-  }
+  auto eAnim =
+  reinterpret_pointer_cast<AnimationResource>(rManager.getResource("EmiliaDancingAnimation"));
 
-  m_staticVBuffer = gManager.createVertexBuffer(smVertexData);
-  m_staticIBuffer = gManager.createIndexBuffer(smIndexData);
+  auto emiliaAnimator = make_shared<AnimatorComponent>();
+  emiliaAnimator->setCurrentAnimation(eAnim);
+
+  emiliaGO->name = "Emilia";
+  emiliaGO->addComponent(emiliaSMC);
+  emiliaGO->addComponent(emiliaAnimator);
+
+  m_scene.addObject(chestGO);
+  m_scene.addObject(emiliaGO);
+
+  updateSMBuffers();
 
   /********************
   *  Camera

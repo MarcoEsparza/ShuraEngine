@@ -71,6 +71,14 @@ class SH_CORE_EXPORT StaticMeshResource : public Resource
   SPtr<Material> material;
 };
 
+struct SkeletalMeshInfo
+{
+  uint32 numVertices = 0;
+  uint32 numIndices = 0;
+  uint32 materialIndex = 0;
+  String name;
+};
+
 /**
 *  @brief Skeletal mesh data.
 */
@@ -93,25 +101,9 @@ class SH_CORE_EXPORT SkeletalMeshResource : public Resource
   */
   /*************************************************************/
  public:
-  /**
-  *  @brief Number of vertices.
-  */
-  Vector<uint32> numVertices;
+  Vector<SkeletalMeshInfo> meshes;
 
-  /**
-  *  @brief Number of indices.
-  */
-  Vector<uint32> numIndices;
-
-  /**
-  *  @brief Mesh names.
-  */
-  Vector<String> meshNames;
-
-  /**
-  *  @brief Number of meshes.
-  */
-  uint32 numMeshes = 0;
+  Vector<SPtr<Material>> materials;
 
   /**
   *  @brief Mesh VertexData

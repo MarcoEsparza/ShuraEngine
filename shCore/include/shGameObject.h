@@ -112,7 +112,7 @@ class GameObject
   *  @param Vector3& v
   */
   void
-  setPosition(const Vector3& position);
+  move(const Vector3& position);
 
   /**
   *  @brief Changes the GameObject rotation.
@@ -120,7 +120,7 @@ class GameObject
   *  @param Vector3& rotation
   */
   void
-  setRotation(const Vector3& rotation);
+  rotate(const Vector3& rotation);
 
   /**
   *  @brief Changes the GameObject scale.
@@ -128,7 +128,7 @@ class GameObject
   *  @param Vector3& scale
   */
   void
-  setScale(const Vector3& scale);
+  scale(const Vector3& scale);
 
   /*************************************************************/
   /*

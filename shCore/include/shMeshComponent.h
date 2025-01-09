@@ -129,7 +129,7 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   */
   SPtr<IndexBuffer> m_indexBuffer;
 
-  SPtr<ConstantBuffer> m_meshBuffer;
+  SPtr<ConstantBuffer> m_bonesBuffer;
 
   Vector<Matrix4> currentPose;
 };

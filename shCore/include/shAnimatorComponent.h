@@ -70,7 +70,7 @@ class AnimatorComponent : public Component
   *  @param Matrix4 parentTransform
   */
   void
-  calculateBoneTransform(const Bone& bone, const Matrix4& parentTransform);
+  calculateBoneTransform(const AnimationNodeData& node, const Matrix4& parentTransform);
 
   /*************************************************************/
   /*
@@ -79,11 +79,6 @@ class AnimatorComponent : public Component
   /*************************************************************/
  public:
   /**
-  *  @brief All animations in the animator.
-  */
-  Vector<SPtr<AnimationResource>> animations;
-
-  /**
   *  @brief The current animation.
   */
   SPtr<AnimationResource> currentAnim;
@@ -91,16 +86,16 @@ class AnimatorComponent : public Component
   /**
   *  @brief The current time for the animation.
   */
-  float currentTime;
+  float currentTime = 0.0f;
 
   /**
   *  @brief The time for the animator.
   */
-  float deltaTime;
+  float deltaTime = 0.0f;
 
   /**
   *  @brief Final skeleton trsnformation.
   */
-  Vector<Matrix4> finalTransform;
+  Vector<Matrix4> finalBoneTransforms;
 };
 }
