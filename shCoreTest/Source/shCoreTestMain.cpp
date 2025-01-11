@@ -28,8 +28,6 @@ int main(int argc, const char** argv)
     return -1;
   }
 
-  BaseApp app;
-
   ScreenDesc desc;
   desc.name = "Test";
   desc.title = "Graphics Test";
@@ -65,7 +63,8 @@ int main(int argc, const char** argv)
 
 #endif
 
-  app.run(desc, dllName);
+  BaseApp app(desc, dllName);
+  app.run();
 
   return 0;
 }

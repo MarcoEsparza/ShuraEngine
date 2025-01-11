@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/01/09
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -28,18 +28,6 @@
 
 namespace shEngineSDK {
 /**
-*  @brief Axis enum.
-*/
-namespace AXIS {
-enum E
-{
-  kX = 0,
-  kY,
-  kZ
-};
-}
-
-/**
 *  @brief Base app for engine.
 */
 class SH_CORE_EXPORT BaseApp
@@ -49,6 +37,17 @@ class SH_CORE_EXPORT BaseApp
   *  @brief Default constructor.
   */
   BaseApp() = default;
+
+  /**
+  *  @brief Constructor to initialize screen.
+  * 
+  *  @param ScreenDesc& desc
+     @param String& dllGraphicApiName
+     @param SampleDesc& sample = SampleDesc(1, 1)
+  */
+  BaseApp(const ScreenDesc& desc,
+          const String& dllGraphicApiName,
+          const SampleDesc& sample = SampleDesc(1, 1));
 
   /**
   *  @brief Default destructor.
@@ -63,37 +62,77 @@ class SH_CORE_EXPORT BaseApp
  public:
   /**
   *  @brief Run app.
-  * 
-  *  @param ScreenDesc& desc : Descriptor to create window.
-  *  @param String& dllGraphicApiName : graphic dll to use.
   */
   void
-  run(const ScreenDesc& desc, const String& dllGraphicApiName);
+  run();
 
+  /*************************************************************/
+  /*
+  *  Messages
+  */
+  /*************************************************************/
+
+  virtual void
+  onCreate();
+
+  virtual void
+  onUpdate(float deltaTime);
+
+  virtual void
+  onRender();
+
+  virtual void
+  onDestroy();
+
+  /*************************************************************/
+  /*
+  *  Events
+  */
+  /*************************************************************/
   /**
-  *  @brief Update the Static Mesh vertex and index buffer.
+  *  @brief 
   */
-  void
-  updateSMBuffers();
+  virtual void
+  onMouseMove(const MouseMoveData& mouse);
 
-  /**
-  *  @brief This function is only for testing and it will be deleted
+  virtual void
+  onMouseClick();
+
+  virtual void
+  onKeyboardPressed();
+
+  /*************************************************************/
+  /*
+  *  Internal functions
   */
-  void
-  moveChest(const Vector3& newPos);
-
+  /*************************************************************/
  private:
+  /**
+  *  @brief Creates window with the descriptor.
+  */
+  void
+  createWindow();
+
+  void
+  loadGraphicAPI();
+
+  /**
+  *  @brief Initialize all managers singletons.
+  */
+  void
+  initManagers();
+
   /**
   *  @brief Handle all events.
   */
   void
-  handleEvents();
+  handleScreenEvents();
 
   /**
   *  @brief Update all objects.
   */
   void
-  update(const float time);
+  update(float deltaTime);
 
   /**
   *  @brief Render pipeline.
@@ -101,41 +140,8 @@ class SH_CORE_EXPORT BaseApp
   void
   render();
 
-  /**
-  *  @brief Draw the static meshes in scene.
-  */
   void
-  drawStaticMeshesInScene();
-
-  /**
-  *  @brief Draw the skeletal meshes in scene.
-  */
-  void
-  drawSkeletalMeshesInScene();
-
-  /**
-  *  @brief Moves the editor camera with given dirextion and axis.
-  * 
-  *  @param float direction
-  *  @param AXIS::E axis
-  */
-  void
-  moveCameraPosition(const float direction, const AXIS::E axis);
-
-  /**
-  *  @brief Rotates the camera
-  */
-  void
-  rotateCamera();
-
-  /**
-  *  @brief Initialize the assets that will be used.
-  * 
-  *  @note The resource loading in this function is only temporary while
-  *        an appropiate editor is created.
-  */
-  void
-  initGraphicAssets();
+  destroyManagers();
 
   /*************************************************************/
   /*
@@ -148,70 +154,14 @@ class SH_CORE_EXPORT BaseApp
   */
   SPtr<Screen> m_mainScreen;
 
-  /**
-  *  @brief Shader for static meshes.
-  */
-  SPtr<ProgramShader> m_pStaticShader;
-
-  /**
-  *  @brief Shader for skeletal meshes.
-  */
-  SPtr<ProgramShader> m_pSkeletalShader;
-
-  /**
-  *  @brief Input layout for static meshes.
-  */
-  SPtr<InputLayout> m_pStaticInputLayout;
-
-  /**
-  *  @brief Input layout for skeletal meshes.
-  */
-  SPtr<InputLayout> m_pSkeletalInputLayout;
-
-  /**
-  *  @brief Static Mesh Vertex Buffer.
-  */
-  SPtr<VertexBuffer> m_staticVBuffer;
-
-  /**
-  *  @brief Static Mesh Index Buffer.
-  */
-  SPtr<IndexBuffer> m_staticIBuffer;
-
-  /**
-  *  @brief Sampler state.
-  */
-  SPtr<SamplerState> m_pSamplerLinear;
-
-  /**
-  *  @brief Camera constant buffer.
-  */
-  SPtr<ConstantBuffer> m_pWVP;
+  SampleDesc m_sample;
 
   /**
   *  @brief Event queue.
   */
   SPtr<ScreenEventHandle> m_eventQueue;
 
-  /**
-  *  @brief Is app running?
-  */
-  bool m_appRunning = false;
-
-  /**
-  *  @brief Camera for the editor.
-  */
-  FPSCamera m_editorCamera;
-
-  /**
-  *  @brief World matrix.
-  */
-  Matrix4 m_world;
-
-  /**
-  *  @brief Current scene.
-  */
-  SceneGraph m_scene;
+  Event m_currentEvent;
 
   /**
   *  @brief Last mouse position.
@@ -222,5 +172,12 @@ class SH_CORE_EXPORT BaseApp
   *  @brief Current mouse position.
   */
   Vector2i m_mousePos;
+
+  /**
+  *  @brief Screen Descriptor
+  */
+  ScreenDesc m_screenDesc;
+
+  String m_gphApiName;
 };
 }

@@ -29,6 +29,14 @@ namespace shEngineSDK {
 */
 struct SH_CORE_EXPORT SampleDesc
 {
+  SampleDesc() = default;
+
+  SampleDesc(uint32 _count, uint32 _quality)
+  {
+    count = _count;
+    quality = _quality;
+  }
+
   uint32 count = 0;
   uint32 quality = 0;
 };

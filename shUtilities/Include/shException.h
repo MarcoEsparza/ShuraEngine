@@ -2,7 +2,7 @@
 /*
 *  @file    shException.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/01/10
 *  @brief   Base exception class
 *
 *  Base exception class
@@ -55,4 +55,6 @@ class Exception : public std::exception
     "It needs to derive from shEngineSDK::Exception.");                   \
     throw type(desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);            \
 }
+
+#define SH_UNREFERENCED_PARAMETER(x) x
 }

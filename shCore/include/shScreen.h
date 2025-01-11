@@ -2,7 +2,7 @@
 /*
 *  @file    shScreen.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2025/01/10
 *  @brief   Base screen
 *
 *  Base screen
@@ -41,12 +41,12 @@ struct SH_CORE_EXPORT ScreenDesc
   /**
   *  @brief Screen name.
   */
-  String name = "";
+  String name = "Shura window";
 
   /**
   *  @brief Screen title.
   */
-  String title = "";
+  String title = "Shura Default Title";
 
   /**
   *  @brief The icon path to load it on init.
@@ -94,6 +94,11 @@ struct SH_CORE_EXPORT ScreenDesc
   *  @brief Is fullscreen?
   */
   bool fullscreen = false;
+
+  /**
+  *  @brief Has antialiasing?
+  */
+  bool anitaliasing = false;
 };
 
 class SH_CORE_EXPORT Screen
@@ -105,10 +110,24 @@ class SH_CORE_EXPORT Screen
   Screen() = default;
 
   /**
+  *  @brief Constructor with descriptor.
+  */
+  Screen(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler)
+  {
+    init(desc, eventHandler);
+  }
+
+  /**
   *  @brief Default destructor.
   */
   ~Screen() = default;
 
+  /*************************************************************/
+  /*
+  *  Functions
+  */
+  /*************************************************************/
+ public:
   /**
   *  @brief Init Screen.
   * 
@@ -167,6 +186,19 @@ class SH_CORE_EXPORT Screen
   FORCEINLINE PlatformScreen
   getPlatformHandler() const;
 
+  /**
+  *  @brief Is window open?
+  * 
+  *  @return bool
+  */
+  FORCEINLINE bool
+  isOpen() const;
+
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
  private:
   /**
   *  @brief is fullscreen?
@@ -206,6 +238,11 @@ class SH_CORE_EXPORT Screen
   *  @brief EventQueue
   */
   SPtr<ScreenEventHandle> m_eventQueue;
+
+  /**
+  *  @brief Is screen open?
+  */
+  bool m_open = false;
 };
 
 FORCEINLINE bool
@@ -236,5 +273,11 @@ FORCEINLINE Vector2i
 Screen::getPreviousMousePos() const
 {
   return m_prevMousePos;
+}
+
+FORCEINLINE bool
+Screen::isOpen() const
+{
+  return m_open;
 }
 }
