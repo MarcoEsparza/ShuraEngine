@@ -7,7 +7,7 @@
 *
 *  Base app for engine.
 *
-*  @bug     Crash on render.
+*  @bug     No bug known.
 */
 /*************************************************************/
 #pragma once
@@ -78,6 +78,7 @@ class SH_CORE_EXPORT BaseApp
   *  Messages
   */
   /*************************************************************/
+ protected:
   /**
   *  @brief Override to add functionality when app creates. This will only be
   *         called once.
@@ -118,6 +119,7 @@ class SH_CORE_EXPORT BaseApp
   *  Events
   */
   /*************************************************************/
+ protected:
   /**
   *  @brief Override to set mouse move event. This will be called every time
   *         the mouse move.
