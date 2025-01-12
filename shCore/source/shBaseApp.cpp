@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/09
+*  @date    2025/01/11
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -17,22 +17,11 @@
 */
 /*************************************************************/
 #include "shBaseApp.h"
-#include "shException.h"
 #include "shMath.h"
-#include "shCamera.h"
-#include "shLinearColor.h"
 
+#include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shDynamicLibrary.h"
-
-#include "shImageResource.h"
-#include "shMeshResource.h"
-#include "shSkeletonResource.h"
-#include "shAnimationResource.h"
-
-#include "shMeshComponent.h"
-#include "shAnimatorComponent.h"
-#include "shTransformComponent.h"
 
 namespace shEngineSDK {
 struct WorldViewProjection
@@ -41,15 +30,6 @@ struct WorldViewProjection
   ViewMatrix view;
   ProjectionMatrix proj;
 };
-
-BaseApp::BaseApp(const ScreenDesc& desc,
-                 const String& dllGraphicApiName,
-                 const SampleDesc& sample)
-{
-  m_screenDesc = desc;
-  m_gphApiName = dllGraphicApiName;
-  m_sample = sample;
-}
 
 void
 BaseApp::run()
@@ -71,12 +51,15 @@ BaseApp::run()
     m_eventQueue->update();
 
     while (!m_eventQueue->empty()) {
-      m_currentEvent = m_eventQueue->front();
+      Event wndEvent = m_eventQueue->front();
 
-      if (m_currentEvent.type == EVENT_TYPE::kClose) {
+      if (wndEvent.type == EVENT_TYPE::kClose) {
+        onClose();
         m_mainScreen->close();
       }
 
+      // Call the function to handle all events on app
+      handleScreenEvents(wndEvent);
       m_eventQueue->pop();
     }
     update(0.0f);
@@ -85,26 +68,6 @@ BaseApp::run()
 
   onDestroy();
   destroyManagers();
-}
-
-void
-BaseApp::onCreate()
-{}
-
-void
-BaseApp::onUpdate(float deltaTime)
-{
-  SH_UNREFERENCED_PARAMETER(deltaTime);
-}
-
-void
-BaseApp::onRender()
-{}
-
-void
-BaseApp::onMouseMove(const MouseMoveData& mouse)
-{
-  SH_UNREFERENCED_PARAMETER(mouse);
 }
 
 void
@@ -121,7 +84,26 @@ BaseApp::createWindow()
 void
 BaseApp::loadGraphicAPI()
 {
-  DynamicLibrary myDLL(m_gphApiName);
+  // Select dll name
+  String apiName = "";
+#ifdef SH_DEBUG_MODE
+  if (m_graphicAPI == GRAPHIC_API::kDX11) {
+    apiName = "shDX11Graphicsd";
+  }
+  else if (m_graphicAPI == GRAPHIC_API::kOGL) {
+    apiName = "shOGLGraphicsd";
+  }
+#else
+  if (m_graphicAPI == GRAPHIC_API::kDX11) {
+    apiName = "shDX11Graphics";
+  }
+  else if (m_graphicAPI == GRAPHIC_API::kOGL) {
+    apiName = "shOGLGraphics";
+  }
+#endif
+
+  // Load DLL
+  DynamicLibrary myDLL(apiName);
   auto dllSymbol = reinterpret_cast<void(*)()>(myDLL.getSymbol("loadPlugin"));
   SH_ASSERT(dllSymbol && "Could not load function");
   dllSymbol();
@@ -135,14 +117,55 @@ BaseApp::initManagers()
 }
 
 void
-BaseApp::handleScreenEvents()
+BaseApp::handleScreenEvents(const Event& wndEvent)
 {
-  
+  // Keyboard events
+  if (wndEvent.type == EVENT_TYPE::kKeyboard) {
+    const auto& key = wndEvent.data.keyboard;
+    if (key.state == BUTTON_STATE::kPressed) {
+      onKeyPressed(key.key, key.modifiers);
+    }
+    else if (key.state == BUTTON_STATE::kReleased) {
+      onKeyReleased(key.key, key.modifiers);
+    }
+  }
+
+  // Mouse move
+  if (wndEvent.type == EVENT_TYPE::kMouseMove) {
+    const auto& mouse = wndEvent.data.mouseMove;
+    onMouseMove(mouse);
+  }
+
+  // Mouse input
+  if (wndEvent.type == EVENT_TYPE::kMouseInput) {
+    const auto& mouseButton = wndEvent.data.mouseInput;
+    if (mouseButton.state == BUTTON_STATE::kPressed) {
+      onMouseButtonPressed(mouseButton.button, mouseButton.modifiers);
+    }
+    else if (mouseButton.state == BUTTON_STATE::kReleased) {
+      onMouseButtonReleased(mouseButton.button, mouseButton.modifiers);
+    }
+
+    // Mouse raw
+    if (wndEvent.type == EVENT_TYPE::kMouseRaw) {
+      const auto& mouseRaw = wndEvent.data.mouseRaw;
+      onMouseRaw(mouseRaw);
+    }
+
+    // Mouse wheel
+    if (wndEvent.type == EVENT_TYPE::kMouseWheel) {
+      const auto& mouseWheel = wndEvent.data.mouseWheel;
+      onMouseWheel(mouseWheel.delta, mouseWheel.modifiers);
+    }
+  }
 }
 
 void
 BaseApp::update(float deltaTime)
 {
+  // Update systems
+
+  // Call overridable update function
   onUpdate(deltaTime);
 }
 
@@ -151,16 +174,16 @@ BaseApp::render()
 {
   GraphicsManager& gManager = GraphicsManager::instance();
 
+  gManager.clearRenderTarget(gManager.getMainRenderTargetView(), m_backgroundColor);
+  gManager.clearDepthStencil(gManager.getMainDepthStencil());
+
+  // Call overridable render function
   onRender();
 
-  auto pMainRTV = gManager.getMainRenderTargetView();
-  LinearColor color(0.5f, 0.5f, 1.0f);
-  gManager.clearRenderTarget(pMainRTV, color);
-
-  auto pDepthStencil = gManager.getMainDepthStencil();
-  gManager.clearDepthStencil(pDepthStencil);
-  gManager.setRenderTargets(pMainRTV, pDepthStencil, 1);
+  // Set main render target
+  gManager.setRenderTargets(gManager.getMainRenderTargetView(), gManager.getMainDepthStencil(), 1);
   
+  // Present backbuffer
   gManager.present();
 }
 

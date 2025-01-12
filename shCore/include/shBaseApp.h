@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/09
+*  @date    2025/01/11
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -18,13 +18,11 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
+#include "shException.h"
 #include "shScreen.h"
 #include "shGraphicTypes.h"
-#include "shGraphicsManager.h"
-#include "shMaterial.h"
-#include "shSceneGraph.h"
-#include "shCamera.h"
 #include "shVector2i.h"
+#include "shLinearColor.h"
 
 namespace shEngineSDK {
 /**
@@ -34,20 +32,21 @@ class SH_CORE_EXPORT BaseApp
 {
  public:
   /**
-  *  @brief Default constructor.
-  */
-  BaseApp() = default;
-
-  /**
   *  @brief Constructor to initialize screen.
   * 
   *  @param ScreenDesc& desc
-     @param String& dllGraphicApiName
-     @param SampleDesc& sample = SampleDesc(1, 1)
+  *  @param GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11
+  *  @param SampleDesc& sample = SampleDesc(1, 1)
   */
   BaseApp(const ScreenDesc& desc,
-          const String& dllGraphicApiName,
-          const SampleDesc& sample = SampleDesc(1, 1));
+          const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
+          const SampleDesc& sample = SampleDesc(1, 1))
+          : m_screenDesc(desc),
+            m_graphicAPI(dllGAPI),
+            m_sample(sample),
+            m_mousePos(Vector2i(0, 0)),
+            m_lastMousePos(Vector2i(0, 0)),
+            m_backgroundColor(LinearColor(0.0f, 0.0f, 0.0f)) {}
 
   /**
   *  @brief Default destructor.
@@ -66,23 +65,53 @@ class SH_CORE_EXPORT BaseApp
   void
   run();
 
+  /**
+  *  @brief Sets the background color.
+  * 
+  *  @param LinearColor& color
+  */
+  FORCEINLINE void
+  setBackgroundColor(const LinearColor& color);
+
   /*************************************************************/
   /*
   *  Messages
   */
   /*************************************************************/
-
+  /**
+  *  @brief Override to add functionality when app creates. This will only be
+  *         called once.
+  */
   virtual void
-  onCreate();
+  onCreate() {}
 
+  /**
+  *  @brief Override to add functionality every frame.
+  * 
+  *  @param float deltaTime
+  */
   virtual void
-  onUpdate(float deltaTime);
+  onUpdate(float deltaTime) { SH_UNREFERENCED_PARAMETER(deltaTime); }
 
+  /**
+  *  @brief Override to do the app render pipeline.
+  */
   virtual void
-  onRender();
+  onRender() {}
 
+  /**
+  *  @brief Override to do something when window close. This will only be
+  *         called once.
+  */
   virtual void
-  onDestroy();
+  onClose() {}
+
+  /**
+  *  @brief Override to do something when window destroys. This will only be
+  *         called once.
+  */
+  virtual void
+  onDestroy() {}
 
   /*************************************************************/
   /*
@@ -90,16 +119,72 @@ class SH_CORE_EXPORT BaseApp
   */
   /*************************************************************/
   /**
-  *  @brief 
+  *  @brief Override to set mouse move event. This will be called every time
+  *         the mouse move.
   */
   virtual void
-  onMouseMove(const MouseMoveData& mouse);
+  onMouseMove(const MouseMoveData& mouse) { SH_UNREFERENCED_PARAMETER(mouse); }
 
+  /**
+  *  @brief Override to set mouse button event. This will be called every time
+  *         a mouse button is pressed.
+  */
   virtual void
-  onMouseClick();
+  onMouseButtonPressed(const MOUSE_INPUT::E mouseButton, const ModifierState modifier)
+  {
+    SH_UNREFERENCED_PARAMETER(mouseButton);
+    SH_UNREFERENCED_PARAMETER(modifier);
+  }
 
+  /**
+  *  @brief Override to set mouse button event. This will be called every time
+  *         a mouse button is released.
+  */
   virtual void
-  onKeyboardPressed();
+  onMouseButtonReleased(const MOUSE_INPUT::E mouseButton, const ModifierState modifier)
+  {
+    SH_UNREFERENCED_PARAMETER(mouseButton);
+    SH_UNREFERENCED_PARAMETER(modifier);
+  }
+
+  /**
+  *  @brief Override to set mouse raw event.
+  */
+  virtual void
+  onMouseRaw(const MouseRawData& mouseRaw) { SH_UNREFERENCED_PARAMETER(mouseRaw); }
+
+  /**
+  *  @brief Override to set mouse wheel event. This will be called every time
+  *         the mouse wheel is used.
+  */
+  virtual void
+  onMouseWheel(const double delta, const ModifierState modifier)
+  {
+    SH_UNREFERENCED_PARAMETER(delta);
+    SH_UNREFERENCED_PARAMETER(modifier);
+  }
+
+  /**
+  *  @brief Override to set keyboard button event. This will be called every
+  *         time a keyboard button is pressed.
+  */
+  virtual void
+  onKeyPressed(const KEY::E key, const ModifierState modifier)
+  {
+    SH_UNREFERENCED_PARAMETER(key);
+    SH_UNREFERENCED_PARAMETER(modifier);
+  }
+
+  /**
+  *  @brief Override to set keyboard button event. This will be called every
+  *         time a keyboard button is released.
+  */
+  virtual void
+  onKeyReleased(const KEY::E key, const ModifierState modifier)
+  {
+    SH_UNREFERENCED_PARAMETER(key);
+    SH_UNREFERENCED_PARAMETER(modifier);
+  }
 
   /*************************************************************/
   /*
@@ -108,11 +193,14 @@ class SH_CORE_EXPORT BaseApp
   /*************************************************************/
  private:
   /**
-  *  @brief Creates window with the descriptor.
+  *  @brief Creates window with the given descriptor.
   */
   void
   createWindow();
 
+  /**
+  *  @brief Load the selected graphic api.
+  */
   void
   loadGraphicAPI();
 
@@ -123,23 +211,30 @@ class SH_CORE_EXPORT BaseApp
   initManagers();
 
   /**
-  *  @brief Handle all events.
+  *  @brief Handle all events on app.
+  * 
+  *  @param Event& wndEvent
   */
   void
-  handleScreenEvents();
+  handleScreenEvents(const Event& wndEvent);
 
   /**
   *  @brief Update all objects.
+  * 
+  *  @param float deltaTime
   */
   void
   update(float deltaTime);
 
   /**
-  *  @brief Render pipeline.
+  *  @brief Main render function.
   */
   void
   render();
 
+  /**
+  *  @brief Destroys all manager singletons.
+  */
   void
   destroyManagers();
 
@@ -154,14 +249,15 @@ class SH_CORE_EXPORT BaseApp
   */
   SPtr<Screen> m_mainScreen;
 
+  /**
+  *  @brief Graphic sample descriptor.
+  */
   SampleDesc m_sample;
 
   /**
   *  @brief Event queue.
   */
   SPtr<ScreenEventHandle> m_eventQueue;
-
-  Event m_currentEvent;
 
   /**
   *  @brief Last mouse position.
@@ -178,6 +274,26 @@ class SH_CORE_EXPORT BaseApp
   */
   ScreenDesc m_screenDesc;
 
-  String m_gphApiName;
+  /**
+  *  @brief Selected graphic api.
+  */
+  GRAPHIC_API::E m_graphicAPI;
+
+  /**
+  *  @brief Background color.
+  */
+  LinearColor m_backgroundColor;
 };
+
+/*************************************************************/
+/*
+*  Implementations
+*/
+/*************************************************************/
+
+FORCEINLINE void
+BaseApp::setBackgroundColor(const LinearColor& color)
+{
+  m_backgroundColor = color;
+}
 }

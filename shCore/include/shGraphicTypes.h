@@ -42,6 +42,17 @@ struct SH_CORE_EXPORT SampleDesc
 };
 
 /**
+*  @brief Enumerator for suppoerted graphic apis.
+*/
+namespace GRAPHIC_API {
+enum SH_CORE_EXPORT E
+{
+  kDX11 = 0,
+  kOGL
+};
+}
+
+/**
 *  @brief Input Layout types enumerator namespace.
 */
 namespace INPUT_LAYOUT_TYPES {

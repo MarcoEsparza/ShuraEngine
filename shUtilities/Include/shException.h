@@ -56,5 +56,8 @@ class Exception : public std::exception
     throw type(desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);            \
 }
 
+/**
+*  @brief Used to avoid warnings and errors for unreferenced parameters.
+*/
 #define SH_UNREFERENCED_PARAMETER(x) x
 }
