@@ -1,13 +1,13 @@
 /*************************************************************/
 /*
-*  @file    shBaseApp.h
+*  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/01/11
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
 *
-*  @bug     Crash on render.
+*  @bug     No bug known.
 */
 /*************************************************************/
 

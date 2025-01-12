@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/07
+*  @date    2025/01/11
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
