@@ -2,7 +2,7 @@
 /*
 *  @file    shStdHeaders.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2024/12/16
 *  @brief   Header for the STD libraries
 *
 *  This file includes the most common and required STL objects.
@@ -127,6 +127,11 @@ using Queue = std::queue<T>;
 *  @note This will change later to a wrapper.
 */
 using std::make_shared;
+
+/*
+*  @note This will change later to a wrapper.
+*/
+using std::make_unique;
 
 /**
 *  @brief Byte wrapper to use along the engine.

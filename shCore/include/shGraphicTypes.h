@@ -29,9 +29,28 @@ namespace shEngineSDK {
 */
 struct SH_CORE_EXPORT SampleDesc
 {
+  SampleDesc() = default;
+
+  SampleDesc(uint32 _count, uint32 _quality)
+  {
+    count = _count;
+    quality = _quality;
+  }
+
   uint32 count = 0;
   uint32 quality = 0;
 };
+
+/**
+*  @brief Enumerator for suppoerted graphic apis.
+*/
+namespace GRAPHIC_API {
+enum SH_CORE_EXPORT E
+{
+  kDX11 = 0,
+  kOGL
+};
+}
 
 /**
 *  @brief Input Layout types enumerator namespace.

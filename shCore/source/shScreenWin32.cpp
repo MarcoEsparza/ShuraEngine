@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2025/01/10
 *  @brief   Base screen
 *
 *  Base screen
@@ -104,6 +104,7 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
   m_eventQueue->m_initialized = true;
   m_prevMousePos.x = 0;
   m_prevMousePos.y = 0;
+  m_open = true;
 
   if (desc.visible) {
     ShowWindow(m_screenHandle, SW_SHOW);
@@ -127,6 +128,7 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
 void
 Screen::close()
 {
+  m_open = false;
   DestroyWindow(m_screenHandle);
   PostQuitMessage(0);
 }

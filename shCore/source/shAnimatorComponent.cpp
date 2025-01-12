@@ -2,10 +2,10 @@
 /*
 *  @file    shAnimatorComponent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
-*  @brief
+*  @date    2025/01/08
+*  @brief   Component in charge of contain and play animations.
 *
-*
+*  Component in charge of contain and play animations.
 *
 *  @bug     No bug known.
 */
@@ -21,25 +21,19 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
-void
-AnimatorComponent::updateAnimation(const float elapsedTime)
-{
-  deltaTime = elapsedTime;
-  
-  if (currentAnim) {
-    currentTime += currentAnim->ticksPerSecond * elapsedTime;
-    currentTime = Math::fmod(currentTime, currentAnim->duration);
-    calculateBoneTransform(currentAnim->skeletonData->bones, Matrix4::IDENTITY);
-  }
-}
+/*************************************************************/
+/*
+*  Non class functions
+*/
+/*************************************************************/
 
-void
-AnimatorComponent::setCurrentAnimation(const SPtr<AnimationResource>& anim)
-{
-  currentAnim = anim;
-  currentTime = 0.0f;
-}
-
+/**
+*  @brief Gets normalized value for Lerp & Slerp.
+* 
+*  @param float lastTimeStamp
+*  @param float nextTimeStamp
+*  @param float animTime
+*/
 float
 getScaleFactor(float lastTimeStamp, float nextTimeStamp, float animTime)
 {
@@ -50,6 +44,15 @@ getScaleFactor(float lastTimeStamp, float nextTimeStamp, float animTime)
   return scaleFactor;
 }
 
+/**
+*  @brief Gets the current index on KeyPositions to interpolate to based on 
+*         the current animation time.
+* 
+*  @param BoneTransformTrack* btt
+*  @param float animTime
+* 
+*  @return uint32
+*/
 uint32
 getPositionIndex(const BoneTransformTrack* btt, float animTime) {
   for (uint32 index = 0; index < btt->numPositions - 1; ++index) {
@@ -60,6 +63,15 @@ getPositionIndex(const BoneTransformTrack* btt, float animTime) {
   return 0;
 }
 
+/**
+*  @brief Gets the current index on KeyRotations to interpolate to based on
+*         the current animation time.
+* 
+*  @param BoneTransformTrack* btt
+*  @param float animTime
+* 
+*  @return uint32
+*/
 uint32
 getRotationIndex(const BoneTransformTrack* btt, float animTime) {
   for (uint32 index = 0; index < btt->numRotations - 1; ++index) {
@@ -70,6 +82,15 @@ getRotationIndex(const BoneTransformTrack* btt, float animTime) {
   return 0;
 }
 
+/**
+*  @brief Gets the current index on KeyScalings to interpolate to based on
+*         the current animation time.
+* 
+*  @param BoneTransformTrack* btt
+*  @param float animTime
+* 
+*  @return uint32
+*/
 uint32
 getScaleIndex(const BoneTransformTrack* btt, float animTime) {
   for (uint32 index = 0; index < btt->numScalings - 1; ++index) {
@@ -80,6 +101,15 @@ getScaleIndex(const BoneTransformTrack* btt, float animTime) {
   return 0;
 }
 
+/**
+*  @brief Figures out which position keys to interpolate b/w and performs the
+*         interpolation and returns the translation matrix.
+* 
+*  @param BoneTransformTrack* btt
+*  @param float animTime
+* 
+*  @return Matrix4
+*/
 Matrix4
 interpolatePosition(const BoneTransformTrack* btt, float animTime)
 {
@@ -105,6 +135,15 @@ interpolatePosition(const BoneTransformTrack* btt, float animTime)
   return translation;
 }
 
+/**
+*  @brief Figures out which rotation keys to interpolate b/w and performs the
+*         interpolation and returns the translation matrix.
+* 
+*  @param BoneTransformTrack* btt
+*  @param float animTime
+* 
+*  @return Matrix4
+*/
 Matrix4
 interpolateRotation(const BoneTransformTrack* btt, float animTime)
 {
@@ -129,6 +168,15 @@ interpolateRotation(const BoneTransformTrack* btt, float animTime)
   return rotation;
 }
 
+/**
+*  @brief Figures out which scaling keys to interpolate b/w and performs the
+*         interpolation and returns the translation matrix.
+* 
+*  @param BoneTransformTrack* btt
+*  @param float animTime
+* 
+*  @return Matrix4
+*/
 Matrix4
 interpolateScaling(const BoneTransformTrack* btt, float animTime)
 {
@@ -154,35 +202,60 @@ interpolateScaling(const BoneTransformTrack* btt, float animTime)
   return scaling;
 }
 
+/*************************************************************/
+/*
+*  Animator functions
+*/
+/*************************************************************/
+
 void
-AnimatorComponent::calculateBoneTransform(const Bone& bone, const Matrix4& parentTransform)
+AnimatorComponent::updateAnimation(const float elapsedTime)
 {
-  String boneName = bone.name;
-  Matrix4 boneTransform = bone.transformation;
-
-  BoneTransformTrack* btt = nullptr;
-
-  for (uint32 i = 0; i < currentAnim->boneTracks.size(); ++i) {
-    if (currentAnim->boneTracks[i].name == boneName) {
-      btt = &currentAnim->boneTracks[i];
-    }
+  deltaTime = elapsedTime;
+  
+  if (currentAnim) {
+    currentTime += currentAnim->ticksPerSecond * elapsedTime;
+    currentTime = Math::fmod(currentTime, currentAnim->duration);
+    calculateBoneTransform(currentAnim->rootNode, Matrix4::IDENTITY);
   }
+}
+
+void
+AnimatorComponent::setCurrentAnimation(const SPtr<AnimationResource>& anim)
+{
+  currentAnim = anim;
+  currentTime = 0.0f;
+  finalBoneTransforms.resize(currentAnim->skeletonData->boneCount);
+}
+
+void
+AnimatorComponent::calculateBoneTransform(const AnimationNodeData& node, const Matrix4& parentTransform)
+{
+  String nodeName = node.name;
+  Matrix4 nodeTransform = node.transformation;
+
+  BoneTransformTrack* btt = currentAnim->findBone(nodeName);
 
   if (btt) {
     Matrix4 translation = interpolatePosition(btt, currentTime);
     Matrix4 rotation = interpolateRotation(btt, currentTime);
     Matrix4 scaling = interpolateScaling(btt, currentTime);
-    boneTransform = translation * rotation * scaling;
+    btt->localTransform = translation * rotation * scaling;
+    
+    nodeTransform = btt->localTransform;
   }
 
-  const Matrix4 globalTransform = parentTransform * boneTransform;
+  const Matrix4 globalTransform = parentTransform * nodeTransform;
 
-  const uint32 index = bone.id;
-  const Matrix4 offset = bone.offset;
+  auto& boneInfoMap = currentAnim->skeletonData->boneInfoMap;
 
-  finalTransform[index] = globalTransform * offset;
+  if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
+    int32 index = boneInfoMap[nodeName].id;
+    Matrix4 offset = boneInfoMap[nodeName].offset;
+    finalBoneTransforms[index] = globalTransform * offset;
+  }
 
-  for (auto& child : bone.children) {
+  for (auto& child : node.children) {
     calculateBoneTransform(child, globalTransform);
   }
 }
