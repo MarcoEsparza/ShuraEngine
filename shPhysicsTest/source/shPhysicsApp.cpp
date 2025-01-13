@@ -67,19 +67,19 @@ PhysicsApp::onCreate()
   Vector<uint32> indices;
 
   vertices.resize(4);
-  vertices[0].position = Vector3(-0.25f, 0.25f, 0.0f);
+  vertices[0].position = Vector3(-25.0f, 25.0f, 0.0f);
   vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[0].tex = Vector2(0.0f, 0.0f);
 
-  vertices[1].position = Vector3(0.25f, 0.25f, 0.0f);
+  vertices[1].position = Vector3(25.0f, 25.0f, 0.0f);
   vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[1].tex = Vector2(1.0f, 0.0f);
 
-  vertices[2].position = Vector3(-0.25f, -0.25f, 0.0f);
+  vertices[2].position = Vector3(-25.0f, -25.0f, 0.0f);
   vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[2].tex = Vector2(0.0f, 1.0f);
 
-  vertices[3].position = Vector3(0.25f, -0.25f, 0.0f);
+  vertices[3].position = Vector3(25.0f, -25.0f, 0.0f);
   vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[3].tex = Vector2(1.0f, 1.0f);
 
@@ -93,8 +93,8 @@ PhysicsApp::onCreate()
 
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
-  blendDesc.renderTarget[0].destBlend = BLEND::kDestAlpha;
+  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
+  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
   blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
   blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
@@ -102,6 +102,26 @@ PhysicsApp::onCreate()
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
   m_pBlendS = gManager.createBlendState(blendDesc);
+
+  m_pWvp = gManager.createConstantBuffer(sizeof(WVP));
+
+  WVP wvp;
+
+  m_camera.setOrthographicProjData(-400.0f, 400.0f, -400.0f, 400.0f, 0.1f, 100.0f);
+
+  Vector3 eye(0.0f, 0.0f, -10.0f);
+  Vector3 at(0.0f, 0.0f, 0.0f);
+  Vector3 up(0.0f, 1.0f, 0.0f);
+
+  m_camera.setViewData(eye, at, up);
+
+  wvp.proj = m_camera.getOrthographicProjection();
+  wvp.view = m_camera.getView();
+
+  wvp.proj.getTransposed();
+  wvp.view.getTransposed();
+
+  gManager.updateConstantBuffer(m_pWvp, &wvp, sizeof(wvp));
 }
 
 void
@@ -121,7 +141,7 @@ PhysicsApp::onRender()
   gManager.setBlendState(m_pBlendS);
   gManager.setProgramShader(m_pShader);
   gManager.setSamplerState(m_pSamplerLinear);
-  //gManager.vsSetConstantBuffers(m_pWVP);
+  gManager.vsSetConstantBuffers(m_pWvp);
   gManager.setPrimitiveTopology();
   gManager.setInputLayout(m_pIL);
   gManager.setVertexBuffers(m_player->m_pVB);

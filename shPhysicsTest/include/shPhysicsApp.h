@@ -21,12 +21,21 @@
 #include "shPrerequisitesPhysics.h"
 #include "shBaseApp.h"
 #include "Player.h"
+#include "shCamera.h"
 
 namespace shEngineSDK {
 class ProgramShader;
 class InputLayout;
 class SamplerState;
 class BlendState;
+class ConstantBuffer;
+
+struct WVP
+{
+  Matrix4 world = Matrix4::IDENTITY;
+  Matrix4 view = Matrix4::IDENTITY;
+  Matrix4 proj = Matrix4::IDENTITY;
+};
 
 class PhysicsApp : public BaseApp
 {
@@ -58,6 +67,9 @@ class PhysicsApp : public BaseApp
   SPtr<InputLayout> m_pIL;
   SPtr<SamplerState> m_pSamplerLinear;
   SPtr<BlendState> m_pBlendS;
+  SPtr<ConstantBuffer> m_pWvp;
+
   SPtr<Player> m_player;
+  Camera m_camera;
 };
 }

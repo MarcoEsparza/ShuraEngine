@@ -32,6 +32,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shPhysics", "shPhysics\shPhysics.vcxproj", "{5C111BD5-0466-4F2F-BF2F-9698280B365B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shPhysicsTest", "shPhysicsTest\shPhysicsTest.vcxproj", "{5EA9BBA9-4081-4C4D-B94B-C8C8A3EA16BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5C111BD5-0466-4F2F-BF2F-9698280B365B} = {5C111BD5-0466-4F2F-BF2F-9698280B365B}
+		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
