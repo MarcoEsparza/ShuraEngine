@@ -26,6 +26,7 @@ namespace shEngineSDK {
 class ProgramShader;
 class InputLayout;
 class SamplerState;
+class BlendState;
 
 class PhysicsApp : public BaseApp
 {
@@ -48,11 +49,15 @@ class PhysicsApp : public BaseApp
   void
   onRender() override;
 
+  void
+  onKeyPressed(const KEY::E key, const ModifierState modifier) override;
+
  private:
   ScreenDesc m_desc;
   SPtr<ProgramShader> m_pShader;
   SPtr<InputLayout> m_pIL;
   SPtr<SamplerState> m_pSamplerLinear;
+  SPtr<BlendState> m_pBlendS;
   SPtr<Player> m_player;
 };
 }

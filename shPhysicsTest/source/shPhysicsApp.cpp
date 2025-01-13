@@ -42,6 +42,7 @@ PhysicsApp::onCreate()
                                           "ps_5_0");
 
   Vector<InputDesc> ilDesc;
+  ilDesc.resize(3);
   ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
   ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
   ilDesc[0].size = 12;
@@ -66,19 +67,19 @@ PhysicsApp::onCreate()
   Vector<uint32> indices;
 
   vertices.resize(4);
-  vertices[0].position = Vector3(-0.5f, 0.5f, 0.0f);
+  vertices[0].position = Vector3(-0.25f, 0.25f, 0.0f);
   vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[0].tex = Vector2(0.0f, 0.0f);
 
-  vertices[1].position = Vector3(0.5f, 0.5f, 0.0f);
+  vertices[1].position = Vector3(0.25f, 0.25f, 0.0f);
   vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[1].tex = Vector2(1.0f, 0.0f);
 
-  vertices[2].position = Vector3(-0.5f, -0.5f, 0.0f);
+  vertices[2].position = Vector3(-0.25f, -0.25f, 0.0f);
   vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[2].tex = Vector2(0.0f, 1.0f);
 
-  vertices[3].position = Vector3(0.5f, -0.5f, 0.0f);
+  vertices[3].position = Vector3(0.25f, -0.25f, 0.0f);
   vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[3].tex = Vector2(1.0f, 1.0f);
 
@@ -89,6 +90,18 @@ PhysicsApp::onCreate()
   auto pIB = gManager.createIndexBuffer(indices);
 
   m_player = make_shared<Player>(pVB, pIB, pImgR->texture, vertices, indices);
+
+  BlendDesc blendDesc = {};
+  blendDesc.renderTarget[0].blendEnable = true;
+  blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
+  blendDesc.renderTarget[0].destBlend = BLEND::kDestAlpha;
+  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
+  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
+  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
+  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
+
+  m_pBlendS = gManager.createBlendState(blendDesc);
 }
 
 void
@@ -105,6 +118,7 @@ PhysicsApp::onRender()
   gManager.setRenderTargets(gManager.getMainRenderTargetView(),
                             gManager.getMainDepthStencil(),
                             1);
+  gManager.setBlendState(m_pBlendS);
   gManager.setProgramShader(m_pShader);
   gManager.setSamplerState(m_pSamplerLinear);
   //gManager.vsSetConstantBuffers(m_pWVP);
@@ -113,6 +127,26 @@ PhysicsApp::onRender()
   gManager.setVertexBuffers(m_player->m_pVB);
   gManager.setIndexBuffers(m_player->m_pIB);
   gManager.setShaderResourceView(m_player->m_pTexture);
-  gManager.drawIndexed(6, 0, 0);
+  gManager.drawIndexed(m_player->m_indices.size(), 0, 0);
+}
+
+void
+PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
+{
+  if (key == KEY::kW) {
+    m_player->move(Vector2(0.0f, 1.0f));
+  }
+
+  if (key == KEY::kA) {
+    m_player->move(Vector2(-1.0f, 0.0f));
+  }
+
+  if (key == KEY::kS) {
+    m_player->move(Vector2(0.0f, -1.0f));
+  }
+
+  if (key == KEY::kD) {
+    m_player->move(Vector2(1.0f, 0.0f));
+  }
 }
 }

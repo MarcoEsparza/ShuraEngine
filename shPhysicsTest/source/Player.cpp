@@ -19,5 +19,8 @@
 #include "Player.h"
 
 namespace shEngineSDK {
-
+void
+Player::move(const Vector2& direction)
+{
+}
 }

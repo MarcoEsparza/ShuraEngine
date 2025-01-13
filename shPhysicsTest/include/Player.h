@@ -19,12 +19,13 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shPrerequisitesPhysics.h"
+#include "shGraphicTypes.h"
+#include "shVector2.h"
 
 namespace shEngineSDK {
 class VertexBuffer;
 class IndexBuffer;
 class Texture2D;
-struct VertexData;
 
 class Player
 {
@@ -41,11 +42,18 @@ class Player
            m_indices(indices) {}
   ~Player() = default;
 
+  void
+  move(const Vector2& direction);
+
  public:
   SPtr<VertexBuffer> m_pVB;
   SPtr<IndexBuffer> m_pIB;
   SPtr<Texture2D> m_pTexture;
   Vector<VertexData> m_vertices;
   Vector<uint32> m_indices;
+
+  Vector2 m_velocity;
+  Vector2 m_direction;
+  Vector2 m_position;
 };
 }
