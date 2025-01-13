@@ -367,6 +367,40 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
 };
 
 /**
+*  @brief Orthographic Projection Matrix for graphics.
+*/
+class SH_UTILITY_EXPORT OrthographicProjectionMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  OrthographicProjectionMatrix() = default;
+
+  /**
+  *  @brief Constructor to initialize matrix values.
+  * 
+  *  @param const float left
+  *  @param const float right
+  *  @param const float bottom
+  *  @param const float top
+  *  @param const float nearZ
+  *  @param const float farZ
+  */
+  OrthographicProjectionMatrix(const float left,
+                               const float right,
+                               const float bottom,
+                               const float top,
+                               const float nearZ,
+                               const float farZ);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~OrthographicProjectionMatrix() = default;
+};
+
+/**
 *  @brief Transform class.
 */
 class SH_UTILITY_EXPORT Transform : public Matrix4

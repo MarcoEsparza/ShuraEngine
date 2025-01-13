@@ -99,6 +99,24 @@ class SH_CORE_EXPORT Camera
                     const float maxZ);
 
   /**
+  *  @brief Sets the orthographic projection matrix.
+  *
+  *  @param const float left
+  *  @param const float right
+  *  @param const float bottom
+  *  @param const float top
+  *  @param const float nearZ
+  *  @param const float farZ
+  */
+  void
+  setOrthographicProjData(const float left,
+                          const float right,
+                          const float bottom,
+                          const float top,
+                          const float nearZ,
+                          const float farZ);
+
+  /**
   *  @brief Gets the view matrix.
   *
   *  @return const ViewMatrix&
@@ -113,6 +131,14 @@ class SH_CORE_EXPORT Camera
   */
   FORCEINLINE const ProjectionMatrix&
   getProjection() const { return m_proj; }
+
+  /**
+  *  @brief Gets the orthographic projection matrix.
+  *
+  *  @return const OrthographicProjectionMatrix&
+  */
+  FORCEINLINE const OrthographicProjectionMatrix&
+  getOrthographicProjection() const { return m_orthoProj; }
 
   /*************************************************************/
   /*
@@ -129,6 +155,11 @@ class SH_CORE_EXPORT Camera
   *  @brief The projection matrix.
   */
   ProjectionMatrix m_proj;
+
+  /**
+  *  @brief The orthogonal projection matrix.
+  */
+  OrthographicProjectionMatrix m_orthoProj;
 
   /**
   *  @brief Camera position.

@@ -127,6 +127,34 @@ ProjectionMatrix::ProjectionMatrix(const float halfFOV,
   m[3][3] = 0.0f;
 }
 
+OrthographicProjectionMatrix::OrthographicProjectionMatrix(const float left,
+                                                           const float right,
+                                                           const float bottom,
+                                                           const float top,
+                                                           const float nearZ,
+                                                           const float farZ)
+{
+  m[0][0] = 2.0f / (right - left);
+  m[0][1] = 0.0f;
+  m[0][2] = 0.0f;
+  m[0][3] = -(right + left) / (right - left);
+
+  m[1][0] = 0.0f;
+  m[1][1] = 2.0f / (top - bottom);
+  m[1][2] = 0.0f;
+  m[1][3] = -(top + bottom) / (top - bottom);
+
+  m[2][0] = 0.0f;
+  m[2][1] = 0.0f;
+  m[2][2] = 1.0f / (farZ - nearZ);
+  m[2][3] = -nearZ / (farZ - nearZ);
+
+  m[3][0] = 0.0f;
+  m[3][1] = 0.0f;
+  m[3][2] = 0.0f;
+  m[3][3] = 1.0f;
+}
+
 /*************************************************************/
 /*
 *  Functions
