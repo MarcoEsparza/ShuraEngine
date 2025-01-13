@@ -135,6 +135,12 @@ GraphicsManager::createTexture2D(const uint32 width,
   return internalCreateTexture2D(width, height, format, usage, bindFlags);
 }
 
+SPtr<BlendState>
+GraphicsManager::createBlendState(const BlendDesc& blendDesc)
+{
+  return internalCreateBlendState(blendDesc);
+}
+
 void
 GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                       const void* pData,
@@ -216,6 +222,12 @@ GraphicsManager::setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                                  const uint32 numSamplers)
 {
   internalSetSamplerState(pSamplerLinear, startSlot, numSamplers);
+}
+
+void
+GraphicsManager::setBlendState(const SPtr<BlendState>& pBlendState, const Vector4& blendFactor)
+{
+  internalSetBlendState(pBlendState, blendFactor);
 }
 
 void

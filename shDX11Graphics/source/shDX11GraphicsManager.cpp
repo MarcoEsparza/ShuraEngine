@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
+*  @date    2025/01/13
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -560,6 +560,33 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   return pTexture;
 }
 
+SPtr<BlendState>
+DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc)
+{
+  auto pBlendState = make_shared<DX11BlendState>();
+
+  D3D11_BLEND_DESC d3d11BlendDesc = {};
+  d3d11BlendDesc.RenderTarget[0].BlendEnable = blendDesc.renderTarget[0].blendEnable;
+  d3d11BlendDesc.RenderTarget[0].SrcBlend =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].srcBlend);
+  d3d11BlendDesc.RenderTarget[0].DestBlend =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].destBlend);
+  d3d11BlendDesc.RenderTarget[0].BlendOp =
+    static_cast<D3D11_BLEND_OP>(blendDesc.renderTarget[0].blendOp);
+  d3d11BlendDesc.RenderTarget[0].SrcBlendAlpha =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].srcBlendAlpha);
+  d3d11BlendDesc.RenderTarget[0].DestBlendAlpha =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].destBlendAlpha);
+  d3d11BlendDesc.RenderTarget[0].BlendOpAlpha =
+    static_cast<D3D11_BLEND_OP>(blendDesc.renderTarget[0].blendOpAlpha);
+  d3d11BlendDesc.RenderTarget[0].RenderTargetWriteMask =
+    blendDesc.renderTarget[0].renderTargetWriteMask;
+
+  m_pDevice->m_pDevice->CreateBlendState(&d3d11BlendDesc, &pBlendState->m_pBlendS);
+
+  return pBlendState;
+}
+
 void
 DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                                   const void* pData,
@@ -693,6 +720,16 @@ DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerL
   m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
                                                     numSamplers,
                                                     &pSampler->m_pSamplerLinear);
+}
+
+void
+DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState, const Vector4& blendFactor)
+{
+  auto pBS = reinterpret_pointer_cast<DX11BlendState>(pBlendState);
+
+  FLOAT bf[4] = { blendFactor.x, blendFactor.y , blendFactor.z , blendFactor.w };
+
+  m_pDeviceContext->m_pDeviceContext->OMSetBlendState(pBS->m_pBlendS, bf, 0xFFFFFFFF);
 }
 
 void
