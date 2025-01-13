@@ -43,6 +43,17 @@ Camera::setProjectionData(const float halfFOV,
 }
 
 void
+Camera::setOrthographicProjData(const float left,
+                                const float right,
+                                const float bottom,
+                                const float top,
+                                const float nearZ,
+                                const float farZ)
+{
+  m_orthoProj = OrthographicProjectionMatrix(left, right, bottom, top, nearZ, farZ);
+}
+
+void
 FPSCamera::moveX(const float dir)
 {
   const Vector3 forward = m_target - m_position;
