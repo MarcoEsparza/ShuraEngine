@@ -28,6 +28,7 @@
 #include "shDX11Shader.h"
 #include "shDX11SwapChain.h"
 #include "shDX11Texture.h"
+#include "shDX11BlendState.h"
 
 namespace shEngineSDK {
 /**
@@ -222,6 +223,14 @@ class DX11GraphicsManager : public GraphicsManager
                           const uint32 usage,
                           const uint32 bindFlags) override;
 
+  /**
+  *  @brief Creates a blend state.
+  *
+  *  @param BlendDesc& blendDesc
+  */
+  SPtr<BlendState>
+  internalCreateBlendState(const BlendDesc& blendDesc) override;
+
   /********************
   *  Update
   ********************/
@@ -355,6 +364,16 @@ class DX11GraphicsManager : public GraphicsManager
   internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                           const uint32 startSlot,
                           const uint32 numSamplers) override;
+
+  /**
+  *  @brief Sets the blend state to the device context.
+  *
+  *  @param SPtr<BlendState>& pBlendState
+  *  @param Vector4& blendFactor
+  */
+  void
+  internalSetBlendState(const SPtr<BlendState>& pBlendState,
+                        const Vector4& blendFactor) override;
 
   /**
   *  @brief Draw with vertices info.

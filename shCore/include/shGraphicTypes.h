@@ -199,6 +199,9 @@ struct SH_CORE_EXPORT InputDesc
   uint32 size;
 };
 
+/**
+*  @brief Texture type for resource.
+*/
 namespace TEXTURE_TYPE {
 enum SH_CORE_EXPORT E
 {
@@ -226,6 +229,85 @@ enum SH_CORE_EXPORT E
   kTransmission,
 
   kCount
+};
+}
+
+/**
+*  @brief Blend options.
+*/
+namespace BLEND {
+enum SH_CORE_EXPORT E
+{
+  kZero = 1,
+  kOne = 2,
+  kSrcColor = 3,
+  kInvSrcColor = 4,
+  kSrcAlpha = 5,
+  kInvSrcAlpha = 6,
+  kDestAlpha = 7,
+  kInvDestAlpha = 8,
+  kDestColor = 9,
+  kInvDestColor = 10,
+  kSrcAlphaSat = 11,
+  kBlendFactor = 14,
+  kInvBlendFactor = 15,
+  kSrc1Color = 16,
+  kInvSrc1Color = 17,
+  kSrc1Alpha = 18,
+  kInvSrc1Alpha = 19
+};
+}
+
+/**
+*  @brief Blend operations.
+*/
+namespace BLEND_OP {
+enum SH_CORE_EXPORT E
+{
+  kAdd = 1,
+  kSubtract = 2,
+  kRevSubtract = 3,
+  kMin = 4,
+  kMax = 5
+};
+}
+
+/**
+*  @brief Blend descriptions for rendertargets.
+*/
+struct SH_CORE_EXPORT RenderTarget_BlendDesc
+{
+  bool blendEnable;
+  BLEND::E srcBlend;
+  BLEND::E destBlend;
+  BLEND_OP::E blendOp;
+  BLEND::E srcBlendAlpha;
+  BLEND::E destBlendAlpha;
+  BLEND_OP::E blendOpAlpha;
+  uint8 renderTargetWriteMask;
+};
+
+/**
+*  @brief Blend descriptor.
+*/
+struct SH_CORE_EXPORT BlendDesc
+{
+  bool alphaToCoverageEnable;
+  bool independentBlendEnable;
+  RenderTarget_BlendDesc renderTarget[8];
+};
+
+/**
+*  @brief Enables for color white.
+*/
+namespace COLOR_WHITE_ENABLE {
+enum E
+{
+  kEnableRed = 1,
+  kEnableGreen = 2,
+  kEnableBlue = 4,
+  kEnableAlpha = 8,
+  kEnableAll = (((kEnableRed | kEnableGreen) | kEnableBlue) | kEnableAlpha)
 };
 }
 }

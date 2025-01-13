@@ -38,6 +38,7 @@ class RenderTargetView;
 class SamplerState;
 class ProgramShader;
 class Texture2D;
+class BlendState;
 
 /**
 *  @brief Module Graphis Manager.
@@ -231,6 +232,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 usage = USAGE::kDefault,
                   const uint32 bindFlags = BIND_FLAGS::kShaderResource);
 
+  /**
+  *  @brief Creates a blend state.
+  *
+  *  @param BlendDesc& blendDesc
+  */
+  SPtr<BlendState>
+  createBlendState(const BlendDesc& blendDesc);
+
   /********************
   *  Update
   ********************/
@@ -364,6 +373,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                   const uint32 startSlot = 0,
                   const uint32 numSamplers = 1);
+
+  /**
+  *  @brief Sets the blend state to the device context.
+  *
+  *  @param SPtr<BlendState>& pBlendState
+  *  @param Vector4& blendFactor = Vector4(0.0f, 0.0f, 0.0f, 0.0f)
+  */
+  void
+  setBlendState(const SPtr<BlendState>& pBlendState,
+                const Vector4& blendFactor = Vector4(0.0f, 0.0f, 0.0f, 0.0f));
 
   /**
   *  @brief Draw with vertices info.
@@ -569,6 +588,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                           const uint32 usage,
                           const uint32 bindFlags) = 0;
 
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param BlendDesc& blendDesc
+  */
+  virtual SPtr<BlendState>
+  internalCreateBlendState(const BlendDesc& blendDesc) = 0;
+
   /********************
   *  Update
   ********************/
@@ -700,6 +727,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                           const uint32 startSlot,
                           const uint32 numSamplers) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<BlendState>& pBlendState
+  *  @param Vector4& blendFactor
+  */
+  virtual void
+  internalSetBlendState(const SPtr<BlendState>& pBlendState,
+                        const Vector4& blendFactor) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
