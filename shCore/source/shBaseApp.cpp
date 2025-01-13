@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/11
+*  @date    2025/01/13
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -22,6 +22,11 @@
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shDynamicLibrary.h"
+
+#include <chrono>
+
+using Clock = std::chrono::high_resolution_clock;
+using TimePoint = std::chrono::time_point<Clock>;
 
 namespace shEngineSDK {
 struct WorldViewProjection
@@ -46,8 +51,15 @@ BaseApp::run()
   // Send onCreate event
   onCreate();
 
+  TimePoint previousTime = Clock::now();
+  TimePoint currentTime;
+
   // Main App Loop
   while (m_mainScreen->isOpen()) {
+    currentTime = Clock::now();
+    std::chrono::duration<float> deltaTime = currentTime - previousTime;
+    previousTime = currentTime;
+
     m_eventQueue->update();
 
     while (!m_eventQueue->empty()) {
@@ -62,7 +74,7 @@ BaseApp::run()
       handleScreenEvents(wndEvent);
       m_eventQueue->pop();
     }
-    update(0.0f);
+    update(deltaTime.count());
     render();
   }
 
