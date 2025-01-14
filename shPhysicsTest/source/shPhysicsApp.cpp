@@ -23,6 +23,7 @@
 #include "shInputLayout.h"
 #include "shImageResource.h"
 #include "shPath.h"
+#include "shMath.h"
 
 using std::reinterpret_pointer_cast;
 
@@ -89,7 +90,42 @@ PhysicsApp::onCreate()
   auto pVB = gManager.createVertexBuffer(vertices);
   auto pIB = gManager.createIndexBuffer(indices);
 
-  m_player = make_shared<Player>(pVB, pIB, pImgR->texture, vertices, indices);
+  shSphere playerCollision(Vector3(0.0f, 0.0f, 0.0f), 50.0f);
+
+  m_player = make_shared<Player>(pVB,
+                                 pIB,
+                                 pImgR->texture,
+                                 vertices,
+                                 indices);
+
+  Path arrowPath("resources/arrow.png");
+  auto arrowR = reinterpret_pointer_cast<ImageResource>(
+                rManager.loadResourceFromFile(arrowPath));
+
+  vertices.resize(4);
+  vertices[0].position = Vector3(25.0f, 25.0f, 0.0f);
+  vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
+  vertices[0].tex = Vector2(0.0f, 0.0f);
+
+  vertices[1].position = Vector3(60.0f, 25.0f, 0.0f);
+  vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
+  vertices[1].tex = Vector2(1.0f, 0.0f);
+
+  vertices[2].position = Vector3(25.0f, -25.0f, 0.0f);
+  vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
+  vertices[2].tex = Vector2(0.0f, 1.0f);
+
+  vertices[3].position = Vector3(60.0f, -25.0f, 0.0f);
+  vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
+  vertices[3].tex = Vector2(1.0f, 1.0f);
+
+  indices = { 0, 1, 2,
+              2, 1, 3 };
+
+  auto pAVB = gManager.createVertexBuffer(vertices);
+  auto pAIB = gManager.createIndexBuffer(indices);
+
+  m_player->m_pDirArrow = make_shared<Arrow>(pAVB, pAIB, arrowR->texture, vertices, indices);
 
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
@@ -122,12 +158,35 @@ PhysicsApp::onCreate()
   wvp.view.getTransposed();
 
   gManager.updateConstantBuffer(m_pWvp, &wvp, sizeof(wvp));
+
+  m_left.min = Vector2(-400.0f, -400.0f);
+  m_left.max = Vector2(-400.0f, 400.0f);
+  m_right.min = Vector2(400.0f, -400.0f);
+  m_right.max = Vector2(400.0f, 400.0f);
+  m_top.min = Vector2(-400.0f, -400.0f);
+  m_top.max = Vector2(400.0f, -400.0f);
+  m_bottom.min = Vector2(-400.0f, 400.0f);
+  m_bottom.max = Vector2(400.0f, 400.0f);
 }
 
 void
 PhysicsApp::onUpdate(float deltaTime)
 {
+  m_player->update(deltaTime);
 
+  Vector2 boxNormal(0.0f, 0.0f);
+  if (checkCollision(m_left, boxNormal)) {
+    playerBounce(boxNormal);
+  }
+  else if (checkCollision(m_right, boxNormal)) {
+    playerBounce(boxNormal);
+  }
+  else if (checkCollision(m_top, boxNormal)) {
+    playerBounce(boxNormal);
+  }
+  else if (checkCollision(m_bottom, boxNormal)) {
+    playerBounce(boxNormal);
+  }
 }
 
 void
@@ -148,25 +207,53 @@ PhysicsApp::onRender()
   gManager.setIndexBuffers(m_player->m_pIB);
   gManager.setShaderResourceView(m_player->m_pTexture);
   gManager.drawIndexed(m_player->m_indices.size(), 0, 0);
+
+  gManager.setVertexBuffers(m_player->m_pDirArrow->m_pVB);
+  gManager.setIndexBuffers(m_player->m_pDirArrow->m_pIB);
+  gManager.setShaderResourceView(m_player->m_pDirArrow->m_pTexture);
+  gManager.drawIndexed(m_player->m_pDirArrow->m_indices.size(), 0, 0);
 }
 
 void
 PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
   if (key == KEY::kW) {
-    m_player->move(Vector2(0.0f, 1.0f));
+    m_player->move(Vector2(0.0f, 50.0f));
   }
 
   if (key == KEY::kA) {
-    m_player->move(Vector2(-1.0f, 0.0f));
+    m_player->move(Vector2(-50.0f, 0.0f));
   }
 
   if (key == KEY::kS) {
-    m_player->move(Vector2(0.0f, -1.0f));
+    m_player->move(Vector2(0.0f, -50.0f));
   }
 
   if (key == KEY::kD) {
-    m_player->move(Vector2(1.0f, 0.0f));
+    m_player->move(Vector2(50.0f, 0.0f));
   }
+}
+
+bool
+PhysicsApp::checkCollision(const Box& box, Vector2& collisionNormal)
+{
+  float closestX = Math::max(box.min.x, Math::min(m_player->m_position.x, box.max.x));
+  float closestY = Math::max(box.min.y, Math::min(m_player->m_position.y, box.max.y));
+
+  Vector2 closestPoint = { closestX, closestY };
+  Vector2 difference = m_player->m_position - closestPoint;
+
+  if (difference.mag() < m_player->m_radius) {
+    collisionNormal = difference.getNormalized();
+    return true;
+  }
+  return false;
+}
+
+void
+PhysicsApp::playerBounce(Vector2& collisionNormal)
+{
+  float dot = m_player->m_velocity.dot(collisionNormal);
+  m_player->m_velocity = m_player->m_velocity - collisionNormal * (2.0f * dot);
 }
 }

@@ -37,6 +37,12 @@ struct WVP
   Matrix4 proj = Matrix4::IDENTITY;
 };
 
+struct Box
+{
+  Vector2 min;
+  Vector2 max;
+};
+
 class PhysicsApp : public BaseApp
 {
  public:
@@ -61,6 +67,12 @@ class PhysicsApp : public BaseApp
   void
   onKeyPressed(const KEY::E key, const ModifierState modifier) override;
 
+  bool
+  checkCollision(const Box& box, Vector2& collisionNormal);
+
+  void
+  playerBounce(Vector2& collisionNormal);
+
  private:
   ScreenDesc m_desc;
   SPtr<ProgramShader> m_pShader;
@@ -71,5 +83,10 @@ class PhysicsApp : public BaseApp
 
   SPtr<Player> m_player;
   Camera m_camera;
+
+  Box m_left;
+  Box m_right;
+  Box m_top;
+  Box m_bottom;
 };
 }

@@ -21,11 +21,36 @@
 #include "shPrerequisitesPhysics.h"
 #include "shGraphicTypes.h"
 #include "shVector2.h"
+#include "shSphere.h"
 
 namespace shEngineSDK {
 class VertexBuffer;
 class IndexBuffer;
 class Texture2D;
+
+class Arrow
+{
+ public:
+  Arrow(const SPtr<VertexBuffer>& vertexB,
+        const SPtr<IndexBuffer>& indexB,
+        const SPtr<Texture2D>& texture,
+        const Vector<VertexData>& vertices,
+        const Vector<uint32>& indices)
+        : m_pVB(vertexB),
+          m_pIB(indexB),
+          m_pTexture(texture),
+          m_vertices(vertices),
+          m_indices(indices) {}
+
+  ~Arrow() = default;
+
+ public:
+  SPtr<VertexBuffer> m_pVB;
+  SPtr<IndexBuffer> m_pIB;
+  SPtr<Texture2D> m_pTexture;
+  Vector<VertexData> m_vertices;
+  Vector<uint32> m_indices;
+};
 
 class Player
 {
@@ -39,11 +64,25 @@ class Player
            m_pIB(indexB),
            m_pTexture(texture),
            m_vertices(vertices),
-           m_indices(indices) {}
+           m_indices(indices),
+           m_position(Vector2(0.0f, 0.0f)),
+           m_direction(Vector2(0.0f, 0.0f)),
+           m_velocity(Vector2(0.0f, 0.0f)),
+           m_mass(1.5f),
+           m_radius(25.0f) {}
   ~Player() = default;
 
   void
   move(const Vector2& direction);
+
+  Vector2
+  calculateDrag();
+
+  void
+  update(float deltaTime);
+
+  void
+  updateVertexBuffer();
 
  public:
   SPtr<VertexBuffer> m_pVB;
@@ -55,5 +94,10 @@ class Player
   Vector2 m_velocity;
   Vector2 m_direction;
   Vector2 m_position;
+  float m_mass;
+
+  float m_radius;
+
+  SPtr<Arrow> m_pDirArrow;
 };
 }
