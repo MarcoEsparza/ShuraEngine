@@ -107,7 +107,7 @@ PhysicsApp::onCreate()
   vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[0].tex = Vector2(0.0f, 0.0f);
 
-  vertices[1].position = Vector3(60.0f, 25.0f, 0.0f);
+  vertices[1].position = Vector3(65.0f, 25.0f, 0.0f);
   vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[1].tex = Vector2(1.0f, 0.0f);
 
@@ -115,7 +115,7 @@ PhysicsApp::onCreate()
   vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[2].tex = Vector2(0.0f, 1.0f);
 
-  vertices[3].position = Vector3(60.0f, -25.0f, 0.0f);
+  vertices[3].position = Vector3(65.0f, -25.0f, 0.0f);
   vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
   vertices[3].tex = Vector2(1.0f, 1.0f);
 
@@ -206,31 +206,51 @@ PhysicsApp::onRender()
   gManager.setVertexBuffers(m_player->m_pVB);
   gManager.setIndexBuffers(m_player->m_pIB);
   gManager.setShaderResourceView(m_player->m_pTexture);
-  gManager.drawIndexed(m_player->m_indices.size(), 0, 0);
+  gManager.drawIndexed(static_cast<uint32>(m_player->m_indices.size()), 0, 0);
 
   gManager.setVertexBuffers(m_player->m_pDirArrow->m_pVB);
   gManager.setIndexBuffers(m_player->m_pDirArrow->m_pIB);
   gManager.setShaderResourceView(m_player->m_pDirArrow->m_pTexture);
-  gManager.drawIndexed(m_player->m_pDirArrow->m_indices.size(), 0, 0);
+  gManager.drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_indices.size()), 0, 0);
 }
 
 void
 PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  const float speed = 200.0f;
+
   if (key == KEY::kW) {
-    m_player->move(Vector2(0.0f, 50.0f));
+    m_player->move(Vector2(0.0f, speed));
   }
 
   if (key == KEY::kA) {
-    m_player->move(Vector2(-50.0f, 0.0f));
+    m_player->move(Vector2(-speed, 0.0f));
   }
 
   if (key == KEY::kS) {
-    m_player->move(Vector2(0.0f, -50.0f));
+    m_player->move(Vector2(0.0f, -speed));
   }
 
   if (key == KEY::kD) {
-    m_player->move(Vector2(50.0f, 0.0f));
+    m_player->move(Vector2(speed, 0.0f));
+  }
+
+  if (key == KEY::kE) {
+    m_player->move(Vector2(speed, speed));
+  }
+
+  if (key == KEY::kQ) {
+    m_player->move(Vector2(-speed, speed));
+  }
+
+  if (key == KEY::kZ) {
+    m_player->move(Vector2(-speed, -speed));
+  }
+
+  if (key == KEY::kX) {
+    m_player->move(Vector2(speed, -speed));
   }
 }
 

@@ -28,6 +28,20 @@ class VertexBuffer;
 class IndexBuffer;
 class Texture2D;
 
+namespace DIRECTION {
+enum E
+{
+  kUp = 0,
+  kUpRight,
+  kRight,
+  kDownRight,
+  kDown,
+  kDownLeft,
+  kLeft,
+  kUpLeft
+};
+}
+
 class Arrow
 {
  public:
@@ -66,7 +80,7 @@ class Player
            m_vertices(vertices),
            m_indices(indices),
            m_position(Vector2(0.0f, 0.0f)),
-           m_direction(Vector2(0.0f, 0.0f)),
+           m_direction(DIRECTION::kRight),
            m_velocity(Vector2(0.0f, 0.0f)),
            m_mass(1.5f),
            m_radius(25.0f) {}
@@ -84,6 +98,9 @@ class Player
   void
   updateVertexBuffer();
 
+  void
+  updateArrow();
+
  public:
   SPtr<VertexBuffer> m_pVB;
   SPtr<IndexBuffer> m_pIB;
@@ -92,12 +109,12 @@ class Player
   Vector<uint32> m_indices;
 
   Vector2 m_velocity;
-  Vector2 m_direction;
   Vector2 m_position;
   float m_mass;
 
   float m_radius;
 
   SPtr<Arrow> m_pDirArrow;
+  DIRECTION::E m_direction;
 };
 }
