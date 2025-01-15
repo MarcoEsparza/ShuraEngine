@@ -21,6 +21,10 @@
 #include "shResourceManager.h"
 #include "shShader.h"
 #include "shInputLayout.h"
+#include "shBlendState.h"
+#include "shRasterizerState.h"
+#include "shBuffers.h"
+#include "shSamplerState.h"
 #include "shImageResource.h"
 #include "shPath.h"
 #include "shMath.h"
@@ -139,11 +143,33 @@ PhysicsApp::onCreate()
 
   m_pBlendS = gManager.createBlendState(blendDesc);
 
+  RasterizerDesc rasterDesc = {};
+  rasterDesc.fillMode = FILL_MODE::kSolid;
+  rasterDesc.cullMode = CULL_MODE::kNone;
+  rasterDesc.frontCounterClockwise = false;
+  rasterDesc.depthBias = 0;
+  rasterDesc.depthBiasClamp = 0.0f;
+  rasterDesc.slopeScaledDepthBias = 0.0f;
+  rasterDesc.depthClipEnable = true;
+  rasterDesc.scissorEnable = false;
+  rasterDesc.multisampleEnable = false;
+  rasterDesc.antialiasedLineEnable = false;
+
+  m_pRasterS = gManager.createRasterizerState(rasterDesc);
+
   m_pWvp = gManager.createConstantBuffer(sizeof(WVP));
 
   WVP wvp;
+  
+  float aspectRatio = 400.0f;
 
-  m_camera.setOrthographicProjData(-400.0f, 400.0f, -400.0f, 400.0f, 0.1f, 100.0f);
+  //m_camera.setOrthographicProjData(-400.0f, 400.0f, -400.0f, 400.0f, 0.1f, 100.0f);
+  m_camera.setOrthographicProjData(-aspectRatio,
+                                   aspectRatio,
+                                   -aspectRatio,
+                                   aspectRatio,
+                                   0.1f,
+                                   100.0f);
 
   Vector3 eye(0.0f, 0.0f, -10.0f);
   Vector3 at(0.0f, 0.0f, 0.0f);
@@ -197,12 +223,16 @@ PhysicsApp::onRender()
   gManager.setRenderTargets(gManager.getMainRenderTargetView(),
                             gManager.getMainDepthStencil(),
                             1);
+  gManager.setRasterizerState(m_pRasterS);
   gManager.setBlendState(m_pBlendS);
+
   gManager.setProgramShader(m_pShader);
   gManager.setSamplerState(m_pSamplerLinear);
   gManager.vsSetConstantBuffers(m_pWvp);
   gManager.setPrimitiveTopology();
   gManager.setInputLayout(m_pIL);
+
+  // Player
   gManager.setVertexBuffers(m_player->m_pVB);
   gManager.setIndexBuffers(m_player->m_pIB);
   gManager.setShaderResourceView(m_player->m_pTexture);

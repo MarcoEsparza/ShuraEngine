@@ -28,6 +28,7 @@ class ProgramShader;
 class InputLayout;
 class SamplerState;
 class BlendState;
+class RasterizerState;
 class ConstantBuffer;
 
 struct WVP
@@ -79,6 +80,7 @@ class PhysicsApp : public BaseApp
   SPtr<InputLayout> m_pIL;
   SPtr<SamplerState> m_pSamplerLinear;
   SPtr<BlendState> m_pBlendS;
+  SPtr<RasterizerState> m_pRasterS;
   SPtr<ConstantBuffer> m_pWvp;
 
   SPtr<Player> m_player;
