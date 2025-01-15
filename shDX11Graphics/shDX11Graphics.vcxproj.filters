@@ -51,6 +51,9 @@
     <ClInclude Include="include\shDX11BlendState.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="include\shDX11RasterizerState.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shDX11GraphicsManager.cpp">

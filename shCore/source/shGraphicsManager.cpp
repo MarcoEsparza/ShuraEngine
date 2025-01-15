@@ -136,9 +136,15 @@ GraphicsManager::createTexture2D(const uint32 width,
 }
 
 SPtr<BlendState>
-GraphicsManager::createBlendState(const BlendDesc& blendDesc)
+GraphicsManager::createBlendState(const BlendDesc& blendDesc, const LinearColor& blendFactor)
 {
-  return internalCreateBlendState(blendDesc);
+  return internalCreateBlendState(blendDesc, blendFactor);
+}
+
+SPtr<RasterizerState>
+GraphicsManager::createRasterizerState(const RasterizerDesc& rasterDesc)
+{
+  return internalCreateRasterizerState(rasterDesc);
 }
 
 void
@@ -225,9 +231,15 @@ GraphicsManager::setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
 }
 
 void
-GraphicsManager::setBlendState(const SPtr<BlendState>& pBlendState, const Vector4& blendFactor)
+GraphicsManager::setBlendState(const SPtr<BlendState>& pBlendState)
 {
-  internalSetBlendState(pBlendState, blendFactor);
+  internalSetBlendState(pBlendState);
+}
+
+void
+GraphicsManager::setRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
+{
+  internalSetRasterizerState(pRasterizerState);
 }
 
 void

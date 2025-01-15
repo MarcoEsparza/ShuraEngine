@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/13
+*  @date    2025/01/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -561,7 +561,8 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
 }
 
 SPtr<BlendState>
-DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc)
+DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
+                                              const LinearColor& blendFactor)
 {
   auto pBlendState = make_shared<DX11BlendState>();
 
@@ -584,7 +585,31 @@ DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc)
 
   m_pDevice->m_pDevice->CreateBlendState(&d3d11BlendDesc, &pBlendState->m_pBlendS);
 
+  pBlendState->m_blendFactor = blendFactor;
+
   return pBlendState;
+}
+
+SPtr<RasterizerState>
+DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc)
+{
+  auto pRasterizerState = make_shared<DX11RasterizerState>();
+
+  D3D11_RASTERIZER_DESC rasterDesc = {};
+  rasterDesc.FillMode = static_cast<D3D11_FILL_MODE>(rasterizerDesc.fillMode);
+  rasterDesc.CullMode = static_cast<D3D11_CULL_MODE>(rasterizerDesc.cullMode);
+  rasterDesc.FrontCounterClockwise = rasterizerDesc.frontCounterClockwise;
+  rasterDesc.DepthBias = rasterizerDesc.depthBias;
+  rasterDesc.DepthBiasClamp = rasterizerDesc.depthBiasClamp;
+  rasterDesc.SlopeScaledDepthBias = rasterizerDesc.slopeScaledDepthBias;
+  rasterDesc.DepthClipEnable = rasterizerDesc.depthClipEnable;
+  rasterDesc.ScissorEnable = rasterizerDesc.scissorEnable;
+  rasterDesc.MultisampleEnable = rasterizerDesc.multisampleEnable;
+  rasterDesc.AntialiasedLineEnable = rasterizerDesc.antialiasedLineEnable;
+
+  m_pDevice->m_pDevice->CreateRasterizerState(&rasterDesc, &pRasterizerState->m_pRasterS);
+
+  return pRasterizerState;
 }
 
 void
@@ -723,13 +748,24 @@ DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerL
 }
 
 void
-DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState, const Vector4& blendFactor)
+DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState)
 {
   auto pBS = reinterpret_pointer_cast<DX11BlendState>(pBlendState);
 
-  FLOAT bf[4] = { blendFactor.x, blendFactor.y , blendFactor.z , blendFactor.w };
-
+  FLOAT bf[4] = { pBS->m_blendFactor.r,
+                  pBS->m_blendFactor.g,
+                  pBS->m_blendFactor.b,
+                  pBS->m_blendFactor.a };
+  
   m_pDeviceContext->m_pDeviceContext->OMSetBlendState(pBS->m_pBlendS, bf, 0xFFFFFFFF);
+}
+
+void
+DX11GraphicsManager::internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
+{
+  auto pRS = reinterpret_pointer_cast<DX11RasterizerState>(pRasterizerState);
+
+  m_pDeviceContext->m_pDeviceContext->RSSetState(pRS->m_pRasterS);
 }
 
 void

@@ -20,6 +20,7 @@
 #include "shPrerequisitesCore.h"
 #include "shGraphicTypes.h"
 #include "shModule.h"
+#include "shLinearColor.h"
 
 namespace shEngineSDK {
 /*************************************************************/
@@ -28,7 +29,6 @@ namespace shEngineSDK {
 */
 /*************************************************************/
 
-class LinearColor;
 class Screen;
 class VertexBuffer;
 class IndexBuffer;
@@ -39,6 +39,7 @@ class SamplerState;
 class ProgramShader;
 class Texture2D;
 class BlendState;
+class RasterizerState;
 
 /**
 *  @brief Module Graphis Manager.
@@ -238,7 +239,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param BlendDesc& blendDesc
   */
   SPtr<BlendState>
-  createBlendState(const BlendDesc& blendDesc);
+  createBlendState(const BlendDesc& blendDesc,
+                   const LinearColor& blendFactor = LinearColor(0.0f, 0.0f, 0.0f, 0.0f));
+
+  /**
+  *  @brief Creates a Rasterizer state.
+  *
+  *  @param RasterizerDesc& blendDesc
+  */
+  SPtr<RasterizerState>
+  createRasterizerState(const RasterizerDesc& rasterDesc);
 
   /********************
   *  Update
@@ -378,11 +388,17 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Sets the blend state to the device context.
   *
   *  @param SPtr<BlendState>& pBlendState
-  *  @param Vector4& blendFactor = Vector4(0.0f, 0.0f, 0.0f, 0.0f)
   */
   void
-  setBlendState(const SPtr<BlendState>& pBlendState,
-                const Vector4& blendFactor = Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+  setBlendState(const SPtr<BlendState>& pBlendState);
+
+  /**
+  *  @brief Sets the rasterizer state to the device context.
+  *
+  *  @param SPtr<RasterizerState>& pRasterizerState
+  */
+  void
+  setRasterizerState(const SPtr<RasterizerState>& pRasterizerState);
 
   /**
   *  @brief Draw with vertices info.
@@ -594,7 +610,15 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param BlendDesc& blendDesc
   */
   virtual SPtr<BlendState>
-  internalCreateBlendState(const BlendDesc& blendDesc) = 0;
+  internalCreateBlendState(const BlendDesc& blendDesc, const LinearColor& blendFactor) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param RasterizerDesc& RasterizerDesc
+  */
+  virtual SPtr<RasterizerState>
+  internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc) = 0;
 
   /********************
   *  Update
@@ -735,8 +759,15 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param Vector4& blendFactor
   */
   virtual void
-  internalSetBlendState(const SPtr<BlendState>& pBlendState,
-                        const Vector4& blendFactor) = 0;
+  internalSetBlendState(const SPtr<BlendState>& pBlendState) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<RasterizerState>& pRasterizerState
+  */
+  virtual void
+  internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
