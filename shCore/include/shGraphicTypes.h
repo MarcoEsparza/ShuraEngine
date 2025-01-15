@@ -310,4 +310,44 @@ enum E
   kEnableAll = (((kEnableRed | kEnableGreen) | kEnableBlue) | kEnableAlpha)
 };
 }
+
+/**
+*  @brief Rasterizer fill mode.
+*/
+namespace FILL_MODE {
+enum E
+{
+  kWireframe = 2,
+  kSolid = 3
+};
+}
+
+/**
+*  @brief Rasterizer cull mode.
+*/
+namespace CULL_MODE {
+enum E
+{
+  kNone = 1,
+  kFront = 2,
+  kBack = 3
+};
+}
+
+/**
+*  @brief Rasterizer descriptor.
+*/
+struct RasterizerDesc
+{
+  FILL_MODE::E fillMode;
+  CULL_MODE::E cullMode;
+  bool frontCounterClockwise;
+  int32 depthBias;
+  float depthBiasClamp;
+  float slopeScaledDepthBias;
+  bool depthClipEnable;
+  bool scissorEnable;
+  bool multisampleEnable;
+  bool antialiasedLineEnable;
+};
 }

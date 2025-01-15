@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shDX11BlendState.h
+*  @file    shDX11RasterizerState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/01/14
-*  @brief   DirectX11 Blend State.
+*  @brief   DirectX11 Rasterizer State.
 *
-*  DirectX11 Blend State.
+*  DirectX11 Rasterizer State.
 *
 *  @bug     No bug known.
 */
@@ -18,25 +18,24 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
-#include "shBlendState.h"
-#include "shLinearColor.h"
+#include "shRasterizerState.h"
 
 namespace shEngineSDK {
   /**
-  *  @brief DirectX11 Blend State.
+  *  @brief DirectX11 Rasterizer State.
   */
-  class DX11BlendState : public BlendState
+  class DX11RasterizerState : public RasterizerState
   {
   public:
     /**
     *  @brief Default constructor.
     */
-    DX11BlendState() = default;
+    DX11RasterizerState() = default;
 
     /**
     *  @brief Destructor. Release gpu memory.
     */
-    FORCEINLINE virtual ~DX11BlendState();
+    FORCEINLINE virtual ~DX11RasterizerState();
 
     friend class DX11GraphicsManager;
 
@@ -47,14 +46,9 @@ namespace shEngineSDK {
     /*************************************************************/
   protected:
     /**
-    *  @brief DirectX11 Blend State pointer.
+    *  @brief DirectX11 Rasterizer State pointer.
     */
-    ID3D11BlendState* m_pBlendS = nullptr;
-
-    /**
-    *  @brief Blend factor color.
-    */
-    LinearColor m_blendFactor;
+    ID3D11RasterizerState* m_pRasterS = nullptr;
   };
 
   /*************************************************************/
@@ -63,8 +57,8 @@ namespace shEngineSDK {
   */
   /*************************************************************/
 
-  FORCEINLINE DX11BlendState::~DX11BlendState()
+  FORCEINLINE DX11RasterizerState::~DX11RasterizerState()
   {
-    SafeRelease(m_pBlendS);
+    SafeRelease(m_pRasterS);
   }
 }

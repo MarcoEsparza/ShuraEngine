@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2025/01/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -29,6 +29,7 @@
 #include "shDX11SwapChain.h"
 #include "shDX11Texture.h"
 #include "shDX11BlendState.h"
+#include "shDX11RasterizerState.h"
 
 namespace shEngineSDK {
 /**
@@ -229,7 +230,16 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param BlendDesc& blendDesc
   */
   SPtr<BlendState>
-  internalCreateBlendState(const BlendDesc& blendDesc) override;
+  internalCreateBlendState(const BlendDesc& blendDesc,
+                           const LinearColor& blendFactor) override;
+
+  /**
+  *  @brief Creates a rasterizer state.
+  *
+  *  @param RasterizerDesc& RasterizerDesc
+  */
+  SPtr<RasterizerState>
+  internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc) override;
 
   /********************
   *  Update
@@ -372,8 +382,15 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param Vector4& blendFactor
   */
   void
-  internalSetBlendState(const SPtr<BlendState>& pBlendState,
-                        const Vector4& blendFactor) override;
+  internalSetBlendState(const SPtr<BlendState>& pBlendState) override;
+
+  /**
+  *  @brief Sets the rasterizer state to the device context.
+  *
+  *  @param SPtr<RasterizerState>& pRasterizerState
+  */
+  void
+  internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState) override;
 
   /**
   *  @brief Draw with vertices info.

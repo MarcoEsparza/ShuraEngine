@@ -40,6 +40,7 @@
     <ClInclude Include="include\shGraphicTypes.h" />
     <ClInclude Include="include\shInputLayout.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
+    <ClInclude Include="include\shRasterizerState.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />
