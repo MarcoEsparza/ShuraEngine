@@ -24,6 +24,7 @@
     <ClInclude Include="include\shBaseApp.h" />
     <ClInclude Include="include\shBlendState.h" />
     <ClInclude Include="include\shComponent.h" />
+    <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
     <ClInclude Include="include\shGameObject.h" />
     <ClInclude Include="include\shImageResource.h" />
