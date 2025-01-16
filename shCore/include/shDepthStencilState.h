@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shBlendState.h
+*  @file    shDepthStencilState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/13
-*  @brief   Engine Blend State.
+*  @date    2025/01/15
+*  @brief   Engine Depth Stencil State.
 *
-*  Engine Blend State.
+*  Engine Depth Stencil State.
 *
 *  @bug     No bug known.
 */
@@ -21,19 +21,19 @@
 
 namespace shEngineSDK {
 /**
-*  @brief Engine Blend State.
+*  @brief Engine Depth Stencil State.
 */
-class BlendState
+class DepthStencilState
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  BlendState() = default;
+  DepthStencilState() = default;
 
   /**
   *  @brief Default destructor.
   */
-  virtual ~BlendState() = default;
+  virtual ~DepthStencilState() = default;
 };
 }

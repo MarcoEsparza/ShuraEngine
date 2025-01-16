@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2025/01/15
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -40,6 +40,7 @@ class ProgramShader;
 class Texture2D;
 class BlendState;
 class RasterizerState;
+class DepthStencilState;
 
 /**
 *  @brief Module Graphis Manager.
@@ -237,6 +238,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Creates a blend state.
   *
   *  @param BlendDesc& blendDesc
+  * 
+  *  @return SPtr<BlendState>
   */
   SPtr<BlendState>
   createBlendState(const BlendDesc& blendDesc,
@@ -246,9 +249,21 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Creates a Rasterizer state.
   *
   *  @param RasterizerDesc& blendDesc
+  * 
+  *  @return SPtr<RasterizerState>
   */
   SPtr<RasterizerState>
   createRasterizerState(const RasterizerDesc& rasterDesc);
+
+  /**
+  *  @brief Creates a Depth Stencil state.
+  *
+  *  @param DepthStencilDesc& blendDesc
+  * 
+  *  @return SPtr<DepthStencilState>
+  */
+  SPtr<DepthStencilState>
+  createDepthStencilState(const DepthStencilDesc& depthSDesc);
 
   /********************
   *  Update
@@ -399,6 +414,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   void
   setRasterizerState(const SPtr<RasterizerState>& pRasterizerState);
+
+  /**
+  *  @brief Sets the depth stenci state to the device context.
+  *
+  *  @param SPtr<DepthStencilState>& pDepthStencilState
+  *  @param uint8 stencilRef = 0
+  */
+  void
+  setDepthStencilState(const SPtr<DepthStencilState>& pDepthStencilState,
+                       const uint8 stencilRef = 0);
 
   /**
   *  @brief Draw with vertices info.
@@ -608,6 +633,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Calls the selected API overrided function.
   *
   *  @param BlendDesc& blendDesc
+  * 
+  *  @return SPtr<BlendState>
   */
   virtual SPtr<BlendState>
   internalCreateBlendState(const BlendDesc& blendDesc, const LinearColor& blendFactor) = 0;
@@ -616,9 +643,21 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Calls the selected API overrided function.
   *
   *  @param RasterizerDesc& RasterizerDesc
+  * 
+  *  @return SPtr<RasterizerState>
   */
   virtual SPtr<RasterizerState>
   internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param DepthStencilDesc& rasterizerDesc
+  * 
+  *  @return SPtr<DepthStencilState>
+  */
+  virtual SPtr<DepthStencilState>
+  internalCreateDepthStencilState(const DepthStencilDesc& rasterizerDesc) = 0;
 
   /********************
   *  Update
@@ -768,6 +807,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<DepthStencilState>& pDepthStencilState
+  *  @param uint8 stencilRef
+  */
+  virtual void
+  internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthStencilState,
+                               const uint8 stencilRef) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

@@ -612,6 +612,42 @@ DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasteri
   return pRasterizerState;
 }
 
+SPtr<DepthStencilState>
+DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc)
+{
+  auto pDepthSS = make_shared<DX11DepthStencilState>();
+
+  D3D11_DEPTH_STENCIL_DESC d3d11DepthDesc = {};
+  d3d11DepthDesc.DepthEnable = depthSDesc.depthEnable;
+  d3d11DepthDesc.DepthWriteMask =
+    static_cast<D3D11_DEPTH_WRITE_MASK>(depthSDesc.depthWriteMask);
+  d3d11DepthDesc.DepthFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.depthFunc);
+  d3d11DepthDesc.StencilEnable = depthSDesc.stencilEnable;
+  d3d11DepthDesc.StencilReadMask = depthSDesc.stencilReadMask;
+  d3d11DepthDesc.StencilWriteMask = depthSDesc.stencilWriteMask;
+
+  D3D11_DEPTH_STENCILOP_DESC frontFace = {};
+  frontFace.StencilFailOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilFailOp);
+  frontFace.StencilDepthFailOp =
+    static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilDepthFailOp);
+  frontFace.StencilPassOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilPassOp);
+  frontFace.StencilFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.frontFace.stencilFunc);
+
+  D3D11_DEPTH_STENCILOP_DESC backFace = {};
+  backFace.StencilFailOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilFailOp);
+  backFace.StencilDepthFailOp =
+    static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilDepthFailOp);
+  backFace.StencilPassOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilPassOp);
+  backFace.StencilFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.backFace.stencilFunc);
+
+  d3d11DepthDesc.FrontFace = frontFace;
+  d3d11DepthDesc.BackFace = backFace;
+
+  m_pDevice->m_pDevice->CreateDepthStencilState(&d3d11DepthDesc, &pDepthSS->m_pDepthSS);
+
+  return pDepthSS;
+}
+
 void
 DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                                   const void* pData,
@@ -766,6 +802,16 @@ DX11GraphicsManager::internalSetRasterizerState(const SPtr<RasterizerState>& pRa
   auto pRS = reinterpret_pointer_cast<DX11RasterizerState>(pRasterizerState);
 
   m_pDeviceContext->m_pDeviceContext->RSSetState(pRS->m_pRasterS);
+}
+
+void
+DX11GraphicsManager::internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
+                                                  const uint8 stencilRef)
+{
+  auto pDepthSS = reinterpret_pointer_cast<DX11DepthStencilState>(pDepthSState);
+
+  m_pDeviceContext->m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS,
+                                                             stencilRef);
 }
 
 void

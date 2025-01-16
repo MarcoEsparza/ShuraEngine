@@ -350,4 +350,75 @@ struct RasterizerDesc
   bool multisampleEnable;
   bool antialiasedLineEnable;
 };
+
+/**
+*  @brief Comparison function for depth stencil state.
+*/
+namespace COMPARISON_FUNC {
+enum E
+{
+  kNever = 1,
+  kLess = 2,
+  kEqual = 3,
+  kLessEqual = 4,
+  kGreater = 5,
+  kNotEqual = 6,
+  kGreaterEqual = 7,
+  kAlways = 8
+};
+}
+
+/**
+*  @brief Depth write mask.
+*/
+namespace DEPTH_WRITE_MASK {
+enum E
+{
+  kZero = 0,
+  kAll = 1
+};
+}
+
+/**
+*  @brief Type of operation for Stencil.
+*/
+namespace STENCIL_OP {
+enum E
+{
+  kKeep = 1,
+  kZero = 2,
+  kReplace = 3,
+  kIncrSat = 4,
+  kDecrSat = 5,
+  kInvert = 6,
+  kIncr = 7,
+  kDecr = 8
+};
+}
+
+/**
+*  @brief Operation descriptor for depth stencil state.
+*/
+struct DepthStencilOpDesc
+{
+  STENCIL_OP::E stencilFailOp;
+  STENCIL_OP::E stencilDepthFailOp;
+  STENCIL_OP::E stencilPassOp;
+  COMPARISON_FUNC::E stencilFunc;
+};
+
+/**
+*  @brief Depth Stencil State decriptor.
+*/
+struct DepthStencilDesc
+{
+  bool depthEnable;
+  DEPTH_WRITE_MASK::E depthWriteMask;
+  COMPARISON_FUNC::E depthFunc;
+  bool stencilEnable;
+  uint8 stencilReadMask;
+  uint8 stencilWriteMask;
+  DepthStencilOpDesc frontFace;
+  DepthStencilOpDesc backFace;
+};
 }

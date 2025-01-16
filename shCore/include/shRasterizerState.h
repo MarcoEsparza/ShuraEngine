@@ -20,20 +20,20 @@
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
+/**
+*  @brief Engine Rasterizer State.
+*/
+class RasterizerState
+{
+ public:
   /**
-  *  @brief Engine Rasterizer State.
+  *  @brief Default constructor.
   */
-  class RasterizerState
-  {
-  public:
-    /**
-    *  @brief Default constructor.
-    */
-    RasterizerState() = default;
+  RasterizerState() = default;
 
-    /**
-    *  @brief Default destructor.
-    */
-    virtual ~RasterizerState() = default;
-  };
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~RasterizerState() = default;
+};
 }
