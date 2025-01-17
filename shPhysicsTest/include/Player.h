@@ -21,11 +21,14 @@
 #include "shPrerequisitesPhysics.h"
 #include "shGraphicTypes.h"
 #include "shVector2.h"
+#include "shMatrix4.h"
 #include "shSphere.h"
+#include "shPath.h"
 
 namespace shEngineSDK {
 class VertexBuffer;
 class IndexBuffer;
+class ConstantBuffer;
 class Texture2D;
 
 namespace DIRECTION {
@@ -42,23 +45,16 @@ enum E
 };
 }
 
-class Arrow
+class Sprite
 {
  public:
-  Arrow(const SPtr<VertexBuffer>& vertexB,
-        const SPtr<IndexBuffer>& indexB,
-        const SPtr<Texture2D>& texture,
-        const Vector<VertexData>& vertices,
-        const Vector<uint32>& indices)
-        : m_pVB(vertexB),
-          m_pIB(indexB),
-          m_pTexture(texture),
-          m_vertices(vertices),
-          m_indices(indices) {}
+  Sprite() = default;
+  Sprite(const Path& filePath, const Vector2& min, const Vector2& max);
+  ~Sprite() = default;
 
-  ~Arrow() = default;
+  void
+  setSprite(const Path& filePath, const Vector2& min, const Vector2& max);
 
- public:
   SPtr<VertexBuffer> m_pVB;
   SPtr<IndexBuffer> m_pIB;
   SPtr<Texture2D> m_pTexture;
@@ -66,25 +62,40 @@ class Arrow
   Vector<uint32> m_indices;
 };
 
+class Arrow
+{
+ public:
+  Arrow() = default;
+
+  ~Arrow() = default;
+
+ public:
+  Sprite m_sprite;
+  Vector2 m_position;
+};
+
 class Player
 {
  public:
-  Player(const SPtr<VertexBuffer>& vertexB,
-         const SPtr<IndexBuffer>& indexB,
-         const SPtr<Texture2D>& texture,
-         const Vector<VertexData>& vertices,
-         const Vector<uint32>& indices)
-         : m_pVB(vertexB),
-           m_pIB(indexB),
-           m_pTexture(texture),
-           m_vertices(vertices),
-           m_indices(indices),
-           m_position(Vector2(0.0f, 0.0f)),
-           m_direction(DIRECTION::kRight),
-           m_velocity(Vector2(0.0f, 0.0f)),
-           m_mass(1.5f),
-           m_radius(25.0f) {}
+  Player() = default;
+  Player(const Vector2& min,
+         const Vector2& max,
+         const Path& filePath,
+         const Vector2& position,
+         const float mass,
+         const float radius);
   ~Player() = default;
+
+  void
+  setPlayer(const Vector2& min,
+            const Vector2& max,
+            const Path& filePath,
+            const Vector2& position,
+            const float mass,
+            const float radius);
+
+  void
+  setArrow(const Arrow& arrow);
 
   void
   move(const Vector2& direction);
@@ -96,17 +107,16 @@ class Player
   update(float deltaTime);
 
   void
-  updateVertexBuffer();
+  updateModelBuffer();
 
   void
   updateArrow();
 
+  /*const Sprite&
+  getSprite() const { return m_sprite; }*/
+
  public:
-  SPtr<VertexBuffer> m_pVB;
-  SPtr<IndexBuffer> m_pIB;
-  SPtr<Texture2D> m_pTexture;
-  Vector<VertexData> m_vertices;
-  Vector<uint32> m_indices;
+  SPtr<Sprite> m_sprite;
 
   Vector2 m_velocity;
   Vector2 m_position;
@@ -115,6 +125,9 @@ class Player
   float m_radius;
 
   SPtr<Arrow> m_pDirArrow;
-  DIRECTION::E m_direction;
+  DIRECTION::E m_direction = DIRECTION::kRight;
+
+  Matrix4 m_transform = Matrix4::IDENTITY;
+  SPtr<ConstantBuffer> m_modelBuffer;
 };
 }

@@ -18,9 +18,44 @@
 /*************************************************************/
 #include "Player.h"
 #include "shGraphicsManager.h"
+#include "shResourceManager.h"
+#include "shImageResource.h"
 #include "shMath.h"
 
 namespace shEngineSDK {
+Player::Player(const Vector2& min,
+               const Vector2& max,
+               const Path& filePath,
+               const Vector2& position,
+               const float mass, 
+               const float radius)
+{
+  setPlayer(min, max, filePath, position, mass, radius);
+  m_velocity = Vector2(0.0f, 0.0f);
+}
+
+void
+Player::setPlayer(const Vector2& min,
+                  const Vector2& max,
+                  const Path& filePath,
+                  const Vector2& position,
+                  const float mass,
+                  const float radius)
+{
+  m_sprite = make_shared<Sprite>(filePath, min, max);
+  m_position = position;
+  m_mass = mass;
+  m_radius = radius;
+  m_modelBuffer = GraphicsManager::instance().createConstantBuffer(sizeof(Matrix4));
+  updateModelBuffer();
+}
+
+void
+Player::setArrow(const Arrow& arrow)
+{
+  
+}
+
 void
 Player::move(const Vector2& direction)
 {
@@ -59,9 +94,9 @@ Player::update(float deltaTime)
   m_velocity = m_velocity + acceleration * deltaTime;
   m_position = m_position + m_velocity * deltaTime;
 
-  updateVertexBuffer();
-
   Vector2 velPos = m_position + m_velocity;
+
+  updateModelBuffer();
 
   if (m_position.x == velPos.x && m_position.y < velPos.y) {
     m_direction = DIRECTION::kUp;
@@ -88,33 +123,23 @@ Player::update(float deltaTime)
     m_direction = DIRECTION::kUpLeft;
   }
 
-  updateArrow();
+  //updateArrow();
 }
 
 void
-Player::updateVertexBuffer()
+Player::updateModelBuffer()
 {
   GraphicsManager& gManager = GraphicsManager::instance();
 
-  m_vertices[0].position.x = m_position.x - 25.0f;
-  m_vertices[0].position.y = m_position.y + 25.0f;
+  m_transform = m_transform.createTranslationMatrix(Vector3(m_position.x, m_position.y, 0.0f));
 
-  m_vertices[1].position.x = m_position.x + 25.0f;
-  m_vertices[1].position.y = m_position.y + 25.0f;
-  
-  m_vertices[2].position.x = m_position.x - 25.0f;
-  m_vertices[2].position.y = m_position.y - 25.0f;
-  
-  m_vertices[3].position.x = m_position.x + 25.0f;
-  m_vertices[3].position.y = m_position.y - 25.0f;
-
-  m_pVB = gManager.createVertexBuffer(m_vertices);
+  gManager.updateConstantBuffer(m_modelBuffer, &m_transform, sizeof(Matrix4));
 }
 
 void
 Player::updateArrow()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
+  //GraphicsManager& gManager = GraphicsManager::instance();
 
   Vector2 p1 = m_position;
   Vector2 p2 = m_position;
@@ -170,18 +195,44 @@ Player::updateArrow()
     p4 += Vector2(25.0f, 65.0f);
   }
 
-  m_pDirArrow->m_vertices[0].position.x = p1.x;
-  m_pDirArrow->m_vertices[0].position.y = p1.y;
+}
 
-  m_pDirArrow->m_vertices[1].position.x = p2.x;
-  m_pDirArrow->m_vertices[1].position.y = p2.y;
+Sprite::Sprite(const Path& filePath, const Vector2& min, const Vector2& max)
+{
+  setSprite(filePath, min, max);
+}
 
-  m_pDirArrow->m_vertices[2].position.x = p3.x;
-  m_pDirArrow->m_vertices[2].position.y = p3.y;
+void
+Sprite::setSprite(const Path& filePath, const Vector2& min, const Vector2& max)
+{
+  GraphicsManager& gManager = GraphicsManager::instance();
+  ResourceManager& rManager = ResourceManager::instance();
 
-  m_pDirArrow->m_vertices[3].position.x = p4.x;
-  m_pDirArrow->m_vertices[3].position.y = p4.y;
+  m_vertices.resize(4);
+  m_vertices[0].position = Vector3(-min.x, min.y, 0.0f);
+  m_vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
+  m_vertices[0].tex = Vector2(0.0f, 0.0f);
+  
+  m_vertices[1].position = Vector3(max.x, min.y, 0.0f);
+  m_vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
+  m_vertices[1].tex = Vector2(1.0f, 0.0f);
+  
+  m_vertices[2].position = Vector3(-min.x, -max.y, 0.0f);
+  m_vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
+  m_vertices[2].tex = Vector2(0.0f, 1.0f);
+  
+  m_vertices[3].position = Vector3(max.x, -max.y, 0.0f);
+  m_vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
+  m_vertices[3].tex = Vector2(1.0f, 1.0f);
 
-  m_pDirArrow->m_pVB = gManager.createVertexBuffer(m_pDirArrow->m_vertices);
+  m_indices = { 0, 1, 2,
+                2, 1, 3 };
+
+  auto pImg = reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(filePath));
+
+  m_pTexture = pImg->texture;
+
+  m_pVB = gManager.createVertexBuffer(m_vertices);
+  m_pIB = gManager.createIndexBuffer(m_indices);
 }
 }

@@ -35,164 +35,26 @@ namespace shEngineSDK {
 void
 PhysicsApp::onCreate()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
-  ResourceManager& rManager = ResourceManager::instance();
-
-  setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
-
-  m_pShader = gManager.createProgramShader("resources/PhysicsShader.hlsl",
-                                          "main",
-                                          "mainPS",
-                                          "vs_5_0",
-                                          "ps_5_0");
-
-  Vector<InputDesc> ilDesc;
-  ilDesc.resize(3);
-  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
-  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[0].size = 12;
-
-  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
-  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[1].size = 12;
-
-  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
-  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
-  ilDesc[2].size = 8;
-
-  m_pIL = gManager.createInputLayout(ilDesc, m_pShader);
-
-  m_pSamplerLinear = gManager.createSamplerState();
+  initGraphicAssets();
+  initCamera();
+  initCollisionBoxes();
 
   Path textPath("resources/ttgl.png");
-  auto pImgR = reinterpret_pointer_cast<ImageResource>(
-               rManager.loadResourceFromFile(textPath));
+  Vector2 minPlayerSize(25.0f, 25.0f);
+  Vector2 maxPlayerSize(25.0f, 25.0f);
 
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
-
-  vertices.resize(4);
-  vertices[0].position = Vector3(-25.0f, 25.0f, 0.0f);
-  vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[0].tex = Vector2(0.0f, 0.0f);
-
-  vertices[1].position = Vector3(25.0f, 25.0f, 0.0f);
-  vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[1].tex = Vector2(1.0f, 0.0f);
-
-  vertices[2].position = Vector3(-25.0f, -25.0f, 0.0f);
-  vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[2].tex = Vector2(0.0f, 1.0f);
-
-  vertices[3].position = Vector3(25.0f, -25.0f, 0.0f);
-  vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[3].tex = Vector2(1.0f, 1.0f);
-
-  indices = { 0, 1, 2,
-              2, 1, 3 };
-
-  auto pVB = gManager.createVertexBuffer(vertices);
-  auto pIB = gManager.createIndexBuffer(indices);
-
-  shSphere playerCollision(Vector3(0.0f, 0.0f, 0.0f), 50.0f);
-
-  m_player = make_shared<Player>(pVB,
-                                 pIB,
-                                 pImgR->texture,
-                                 vertices,
-                                 indices);
+  m_player = make_shared<Player>(minPlayerSize,
+                                 maxPlayerSize,
+                                 textPath,
+                                 Vector2(0.0f, 0.0f),
+                                 2.5f,
+                                 25.0f);
 
   Path arrowPath("resources/arrow.png");
-  auto arrowR = reinterpret_pointer_cast<ImageResource>(
-                rManager.loadResourceFromFile(arrowPath));
+  /*auto arrowR = reinterpret_pointer_cast<ImageResource>(
+                rManager.loadResourceFromFile(arrowPath));*/
 
-  vertices.resize(4);
-  vertices[0].position = Vector3(25.0f, 25.0f, 0.0f);
-  vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[0].tex = Vector2(0.0f, 0.0f);
-
-  vertices[1].position = Vector3(65.0f, 25.0f, 0.0f);
-  vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[1].tex = Vector2(1.0f, 0.0f);
-
-  vertices[2].position = Vector3(25.0f, -25.0f, 0.0f);
-  vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[2].tex = Vector2(0.0f, 1.0f);
-
-  vertices[3].position = Vector3(65.0f, -25.0f, 0.0f);
-  vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
-  vertices[3].tex = Vector2(1.0f, 1.0f);
-
-  indices = { 0, 1, 2,
-              2, 1, 3 };
-
-  auto pAVB = gManager.createVertexBuffer(vertices);
-  auto pAIB = gManager.createIndexBuffer(indices);
-
-  m_player->m_pDirArrow = make_shared<Arrow>(pAVB, pAIB, arrowR->texture, vertices, indices);
-
-  BlendDesc blendDesc = {};
-  blendDesc.renderTarget[0].blendEnable = true;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-
-  m_pBlendS = gManager.createBlendState(blendDesc);
-
-  RasterizerDesc rasterDesc = {};
-  rasterDesc.fillMode = FILL_MODE::kSolid;
-  rasterDesc.cullMode = CULL_MODE::kNone;
-  rasterDesc.frontCounterClockwise = false;
-  rasterDesc.depthBias = 0;
-  rasterDesc.depthBiasClamp = 0.0f;
-  rasterDesc.slopeScaledDepthBias = 0.0f;
-  rasterDesc.depthClipEnable = true;
-  rasterDesc.scissorEnable = false;
-  rasterDesc.multisampleEnable = false;
-  rasterDesc.antialiasedLineEnable = false;
-
-  m_pRasterS = gManager.createRasterizerState(rasterDesc);
-
-  m_pWvp = gManager.createConstantBuffer(sizeof(WVP));
-
-  WVP wvp;
   
-  float aspectRatio = 400.0f;
-
-  //m_camera.setOrthographicProjData(-400.0f, 400.0f, -400.0f, 400.0f, 0.1f, 100.0f);
-  m_camera.setOrthographicProjData(-aspectRatio,
-                                   aspectRatio,
-                                   -aspectRatio,
-                                   aspectRatio,
-                                   0.1f,
-                                   100.0f);
-
-  Vector3 eye(0.0f, 0.0f, -10.0f);
-  Vector3 at(0.0f, 0.0f, 0.0f);
-  Vector3 up(0.0f, 1.0f, 0.0f);
-
-  m_camera.setViewData(eye, at, up);
-
-  wvp.proj = m_camera.getOrthographicProjection();
-  wvp.view = m_camera.getView();
-
-  wvp.proj.getTransposed();
-  wvp.view.getTransposed();
-
-  gManager.updateConstantBuffer(m_pWvp, &wvp, sizeof(wvp));
-
-  m_left.min = Vector2(-400.0f, -400.0f);
-  m_left.max = Vector2(-400.0f, 400.0f);
-  m_right.min = Vector2(400.0f, -400.0f);
-  m_right.max = Vector2(400.0f, 400.0f);
-  m_top.min = Vector2(-400.0f, -400.0f);
-  m_top.max = Vector2(400.0f, -400.0f);
-  m_bottom.min = Vector2(-400.0f, 400.0f);
-  m_bottom.max = Vector2(400.0f, 400.0f);
 }
 
 void
@@ -228,20 +90,21 @@ PhysicsApp::onRender()
 
   gManager.setProgramShader(m_pShader);
   gManager.setSamplerState(m_pSamplerLinear);
-  gManager.vsSetConstantBuffers(m_pWvp);
+  gManager.vsSetConstantBuffers(m_pVP);
   gManager.setPrimitiveTopology();
   gManager.setInputLayout(m_pIL);
 
   // Player
-  gManager.setVertexBuffers(m_player->m_pVB);
-  gManager.setIndexBuffers(m_player->m_pIB);
-  gManager.setShaderResourceView(m_player->m_pTexture);
-  gManager.drawIndexed(static_cast<uint32>(m_player->m_indices.size()), 0, 0);
+  gManager.vsSetConstantBuffers(m_player->m_modelBuffer, 1);
+  gManager.setVertexBuffers(m_player->m_sprite->m_pVB);
+  gManager.setIndexBuffers(m_player->m_sprite->m_pIB);
+  gManager.setShaderResourceView(m_player->m_sprite->m_pTexture);
+  gManager.drawIndexed(static_cast<uint32>(m_player->m_sprite->m_indices.size()), 0, 0);
 
-  gManager.setVertexBuffers(m_player->m_pDirArrow->m_pVB);
-  gManager.setIndexBuffers(m_player->m_pDirArrow->m_pIB);
-  gManager.setShaderResourceView(m_player->m_pDirArrow->m_pTexture);
-  gManager.drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_indices.size()), 0, 0);
+  //gManager.setVertexBuffers(m_player->m_pDirArrow->m_pVB);
+  //gManager.setIndexBuffers(m_player->m_pDirArrow->m_pIB);
+  //gManager.setShaderResourceView(m_player->m_pDirArrow->m_pTexture);
+  //gManager.drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_indices.size()), 0, 0);
 }
 
 void
@@ -305,5 +168,111 @@ PhysicsApp::playerBounce(Vector2& collisionNormal)
 {
   float dot = m_player->m_velocity.dot(collisionNormal);
   m_player->m_velocity = m_player->m_velocity - collisionNormal * (2.0f * dot);
+}
+
+void
+PhysicsApp::initGraphicAssets()
+{
+  GraphicsManager& gManager = GraphicsManager::instance();
+
+  setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
+
+  m_pShader = gManager.createProgramShader("resources/PhysicsShader.hlsl",
+                                          "main",
+                                          "mainPS",
+                                          "vs_5_0",
+                                          "ps_5_0");
+
+  Vector<InputDesc> ilDesc;
+  ilDesc.resize(3);
+  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
+  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
+  ilDesc[0].size = sizeof(float) * 3;
+
+  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
+  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
+  ilDesc[1].size = sizeof(float) * 3;
+
+  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
+  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
+  ilDesc[2].size = sizeof(float) * 2;
+
+  m_pIL = gManager.createInputLayout(ilDesc, m_pShader);
+
+  m_pSamplerLinear = gManager.createSamplerState();
+
+  RasterizerDesc rasterDesc = {};
+  rasterDesc.fillMode = FILL_MODE::kSolid;
+  rasterDesc.cullMode = CULL_MODE::kNone;
+  rasterDesc.frontCounterClockwise = false;
+  rasterDesc.depthBias = 0;
+  rasterDesc.depthBiasClamp = 0.0f;
+  rasterDesc.slopeScaledDepthBias = 0.0f;
+  rasterDesc.depthClipEnable = true;
+  rasterDesc.scissorEnable = false;
+  rasterDesc.multisampleEnable = false;
+  rasterDesc.antialiasedLineEnable = false;
+
+  m_pRasterS = gManager.createRasterizerState(rasterDesc);
+
+  BlendDesc blendDesc = {};
+  blendDesc.renderTarget[0].blendEnable = true;
+  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
+  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
+  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
+  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
+  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
+  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
+
+  m_pBlendS = gManager.createBlendState(blendDesc);
+}
+
+void
+PhysicsApp::initCamera()
+{
+  GraphicsManager& gManager = GraphicsManager::instance();
+
+  m_pVP = gManager.createConstantBuffer(sizeof(VP));
+
+  VP vp;
+  
+  float aspectRatio = m_desc.width * 0.5f;
+
+  m_camera.setOrthographicProjData(-aspectRatio,
+                                   aspectRatio,
+                                   -aspectRatio,
+                                   aspectRatio,
+                                   0.1f,
+                                   100.0f);
+
+  Vector3 eye(0.0f, 0.0f, -10.0f);
+  Vector3 at(0.0f, 0.0f, 0.0f);
+  Vector3 up(0.0f, 1.0f, 0.0f);
+
+  m_camera.setViewData(eye, at, up);
+
+  vp.proj = m_camera.getOrthographicProjection();
+  vp.view = m_camera.getView();
+
+  vp.proj.getTransposed();
+  vp.view.getTransposed();
+
+  gManager.updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+}
+
+void
+PhysicsApp::initCollisionBoxes()
+{
+  float size = m_desc.width * 0.5f;
+
+  m_left.min = Vector2(-size, -size);
+  m_left.max = Vector2(-size, size);
+  m_right.min = Vector2(size, -size);
+  m_right.max = Vector2(size, size);
+  m_top.min = Vector2(-size, -size);
+  m_top.max = Vector2(size, -size);
+  m_bottom.min = Vector2(-size, size);
+  m_bottom.max = Vector2(size, size);
 }
 }

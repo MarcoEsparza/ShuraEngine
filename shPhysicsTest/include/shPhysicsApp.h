@@ -31,9 +31,8 @@ class BlendState;
 class RasterizerState;
 class ConstantBuffer;
 
-struct WVP
+struct VP
 {
-  Matrix4 world = Matrix4::IDENTITY;
   Matrix4 view = Matrix4::IDENTITY;
   Matrix4 proj = Matrix4::IDENTITY;
 };
@@ -47,11 +46,11 @@ struct Box
 class PhysicsApp : public BaseApp
 {
  public:
-   PhysicsApp(const ScreenDesc& desc,
-              const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
-              const SampleDesc& sample = SampleDesc(1, 1))
-              : BaseApp(desc, dllGAPI, sample),
-                m_desc(desc) {}
+  PhysicsApp(const ScreenDesc& desc,
+             const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
+             const SampleDesc& sample = SampleDesc(1, 1))
+             : BaseApp(desc, dllGAPI, sample),
+               m_desc(desc) {}
 
   ~PhysicsApp() = default;
 
@@ -74,6 +73,15 @@ class PhysicsApp : public BaseApp
   void
   playerBounce(Vector2& collisionNormal);
 
+  void
+  initGraphicAssets();
+
+  void
+  initCamera();
+
+  void
+  initCollisionBoxes();
+
  private:
   ScreenDesc m_desc;
   SPtr<ProgramShader> m_pShader;
@@ -81,7 +89,7 @@ class PhysicsApp : public BaseApp
   SPtr<SamplerState> m_pSamplerLinear;
   SPtr<BlendState> m_pBlendS;
   SPtr<RasterizerState> m_pRasterS;
-  SPtr<ConstantBuffer> m_pWvp;
+  SPtr<ConstantBuffer> m_pVP;
 
   SPtr<Player> m_player;
   Camera m_camera;
