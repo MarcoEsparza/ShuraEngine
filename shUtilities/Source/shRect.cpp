@@ -18,7 +18,7 @@
 
 namespace shEngineSDK {
 
-shRect::shRect(const Vector2& pos, const Vector2& size)
+Rect::Rect(const Vector2& pos, const Vector2& size)
 {
   min = pos;
   max = min + size;
@@ -31,30 +31,30 @@ shRect::shRect(const Vector2& pos, const Vector2& size)
 /*************************************************************/
 
 void
-shRect::setPosition(const Vector2& pos)
+Rect::setPosition(const Vector2& pos)
 {
   min = pos;
 }
 
 void
-shRect::setSize(const Vector2& size)
+Rect::setSize(const Vector2& size)
 {
   max = min + size;
 }
 
 Vector2
-shRect::getMinPosition() const
+Rect::getMinPosition() const
 {
   return min;
 }
 
 Vector2
-shRect::getMaxPosition() const
+Rect::getMaxPosition() const
 {
   return max;
 }
 
-Array<Vector3, 4> shRect::getVertices() const
+Array<Vector3, 4> Rect::getVertices() const
 {
   return { Vector3(min.x, min.y, 0.0f),
            Vector3(max.x, min.y, 0.0f),
@@ -63,7 +63,7 @@ Array<Vector3, 4> shRect::getVertices() const
 }
 
 bool
-shRect::lineIntersect(const Vector2& point1, const Vector2& point2) const
+Rect::lineIntersect(const Vector2& point1, const Vector2& point2) const
 {
   return (pointIntersect(point1) || pointIntersect(point2) ||
           lineIntersectLine(point1, point2, min, Vector2(max.x, min.y)) ||
@@ -73,7 +73,7 @@ shRect::lineIntersect(const Vector2& point1, const Vector2& point2) const
 }
 
 bool
-shRect::pointIntersect(const Vector2& point) const
+Rect::pointIntersect(const Vector2& point) const
 {
   return (point.x >= min.x &&
           point.x <= max.x &&
@@ -82,7 +82,7 @@ shRect::pointIntersect(const Vector2& point) const
 }
 
 bool
-shRect::lineIntersectLine(const Vector2& point1,
+Rect::lineIntersectLine(const Vector2& point1,
                           const Vector2& point2,
                           const Vector2& point3,
                           const Vector2& point4) const

@@ -23,13 +23,13 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for Oriented Bounding-Box.
 */
-class SH_UTILITY_EXPORT shBoxOBB
+class SH_UTILITY_EXPORT BoxOBB
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  shBoxOBB() = default;
+  BoxOBB() = default;
   /**
   *  @brief Constructor that initialize box values.
   * 
@@ -37,7 +37,7 @@ class SH_UTILITY_EXPORT shBoxOBB
   *  @param Quaternion& _rotation: Rotation values.
   *  @param Vector3& _extent: Extent values.
   */
-  shBoxOBB(const Vector3& _center,
+  BoxOBB(const Vector3& _center,
            const Quaternion& _rotation,
            const Vector3 _extent)
            : center(_center), rotation(_rotation), extent(_extent) {}
@@ -45,7 +45,7 @@ class SH_UTILITY_EXPORT shBoxOBB
   /**
   *  @brief Default destructor.
   */
-  ~shBoxOBB() = default;
+  ~BoxOBB() = default;
 
   /*************************************************************/
   /*

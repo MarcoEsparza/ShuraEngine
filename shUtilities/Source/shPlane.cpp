@@ -26,36 +26,36 @@ namespace shEngineSDK {
 /*************************************************************/
 
 void
-shPlane::setNormal(const Vector3& _normal)
+Plane::setNormal(const Vector3& _normal)
 {
   normal = _normal;
 }
 
 void
-shPlane::setDistance(const float _distance)
+Plane::setDistance(const float _distance)
 {
   distance = _distance;
 }
 
 Vector3
-shPlane::getNormal() const
+Plane::getNormal() const
 {
   return normal;
 }
 
 float
-shPlane::getDistance() const
+Plane::getDistance() const
 {
   return distance;
 }
 
 float
-shPlane::pointToPlaneDistance(const Vector3& point) const
+Plane::pointToPlaneDistance(const Vector3& point) const
 {
   return (Math::abs(normal.dot(point) - distance) / normal.mag());
 }
 
-float shPlane::evaluate(const Vector3& point) const
+float Plane::evaluate(const Vector3& point) const
 {
   return (normal.dot(point) + distance);
 }
