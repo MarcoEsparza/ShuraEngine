@@ -745,6 +745,9 @@ class Degree
   */
   /*************************************************************/
  private:
+  /**
+  *  @brief Value on degrees.
+  */
   float m_degree = 0.0f;
 };
 
