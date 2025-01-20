@@ -174,122 +174,133 @@ public:
   /**
   *  @brief Cosine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Cosine from value.
   */
   static float
-  cos(const Radian radian);
+  cos(const Radian& radian);
 
   /**
   *  @brief Sine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Sine from value.
   */
   static float
-  sin(const Radian radian);
+  sin(const Radian& radian);
 
   /**
   *  @brief Tangent.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Tangent from value.
   */
   static float
-  tan(const Radian radian);
+  tan(const Radian& radian);
 
   /**
   *  @brief Hyperbolic cosine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Hyperbolic cosine from value.
   */
   static float
-  cosh(const Radian radian);
+  cosh(const Radian& radian);
 
   /**
   *  @brief Hyperbolic sine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Hyperbolic sine from value.
   */
   static float
-  sinh(const Radian radian);
+  sinh(const Radian& radian);
 
   /**
   *  @brief Hyperbolic tangent.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Hyperbolic tangent from value.
   */
   static float
-  tanh(const Radian radian);
+  tanh(const Radian& radian);
 
   /**
   *  @brief Arch cosine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Arch cosine from value.
   */
   static float
-  acos(const Radian radian);
+  acos(const Radian& radian);
 
   /**
   *  @brief Arch sine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Arch sine from value.
   */
   static float
-  asin(const Radian radian);
+  asin(const Radian& radian);
 
   /**
   *  @brief Arch Tangent.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Arch Tangent from value.
   */
   static float
-  atan(const Radian radian);
+  atan(const Radian& radian);
+
+  /**
+  *  @brief Arch Tangent 2.
+  *
+  *  @param Radian& rad1
+  *  @param Radian& rad2
+  *
+  *  @return float Arch Tangent from value.
+  */
+  static float
+  atan2(const Radian& rad1, const Radian& rad2);
 
   /**
   *  @brief Hyperbolic arch cosine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Hyperbolic arch cosine from value.
   */
   static float
-  acosh(const Radian radian);
+  acosh(const Radian& radian);
 
   /**
   *  @brief Hyperbolic arch sine.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Hyperbolic arch sine from value.
   */
   static float
-  asinh(const Radian radian);
+  asinh(const Radian& radian);
 
   /**
   *  @brief Hyperbolic arch tangent.
   *
-  *  @param Radian radian
+  *  @param Radian& radian
   *
   *  @return float Hyperbolic arch tangent from value.
   */
   static float
-  atanh(const Radian radian);
+  atanh(const Radian& radian);
 
   /*************************************************************/
   /*

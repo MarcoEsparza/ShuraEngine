@@ -119,73 +119,79 @@ PlatformMath::max_element(const Array<float, 4>::iterator first,
 /*************************************************************/
 
 float
-PlatformMath::cos(const Radian radian)
+PlatformMath::cos(const Radian& radian)
 {
   return std::cos(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::sin(const Radian radian)
+PlatformMath::sin(const Radian& radian)
 {
   return std::sin(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::tan(const Radian radian)
+PlatformMath::tan(const Radian& radian)
 {
   return std::tan(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::cosh(const Radian radian)
+PlatformMath::cosh(const Radian& radian)
 {
   return std::cosh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::sinh(const Radian radian)
+PlatformMath::sinh(const Radian& radian)
 {
   return std::sinh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::tanh(const Radian radian)
+PlatformMath::tanh(const Radian& radian)
 {
   return std::tanh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::acos(const Radian radian)
+PlatformMath::acos(const Radian& radian)
 {
   return std::acos(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::asin(const Radian radian)
+PlatformMath::asin(const Radian& radian)
 {
   return std::asin(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::atan(const Radian radian)
+PlatformMath::atan(const Radian& radian)
 {
   return std::atan(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::acosh(const Radian radian)
+PlatformMath::atan2(const Radian& rad1, const Radian& rad2)
+{
+  return std::atan2(rad1.getValueOnRadians(), rad2.getValueOnRadians());
+}
+
+float
+PlatformMath::acosh(const Radian& radian)
 {
   return std::acosh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::asinh(const Radian radian)
+PlatformMath::asinh(const Radian& radian)
 {
   return std::asinh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::atanh(const Radian radian)
+PlatformMath::atanh(const Radian& radian)
 {
   return std::atanh(radian.getValueOnRadians());
 }
