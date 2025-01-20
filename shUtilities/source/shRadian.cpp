@@ -23,7 +23,7 @@
 namespace shEngineSDK {
 Radian::Radian(const Degree& d)
 {
-
+  
 }
 
 float
