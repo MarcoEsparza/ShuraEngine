@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/17
+*  @date    2025/01/19
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -19,14 +19,19 @@
 */
 /*************************************************************/
 #include "shPrerequisitesUtilities.h"
-#include "shBoxAAB.h"
-#include "shBoxOBB.h"
-#include "shCapsule.h"
-#include "shPlane.h"
-#include "shRect.h"
-#include "shSphere.h"
 
 namespace shEngineSDK {
+class Vector3;
+class Vector2;
+class BoxAAB;
+class BoxOBB;
+class Capsule;
+class Plane;
+class Rect;
+class Sphere;
+class Degree;
+class Radian;
+
 /**
 *  @brief Math class wrapper, using the STD. compatible with Windows, Linux and OSX.
 */
@@ -169,122 +174,122 @@ public:
   /**
   *  @brief Cosine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Cosine from value.
   */
   static float
-  cos(const float radian);
+  cos(const Radian radian);
 
   /**
   *  @brief Sine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Sine from value.
   */
   static float
-  sin(const float radian);
+  sin(const Radian radian);
 
   /**
   *  @brief Tangent.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Tangent from value.
   */
   static float
-  tan(const float radian);
+  tan(const Radian radian);
 
   /**
   *  @brief Hyperbolic cosine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Hyperbolic cosine from value.
   */
   static float
-  cosh(const float radian);
+  cosh(const Radian radian);
 
   /**
   *  @brief Hyperbolic sine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Hyperbolic sine from value.
   */
   static float
-  sinh(const float radian);
+  sinh(const Radian radian);
 
   /**
   *  @brief Hyperbolic tangent.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Hyperbolic tangent from value.
   */
   static float
-  tanh(const float radian);
+  tanh(const Radian radian);
 
   /**
   *  @brief Arch cosine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Arch cosine from value.
   */
   static float
-  acos(const float radian);
+  acos(const Radian radian);
 
   /**
   *  @brief Arch sine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Arch sine from value.
   */
   static float
-  asin(const float radian);
+  asin(const Radian radian);
 
   /**
   *  @brief Arch Tangent.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Arch Tangent from value.
   */
   static float
-  atan(const float radian);
+  atan(const Radian radian);
 
   /**
   *  @brief Hyperbolic arch cosine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Hyperbolic arch cosine from value.
   */
   static float
-  acosh(const float radian);
+  acosh(const Radian radian);
 
   /**
   *  @brief Hyperbolic arch sine.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Hyperbolic arch sine from value.
   */
   static float
-  asinh(const float radian);
+  asinh(const Radian radian);
 
   /**
   *  @brief Hyperbolic arch tangent.
   *
-  *  @param float radian: Value must be in radians.
+  *  @param Radian radian
   *
   *  @return float Hyperbolic arch tangent from value.
   */
   static float
-  atanh(const float radian);
+  atanh(const Radian radian);
 
   /*************************************************************/
   /*

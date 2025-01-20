@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/18
+*  @date    2025/01/19
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -18,9 +18,16 @@
 */
 /*************************************************************/
 #include "shPlatformMath.h"
+#include "shVector3.h"
+#include "shVector2.h"
 #include "shBoxAAB.h"
 #include "shBoxOBB.h"
+#include "shRect.h"
+#include "shPlane.h"
+#include "shCapsule.h"
 #include "shSphere.h"
+#include "shDegree.h"
+#include "shRadian.h"
 
 namespace shEngineSDK {
  /*************************************************************/
@@ -29,7 +36,7 @@ namespace shEngineSDK {
  */
  /*************************************************************/
 
-const float PlatformMath::PI = acos(-1.0f);
+const float PlatformMath::PI = 2 * asin(Radian(1.0f));
 
 const float PlatformMath::RAD2DEG = 180.0f / PI;
 
@@ -112,75 +119,75 @@ PlatformMath::max_element(const Array<float, 4>::iterator first,
 /*************************************************************/
 
 float
-PlatformMath::cos(const float radian)
+PlatformMath::cos(const Radian radian)
 {
-  return std::cos(radian);
+  return std::cos(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::sin(const float radian)
+PlatformMath::sin(const Radian radian)
 {
-  return std::sin(radian);
+  return std::sin(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::tan(const float radian)
+PlatformMath::tan(const Radian radian)
 {
-  return std::tan(radian);
+  return std::tan(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::cosh(const float radian)
+PlatformMath::cosh(const Radian radian)
 {
-  return std::cosh(radian);
+  return std::cosh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::sinh(const float radian)
+PlatformMath::sinh(const Radian radian)
 {
-  return std::sinh(radian);
+  return std::sinh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::tanh(const float radian)
+PlatformMath::tanh(const Radian radian)
 {
-  return std::tanh(radian);
+  return std::tanh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::acos(const float radian)
+PlatformMath::acos(const Radian radian)
 {
-  return std::acos(radian);
+  return std::acos(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::asin(const float radian)
+PlatformMath::asin(const Radian radian)
 {
-  return std::asin(radian);
+  return std::asin(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::atan(const float radian)
+PlatformMath::atan(const Radian radian)
 {
-  return std::atan(radian);
+  return std::atan(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::acosh(const float radian)
+PlatformMath::acosh(const Radian radian)
 {
-  return std::acosh(radian);
+  return std::acosh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::asinh(const float radian)
+PlatformMath::asinh(const Radian radian)
 {
-  return std::asinh(radian);
+  return std::asinh(radian.getValueOnRadians());
 }
 
 float
-PlatformMath::atanh(const float radian)
+PlatformMath::atanh(const Radian radian)
 {
-  return std::atanh(radian);
+  return std::atanh(radian.getValueOnRadians());
 }
 
 /*************************************************************/
