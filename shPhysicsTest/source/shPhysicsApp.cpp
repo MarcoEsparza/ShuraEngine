@@ -40,21 +40,22 @@ PhysicsApp::onCreate()
   initCollisionBoxes();
 
   Path textPath("resources/ttgl.png");
-  Vector2 minPlayerSize(25.0f, 25.0f);
-  Vector2 maxPlayerSize(25.0f, 25.0f);
+  Vector2 minPlayerSize(-25.0f, 25.0f);
+  Vector2 maxPlayerSize(25.0f, -25.0f);
 
   m_player = make_shared<Player>(minPlayerSize,
                                  maxPlayerSize,
                                  textPath,
                                  Vector2(0.0f, 0.0f),
                                  2.5f,
+                                 500.0f,
+                                 0.1f,
                                  25.0f);
 
   Path arrowPath("resources/arrow.png");
-  /*auto arrowR = reinterpret_pointer_cast<ImageResource>(
-                rManager.loadResourceFromFile(arrowPath));*/
+  auto arrow = make_shared<Arrow>(arrowPath, Vector2(0.0f, 40.0f), Vector2(80.0f, -40.0f));
 
-  
+  m_player->setArrow(arrow);
 }
 
 void
@@ -101,10 +102,11 @@ PhysicsApp::onRender()
   gManager.setShaderResourceView(m_player->m_sprite->m_pTexture);
   gManager.drawIndexed(static_cast<uint32>(m_player->m_sprite->m_indices.size()), 0, 0);
 
-  //gManager.setVertexBuffers(m_player->m_pDirArrow->m_pVB);
-  //gManager.setIndexBuffers(m_player->m_pDirArrow->m_pIB);
-  //gManager.setShaderResourceView(m_player->m_pDirArrow->m_pTexture);
-  //gManager.drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_indices.size()), 0, 0);
+  gManager.vsSetConstantBuffers(m_player->m_pDirArrow->m_modelBuffer, 1);
+  gManager.setVertexBuffers(m_player->m_pDirArrow->m_sprite->m_pVB);
+  gManager.setIndexBuffers(m_player->m_pDirArrow->m_sprite->m_pIB);
+  gManager.setShaderResourceView(m_player->m_pDirArrow->m_sprite->m_pTexture);
+  gManager.drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_sprite->m_indices.size()), 0, 0);
 }
 
 void
@@ -112,38 +114,36 @@ PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
 
-  const float speed = 200.0f;
-
   if (key == KEY::kW) {
-    m_player->move(Vector2(0.0f, speed));
+    m_player->move(Vector2(0.0f, 1.0f));
   }
 
   if (key == KEY::kA) {
-    m_player->move(Vector2(-speed, 0.0f));
+    m_player->move(Vector2(-1.0f, 0.0f));
   }
 
   if (key == KEY::kS) {
-    m_player->move(Vector2(0.0f, -speed));
+    m_player->move(Vector2(0.0f, -1.0f));
   }
 
   if (key == KEY::kD) {
-    m_player->move(Vector2(speed, 0.0f));
+    m_player->move(Vector2(1.0f, 0.0f));
   }
 
   if (key == KEY::kE) {
-    m_player->move(Vector2(speed, speed));
+    m_player->move(Vector2(1.0f, 1.0f));
   }
 
   if (key == KEY::kQ) {
-    m_player->move(Vector2(-speed, speed));
+    m_player->move(Vector2(-1.0f, 1.0f));
   }
 
   if (key == KEY::kZ) {
-    m_player->move(Vector2(-speed, -speed));
+    m_player->move(Vector2(-1.0f, -1.0f));
   }
 
   if (key == KEY::kX) {
-    m_player->move(Vector2(speed, -speed));
+    m_player->move(Vector2(1.0f, -1.0f));
   }
 }
 

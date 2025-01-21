@@ -66,12 +66,13 @@ class Arrow
 {
  public:
   Arrow() = default;
-
+  Arrow(const Path& filePath, const Vector2& min, const Vector2& max);
   ~Arrow() = default;
 
  public:
-  Sprite m_sprite;
-  Vector2 m_position;
+  SPtr<Sprite> m_sprite;
+  Matrix4 m_position = Matrix4::IDENTITY;
+  SPtr<ConstantBuffer> m_modelBuffer;
 };
 
 class Player
@@ -83,6 +84,8 @@ class Player
          const Path& filePath,
          const Vector2& position,
          const float mass,
+         const float speed,
+         const float dragC,
          const float radius);
   ~Player() = default;
 
@@ -92,16 +95,24 @@ class Player
             const Path& filePath,
             const Vector2& position,
             const float mass,
+            const float speed,
+            const float dragC,
             const float radius);
 
   void
-  setArrow(const Arrow& arrow);
+  setArrow(const SPtr<Arrow>& arrow);
 
   void
   move(const Vector2& direction);
 
   Vector2
   calculateDrag();
+
+  void
+  eulerDrag(const Vector2& dForce, const float dt);
+
+  void
+  verletDrag(const Vector2& dForce, const float dt);
 
   void
   update(float deltaTime);
@@ -120,8 +131,12 @@ class Player
 
   Vector2 m_velocity;
   Vector2 m_position;
-  float m_mass;
 
+  Vector2 m_previousPosition = Vector2(0.0f, 0.0f);
+
+  float m_mass;
+  float m_speed;
+  float m_dragC;
   float m_radius;
 
   SPtr<Arrow> m_pDirArrow;

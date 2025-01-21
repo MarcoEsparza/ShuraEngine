@@ -21,16 +21,22 @@
 #include "shResourceManager.h"
 #include "shImageResource.h"
 #include "shMath.h"
+#include "shRadian.h"
+#include "shDegree.h"
+
+#define MAX_VERTEX 4.0f
 
 namespace shEngineSDK {
 Player::Player(const Vector2& min,
                const Vector2& max,
                const Path& filePath,
                const Vector2& position,
-               const float mass, 
+               const float mass,
+               const float speed,
+               const float dragC,
                const float radius)
 {
-  setPlayer(min, max, filePath, position, mass, radius);
+  setPlayer(min, max, filePath, position, mass, speed, dragC, radius);
   m_velocity = Vector2(0.0f, 0.0f);
 }
 
@@ -40,26 +46,30 @@ Player::setPlayer(const Vector2& min,
                   const Path& filePath,
                   const Vector2& position,
                   const float mass,
+                  const float speed,
+                  const float dragC,
                   const float radius)
 {
   m_sprite = make_shared<Sprite>(filePath, min, max);
   m_position = position;
   m_mass = mass;
+  m_speed = speed;
+  m_dragC = dragC;
   m_radius = radius;
   m_modelBuffer = GraphicsManager::instance().createConstantBuffer(sizeof(Matrix4));
   updateModelBuffer();
 }
 
 void
-Player::setArrow(const Arrow& arrow)
+Player::setArrow(const SPtr<Arrow>& arrow)
 {
-  
+  m_pDirArrow = arrow;
 }
 
 void
 Player::move(const Vector2& direction)
 {
-  m_velocity = direction;
+  m_velocity = direction * m_speed;
 }
 
 Vector2
@@ -71,11 +81,28 @@ Player::calculateDrag()
     return Vector2(0.0f, 0.0f);
   }
 
-  float dragMag = 0.5f * 1.225f * 0.47f * 0.1f * speed * speed;
-
-  Vector2 dragForce = m_velocity.getNormalized() * -dragMag;
+  Vector2 dragForce = m_velocity * (-m_dragC * speed / m_mass);
 
   return dragForce;
+}
+
+void
+Player::eulerDrag(const Vector2& dForce, const float dt)
+{
+  m_velocity = m_velocity + dForce * dt;
+  m_position = m_position + m_velocity * dt;
+}
+
+void
+Player::verletDrag(const Vector2& dForce, const float dt)
+{
+  Vector2 nextPosition = m_position * 2.0f - m_previousPosition + dForce * (dt * dt);
+  m_velocity = (nextPosition - m_previousPosition);
+  m_velocity.x /= (2 * dt);
+  m_velocity.y /= (2 * dt);
+
+  m_previousPosition = m_position;
+  m_position = nextPosition;
 }
 
 void
@@ -85,14 +112,9 @@ Player::update(float deltaTime)
     return;
   }
 
-  Vector2 dragForce = calculateDrag();
+  //eulerDrag(calculateDrag(), deltaTime);
 
-  Vector2 acceleration(0.0f, 0.0f);
-  acceleration.x = dragForce.x / m_mass;
-  acceleration.y = dragForce.y / m_mass;
-
-  m_velocity = m_velocity + acceleration * deltaTime;
-  m_position = m_position + m_velocity * deltaTime;
+  verletDrag(calculateDrag(), deltaTime);
 
   Vector2 velPos = m_position + m_velocity;
 
@@ -139,60 +161,29 @@ Player::updateModelBuffer()
 void
 Player::updateArrow()
 {
-  //GraphicsManager& gManager = GraphicsManager::instance();
-
-  Vector2 p1 = m_position;
-  Vector2 p2 = m_position;
-  Vector2 p3 = m_position;
-  Vector2 p4 = m_position;
-
   if (m_direction == DIRECTION::kUp) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-25.0f, 65.0f);
-    p3 += Vector2(25.0f, 25.0f);
-    p4 += Vector2(25.0f, 65.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kUpRight) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-25.0f, 65.0f);
-    p3 += Vector2(25.0f, 25.0f);
-    p4 += Vector2(25.0f, 65.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kRight) {
-    p1 += Vector2(25.0f, 25.0f);
-    p2 += Vector2(65.0f, 25.0f);
-    p3 += Vector2(25.0f, -25.0f);
-    p4 += Vector2(65.0f, -25.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kDownRight) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-25.0f, 65.0f);
-    p3 += Vector2(25.0f, 25.0f);
-    p4 += Vector2(25.0f, 65.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kDown) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-25.0f, 65.0f);
-    p3 += Vector2(25.0f, 25.0f);
-    p4 += Vector2(25.0f, 65.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kDownLeft) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-25.0f, 65.0f);
-    p3 += Vector2(25.0f, 25.0f);
-    p4 += Vector2(25.0f, 65.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kLeft) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-65.0f, 25.0f);
-    p3 += Vector2(-25.0f, -25.0f);
-    p4 += Vector2(-65.0f, -25.0f);
+    Degree angle(90.0f);
   }
   else if (m_direction == DIRECTION::kUpLeft) {
-    p1 += Vector2(-25.0f, 25.0f);
-    p2 += Vector2(-25.0f, 65.0f);
-    p3 += Vector2(25.0f, 25.0f);
-    p4 += Vector2(25.0f, 65.0f);
+    Degree angle(90.0f);
   }
 
 }
@@ -208,8 +199,8 @@ Sprite::setSprite(const Path& filePath, const Vector2& min, const Vector2& max)
   GraphicsManager& gManager = GraphicsManager::instance();
   ResourceManager& rManager = ResourceManager::instance();
 
-  m_vertices.resize(4);
-  m_vertices[0].position = Vector3(-min.x, min.y, 0.0f);
+  m_vertices.resize(MAX_VERTEX);
+  m_vertices[0].position = Vector3(min.x, min.y, 0.0f);
   m_vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
   m_vertices[0].tex = Vector2(0.0f, 0.0f);
   
@@ -217,11 +208,11 @@ Sprite::setSprite(const Path& filePath, const Vector2& min, const Vector2& max)
   m_vertices[1].normal = Vector3(0.0f, 0.0f, 0.0f);
   m_vertices[1].tex = Vector2(1.0f, 0.0f);
   
-  m_vertices[2].position = Vector3(-min.x, -max.y, 0.0f);
+  m_vertices[2].position = Vector3(min.x, max.y, 0.0f);
   m_vertices[2].normal = Vector3(0.0f, 0.0f, 0.0f);
   m_vertices[2].tex = Vector2(0.0f, 1.0f);
   
-  m_vertices[3].position = Vector3(max.x, -max.y, 0.0f);
+  m_vertices[3].position = Vector3(max.x, max.y, 0.0f);
   m_vertices[3].normal = Vector3(0.0f, 0.0f, 0.0f);
   m_vertices[3].tex = Vector2(1.0f, 1.0f);
 
@@ -234,5 +225,16 @@ Sprite::setSprite(const Path& filePath, const Vector2& min, const Vector2& max)
 
   m_pVB = gManager.createVertexBuffer(m_vertices);
   m_pIB = gManager.createIndexBuffer(m_indices);
+}
+
+Arrow::Arrow(const Path& filePath, const Vector2& min, const Vector2& max)
+{
+  m_sprite = make_shared<Sprite>(filePath, min, max);
+
+  GraphicsManager& gManager = GraphicsManager::instance();
+
+  m_modelBuffer = GraphicsManager::instance().createConstantBuffer(sizeof(Matrix4));
+
+  gManager.updateConstantBuffer(m_modelBuffer, &m_position, sizeof(Matrix4));
 }
 }
