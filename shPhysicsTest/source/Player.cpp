@@ -22,7 +22,6 @@
 #include "shImageResource.h"
 #include "shMath.h"
 #include "shRadian.h"
-#include "shDegree.h"
 
 #define MAX_VERTEX 4.0f
 
@@ -112,9 +111,9 @@ Player::update(float deltaTime)
     return;
   }
 
-  //eulerDrag(calculateDrag(), deltaTime);
+  eulerDrag(calculateDrag(), deltaTime);
 
-  verletDrag(calculateDrag(), deltaTime);
+  //verletDrag(calculateDrag(), deltaTime);
 
   Vector2 velPos = m_position + m_velocity;
 
@@ -145,7 +144,7 @@ Player::update(float deltaTime)
     m_direction = DIRECTION::kUpLeft;
   }
 
-  //updateArrow();
+  updateArrow();
 }
 
 void
@@ -161,31 +160,47 @@ Player::updateModelBuffer()
 void
 Player::updateArrow()
 {
+  GraphicsManager& gManager = GraphicsManager::instance();
+
+  float angle = 0.0f;
+
   if (m_direction == DIRECTION::kUp) {
-    Degree angle(90.0f);
+    angle = 90.0f;
   }
   else if (m_direction == DIRECTION::kUpRight) {
-    Degree angle(90.0f);
+    angle = 45.0f;
   }
   else if (m_direction == DIRECTION::kRight) {
-    Degree angle(90.0f);
+    angle = 0.0f;
   }
   else if (m_direction == DIRECTION::kDownRight) {
-    Degree angle(90.0f);
+    angle = -45.0f;
   }
   else if (m_direction == DIRECTION::kDown) {
-    Degree angle(90.0f);
+    angle = -90.0f;
   }
   else if (m_direction == DIRECTION::kDownLeft) {
-    Degree angle(90.0f);
+    angle = -135.0f;
   }
   else if (m_direction == DIRECTION::kLeft) {
-    Degree angle(90.0f);
+    angle = 180.0f;
   }
   else if (m_direction == DIRECTION::kUpLeft) {
-    Degree angle(90.0f);
+    angle = 135.0f;
   }
 
+  Matrix4 rot = Matrix4::IDENTITY;
+  Matrix4 scale = Matrix4::IDENTITY;
+  Matrix4 trans = Matrix4::IDENTITY;
+  scale = scale.createScaleMatrix(Vector3(1.0f, 1.0f, 1.0f));
+  rot = rot.createRotationZMatrix(Radian(angle * Math::DEG2RAD));
+  trans = m_transform.createTranslationMatrix(Vector3(m_position.x, m_position.y, 0.0f));
+
+  m_pDirArrow->m_position = trans * rot * scale;
+
+  gManager.updateConstantBuffer(m_pDirArrow->m_modelBuffer,
+                                &m_pDirArrow->m_position,
+                                sizeof(Matrix4));
 }
 
 Sprite::Sprite(const Path& filePath, const Vector2& min, const Vector2& max)
