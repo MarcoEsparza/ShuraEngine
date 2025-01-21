@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    shDX11RasterizerState.h
+*  @file    shDX11DepthStencilState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/14
-*  @brief   DirectX11 Rasterizer State.
+*  @date    2025/01/15
+*  @brief   DirectX11 Depth Stencil State.
 *
-*  DirectX11 Rasterizer State.
+*  DirectX11 Depth Stencil State.
 *
 *  @bug     No bug known.
 */
@@ -18,24 +18,24 @@
 */
 /*************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
-#include "shRasterizerState.h"
+#include "shDepthStencilState.h"
 
 namespace shEngineSDK {
 /**
-*  @brief DirectX11 Rasterizer State.
+*  @brief DirectX11 Depth Stencil State.
 */
-class DX11RasterizerState : public RasterizerState
+class DX11DepthStencilState : public DepthStencilState
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  DX11RasterizerState() = default;
+   DX11DepthStencilState() = default;
 
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11RasterizerState();
+  FORCEINLINE virtual ~DX11DepthStencilState();
 
   friend class DX11GraphicsManager;
 
@@ -46,9 +46,9 @@ class DX11RasterizerState : public RasterizerState
   /*************************************************************/
  protected:
   /**
-  *  @brief DirectX11 Rasterizer State pointer.
+  *  @brief DirectX11 Depth Stencil State pointer.
   */
-  ID3D11RasterizerState* m_pRasterS = nullptr;
+  ID3D11DepthStencilState* m_pDepthSS = nullptr;
 };
 
 /*************************************************************/
@@ -57,8 +57,8 @@ class DX11RasterizerState : public RasterizerState
 */
 /*************************************************************/
 
-FORCEINLINE DX11RasterizerState::~DX11RasterizerState()
+FORCEINLINE DX11DepthStencilState::~DX11DepthStencilState()
 {
-  SafeRelease(m_pRasterS);
+  SafeRelease(m_pDepthSS);
 }
 }

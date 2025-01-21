@@ -23,6 +23,7 @@
     <ClInclude Include="Include\shBoxOBB.h" />
     <ClInclude Include="Include\shCapsule.h" />
     <ClInclude Include="include\shColor.h" />
+    <ClInclude Include="include\shDegree.h" />
     <ClInclude Include="Include\shException.h" />
     <ClInclude Include="include\shLinearColor.h" />
     <ClInclude Include="Include\shMath.h" />
@@ -35,6 +36,7 @@
     <ClInclude Include="Include\shPlatformTypes.h" />
     <ClInclude Include="Include\shPrerequisitesUtilities.h" />
     <ClInclude Include="Include\shQuaternion.h" />
+    <ClInclude Include="include\shRadian.h" />
     <ClInclude Include="Include\shRect.h" />
     <ClInclude Include="Include\shSphere.h" />
     <ClInclude Include="Include\shStdHeaders.h" />
@@ -48,12 +50,14 @@
     <ClCompile Include="Source\shBoxOBB.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
     <ClCompile Include="source\shColor.cpp" />
+    <ClCompile Include="source\shDegree.cpp" />
     <ClCompile Include="source\shLinearColor.cpp" />
     <ClCompile Include="Source\shMatrix4.cpp" />
     <ClCompile Include="source\shPath.cpp" />
     <ClCompile Include="Source\shPlane.cpp" />
     <ClCompile Include="Source\shPlatformMath.cpp" />
     <ClCompile Include="Source\shQuaternion.cpp" />
+    <ClCompile Include="source\shRadian.cpp" />
     <ClCompile Include="Source\shRect.cpp" />
     <ClCompile Include="Source\shSphere.cpp" />
     <ClCompile Include="Source\shVector2.cpp" />

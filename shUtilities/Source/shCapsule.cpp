@@ -26,37 +26,37 @@ namespace shEngineSDK {
 /*************************************************************/
 
 void
-shCapsule::setPosition(const Vector3& pA, const Vector3& pB)
+Capsule::setPosition(const Vector3& pA, const Vector3& pB)
 {
   pointA = pA;
   pointB = pB;
 }
 
 void
-shCapsule::setRadius(const float _radius)
+Capsule::setRadius(const float _radius)
 {
   radius = _radius;
 }
 
 Vector3
-shCapsule::getPointA() const
+Capsule::getPointA() const
 {
   return pointA;
 }
 
 Vector3
-shCapsule::getPointB() const
+Capsule::getPointB() const
 {
   return pointB;
 }
 
 float
-shCapsule::getRadius()
+Capsule::getRadius()
 {
   return radius;
 }
 void
-shCapsule::projectOnAxis(const Vector3& axis, float& min, float& max) const
+Capsule::projectOnAxis(const Vector3& axis, float& min, float& max) const
 {
   Vector3 dir = pointB - pointA;
   float length = Math::sqrt(dir.dot(dir));

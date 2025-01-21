@@ -23,24 +23,24 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for rectangle figure.
 */
-class SH_UTILITY_EXPORT shRect
+class SH_UTILITY_EXPORT Rect
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  shRect() = default;
+  Rect() = default;
   /**
   *  @brief Constructor to initialize rect values.
   * 
   *  @param const Vector2& pos: Desired min value.
   *  @param const Vector2& size: Compute max value with size and min value.
   */
-  shRect(const Vector2& pos, const Vector2& size);
+  Rect(const Vector2& pos, const Vector2& size);
   /**
   *  @brief Default destructor.
   */
-  ~shRect() = default;
+  ~Rect() = default;
   
   /*************************************************************/
   /*

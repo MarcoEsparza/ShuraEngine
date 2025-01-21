@@ -22,13 +22,13 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for capsule figure.
 */
-class SH_UTILITY_EXPORT shCapsule
+class SH_UTILITY_EXPORT Capsule
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  shCapsule() = default;
+  Capsule() = default;
   /**
   *  @brief Constructor that initialize the capsule values.
   * 
@@ -36,12 +36,12 @@ class SH_UTILITY_EXPORT shCapsule
   *  @param const Vector3& pA: Point A.
   *  @param const Vector3& pB: Point B.
   */
-  shCapsule(const float _radius, const Vector3& pA, const Vector3& pB)
+  Capsule(const float _radius, const Vector3& pA, const Vector3& pB)
             : radius(_radius), pointA(pA), pointB(pB) {}
   /**
   *  @brief Default destructor.
   */
-  ~shCapsule() = default;
+  ~Capsule() = default;
 
   /*************************************************************/
   /*

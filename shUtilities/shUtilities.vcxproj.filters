@@ -102,6 +102,12 @@
     <ClInclude Include="include\shPath.h">
       <Filter>Include\Util</Filter>
     </ClInclude>
+    <ClInclude Include="include\shRadian.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDegree.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shBoxOBB.cpp">
@@ -151,6 +157,12 @@
     </ClCompile>
     <ClCompile Include="source\shPath.cpp">
       <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shRadian.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shDegree.cpp">
+      <Filter>Source\Math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

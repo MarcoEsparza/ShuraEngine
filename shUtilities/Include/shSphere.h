@@ -22,25 +22,25 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for sphere figure.
 */
-class SH_UTILITY_EXPORT shSphere
+class SH_UTILITY_EXPORT Sphere
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  shSphere() = default;
+  Sphere() = default;
   /**
   *  @brief Constructor to initialize center and radius values.
   * 
   *  @param const Vector3& _center: Desired center.
   *  @param const float _radius: Desired radius.
   */
-  shSphere(const Vector3& _center, const float _radius)
+  Sphere(const Vector3& _center, const float _radius)
            : center(_center), radius(_radius) {}
   /**
   *  @brief Default destructor.
   */
-  ~shSphere() = default;
+  ~Sphere() = default;
 
   /*************************************************************/
   /*

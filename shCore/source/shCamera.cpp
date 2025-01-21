@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/05
+*  @date    2025/01/20
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -18,6 +18,7 @@
 /*************************************************************/
 #include "shCamera.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 namespace shEngineSDK {
 void
@@ -102,8 +103,8 @@ void
 FPSCamera::rotateCam(const float yaw, const float pitch)
 {
   Matrix4 rotation = Matrix4::IDENTITY;
-  Matrix4 rotX = rotation.createRotationXMatrix(pitch);
-  Matrix4 rotY = rotation.createRotationYMatrix(yaw);
+  Matrix4 rotX = rotation.createRotationXMatrix(Radian(pitch));
+  Matrix4 rotY = rotation.createRotationYMatrix(Radian(yaw));
   rotation = rotX * rotY;
 
   m_view *= rotation;

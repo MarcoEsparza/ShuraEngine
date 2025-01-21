@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/05
+*  @date    2025/01/19
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -19,6 +19,7 @@
 /*************************************************************/
 #include "shMatrix4.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 namespace shEngineSDK {
 /*************************************************************/
@@ -106,13 +107,16 @@ ProjectionMatrix::ProjectionMatrix(const float halfFOV,
                                    const float minZ,
                                    const float maxZ)
 {
-  m[0][0] = 1.0f / ((width / height) * Math::tan(halfFOV));
+  Radian rHalfFOV(halfFOV);
+  float tanHFOV = Math::tan(rHalfFOV);
+
+  m[0][0] = 1.0f / ((width / height) * tanHFOV);
   m[0][1] = 0.0f;
   m[0][2] = 0.0f;
   m[0][3] = 0.0f;
 
   m[1][0] = 0.0f;
-  m[1][1] = 1.0f / Math::tan(halfFOV);
+  m[1][1] = 1.0f / tanHFOV;
   m[1][2] = 0.0f;
   m[1][3] = 0.0f;
 
@@ -407,7 +411,7 @@ Matrix4::transformDirection(const Vector3& vec) const
 }
 
 Matrix4
-Matrix4::createRotationXMatrix(const float angle) const
+Matrix4::createRotationXMatrix(const Radian angle) const
 {
   return Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
                  0.0f, Math::cos(angle), -(Math::sin(angle)), 0.0f,
@@ -416,7 +420,7 @@ Matrix4::createRotationXMatrix(const float angle) const
 }
 
 Matrix4
-Matrix4::createRotationYMatrix(const float angle) const
+Matrix4::createRotationYMatrix(const Radian angle) const
 {
   return Matrix4(Math::cos(angle), 0.0f, Math::sin(angle), 0.0f,
                  0.0f, 1.0f, 0.0f, 0.0f,
@@ -425,7 +429,7 @@ Matrix4::createRotationYMatrix(const float angle) const
 }
 
 Matrix4
-Matrix4::createRotationZMatrix(const float angle) const
+Matrix4::createRotationZMatrix(const Radian angle) const
 {
   return Matrix4(Math::cos(angle), -(Math::sin(angle)), 0.0f, 0.0f,
                  Math::sin(angle), Math::cos(angle), 0.0f, 0.0f,
@@ -444,13 +448,13 @@ Transform::setPosition(const Vector3& position)
 void
 Transform::setRotation(const Vector3& rotation)
 {
-  const Matrix4 xAxis = Matrix4::createRotationXMatrix(rotation.x);
-  const Matrix4 yAxis = Matrix4::createRotationYMatrix(rotation.y);
-  const Matrix4 zAxis = Matrix4::createRotationZMatrix(rotation.z);
+  const Matrix4 xAxis = Matrix4::createRotationXMatrix(Radian(rotation.x));
+  const Matrix4 yAxis = Matrix4::createRotationYMatrix(Radian(rotation.y));
+  const Matrix4 zAxis = Matrix4::createRotationZMatrix(Radian(rotation.z));
 
-  *this *= xAxis;
-  *this *= yAxis;
   *this *= zAxis;
+  *this *= yAxis;
+  *this *= xAxis;
 }
 
 void
@@ -470,7 +474,10 @@ Transform::getPosition() const
 Vector3
 Transform::getRotation() const
 {
-  return Vector3();
+  const float yaw = Math::atan2(Radian(m[0][2]), Radian(m[2][2]));
+  const float pitch = Math::asin(Radian(-m[1][2]));
+  const float roll = Math::atan2(Radian(m[1][0]), Radian(m[1][1]));
+  return Vector3(yaw, pitch, roll);
 }
 
 Vector3

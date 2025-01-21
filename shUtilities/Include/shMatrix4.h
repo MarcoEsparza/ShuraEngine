@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2025/01/19
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -24,6 +24,8 @@
 #include "shVector4.h"
 
 namespace shEngineSDK {
+class Radian;
+
 /**
 *  @brief Matrix4x4, double array, use double brackets to access to the matrix values.
 * 
@@ -164,32 +166,32 @@ class SH_UTILITY_EXPORT Matrix4
   /**
   *  @brief Create a rotation matrix for the x axis with a given angle.
   *
-  *  @param  float angle: The given angle
+  *  @param Radian angle: The given angle
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationXMatrix(const float angle) const;
+  createRotationXMatrix(const Radian angle) const;
 
   /**
   *  @brief Create a rotation matrix for the y axis with a given angle.
   *
-  *  @param  float angle: The given angle
+  *  @param Radian angle: The given angle
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationYMatrix(const float angle) const;
+  createRotationYMatrix(const Radian angle) const;
 
   /**
   *  @brief Create a rotation matrix for the z axis with a given angle.
   *
-  *  @param  float _angle: The given angle
+  *  @param Radian _angle: The given angle
   *
   *  @return Matrix4 The resultant rotation matrix.
   */
   Matrix4
-  createRotationZMatrix(const float angle) const;
+  createRotationZMatrix(const Radian angle) const;
 
   /*************************************************************/
   /*

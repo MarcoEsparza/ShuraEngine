@@ -26,25 +26,25 @@ namespace shEngineSDK {
 /*************************************************************/
 
 void
-shSphere::setCenter(const Vector3& _center)
+Sphere::setCenter(const Vector3& _center)
 {
   center = _center;
 }
 
 void
-shSphere::setRadius(const float _radius)
+Sphere::setRadius(const float _radius)
 {
   radius = _radius;
 }
 
 Vector3
-shSphere::getCenter() const
+Sphere::getCenter() const
 {
   return center;
 }
 
 float
-shSphere::getRadius() const
+Sphere::getRadius() const
 {
   return radius;
 }

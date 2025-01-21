@@ -30,6 +30,7 @@
 #include "shDX11Texture.h"
 #include "shDX11BlendState.h"
 #include "shDX11RasterizerState.h"
+#include "shDX11DepthStencilState.h"
 
 namespace shEngineSDK {
 /**
@@ -228,6 +229,8 @@ class DX11GraphicsManager : public GraphicsManager
   *  @brief Creates a blend state.
   *
   *  @param BlendDesc& blendDesc
+  * 
+  *  @return SPtr<BlendState>
   */
   SPtr<BlendState>
   internalCreateBlendState(const BlendDesc& blendDesc,
@@ -237,9 +240,21 @@ class DX11GraphicsManager : public GraphicsManager
   *  @brief Creates a rasterizer state.
   *
   *  @param RasterizerDesc& RasterizerDesc
+  * 
+  *  @return SPtr<RasterizerState>
   */
   SPtr<RasterizerState>
   internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc) override;
+
+  /**
+  *  @brief Creates a depth stencil state.
+  *
+  *  @param DepthStencilDesc& depthSDesc
+  * 
+  *  @return SPtr<DepthStencilState>
+  */
+  SPtr<DepthStencilState>
+  internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc) override;
 
   /********************
   *  Update
@@ -391,6 +406,16 @@ class DX11GraphicsManager : public GraphicsManager
   */
   void
   internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState) override;
+
+  /**
+  *  @brief Sets the depth stencil state to the device context.
+  *
+  *  @param SPtr<DepthStencilState>& pDepthSState
+  *  @param uint8 stencilRef
+  */
+  void
+  internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
+                               const uint8 stencilRef) override;
 
   /**
   *  @brief Draw with vertices info.
