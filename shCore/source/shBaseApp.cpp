@@ -28,6 +28,8 @@
 using Clock = std::chrono::high_resolution_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 
+#define FIXED_DELTA_TIME 0.02f
+
 namespace shEngineSDK {
 struct WorldViewProjection
 {
@@ -53,12 +55,15 @@ BaseApp::run()
 
   TimePoint previousTime = Clock::now();
   TimePoint currentTime;
+  const float fixedDT = FIXED_DELTA_TIME;
+  float accumulator = 0.0f;
 
   // Main App Loop
   while (m_mainScreen->isOpen()) {
     currentTime = Clock::now();
     std::chrono::duration<float> deltaTime = currentTime - previousTime;
     previousTime = currentTime;
+    accumulator += deltaTime.count();
 
     m_eventQueue->update();
 
@@ -75,6 +80,12 @@ BaseApp::run()
       m_eventQueue->pop();
     }
     update(deltaTime.count());
+
+    while (accumulator >= fixedDT) {
+      fixedUpdate(fixedDT);
+      accumulator -= fixedDT;
+    }
+
     render();
   }
 
@@ -179,6 +190,12 @@ BaseApp::update(float deltaTime)
 
   // Call overridable update function
   onUpdate(deltaTime);
+}
+
+void
+BaseApp::fixedUpdate(float fixedDeltaTime)
+{
+  onFixedUpdate(fixedDeltaTime);
 }
 
 void
