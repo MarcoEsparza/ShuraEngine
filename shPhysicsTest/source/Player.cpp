@@ -95,10 +95,10 @@ Player::eulerDrag(const Vector2& dForce, const float dt)
 void
 Player::verletDrag(const Vector2& dForce, const float dt)
 {
-  Vector2 nextPosition = m_position * 2.0f - m_previousPosition + dForce * (dt * dt);
+  Vector2 nextPosition = (m_position * 2.0f) - m_previousPosition + (dForce * (dt * dt));
   m_velocity = (nextPosition - m_previousPosition);
-  m_velocity.x /= (2 * dt);
-  m_velocity.y /= (2 * dt);
+  m_velocity.x /= (2.0f * dt);
+  m_velocity.y /= (2.0f * dt);
 
   m_previousPosition = m_position;
   m_position = nextPosition;
@@ -111,9 +111,9 @@ Player::update(float deltaTime)
     return;
   }
 
-  eulerDrag(calculateDrag(), deltaTime);
+  //eulerDrag(calculateDrag(), deltaTime);
 
-  //verletDrag(calculateDrag(), deltaTime);
+  verletDrag(calculateDrag(), deltaTime);
 
   Vector2 velPos = m_position + m_velocity;
 

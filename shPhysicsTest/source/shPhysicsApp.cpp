@@ -61,7 +61,7 @@ PhysicsApp::onCreate()
 void
 PhysicsApp::onUpdate(float deltaTime)
 {
-  m_player->update(deltaTime);
+  //m_player->update(deltaTime);
 
   Vector2 boxNormal(0.0f, 0.0f);
   if (checkCollision(m_left, boxNormal)) {
@@ -76,6 +76,12 @@ PhysicsApp::onUpdate(float deltaTime)
   else if (checkCollision(m_bottom, boxNormal)) {
     playerBounce(boxNormal);
   }
+}
+
+void
+PhysicsApp::onFixedUpdate(float fixedDeltaTime)
+{
+  m_player->update(fixedDeltaTime);
 }
 
 void

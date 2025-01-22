@@ -188,7 +188,7 @@ class SH_CORE_EXPORT FPSCamera : public Camera
   ProjectionMatrix m_proj;
 };
 
-class OrthographicCamera : public Camera
+class SH_CORE_EXPORT OrthographicCamera : public Camera
 {
  public:
   /**
