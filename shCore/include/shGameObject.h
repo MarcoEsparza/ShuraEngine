@@ -2,7 +2,7 @@
 /*
 *  @file    shGameObject.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/16
+*  @date    2025/01/20
 *  @brief   Game Object class.
 *
 *  Game Object class.
@@ -112,7 +112,7 @@ class GameObject
   *  @param Vector3& v
   */
   void
-  move(const Vector3& position);
+  setPosition(const Vector3& position);
 
   /**
   *  @brief Changes the GameObject rotation.
@@ -120,7 +120,7 @@ class GameObject
   *  @param Vector3& rotation
   */
   void
-  rotate(const Vector3& rotation);
+  setRotation(const Vector3& rotation);
 
   /**
   *  @brief Changes the GameObject scale.
@@ -128,7 +128,7 @@ class GameObject
   *  @param Vector3& scale
   */
   void
-  scale(const Vector3& scale);
+  setScale(const Vector3& scale);
 
   /*************************************************************/
   /*

@@ -22,24 +22,24 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for Axis-Aligned Bounding-Box.
 */
-class SH_UTILITY_EXPORT shBoxAAB
+class SH_UTILITY_EXPORT BoxAAB
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  shBoxAAB() = default;
+  BoxAAB() = default;
   /**
   *  @brief Constructor to initialize box values.
   * 
   *  @param const Vector3& _min
   *  @param const Vector3& _max
   */
-  shBoxAAB(const Vector3& _min, const Vector3& _max);
+  BoxAAB(const Vector3& _min, const Vector3& _max);
   /**
   *  @brief Default destructor.
   */
-  ~shBoxAAB() = default;
+  ~BoxAAB() = default;
 
   /*************************************************************/
   /*

@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2025/01/19
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -18,6 +18,7 @@
 /*************************************************************/
 #include "shVector3.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 namespace shEngineSDK {
 Vector3::Vector3(const Vector3& other)
@@ -108,7 +109,7 @@ Vector3::lerp(const Vector3& _other,
 }
 
 Vector3
-Vector3::rotateX(const float angle)
+Vector3::rotateX(const Radian angle)
 {
   const float cosA = Math::cos(angle);
   const float sinA = Math::sin(angle);
@@ -119,7 +120,7 @@ Vector3::rotateX(const float angle)
 }
 
 Vector3
-Vector3::rotateY(const float angle)
+Vector3::rotateY(const Radian angle)
 {
   const float cosA = Math::cos(angle);
   const float sinA = Math::sin(angle);
@@ -130,7 +131,7 @@ Vector3::rotateY(const float angle)
 }
 
 Vector3
-Vector3::rotateZ(const float angle)
+Vector3::rotateZ(const Radian angle)
 {
   const float cosA = Math::cos(angle);
   const float sinA = Math::sin(angle);
@@ -143,9 +144,9 @@ Vector3::rotateZ(const float angle)
 Vector3
 Vector3::rotate(const Vector3& angles)
 {
-  Vector3 resX = rotateX(angles.x);
-  Vector3 resY = resX.rotateY(angles.y);
-  Vector3 resZ = resY.rotateZ(angles.z);
+  Vector3 resX = rotateX(Radian(angles.x));
+  Vector3 resY = resX.rotateY(Radian(angles.y));
+  Vector3 resZ = resY.rotateZ(Radian(angles.z));
 
   return resZ;
 }

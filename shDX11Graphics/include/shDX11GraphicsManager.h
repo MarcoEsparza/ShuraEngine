@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2025/01/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -28,6 +28,9 @@
 #include "shDX11Shader.h"
 #include "shDX11SwapChain.h"
 #include "shDX11Texture.h"
+#include "shDX11BlendState.h"
+#include "shDX11RasterizerState.h"
+#include "shDX11DepthStencilState.h"
 
 namespace shEngineSDK {
 /**
@@ -222,6 +225,37 @@ class DX11GraphicsManager : public GraphicsManager
                           const uint32 usage,
                           const uint32 bindFlags) override;
 
+  /**
+  *  @brief Creates a blend state.
+  *
+  *  @param BlendDesc& blendDesc
+  * 
+  *  @return SPtr<BlendState>
+  */
+  SPtr<BlendState>
+  internalCreateBlendState(const BlendDesc& blendDesc,
+                           const LinearColor& blendFactor) override;
+
+  /**
+  *  @brief Creates a rasterizer state.
+  *
+  *  @param RasterizerDesc& RasterizerDesc
+  * 
+  *  @return SPtr<RasterizerState>
+  */
+  SPtr<RasterizerState>
+  internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc) override;
+
+  /**
+  *  @brief Creates a depth stencil state.
+  *
+  *  @param DepthStencilDesc& depthSDesc
+  * 
+  *  @return SPtr<DepthStencilState>
+  */
+  SPtr<DepthStencilState>
+  internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc) override;
+
   /********************
   *  Update
   ********************/
@@ -355,6 +389,33 @@ class DX11GraphicsManager : public GraphicsManager
   internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                           const uint32 startSlot,
                           const uint32 numSamplers) override;
+
+  /**
+  *  @brief Sets the blend state to the device context.
+  *
+  *  @param SPtr<BlendState>& pBlendState
+  *  @param Vector4& blendFactor
+  */
+  void
+  internalSetBlendState(const SPtr<BlendState>& pBlendState) override;
+
+  /**
+  *  @brief Sets the rasterizer state to the device context.
+  *
+  *  @param SPtr<RasterizerState>& pRasterizerState
+  */
+  void
+  internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState) override;
+
+  /**
+  *  @brief Sets the depth stencil state to the device context.
+  *
+  *  @param SPtr<DepthStencilState>& pDepthSState
+  *  @param uint8 stencilRef
+  */
+  void
+  internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
+                               const uint8 stencilRef) override;
 
   /**
   *  @brief Draw with vertices info.

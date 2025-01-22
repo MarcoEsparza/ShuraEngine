@@ -2,7 +2,7 @@
 /*
 *  @file    shGameObject.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2025/01/20
 *  @brief   Game Object class.
 *
 *  Game Object class.
@@ -21,6 +21,7 @@
 #include "shMeshComponent.h"
 #include "shMeshResource.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 using std::reinterpret_pointer_cast;
 
@@ -68,53 +69,32 @@ GameObject::getScale() const
 }
 
 void
-GameObject::move(const Vector3& position)
+GameObject::setPosition(const Vector3& position)
 {
   transform.setPosition(position);
 
-  for (auto& component : components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-      auto smComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
-      for (auto& vertex : smComponent->meshData->vertices) {
-        vertex.position.x += position.x;
-        vertex.position.y += position.y;
-        vertex.position.z += position.z;
-      }
-    }
+  for (auto& child : childs) {
+    child->setPosition(child->getPosition() + position);
   }
 }
 
 void
-GameObject::rotate(const Vector3& rotation)
+GameObject::setRotation(const Vector3& rotation)
 {
   transform.setRotation(rotation);
 
-  for (auto& component : components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-      auto smComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
-      for (auto& vertex : smComponent->meshData->vertices) {
-        vertex.position = vertex.position.rotateX(rotation.x * Math::DEG2RAD);
-        vertex.position = vertex.position.rotateY(rotation.y * Math::DEG2RAD);
-        vertex.position = vertex.position.rotateZ(rotation.z * Math::DEG2RAD);
-      }
-    }
+  for (auto& child : childs) {
+    child->setRotation(child->getRotation() + rotation);
   }
 }
 
 void
-GameObject::scale(const Vector3& scale)
+GameObject::setScale(const Vector3& scale)
 {
   transform.setScale(scale);
 
-  for (auto& component : components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-      auto smComponent = reinterpret_pointer_cast<StaticMeshComponent>(component);
-      for (auto& vertex : smComponent->meshData->vertices) {
-        vertex.position.x *= scale.x;
-        vertex.position.y *= scale.y;
-        vertex.position.z *= scale.z;
-      }
-    }
+  for (auto& child : childs) {
+    child->setScale(child->getScale() + scale);
   }
 }
 }

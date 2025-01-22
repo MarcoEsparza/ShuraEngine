@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2025/01/19
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -18,6 +18,7 @@
 /*************************************************************/
 #include "shQuaternion.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 namespace shEngineSDK {
 Quaternion::Quaternion(const Vector3& vec)
@@ -42,8 +43,10 @@ Quaternion::Quaternion(const Quaternion& other)
 Vector3
 Quaternion::toEulerAngles() const
 {
-  const float theta = (Math::acos(w)) * 2;
-  const float inv = 1 / (Math::sin(Math::acos(theta)));
+  const float theta = (Math::acos(Radian(w))) * 2;
+  const Radian radTheta(theta);
+  const Radian acosTheta(Math::acos(radTheta));
+  const float inv = 1 / (Math::sin(acosTheta));
 
   return Vector3(x * inv,
                  y * inv,
@@ -72,12 +75,12 @@ Quaternion::toAxes(Vector3& right,
 Quaternion
 Quaternion::fromEulerAngles(const Vector3& vec) const
 {
-  const float cr = Math::cos(vec.x * 0.5f);  // Cosine Roll
-  const float sr = Math::sin(vec.x * 0.5f);  // Sine Roll
-  const float cp = Math::cos(vec.y * 0.5f);  // Cosine Pitch
-  const float sp = Math::sin(vec.y * 0.5f);  // Sine Pich
-  const float cy = Math::cos(vec.z * 0.5f);  // Cosine Yaw
-  const float sy = Math::sin(vec.z * 0.5f);  // Sine Yaw
+  const float cr = Math::cos(Radian(vec.x * 0.5f));  // Cosine Roll
+  const float sr = Math::sin(Radian(vec.x * 0.5f));  // Sine Roll
+  const float cp = Math::cos(Radian(vec.y * 0.5f));  // Cosine Pitch
+  const float sp = Math::sin(Radian(vec.y * 0.5f));  // Sine Pich
+  const float cy = Math::cos(Radian(vec.z * 0.5f));  // Cosine Yaw
+  const float sy = Math::sin(Radian(vec.z * 0.5f));  // Sine Yaw
 
   return Quaternion((cr * cp * cy) + (sr * sp * sy),
                     (sr * cp * cy) - (cr * sp * sy),
@@ -88,12 +91,12 @@ Quaternion::fromEulerAngles(const Vector3& vec) const
 void
 Quaternion::fromAngle(Vector3 vec)
 {
-  const float cr = Math::cos(vec.x * 0.5f);
-  const float sr = Math::sin(vec.x * 0.5f);
-  const float cp = Math::cos(vec.y * 0.5f);
-  const float sp = Math::sin(vec.y * 0.5f);
-  const float cy = Math::cos(vec.z * 0.5f);
-  const float sy = Math::sin(vec.z * 0.5f);
+  const float cr = Math::cos(Radian(vec.x * 0.5f));
+  const float sr = Math::sin(Radian(vec.x * 0.5f));
+  const float cp = Math::cos(Radian(vec.y * 0.5f));
+  const float sp = Math::sin(Radian(vec.y * 0.5f));
+  const float cy = Math::cos(Radian(vec.z * 0.5f));
+  const float sy = Math::sin(Radian(vec.z * 0.5f));
 
   w = (cr * cp * cy) + (sr * sp * sy);
   x = (sr * cp * cy) - (cr * sp * sy);
@@ -181,7 +184,8 @@ Quaternion::inverse()
 float
 Quaternion::angleTo(const Quaternion& other) const
 {
-  return (2.0f * Math::acos(Math::abs(Math::clamp(dot(other), -1.0f, 1.0f))));
+  const Radian rad(Math::abs(Math::clamp(dot(other), -1.0f, 1.0f)));
+  return (2.0f * Math::acos(rad));
 }
 
 Quaternion
@@ -221,7 +225,7 @@ Quaternion::slerp(const Quaternion& other, const float time) const
     return *this;
   }
 
-  const float halfTheta = Math::acos(cosHalfTheta);
+  const float halfTheta = Math::acos(Radian(cosHalfTheta));
   const float sinHalfTheta = Math::sqrt(1.0f - cosHalfTheta * cosHalfTheta);
 
   // If theta = 180 degrees then result is not fully defined
@@ -233,8 +237,8 @@ Quaternion::slerp(const Quaternion& other, const float time) const
                       w * 0.5f + other.w * 0.5f);
   }
 
-  const float ratioA = Math::sin((1 - time) * halfTheta) / sinHalfTheta;
-  const float ratioB = Math::sin(time - halfTheta) / sinHalfTheta;
+  const float ratioA = Math::sin(Radian((1.0f - time) * halfTheta)) / sinHalfTheta;
+  const float ratioB = Math::sin(Radian(time - halfTheta)) / sinHalfTheta;
 
   return Quaternion(x * ratioA + other.x * ratioB,
                     y * ratioA + other.y * ratioB,

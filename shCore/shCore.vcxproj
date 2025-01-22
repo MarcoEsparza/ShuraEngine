@@ -22,7 +22,9 @@
     <ClInclude Include="include\shAnimationResource.h" />
     <ClInclude Include="include\shAnimatorComponent.h" />
     <ClInclude Include="include\shBaseApp.h" />
+    <ClInclude Include="include\shBlendState.h" />
     <ClInclude Include="include\shComponent.h" />
+    <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
     <ClInclude Include="include\shGameObject.h" />
     <ClInclude Include="include\shImageResource.h" />
@@ -39,6 +41,7 @@
     <ClInclude Include="include\shGraphicTypes.h" />
     <ClInclude Include="include\shInputLayout.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
+    <ClInclude Include="include\shRasterizerState.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />

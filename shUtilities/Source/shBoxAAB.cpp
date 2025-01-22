@@ -19,7 +19,7 @@
 
 namespace shEngineSDK {
 
-shBoxAAB::shBoxAAB(const Vector3& _min, const Vector3& _max)
+BoxAAB::BoxAAB(const Vector3& _min, const Vector3& _max)
 {
   min = _min;
   max = _max;
@@ -32,30 +32,30 @@ shBoxAAB::shBoxAAB(const Vector3& _min, const Vector3& _max)
 /*************************************************************/
 
 void
-shBoxAAB::setPosition(const Vector3& pos)
+BoxAAB::setPosition(const Vector3& pos)
 {
   min = pos;
 }
 
 void
-shBoxAAB::setSize(const Vector3& size)
+BoxAAB::setSize(const Vector3& size)
 {
   max = min + size;
 }
 
 Vector3
-shBoxAAB::getMinPosition() const
+BoxAAB::getMinPosition() const
 {
   return min;
 }
 
 Vector3
-shBoxAAB::getMaxPosition() const
+BoxAAB::getMaxPosition() const
 {
   return max;
 }
 Array<Vector3, 8>
-shBoxAAB::getVertices() const
+BoxAAB::getVertices() const
 {
   return { min,
            Vector3(min.x, min.y, max.z),
@@ -68,7 +68,7 @@ shBoxAAB::getVertices() const
 }
 
 Array<uint32, 36>
-shBoxAAB::getIndices() const
+BoxAAB::getIndices() const
 {
   static Array<uint32, 36> ret{
     0, 1, 2,
@@ -89,7 +89,7 @@ shBoxAAB::getIndices() const
 }
 
 void
-shBoxAAB::projectOnAxis(const Vector3& axis, float& _min, float& _max) const
+BoxAAB::projectOnAxis(const Vector3& axis, float& _min, float& _max) const
 {
   _min = _max = axis.dot(min);
 

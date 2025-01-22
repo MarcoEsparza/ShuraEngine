@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/06
+*  @date    2025/01/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -560,6 +560,94 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   return pTexture;
 }
 
+SPtr<BlendState>
+DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
+                                              const LinearColor& blendFactor)
+{
+  auto pBlendState = make_shared<DX11BlendState>();
+
+  D3D11_BLEND_DESC d3d11BlendDesc = {};
+  d3d11BlendDesc.RenderTarget[0].BlendEnable = blendDesc.renderTarget[0].blendEnable;
+  d3d11BlendDesc.RenderTarget[0].SrcBlend =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].srcBlend);
+  d3d11BlendDesc.RenderTarget[0].DestBlend =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].destBlend);
+  d3d11BlendDesc.RenderTarget[0].BlendOp =
+    static_cast<D3D11_BLEND_OP>(blendDesc.renderTarget[0].blendOp);
+  d3d11BlendDesc.RenderTarget[0].SrcBlendAlpha =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].srcBlendAlpha);
+  d3d11BlendDesc.RenderTarget[0].DestBlendAlpha =
+    static_cast<D3D11_BLEND>(blendDesc.renderTarget[0].destBlendAlpha);
+  d3d11BlendDesc.RenderTarget[0].BlendOpAlpha =
+    static_cast<D3D11_BLEND_OP>(blendDesc.renderTarget[0].blendOpAlpha);
+  d3d11BlendDesc.RenderTarget[0].RenderTargetWriteMask =
+    blendDesc.renderTarget[0].renderTargetWriteMask;
+
+  m_pDevice->m_pDevice->CreateBlendState(&d3d11BlendDesc, &pBlendState->m_pBlendS);
+
+  pBlendState->m_blendFactor = blendFactor;
+
+  return pBlendState;
+}
+
+SPtr<RasterizerState>
+DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc)
+{
+  auto pRasterizerState = make_shared<DX11RasterizerState>();
+
+  D3D11_RASTERIZER_DESC rasterDesc = {};
+  rasterDesc.FillMode = static_cast<D3D11_FILL_MODE>(rasterizerDesc.fillMode);
+  rasterDesc.CullMode = static_cast<D3D11_CULL_MODE>(rasterizerDesc.cullMode);
+  rasterDesc.FrontCounterClockwise = rasterizerDesc.frontCounterClockwise;
+  rasterDesc.DepthBias = rasterizerDesc.depthBias;
+  rasterDesc.DepthBiasClamp = rasterizerDesc.depthBiasClamp;
+  rasterDesc.SlopeScaledDepthBias = rasterizerDesc.slopeScaledDepthBias;
+  rasterDesc.DepthClipEnable = rasterizerDesc.depthClipEnable;
+  rasterDesc.ScissorEnable = rasterizerDesc.scissorEnable;
+  rasterDesc.MultisampleEnable = rasterizerDesc.multisampleEnable;
+  rasterDesc.AntialiasedLineEnable = rasterizerDesc.antialiasedLineEnable;
+
+  m_pDevice->m_pDevice->CreateRasterizerState(&rasterDesc, &pRasterizerState->m_pRasterS);
+
+  return pRasterizerState;
+}
+
+SPtr<DepthStencilState>
+DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc)
+{
+  auto pDepthSS = make_shared<DX11DepthStencilState>();
+
+  D3D11_DEPTH_STENCIL_DESC d3d11DepthDesc = {};
+  d3d11DepthDesc.DepthEnable = depthSDesc.depthEnable;
+  d3d11DepthDesc.DepthWriteMask =
+    static_cast<D3D11_DEPTH_WRITE_MASK>(depthSDesc.depthWriteMask);
+  d3d11DepthDesc.DepthFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.depthFunc);
+  d3d11DepthDesc.StencilEnable = depthSDesc.stencilEnable;
+  d3d11DepthDesc.StencilReadMask = depthSDesc.stencilReadMask;
+  d3d11DepthDesc.StencilWriteMask = depthSDesc.stencilWriteMask;
+
+  D3D11_DEPTH_STENCILOP_DESC frontFace = {};
+  frontFace.StencilFailOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilFailOp);
+  frontFace.StencilDepthFailOp =
+    static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilDepthFailOp);
+  frontFace.StencilPassOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilPassOp);
+  frontFace.StencilFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.frontFace.stencilFunc);
+
+  D3D11_DEPTH_STENCILOP_DESC backFace = {};
+  backFace.StencilFailOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilFailOp);
+  backFace.StencilDepthFailOp =
+    static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilDepthFailOp);
+  backFace.StencilPassOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilPassOp);
+  backFace.StencilFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.backFace.stencilFunc);
+
+  d3d11DepthDesc.FrontFace = frontFace;
+  d3d11DepthDesc.BackFace = backFace;
+
+  m_pDevice->m_pDevice->CreateDepthStencilState(&d3d11DepthDesc, &pDepthSS->m_pDepthSS);
+
+  return pDepthSS;
+}
+
 void
 DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                                   const void* pData,
@@ -693,6 +781,37 @@ DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerL
   m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
                                                     numSamplers,
                                                     &pSampler->m_pSamplerLinear);
+}
+
+void
+DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState)
+{
+  auto pBS = reinterpret_pointer_cast<DX11BlendState>(pBlendState);
+
+  FLOAT bf[4] = { pBS->m_blendFactor.r,
+                  pBS->m_blendFactor.g,
+                  pBS->m_blendFactor.b,
+                  pBS->m_blendFactor.a };
+  
+  m_pDeviceContext->m_pDeviceContext->OMSetBlendState(pBS->m_pBlendS, bf, 0xFFFFFFFF);
+}
+
+void
+DX11GraphicsManager::internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
+{
+  auto pRS = reinterpret_pointer_cast<DX11RasterizerState>(pRasterizerState);
+
+  m_pDeviceContext->m_pDeviceContext->RSSetState(pRS->m_pRasterS);
+}
+
+void
+DX11GraphicsManager::internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
+                                                  const uint8 stencilRef)
+{
+  auto pDepthSS = reinterpret_pointer_cast<DX11DepthStencilState>(pDepthSState);
+
+  m_pDeviceContext->m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS,
+                                                             stencilRef);
 }
 
 void

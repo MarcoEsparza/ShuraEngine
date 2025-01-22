@@ -22,25 +22,25 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for plane figure.
 */
-class SH_UTILITY_EXPORT shPlane
+class SH_UTILITY_EXPORT Plane
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  shPlane() = default;
+  Plane() = default;
   /**
   *  @brief Constructor to initialize plane values.
   * 
   *  @param const Vector3& _normal: Desired normal.
   *  @param const float _distance: Desired distance.
   */
-  shPlane(const Vector3& _normal, const float _distance)
+  Plane(const Vector3& _normal, const float _distance)
           : normal(_normal), distance(_distance) {}
   /**
   *  @brief Default destructor.
   */
-  ~shPlane() = default;
+  ~Plane() = default;
   
   /*************************************************************/
   /*

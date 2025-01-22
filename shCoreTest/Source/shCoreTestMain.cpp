@@ -2,7 +2,7 @@
 /*
 *  @file    shCoreTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/06
+*  @date    2025/01/11
 *  @brief   Here is the main to test the window initialize.
 *
 *  Here is the main to test the window initialize.
@@ -28,8 +28,6 @@ int main(int argc, const char** argv)
     return -1;
   }
 
-  BaseApp app;
-
   ScreenDesc desc;
   desc.name = "Test";
   desc.title = "Graphics Test";
@@ -41,31 +39,19 @@ int main(int argc, const char** argv)
   desc.height = 600;
   desc.iconPath = "M:/ShuraEngine/Repo/ShuraEngine/resources/ShuraIcon.ico";
 
-  String dllName;
+  GRAPHIC_API::E api = GRAPHIC_API::kDX11;
 
   String graphicsName = argv[1];
 
-#ifdef SH_DEBUG_MODE
-
   if (graphicsName == "DX11") {
-    dllName = "shDX11Graphicsd";
+    api = GRAPHIC_API::kDX11;
   }
   else if (graphicsName == "OGL") {
-    dllName = "shOGLGraphicsd";
+    api = GRAPHIC_API::kOGL;
   }
 
-#else
-
-  if (graphicsName == "DX11") {
-    dllName = "shDX11Graphics";
-  }
-  else if (graphicsName == "OGL") {
-    dllName = "shOGLGraphics";
-  }
-
-#endif
-
-  app.run(desc, dllName);
+  BaseApp app(desc, api);
+  app.run();
 
   return 0;
 }

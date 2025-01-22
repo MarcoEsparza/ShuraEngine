@@ -180,6 +180,15 @@
     <ClInclude Include="include\shAnimatorComponent.h">
       <Filter>Header Files\Component</Filter>
     </ClInclude>
+    <ClInclude Include="include\shBlendState.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shRasterizerState.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shDepthStencilState.h">
+      <Filter>Header Files\GraphicsManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">

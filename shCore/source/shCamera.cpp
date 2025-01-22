@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/05
+*  @date    2025/01/21
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -18,6 +18,7 @@
 /*************************************************************/
 #include "shCamera.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 namespace shEngineSDK {
 void
@@ -33,11 +34,11 @@ Camera::setViewData(const Vector3& camPos,
 }
 
 void
-Camera::setProjectionData(const float halfFOV,
-                          const float width,
-                          const float height,
-                          const float minZ,
-                          const float maxZ)
+FPSCamera::setProjectionData(const float halfFOV,
+                             const float width,
+                             const float height,
+                             const float minZ,
+                             const float maxZ)
 {
   m_proj = ProjectionMatrix(halfFOV, width, height, minZ, maxZ);
 }
@@ -91,10 +92,21 @@ void
 FPSCamera::rotateCam(const float yaw, const float pitch)
 {
   Matrix4 rotation = Matrix4::IDENTITY;
-  Matrix4 rotX = rotation.createRotationXMatrix(pitch);
-  Matrix4 rotY = rotation.createRotationYMatrix(yaw);
+  Matrix4 rotX = rotation.createRotationXMatrix(Radian(pitch));
+  Matrix4 rotY = rotation.createRotationYMatrix(Radian(yaw));
   rotation = rotX * rotY;
 
   m_view *= rotation;
+}
+
+void
+OrthographicCamera::setOrthographicProjData(const float left,
+  const float right,
+  const float bottom,
+  const float top,
+  const float nearZ,
+  const float farZ)
+{
+  m_orthoProj = OrthographicProjectionMatrix(left, right, bottom, top, nearZ, farZ);
 }
 }

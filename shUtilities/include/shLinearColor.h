@@ -2,7 +2,7 @@
 /*
 *  @file    shLinearColor.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/28
+*  @date    2025/01/11
 *  @brief   LinearColor class.
 *
 *  LinearColor class.
@@ -24,7 +24,7 @@ namespace shEngineSDK {
   /**
   *  @brief LinearColor class.
   */
-  class LinearColor
+  class SH_UTILITY_EXPORT LinearColor
   {
   public:
     /**

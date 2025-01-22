@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2025/01/19
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -20,6 +20,8 @@
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
+class Radian;
+
 /**
 *  @brief Vector3 with float
 * 
@@ -120,32 +122,32 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Rotate Vector3 in X axis.
   *
-  *  @param float angle
+  *  @param Radian angle
   *
   *  @return Vector3
   */
   Vector3
-  rotateX(const float angle);
+  rotateX(const Radian angle);
 
   /**
   *  @brief Rotate Vector3 in Y axis.
   *
-  *  @param float angle
+  *  @param Radian angle
   *
   *  @return Vector3
   */
   Vector3
-  rotateY(const float angle);
+  rotateY(const Radian angle);
 
   /**
   *  @brief Rotate Vector3 in Z axis.
   *
-  *  @param float angle
+  *  @param Radian angle
   *
   *  @return Vector3
   */
   Vector3
-  rotateZ(const float angle);
+  rotateZ(const Radian angle);
 
   /**
   *  @brief Rotate Vector3.

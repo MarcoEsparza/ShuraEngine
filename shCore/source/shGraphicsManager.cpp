@@ -135,6 +135,24 @@ GraphicsManager::createTexture2D(const uint32 width,
   return internalCreateTexture2D(width, height, format, usage, bindFlags);
 }
 
+SPtr<BlendState>
+GraphicsManager::createBlendState(const BlendDesc& blendDesc, const LinearColor& blendFactor)
+{
+  return internalCreateBlendState(blendDesc, blendFactor);
+}
+
+SPtr<RasterizerState>
+GraphicsManager::createRasterizerState(const RasterizerDesc& rasterDesc)
+{
+  return internalCreateRasterizerState(rasterDesc);
+}
+
+SPtr<DepthStencilState>
+GraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
+{
+    return internalCreateDepthStencilState(depthSDesc);
+}
+
 void
 GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                       const void* pData,
@@ -216,6 +234,25 @@ GraphicsManager::setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                                  const uint32 numSamplers)
 {
   internalSetSamplerState(pSamplerLinear, startSlot, numSamplers);
+}
+
+void
+GraphicsManager::setBlendState(const SPtr<BlendState>& pBlendState)
+{
+  internalSetBlendState(pBlendState);
+}
+
+void
+GraphicsManager::setRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
+{
+  internalSetRasterizerState(pRasterizerState);
+}
+
+void
+GraphicsManager::setDepthStencilState(const SPtr<DepthStencilState>& pDepthStencilState,
+                                      const uint8 stencilRef)
+{
+  internalSetDepthStencilState(pDepthStencilState, stencilRef);
 }
 
 void

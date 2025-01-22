@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/29
+*  @date    2025/01/21
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -34,32 +34,6 @@ class SH_CORE_EXPORT Camera
   Camera() = default;
 
   /**
-  *  @brief Constructor ot initialize camera.
-  * 
-  *  @param Vector3& camPos
-  *  @param Vector3& targetPos
-  *  @param Vector3& upVector
-  *  @param float halfFOV
-  *  @param float width
-  *  @param float height
-  *  @param float minZ
-  *  @param float maxZ
-  */
-  Camera(const Vector3& camPos,
-         const Vector3& targetPos,
-         const Vector3& upVector,
-         const float halfFOV,
-         const float width,
-         const float height,
-         const float minZ,
-         const float maxZ)
-         : m_view(camPos, targetPos, upVector),
-           m_proj(halfFOV, width, height, minZ, maxZ),
-           m_position(camPos),
-           m_target(targetPos),
-           m_upVector(upVector) {}
-
-  /**
   *  @brief Default destructor.
   */
   virtual ~Camera() = default;
@@ -83,36 +57,12 @@ class SH_CORE_EXPORT Camera
               const Vector3& upVector);
 
   /**
-  *  @brief Sets projection matrix.
-  *
-  *  @param float halfFOV
-  *  @param float width
-  *  @param float height
-  *  @param float minZ
-  *  @param float maxZ
-  */
-  void
-  setProjectionData(const float halfFOV,
-                    const float width,
-                    const float height,
-                    const float minZ,
-                    const float maxZ);
-
-  /**
   *  @brief Gets the view matrix.
   *
   *  @return const ViewMatrix&
   */
   FORCEINLINE const ViewMatrix&
   getView() const { return m_view; }
-
-  /**
-  *  @brief Gets the projection matrix.
-  *
-  *  @return const ProjectionMatrix&
-  */
-  FORCEINLINE const ProjectionMatrix&
-  getProjection() const { return m_proj; }
 
   /*************************************************************/
   /*
@@ -124,11 +74,6 @@ class SH_CORE_EXPORT Camera
   *  @brief The view matrix.
   */
   ViewMatrix m_view;
-
-  /**
-  *  @brief The projection matrix.
-  */
-  ProjectionMatrix m_proj;
 
   /**
   *  @brief Camera position.
@@ -170,6 +115,22 @@ class SH_CORE_EXPORT FPSCamera : public Camera
   */
   /*************************************************************/
  public:
+  /**
+  *  @brief Sets projection matrix.
+  *
+  *  @param float halfFOV
+  *  @param float width
+  *  @param float height
+  *  @param float minZ
+  *  @param float maxZ
+  */
+  void
+  setProjectionData(const float halfFOV,
+                    const float width,
+                    const float height,
+                    const float minZ,
+                    const float maxZ);
+
   // TODO: Change the move functions.
   /**
   *  @brief Move camera in the X axis.
@@ -211,5 +172,65 @@ class SH_CORE_EXPORT FPSCamera : public Camera
   */
   void
   rotateCam(const float yaw, const float pitch);
+
+  /**
+  *  @brief Gets the projection matrix.
+  *
+  *  @return const ProjectionMatrix&
+  */
+  FORCEINLINE const ProjectionMatrix&
+  getProjection() const { return m_proj; }
+
+ private:
+  /**
+  *  @brief The projection matrix.
+  */
+  ProjectionMatrix m_proj;
+};
+
+class OrthographicCamera : public Camera
+{
+ public:
+  /**
+  *  @brief  Default constructor.
+  */
+  OrthographicCamera() = default;
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~OrthographicCamera() = default;
+
+  /**
+  *  @brief Sets the orthographic projection matrix.
+  *
+  *  @param const float left
+  *  @param const float right
+  *  @param const float bottom
+  *  @param const float top
+  *  @param const float nearZ
+  *  @param const float farZ
+  */
+  void
+  setOrthographicProjData(const float left,
+                          const float right,
+                          const float bottom,
+                          const float top,
+                          const float nearZ,
+                          const float farZ);
+
+  /**
+  *  @brief Gets the orthographic projection matrix.
+  *
+  *  @return const OrthographicProjectionMatrix&
+  */
+  FORCEINLINE const OrthographicProjectionMatrix&
+  getOrthographicProjection() const { return m_orthoProj; }
+
+ private:
+  /**
+  *  @brief The orthogonal projection matrix.
+  */
+  OrthographicProjectionMatrix m_orthoProj;
 };
 }
