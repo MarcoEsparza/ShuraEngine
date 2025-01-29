@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2025/01/28
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -267,5 +267,10 @@ GraphicsManager::drawIndexed(const uint32 indexCount,
                              const uint32 baseVertexLocation)
 {
   internalDrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+}
+
+GraphicsManager& g_graphicsMan()
+{
+  return GraphicsManager::instance();
 }
 }

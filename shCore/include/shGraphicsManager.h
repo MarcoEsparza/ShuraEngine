@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/15
+*  @date    2025/01/28
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -52,6 +52,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @brief Default constructor.
   */
   GraphicsManager() = default;
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~GraphicsManager() = default;
 
   /*************************************************************/
   /*
@@ -839,4 +844,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                       const uint32 startIndexLocation,
                       const uint32 baseVertexLocation) = 0;
 };
+
+/**
+*  @brief Easier way to access the GraphicsManager module.
+*/
+SH_CORE_EXPORT GraphicsManager&
+g_graphicsMan();
 }

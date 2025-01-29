@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/13
+*  @date    2025/01/28
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -21,23 +21,11 @@
 
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
+#include "shScriptManager.h"
+#include "shTime.h"
 #include "shDynamicLibrary.h"
 
-#include <chrono>
-
-using Clock = std::chrono::high_resolution_clock;
-using TimePoint = std::chrono::time_point<Clock>;
-
-#define FIXED_DELTA_TIME 0.02f
-
 namespace shEngineSDK {
-struct WorldViewProjection
-{
-  Matrix4 world;
-  ViewMatrix view;
-  ProjectionMatrix proj;
-};
-
 void
 BaseApp::run()
 {
@@ -53,17 +41,11 @@ BaseApp::run()
   // Send onCreate event
   onCreate();
 
-  TimePoint previousTime = Clock::now();
-  TimePoint currentTime;
-  const float fixedDT = FIXED_DELTA_TIME;
   float accumulator = 0.0f;
 
   // Main App Loop
   while (m_mainScreen->isOpen()) {
-    currentTime = Clock::now();
-    std::chrono::duration<float> deltaTime = currentTime - previousTime;
-    previousTime = currentTime;
-    accumulator += deltaTime.count();
+    accumulator += g_time().getFrameDeltaTime();
 
     m_eventQueue->update();
 
@@ -79,11 +61,11 @@ BaseApp::run()
       handleScreenEvents(wndEvent);
       m_eventQueue->pop();
     }
-    update(deltaTime.count());
+    update();
 
-    while (accumulator >= fixedDT) {
-      fixedUpdate(fixedDT);
-      accumulator -= fixedDT;
+    if (accumulator >= g_time().FIXED_DELTA_TIME) {
+      fixedUpdate();
+      accumulator -= g_time().FIXED_DELTA_TIME;
     }
 
     render();
@@ -136,7 +118,9 @@ void
 BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
-  ResourceManager::startUp<ResourceManager>();
+  ResourceManager::startUp();
+  ScriptManager::startUp();
+  Time::startUp();
 }
 
 void
@@ -184,18 +168,19 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
 }
 
 void
-BaseApp::update(float deltaTime)
+BaseApp::update()
 {
   // Update systems
+  g_time().update();
 
   // Call overridable update function
-  onUpdate(deltaTime);
+  onUpdate();
 }
 
 void
-BaseApp::fixedUpdate(float fixedDeltaTime)
+BaseApp::fixedUpdate()
 {
-  onFixedUpdate(fixedDeltaTime);
+  onFixedUpdate();
 }
 
 void
@@ -219,7 +204,9 @@ BaseApp::render()
 void
 BaseApp::destroyManagers()
 {
-  GraphicsManager::instance().shutDown();
-  ResourceManager::instance().shutDown();
+  GraphicsManager::shutDown();
+  ResourceManager::shutDown();
+  ScriptManager::shutDown();
+  Time::shutDown();
 }
 }

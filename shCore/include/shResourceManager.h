@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/16
+*  @date    2025/01/28
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -315,4 +315,10 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   static const Vector<String> IMAGE_EXTENSIONS;
 };
+
+/**
+*  @brief Easier way to access the Time module.
+*/
+SH_CORE_EXPORT ResourceManager&
+g_resourceMan();
 }

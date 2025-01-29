@@ -31,6 +31,12 @@
     <Filter Include="Source\Util">
       <UniqueIdentifier>{ac9bc1ba-ca3c-4e40-b291-6a3434caf8dc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Script">
+      <UniqueIdentifier>{1976fde5-5246-4a59-90c1-396423eaa47a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script">
+      <UniqueIdentifier>{b9319a3d-7ad3-4d6e-ab30-feb7f856d49d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shBoxAAB.h">
@@ -108,6 +114,15 @@
     <ClInclude Include="include\shDegree.h">
       <Filter>Include\Math</Filter>
     </ClInclude>
+    <ClInclude Include="include\shTime.h">
+      <Filter>Include\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shTimer.h">
+      <Filter>Include\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shScriptManager.h">
+      <Filter>Include\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shBoxOBB.cpp">
@@ -163,6 +178,15 @@
     </ClCompile>
     <ClCompile Include="source\shDegree.cpp">
       <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shTime.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shTimer.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shScriptManager.cpp">
+      <Filter>Source\Script</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

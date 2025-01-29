@@ -18,7 +18,7 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shScreen.h"
-#include "shBaseApp.h"
+#include "shRendererApp.h"
 
 using namespace shEngineSDK;
 
@@ -30,13 +30,13 @@ int main(int argc, const char** argv)
 
   ScreenDesc desc;
   desc.name = "Test";
-  desc.title = "Graphics Test";
+  desc.title = "Renderer App";
   desc.visible = true;
   desc.fullscreen = false;
   desc.positionX = 0;
   desc.positionY = 0;
-  desc.width = 1000;
-  desc.height = 600;
+  desc.width = 1400;
+  desc.height = 800;
   desc.iconPath = "M:/ShuraEngine/Repo/ShuraEngine/resources/ShuraIcon.ico";
 
   GRAPHIC_API::E api = GRAPHIC_API::kDX11;
@@ -50,7 +50,7 @@ int main(int argc, const char** argv)
     api = GRAPHIC_API::kOGL;
   }
 
-  BaseApp app(desc, api);
+  RendererApp app(desc, api);
   app.run();
 
   return 0;
