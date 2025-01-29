@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/08
+*  @date    2025/01/28
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -718,5 +718,10 @@ ResourceManager::proccessAnimation(const aiScene* scene,
 
   ReadHierarchyData(animation->rootNode, scene->mRootNode);
   ReadMissingBoneTracks(anim, skeleton, animation);
+}
+
+ResourceManager& g_resourceMan()
+{
+  return ResourceManager::instance();
 }
 }
