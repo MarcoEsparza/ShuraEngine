@@ -20,6 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shCoreTestMain.cpp" />
+    <ClCompile Include="source\shRendererApp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\shRendererApp.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

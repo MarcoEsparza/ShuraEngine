@@ -18,5 +18,13 @@
     <ClCompile Include="Source\shCoreTestMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\shRendererApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\shRendererApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

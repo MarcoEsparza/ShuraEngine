@@ -69,6 +69,7 @@ namespace shEngineSDK {
 const Vector<String> ResourceManager::MODEL_EXTENSIONS = { ".fbx", ".obj" };
 const Vector<String> ResourceManager::IMAGE_EXTENSIONS = { ".png",
                                                            ".jpeg",
+                                                           ".jpg",
                                                            ".bmp",
                                                            ".tga",
                                                            ".hdr" };

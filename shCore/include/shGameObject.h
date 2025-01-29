@@ -32,7 +32,7 @@ class Component;
 /**
 *  @brief Game Object class.
 */
-class GameObject
+class SH_CORE_EXPORT GameObject
 {
  public:
   /**

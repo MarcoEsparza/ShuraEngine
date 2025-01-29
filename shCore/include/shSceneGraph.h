@@ -27,7 +27,7 @@ namespace shEngineSDK {
 /**
 *  @brief Scene graph class.
 */
-class SceneGraph
+class SH_CORE_EXPORT SceneGraph
 {
  public:
   /**

@@ -28,6 +28,7 @@ namespace shEngineSDK {
 /*************************************************************/
 class Material;
 class StaticMeshResource;
+class StaticMeshUnionResource;
 class SkeletalMeshResource;
 class SkeletonResource;
 class Matrix4;
@@ -132,5 +133,30 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   SPtr<ConstantBuffer> m_bonesBuffer;
 
   Vector<Matrix4> currentPose;
+};
+
+class SH_CORE_EXPORT StaticMeshUnionComponent : public Component
+{
+public:
+  /**
+  *  @brief Default constructor.
+  */
+  StaticMeshUnionComponent() : Component(COMPONENT_TYPE::kStaticMeshUnion) {}
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~StaticMeshUnionComponent() = default;
+
+  /*************************************************************/
+  /*
+  *  Variables
+  */
+  /*************************************************************/
+public:
+  /**
+  *  @brief Resource with mesh data.
+  */
+  SPtr<StaticMeshUnionResource> meshesData;
 };
 }
