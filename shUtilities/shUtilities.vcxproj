@@ -40,6 +40,8 @@
     <ClInclude Include="Include\shRect.h" />
     <ClInclude Include="Include\shSphere.h" />
     <ClInclude Include="Include\shStdHeaders.h" />
+    <ClInclude Include="include\shTime.h" />
+    <ClInclude Include="include\shTimer.h" />
     <ClInclude Include="Include\shVector2.h" />
     <ClInclude Include="Include\shVector2i.h" />
     <ClInclude Include="Include\shVector3.h" />
@@ -60,6 +62,8 @@
     <ClCompile Include="source\shRadian.cpp" />
     <ClCompile Include="Source\shRect.cpp" />
     <ClCompile Include="Source\shSphere.cpp" />
+    <ClCompile Include="source\shTime.cpp" />
+    <ClCompile Include="source\shTimer.cpp" />
     <ClCompile Include="Source\shVector2.cpp" />
     <ClCompile Include="Source\shVector2i.cpp" />
     <ClCompile Include="Source\shVector3.cpp" />
