@@ -123,8 +123,5 @@ Time::getFrameDeltaTime() const
 *  @brief Easier way to access the Time module.
 */
 SH_UTILITY_EXPORT Time&
-g_Time()
-{
-  return Time::instance();
-}
+g_time();
 }

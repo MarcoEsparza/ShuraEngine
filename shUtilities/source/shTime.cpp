@@ -47,4 +47,9 @@ Time::update()
   m_frameDelta = m_timer->getTime();
   m_timeSinceStart += m_frameDelta;
 }
+
+Time& g_time()
+{
+  return Time::instance();
+}
 }

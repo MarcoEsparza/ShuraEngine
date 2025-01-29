@@ -44,7 +44,7 @@ BaseApp::run()
 
   // Main App Loop
   while (m_mainScreen->isOpen()) {
-    accumulator += g_Time().getFrameDeltaTime();
+    accumulator += g_time().getFrameDeltaTime();
 
     m_eventQueue->update();
 
@@ -60,11 +60,11 @@ BaseApp::run()
       handleScreenEvents(wndEvent);
       m_eventQueue->pop();
     }
-    update(g_Time().getFrameDeltaTime());
+    update(g_time().getFrameDeltaTime());
 
-    if (accumulator >= g_Time().FIXED_DELTA_TIME) {
-      fixedUpdate(g_Time().FIXED_DELTA_TIME);
-      accumulator -= g_Time().FIXED_DELTA_TIME;
+    if (accumulator >= g_time().FIXED_DELTA_TIME) {
+      fixedUpdate(g_time().FIXED_DELTA_TIME);
+      accumulator -= g_time().FIXED_DELTA_TIME;
     }
 
     render();
@@ -169,7 +169,7 @@ void
 BaseApp::update(float deltaTime)
 {
   // Update systems
-  g_Time().update();
+  g_time().update();
 
   // Call overridable update function
   onUpdate(deltaTime);
@@ -204,6 +204,6 @@ BaseApp::destroyManagers()
 {
   GraphicsManager::instance().shutDown();
   ResourceManager::instance().shutDown();
-  g_Time().shutDown();
+  g_time().shutDown();
 }
 }
