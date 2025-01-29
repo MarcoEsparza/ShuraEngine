@@ -1,5 +1,6 @@
 SamplerState textureSampler : register(s0);
-Texture2D textureData : register(t0);
+Texture2D baseColor : register(t0);
+Texture2D normalTexture : register(t1);
 
 cbuffer VP : register(b0)
 {
@@ -9,7 +10,7 @@ cbuffer VP : register(b0)
 
 cbuffer Model : register(b1)
 {
-  float4x4 ModelPos;
+  float4x4 ModelTransform;
 }
 
 struct VS_INPUT
@@ -30,7 +31,7 @@ PS_INPUT main(VS_INPUT input)
 {
   PS_INPUT output = (PS_INPUT) 0;
   
-  float4x4 wvp = mul(ModelPos, mul(View, Proj));
+  float4x4 wvp = mul(ModelTransform, mul(View, Proj));
 
   output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
   output.Normal = input.Normal;
@@ -41,5 +42,5 @@ PS_INPUT main(VS_INPUT input)
 
 float4 mainPS(PS_INPUT input) : SV_Target
 {
-  return textureData.Sample(textureSampler, input.Tex);
+  return baseColor.Sample(textureSampler, input.Tex);
 }

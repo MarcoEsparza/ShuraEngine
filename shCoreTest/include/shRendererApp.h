@@ -61,7 +61,7 @@ class RendererApp : public BaseApp
   onCreate() override;
 
   void
-  onUpdate(float deltaTime) override;
+  onUpdate() override;
 
   void
   onRender() override;

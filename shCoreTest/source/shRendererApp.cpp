@@ -47,7 +47,10 @@ RendererApp::onCreate()
 
   Path text1("resources/base_albedo.png");
   auto baseColor = reinterpret_pointer_cast<ImageResource>(
-                   g_resourceMan().loadResourceFromFile(text1));
+                   g_resourceMan().loadResourceFromFile(text1)); 
+  Path text2("resources/base_normal.png");
+  auto normal = reinterpret_pointer_cast<ImageResource>(
+                   g_resourceMan().loadResourceFromFile(text2));
 
   Path modelPath("resources/DrakeFire.fbx");
   auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
@@ -55,6 +58,7 @@ RendererApp::onCreate()
 
   m_pModelMat = make_shared<PBRMaterial>();
   m_pModelMat->baseColor = baseColor->texture;
+  m_pModelMat->normal = normal->texture;
 
   Vector<VertexData> vertices;
   Vector<uint32> indices;
@@ -93,9 +97,9 @@ RendererApp::onCreate()
 }
 
 void
-RendererApp::onUpdate(float deltaTime)
+RendererApp::onUpdate()
 {
-
+  
 }
 
 void
@@ -116,6 +120,7 @@ RendererApp::onRender()
   g_graphicsMan().setVertexBuffers(m_pModelVertexB);
   g_graphicsMan().setIndexBuffers(m_pModelIndexB);
   g_graphicsMan().setShaderResourceView(m_pModelMat->baseColor);
+  g_graphicsMan().setShaderResourceView(m_pModelMat->normal, 1);
 
   auto& goList = m_scene->getGameObjectList();
   for (auto& gObject : goList) {

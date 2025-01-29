@@ -53,6 +53,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   GraphicsManager() = default;
 
+  /**
+  *  @brief Default destructor.
+  */
+  ~GraphicsManager() = default;
+
   /*************************************************************/
   /*
   *  Public functions

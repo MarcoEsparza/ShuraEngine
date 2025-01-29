@@ -21,6 +21,7 @@
 
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
+#include "shScriptManager.h"
 #include "shTime.h"
 #include "shDynamicLibrary.h"
 
@@ -60,10 +61,10 @@ BaseApp::run()
       handleScreenEvents(wndEvent);
       m_eventQueue->pop();
     }
-    update(g_time().getFrameDeltaTime());
+    update();
 
     if (accumulator >= g_time().FIXED_DELTA_TIME) {
-      fixedUpdate(g_time().FIXED_DELTA_TIME);
+      fixedUpdate();
       accumulator -= g_time().FIXED_DELTA_TIME;
     }
 
@@ -117,8 +118,9 @@ void
 BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
-  ResourceManager::startUp<ResourceManager>();
-  Time::startUp<Time>();
+  ResourceManager::startUp();
+  ScriptManager::startUp();
+  Time::startUp();
 }
 
 void
@@ -166,19 +168,19 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
 }
 
 void
-BaseApp::update(float deltaTime)
+BaseApp::update()
 {
   // Update systems
   g_time().update();
 
   // Call overridable update function
-  onUpdate(deltaTime);
+  onUpdate();
 }
 
 void
-BaseApp::fixedUpdate(float fixedDeltaTime)
+BaseApp::fixedUpdate()
 {
-  onFixedUpdate(fixedDeltaTime);
+  onFixedUpdate();
 }
 
 void
@@ -202,8 +204,9 @@ BaseApp::render()
 void
 BaseApp::destroyManagers()
 {
-  GraphicsManager::instance().shutDown();
-  ResourceManager::instance().shutDown();
-  g_time().shutDown();
+  GraphicsManager::shutDown();
+  ResourceManager::shutDown();
+  ScriptManager::shutDown();
+  Time::shutDown();
 }
 }
