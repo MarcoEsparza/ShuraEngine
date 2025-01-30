@@ -309,16 +309,126 @@ public:
 };
 
 /**
+*  @brief Translation matrix.
+*/
+class SH_UTILITY_EXPORT TranslationMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param Vector3& position
+  */
+  TranslationMatrix(const Vector3& position);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~TranslationMatrix() = default;
+};
+
+/**
+*  @brief Scale matrix.
+*/
+class SH_UTILITY_EXPORT ScaleMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param Vector3& scale
+  */
+  ScaleMatrix(const Vector3& scale);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~ScaleMatrix() = default;
+};
+
+/**
+*  @brief Rotation in X axis.
+*/
+class SH_UTILITY_EXPORT RotationXMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param float radAngle
+  */
+  RotationXMatrix(const float radAngle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~RotationXMatrix() = default;
+};
+
+/**
+*  @brief Rotation in Y axis.
+*/
+class SH_UTILITY_EXPORT RotationYMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param float radAngle
+  */
+  RotationYMatrix(const float radAngle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~RotationYMatrix() = default;
+};
+
+/**
+*  @brief Rotation in Z axis.
+*/
+class SH_UTILITY_EXPORT RotationZMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param float radAngle
+  */
+  RotationZMatrix(const float radAngle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~RotationZMatrix() = default;
+};
+
+/**
+*  @brief Rotation in Z axis.
+*/
+class SH_UTILITY_EXPORT MatrixRotationAxis : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param Vector3& axis
+  *  @param float angle
+  */
+  MatrixRotationAxis(Vector3& axis, float angle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~MatrixRotationAxis() = default;
+};
+
+/**
 *  @brief View Matrix for graphics.
 */
 class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
 {
  public:
-  /**
-  *  @brief Default constructor.
-  */
-  ViewMatrix() = default;
-
   /**
   *  @brief Constructor to initialize matrix values.
   * 
@@ -342,11 +452,6 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
 class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
 {
  public:
-  /**
-  *  @brief Default constructor.
-  */
-  ProjectionMatrix() = default;
-
   /**
   *  @brief Constructor to initialize matrix values.
   * 
@@ -374,11 +479,6 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
 class SH_UTILITY_EXPORT OrthographicProjectionMatrix : public Matrix4
 {
  public:
-  /**
-  *  @brief Default constructor.
-  */
-  OrthographicProjectionMatrix() = default;
-
   /**
   *  @brief Constructor to initialize matrix values.
   * 

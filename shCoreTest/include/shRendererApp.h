@@ -1,27 +1,28 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/01/29
 *  @brief   
 *
 *  
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shBaseApp.h"
 #include "shCamera.h"
 #include "shMatrix4.h"
 #include "shVector3.h"
+#include "shVector2.h"
 
 namespace shEngineSDK {
 class ProgramShader;
@@ -38,8 +39,8 @@ class PBRMaterial;
 
 struct VP
 {
-  ViewMatrix view;
-  ProjectionMatrix proj;
+  Matrix4 view;
+  Matrix4 proj;
 };
 
 /**
@@ -70,10 +71,21 @@ class RendererApp : public BaseApp
   onKeyPressed(const KEY::E key, const ModifierState modifier) override;
 
   void
-  onMouseButtonPressed(const MOUSE_INPUT::E mouseButton, const ModifierState modifier) override;
+  onKeyReleased(const KEY::E key, const ModifierState modifier) override;
+
+  void
+  onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
+                       const ModifierState modifier) override;
+
+  void
+  onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
+                       const ModifierState modifier) override;
 
   void
   onMouseMove(const MouseMoveData& mouse) override;
+
+  void
+  onDestroy() override;
 
   void
   initGraphicAssets();
@@ -82,10 +94,10 @@ class RendererApp : public BaseApp
   initCamera();
 
   void
-  moveCamera(const Vector3& direction);
+  rotateCamera();
 
   void
-  rotateCamera(const float pitch, const float yaw);
+  moveCamera(const Vector3& direction);
 
  private:
   ScreenDesc m_desc;
@@ -101,7 +113,16 @@ class RendererApp : public BaseApp
   SPtr<IndexBuffer> m_pModelIndexB;
   SPtr<PBRMaterial> m_pModelMat;
 
-  FPSCamera m_camera;
+  Camera m_camera;
   SPtr<SceneGraph> m_scene;
+
+  bool m_leftClick = false;
+  Vector2 m_lastMousePos = Vector2(0.0f, 0.0f);
+  Vector2 m_currentMousePos = Vector2(0.0f, 0.0f);
+
+  bool m_foward = false;
+  bool m_left = false;
+  bool m_back = false;
+  bool m_right = false;
 };
 }

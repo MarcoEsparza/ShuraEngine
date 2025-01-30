@@ -33,6 +33,8 @@
 
 using std::reinterpret_pointer_cast;
 
+#define CAMERA_DELAY     0.0003f
+
 namespace shEngineSDK {
 void
 RendererApp::onCreate()
@@ -99,6 +101,25 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
+  if (m_leftClick) {
+    rotateCamera();
+  }
+
+  if (m_foward) {
+    moveCamera(Vector3(0.0f, 0.0f, 1.0f));
+  }
+  
+  if (m_left) {
+    moveCamera(Vector3(-1.0f, 0.0f, 0.0f));
+  }
+
+  if (m_back) {
+    moveCamera(Vector3(0.0f, 0.0f, -1.0f));
+  }
+  
+  if (m_right) {
+    moveCamera(Vector3(1.0f, 0.0f, 0.0f));
+  }
   
 }
 
@@ -144,33 +165,83 @@ RendererApp::onRender()
 void
 RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
-  if (key == KEY::kW) {
+  SH_UNREFERENCED_PARAMETER(modifier);
 
+  if (key == KEY::kW) {
+    m_foward = true;
   }
 
   if (key == KEY::kA) {
-
+    m_left = true;
   }
 
   if (key == KEY::kS) {
-
+    m_back = true;
   }
 
   if (key == KEY::kD) {
-
+    m_right = true;
   }
 }
 
 void
-RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton, const ModifierState modifier)
+RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
 {
+  SH_UNREFERENCED_PARAMETER(modifier);
 
+  if (key == KEY::kW) {
+    m_foward = false;
+  }
+
+  if (key == KEY::kA) {
+    m_left = false;
+  }
+
+  if (key == KEY::kS) {
+    m_back = false;
+  }
+
+  if (key == KEY::kD) {
+    m_right = false;
+  }
+}
+
+void
+RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
+                                  const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (mouseButton == MOUSE_INPUT::kLeft)
+  {
+    m_leftClick = true;
+  }
+}
+
+void
+RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
+                                   const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (mouseButton == MOUSE_INPUT::kLeft)
+  {
+    m_leftClick = false;
+  }
 }
 
 void
 RendererApp::onMouseMove(const MouseMoveData& mouse)
 {
+  m_lastMousePos = m_currentMousePos;
+  m_currentMousePos.x = static_cast<float>(mouse.x);
+  m_currentMousePos.y = static_cast<float>(mouse.y);
+}
 
+void
+RendererApp::onDestroy()
+{
+  
 }
 
 void
@@ -239,7 +310,11 @@ RendererApp::initCamera()
 
   VP vp;
 
-  m_camera.setProjectionData(45.0f, m_desc.width, m_desc.height, 0.1f, 100.0f);
+  m_camera.setPerspectiveData(45.0f * Math::DEG2RAD,
+                              static_cast<float>(m_desc.width),
+                              static_cast<float>(m_desc.height),
+                              0.1f,
+                              100.0f);
 
   Vector3 eye(0.0f, 0.0f, -2.0f);
   Vector3 at(0.0f, 0.0f, 0.0f);
@@ -257,14 +332,40 @@ RendererApp::initCamera()
 }
 
 void
-RendererApp::moveCamera(const Vector3& direction)
+RendererApp::rotateCamera()
 {
+  const float dx = (m_lastMousePos.x - m_currentMousePos.x) * -CAMERA_DELAY;
+  const float dy = (m_lastMousePos.y - m_currentMousePos.y) * CAMERA_DELAY;
 
+  if (m_lastMousePos.x != m_currentMousePos.x ||
+      m_lastMousePos.y != m_currentMousePos.y) {
+    m_camera.rotateCam(dx, dy);
+  }
+
+  VP vp;
+
+  vp.proj = m_camera.getProjection();
+  vp.view = m_camera.getView();
+
+  vp.proj.getTransposed();
+  vp.view.getTransposed();
+
+  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 }
 
 void
-RendererApp::rotateCamera(const float pitch, const float yaw)
+RendererApp::moveCamera(const Vector3& direction)
 {
+  m_camera.move(direction);
 
+  VP vp;
+
+  vp.proj = m_camera.getProjection();
+  vp.view = m_camera.getView();
+
+  vp.proj.getTransposed();
+  vp.view.getTransposed();
+
+  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 }
 }
