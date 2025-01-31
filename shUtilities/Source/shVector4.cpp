@@ -17,9 +17,18 @@
 */
 /*************************************************************/
 #include "shVector4.h"
+#include "shVector3.h"
 #include "shMath.h"
 
 namespace shEngineSDK {
+Vector4::Vector4(const Vector3& xyz, const float _w)
+{
+  x = xyz.x;
+  y = xyz.y;
+  z = xyz.z;
+  w = _w;
+}
+
 Vector4::Vector4(const Vector4& other)
 {
   x = other.x;

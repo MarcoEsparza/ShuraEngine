@@ -21,19 +21,19 @@
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shTime.h"
+#include "shSceneGraph.h"
 #include "shMath.h"
 
 #include "shPath.h"
 #include "shImageResource.h"
 #include "shMeshResource.h"
-#include "shSceneGraph.h"
 #include "shGameObject.h"
 #include "shMeshComponent.h"
 #include "shMaterial.h"
 
-using std::reinterpret_pointer_cast;
+#include "shRadian.h"
 
-#define CAMERA_DELAY     0.0003f
+using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 void
@@ -41,8 +41,6 @@ RendererApp::onCreate()
 {
   initGraphicAssets();
   initCamera();
-
-  m_scene = make_shared<SceneGraph>();
 
   Path whitePNG("resources/White.png");
   g_resourceMan().loadResourceFromFile(whitePNG);
@@ -89,7 +87,7 @@ RendererApp::onCreate()
   modelGO->setScale(Vector3(1.0f, 1.0f, 1.0f));
   modelGO->setRotation(Vector3(0.0f, 90.0f, 0.0f));
 
-  m_scene->addObject(modelGO);
+  g_sceneGraph().addObject(modelGO);
 
   m_pModelTransform = g_graphicsMan().createConstantBuffer(sizeof(Transform));
 
@@ -105,22 +103,34 @@ RendererApp::onUpdate()
     rotateCamera();
   }
 
+  const float speed = 0.01f;
+
   if (m_foward) {
-    moveCamera(Vector3(0.0f, 0.0f, 1.0f));
+    m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * speed);
   }
   
   if (m_left) {
-    moveCamera(Vector3(-1.0f, 0.0f, 0.0f));
+    m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * speed);
   }
 
   if (m_back) {
-    moveCamera(Vector3(0.0f, 0.0f, -1.0f));
+    m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * speed);
   }
   
   if (m_right) {
-    moveCamera(Vector3(1.0f, 0.0f, 0.0f));
+    m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * speed);
+  }
+
+  if (m_up) {
+    m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * speed);
+  }
+
+  if (m_down) {
+    m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * speed);
   }
   
+  m_camera.update();
+  updateCamera();
 }
 
 void
@@ -143,7 +153,7 @@ RendererApp::onRender()
   g_graphicsMan().setShaderResourceView(m_pModelMat->baseColor);
   g_graphicsMan().setShaderResourceView(m_pModelMat->normal, 1);
 
-  auto& goList = m_scene->getGameObjectList();
+  auto& goList = g_sceneGraph().getGameObjectList();
   for (auto& gObject : goList) {
     for (auto& component : gObject->components) {
       if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
@@ -182,6 +192,14 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
   if (key == KEY::kD) {
     m_right = true;
   }
+
+  if (key == KEY::kQ) {
+    m_down = true;
+  }
+
+  if (key == KEY::kE) {
+    m_up = true;
+  }
 }
 
 void
@@ -203,6 +221,18 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
 
   if (key == KEY::kD) {
     m_right = false;
+  }
+
+  if (key == KEY::kQ) {
+    m_down = false;
+  }
+
+  if (key == KEY::kE) {
+    m_up = false;
+  }
+
+  if (key == KEY::kC) {
+    compileShader();
   }
 }
 
@@ -245,16 +275,27 @@ RendererApp::onDestroy()
 }
 
 void
+RendererApp::compileShader()
+{
+  m_pShader->~ProgramShader();
+  m_pShader.reset();
+  m_pShader = g_graphicsMan().createProgramShader("resources/BasicShader.hlsl",
+                                                  "main",
+                                                  "mainPS",
+                                                  "vs_5_0",
+                                                  "ps_5_0");
+}
+
+void
 RendererApp::initGraphicAssets()
 {
-  setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
+  setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
 
-  Path shaderPath("resources/BasicShader.hlsl");
-  m_pShader = g_graphicsMan().createProgramShader(shaderPath.toString(),
-                                      "main",
-                                      "mainPS",
-                                      "vs_5_0",
-                                      "ps_5_0");
+  m_pShader = g_graphicsMan().createProgramShader("resources/BasicShader.hlsl",
+                                                  "main",
+                                                  "mainPS",
+                                                  "vs_5_0",
+                                                  "ps_5_0");
 
   Vector<InputDesc> ilDesc;
   ilDesc.resize(3);
@@ -310,17 +351,14 @@ RendererApp::initCamera()
 
   VP vp;
 
-  m_camera.setPerspectiveData(45.0f * Math::DEG2RAD,
-                              static_cast<float>(m_desc.width),
-                              static_cast<float>(m_desc.height),
-                              0.1f,
-                              100.0f);
-
-  Vector3 eye(0.0f, 0.0f, -2.0f);
-  Vector3 at(0.0f, 0.0f, 0.0f);
-  Vector3 up(0.0f, 1.0f, 0.0f);
-
-  m_camera.setViewData(eye, at, up);
+  m_camera = Camera(Vector3(0.0f, 0.0f, -2.0f),
+                    Vector3(0.0f, 0.0f, 0.0f),
+                    Vector3::UP,
+                    45.0f * Math::DEG2RAD,
+                    static_cast<float>(m_desc.width),
+                    static_cast<float>(m_desc.height),
+                    0.1f,
+                    100.0f);
 
   vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();
@@ -334,30 +372,23 @@ RendererApp::initCamera()
 void
 RendererApp::rotateCamera()
 {
-  const float dx = (m_lastMousePos.x - m_currentMousePos.x) * -CAMERA_DELAY;
-  const float dy = (m_lastMousePos.y - m_currentMousePos.y) * CAMERA_DELAY;
+  const float speed = 0.005f;
+
+  const float dx = (m_lastMousePos.x - m_currentMousePos.x) * speed;
+  const float dy = (m_lastMousePos.y - m_currentMousePos.y) * speed;
 
   if (m_lastMousePos.x != m_currentMousePos.x ||
       m_lastMousePos.y != m_currentMousePos.y) {
-    m_camera.rotateCam(dx, dy);
+    m_camera.rotate(dx * Math::DEG2RAD, dy * Math::DEG2RAD);
+    /*m_camera.orbitCamera(Radian(dx * Math::DEG2RAD),
+                         Radian(dy * Math::DEG2RAD),
+                         Vector3::ZERO);*/
   }
-
-  VP vp;
-
-  vp.proj = m_camera.getProjection();
-  vp.view = m_camera.getView();
-
-  vp.proj.getTransposed();
-  vp.view.getTransposed();
-
-  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 }
 
 void
-RendererApp::moveCamera(const Vector3& direction)
+RendererApp::updateCamera()
 {
-  m_camera.move(direction);
-
   VP vp;
 
   vp.proj = m_camera.getProjection();

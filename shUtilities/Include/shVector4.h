@@ -20,6 +20,8 @@
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
+class Vector3;
+
 /*
 *  @brief Vector4 with float.
 *  
@@ -46,6 +48,13 @@ class SH_UTILITY_EXPORT Vector4
   */
   Vector4(const float _x, const float _y, const float _z, const float _w) :
           x(_x), y(_y), z(_z), w(_w) {}
+
+  /**
+  *  @brief Constructor with a given vec3 and a w component.
+  *
+  *  @param Vector4 other
+  */
+  Vector4(const Vector3& xyz, const float _w);
 
   /**
   *  @brief Copy constructor

@@ -46,4 +46,9 @@ SceneGraph::getGameObjectList() const
 {
   return m_gameObjects;
 }
+
+SceneGraph& g_sceneGraph()
+{
+  return SceneGraph::instance();
+}
 }

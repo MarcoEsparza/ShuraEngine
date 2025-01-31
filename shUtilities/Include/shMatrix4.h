@@ -244,6 +244,28 @@ public:
   operator*(const float delta) const;
 
   /**
+  *  @brief The multiplication of a Matrix4 and a Vector3.
+  *
+  *  @param lValue-Matrix4.
+  *  @param rValue-Vector3.
+  *
+  *  @return Vector3
+  */
+  FORCEINLINE Vector3
+  operator*(const Vector3& vec) const;
+
+  /**
+  *  @brief The multiplication of a Matrix4 and a Vector4.
+  *
+  *  @param lValue-Matrix4.
+  *  @param rValue-Vector4.
+  *
+  *  @return Vector4
+  */
+  FORCEINLINE Vector4
+  operator*(const Vector4& v) const;
+
+  /**
   *  @brief Operator to sum a Matrix4 values and other Matrix4 values and store
   *         the result in the first Matrix4.
   *
@@ -415,7 +437,7 @@ class SH_UTILITY_EXPORT MatrixRotationAxis : public Matrix4
   *  @param Vector3& axis
   *  @param float angle
   */
-  MatrixRotationAxis(Vector3& axis, float angle);
+  MatrixRotationAxis(Vector3 axis, float angle);
 
   /**
   *  @brief Default destructor.
@@ -662,6 +684,25 @@ Matrix4::operator*(const float delta) const
                  m[3][1] * delta,
                  m[3][2] * delta,
                  m[3][3] * delta);
+}
+
+FORCEINLINE Vector3
+Matrix4::operator*(const Vector3& vec) const
+{
+  Vector4 tempVec(vec, 0.0f);
+
+  tempVec = *this * tempVec;
+
+  return Vector3(tempVec.x, tempVec.y, tempVec.z);
+}
+
+FORCEINLINE Vector4
+Matrix4::operator*(const Vector4& v) const
+{
+  return Vector4((m[0][0] * v.x) + (m[0][1] * v.y) + (m[0][2] * v.z) + (m[0][3] * v.w),
+                 (m[1][0] * v.x) + (m[1][1] * v.y) + (m[1][2] * v.z) + (m[1][3] * v.w),
+                 (m[2][0] * v.x) + (m[2][1] * v.y) + (m[2][2] * v.z) + (m[2][3] * v.w),
+                 (m[3][0] * v.x) + (m[3][1] * v.y) + (m[3][2] * v.z) + (m[3][3] * v.w));
 }
 
 FORCEINLINE Matrix4&

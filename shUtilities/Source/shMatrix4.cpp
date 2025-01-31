@@ -168,7 +168,7 @@ RotationZMatrix::RotationZMatrix(const float radAngle)
   m[3][3] = 1.0f;
 }
 
-MatrixRotationAxis::MatrixRotationAxis(Vector3& axis, float angle)
+MatrixRotationAxis::MatrixRotationAxis(Vector3 axis, float angle)
 {
   SH_ASSERT(!axis.isZero());
   SH_ASSERT(!axis.containsNaN());

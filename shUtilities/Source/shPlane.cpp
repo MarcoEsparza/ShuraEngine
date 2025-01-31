@@ -1,29 +1,29 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shPlane.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2025/01/30
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPlane.h"
 #include "shMath.h"
 
 namespace shEngineSDK {
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Functions
 */
-/*************************************************************/
+/*****************************************************************************/
 
 void
 Plane::setNormal(const Vector3& _normal)
@@ -55,8 +55,16 @@ Plane::pointToPlaneDistance(const Vector3& point) const
   return (Math::abs(normal.dot(point) - distance) / normal.mag());
 }
 
-float Plane::evaluate(const Vector3& point) const
+float
+Plane::evaluate(const Vector3& point) const
 {
   return (normal.dot(point) + distance);
+}
+
+void
+Plane::normalize()
+{
+  normal.normalize();
+  distance /= normal.mag();
 }
 }

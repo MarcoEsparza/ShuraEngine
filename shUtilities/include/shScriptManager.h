@@ -47,6 +47,9 @@ ScriptManager::getState()
   return m_state;
 }
 
+/**
+*  @brief Easier way to access the ScriptManager module.
+*/
 SH_UTILITY_EXPORT ScriptManager&
 g_scriptMan();
 }

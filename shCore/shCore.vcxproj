@@ -26,6 +26,7 @@
     <ClInclude Include="include\shComponent.h" />
     <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
+    <ClInclude Include="include\shFrustum.h" />
     <ClInclude Include="include\shGameObject.h" />
     <ClInclude Include="include\shImageResource.h" />
     <ClInclude Include="include\shMaterial.h" />
@@ -62,6 +63,7 @@
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
+    <ClCompile Include="source\shFrustum.cpp" />
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />

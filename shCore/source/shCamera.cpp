@@ -18,7 +18,6 @@
 /*****************************************************************************/
 #include "shCamera.h"
 #include "shMath.h"
-#include "shRadian.h"
 
 namespace shEngineSDK {
 void
@@ -54,26 +53,112 @@ Camera::setOrthographicProjData(const float left,
   m_proj = OrthographicProjectionMatrix(left, right, bottom, top, nearZ, farZ);
 }
 
-void
-Camera::move(const Vector3& direction)
+Vector3
+Camera::getRight()
 {
-  Matrix4 transalation = Matrix4::IDENTITY;
-  transalation = transalation.createTranslationMatrix(direction);
+  return Vector3::UP.cross(getFoward()).getNormalized();
+}
 
-  m_view *= transalation;
+Vector3
+Camera::getFoward()
+{
+  return (m_target - m_position);
 }
 
 void
-Camera::rotateCam(const float yaw, const float pitch)
+Camera::update()
 {
-  Matrix4 rotation = Matrix4::IDENTITY;
-  Matrix4 rotX = rotation.createRotationXMatrix(Radian(pitch));
-  Matrix4 rotY = rotation.createRotationYMatrix(Radian(yaw));
-  rotation = rotX * rotY;
+  if (m_bIsDirty) {
+    m_view = ViewMatrix(m_position, m_target, m_up);
 
-  //Vector3 axis(pitch, yaw, 0.0f);
-  //Matrix4 rotation = MatrixRotationAxis(axis, 0.0f);
+    if (m_bIsOrtho) {
+      m_proj = OrthographicProjectionMatrix(-m_screenWidth * 0.5f,
+                                            m_screenWidth * 0.5f,
+                                            -m_screenHeight * 0.5f,
+                                            m_screenHeight * 0.5f,
+                                            m_near,
+                                            m_far);
+    }
+    else {
+      m_proj = ProjectionMatrix(m_halfFOV,
+                                m_screenWidth,
+                                m_screenHeight,
+                                m_near,
+                                m_far);
+    }
 
-  m_view *= rotation;
+    m_frustum.calculatePlanes(m_view, m_proj);
+
+    m_bIsDirty = false;
+  }
+}
+
+void
+Camera::move(const Vector3& direction)
+{
+  Vector3 offset = (getRight() * direction.x) +
+                   (Vector3::UP * direction.y) +
+                   (getFoward() * direction.z);
+  m_position += offset;
+  m_target += offset;
+
+  //setViewData(m_position, m_target, Vector3::UP);
+
+  m_bIsDirty = true;
+}
+
+void
+Camera::rotate(const float yaw, const float pitch)
+{
+  Matrix4 rotation = MatrixRotationAxis(getRight(), pitch) * MatrixRotationAxis(Vector3::UP, yaw);
+
+  Vector3 newFoward = (rotation * getFoward()).getNormalized();
+
+  m_target = m_position + newFoward;
+
+  //setViewData(m_position, m_position + newFoward, Vector3::UP);
+
+  /*Quaternion yawRot(Vector3::UP, yaw);
+  Quaternion pitchRot(Vector3::RIGHT, pitch);
+
+  Vector3 forward = getForward();
+  forward = yawRot * forward;
+  forward = pitchRot * forward;
+
+  setViewData(m_position, m_position + forward, Vector3::UP);*/
+
+  m_bIsDirty = true;
+}
+void
+Camera::orbitCamera(const Radian& yaw, const Radian& pitch, const Vector3& center)
+{
+  Vector3 forward = m_position - center;
+
+  Vector3 forwardNormal = forward.getNormalized();
+  float dot = forwardNormal.dot(Vector3::UP);
+  Radian currentPitch;
+  currentPitch = Math::acos(Radian(dot));
+
+  float newPitch = currentPitch.getValueOnRadians() + pitch.getValueOnRadians();
+  newPitch = Math::clamp(newPitch, Degree(5.0f).getValueOnRadians(), Degree(174.0f).getValueOnRadians());
+
+  Quaternion yawRot(Vector3::UP, yaw.getValueOnRadians());
+  Quaternion pitchRot(getRight(), newPitch - currentPitch.getValueOnRadians());
+
+  forward = yawRot * forward;
+  Vector3 tempForward = forward;
+  forward = pitchRot * forward;
+
+  dot = forward.getNormalized().dot(Vector3::UP);
+  if (Math::abs(dot) > 0.99f) {
+    forward = tempForward;
+  }
+
+  //m_position = center + forward;
+  //m_target = center;
+
+  setViewData(center + forward, center, Vector3::UP);
+
+  m_bIsDirty = true;
 }
 }

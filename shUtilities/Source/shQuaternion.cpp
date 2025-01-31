@@ -26,6 +26,14 @@ Quaternion::Quaternion(const Vector3& vec)
   fromAngle(vec);
 }
 
+Quaternion::Quaternion(const Vector3& axis, const float angle)
+{
+  w = angle;
+  x = axis.x;
+  y = axis.y;
+  z = axis.z;
+}
+
 Quaternion::Quaternion(const Quaternion& other)
 {
   w = other.w;

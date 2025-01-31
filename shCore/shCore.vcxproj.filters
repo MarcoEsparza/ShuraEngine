@@ -189,6 +189,9 @@
     <ClInclude Include="include\shDepthStencilState.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
+    <ClInclude Include="include\shFrustum.h">
+      <Filter>Header Files\Camera</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -229,6 +232,9 @@
     </ClCompile>
     <ClCompile Include="source\shAnimatorComponent.cpp">
       <Filter>Source Files\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shFrustum.cpp">
+      <Filter>Source Files\Camera</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

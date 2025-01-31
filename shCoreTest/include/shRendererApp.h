@@ -88,6 +88,9 @@ class RendererApp : public BaseApp
   onDestroy() override;
 
   void
+  compileShader();
+
+  void
   initGraphicAssets();
 
   void
@@ -97,7 +100,7 @@ class RendererApp : public BaseApp
   rotateCamera();
 
   void
-  moveCamera(const Vector3& direction);
+  updateCamera();
 
  private:
   ScreenDesc m_desc;
@@ -114,7 +117,6 @@ class RendererApp : public BaseApp
   SPtr<PBRMaterial> m_pModelMat;
 
   Camera m_camera;
-  SPtr<SceneGraph> m_scene;
 
   bool m_leftClick = false;
   Vector2 m_lastMousePos = Vector2(0.0f, 0.0f);
@@ -124,5 +126,7 @@ class RendererApp : public BaseApp
   bool m_left = false;
   bool m_back = false;
   bool m_right = false;
+  bool m_up = false;
+  bool m_down = false;
 };
 }

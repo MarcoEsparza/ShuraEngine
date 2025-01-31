@@ -23,6 +23,7 @@
 #include "shResourceManager.h"
 #include "shScriptManager.h"
 #include "shTime.h"
+#include "shSceneGraph.h"
 #include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
@@ -121,6 +122,7 @@ BaseApp::initManagers()
   ResourceManager::startUp();
   ScriptManager::startUp();
   Time::startUp();
+  SceneGraph::startUp();
 }
 
 void
@@ -208,5 +210,6 @@ BaseApp::destroyManagers()
   ResourceManager::shutDown();
   ScriptManager::shutDown();
   Time::shutDown();
+  SceneGraph::shutDown();
 }
 }
