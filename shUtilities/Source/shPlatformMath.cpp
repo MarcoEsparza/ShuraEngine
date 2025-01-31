@@ -112,6 +112,12 @@ PlatformMath::max_element(const Array<float, 4>::iterator first,
   return std::max_element(first, last);
 }
 
+bool
+PlatformMath::is_NaN(const float value)
+{
+  return std::isnan(value);
+}
+
 /*************************************************************/
 /*
 *  Trigonometric functions

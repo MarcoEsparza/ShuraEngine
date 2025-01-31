@@ -88,19 +88,15 @@ class SH_CORE_EXPORT BaseApp
 
   /**
   *  @brief Override to add functionality every frame.
-  * 
-  *  @param float deltaTime
   */
   virtual void
-  onUpdate(float deltaTime) { SH_UNREFERENCED_PARAMETER(deltaTime); }
+  onUpdate() {}
 
   /**
   *  @brief Override to update objects independant from frame rate.
-  *
-  *  @param float fixedDeltaTime
   */
   virtual void
-  onFixedUpdate(float fixedDeltaTime) { SH_UNREFERENCED_PARAMETER(fixedDeltaTime); }
+  onFixedUpdate() {}
 
   /**
   *  @brief Override to do the app render pipeline.
@@ -230,19 +226,15 @@ class SH_CORE_EXPORT BaseApp
 
   /**
   *  @brief Update all objects.
-  * 
-  *  @param float deltaTime
   */
   void
-  update(float deltaTime);
+  update();
 
   /**
   *  @brief Update objects independant from frame rate.
-  *
-  *  @param float fixedDeltaTime
   */
   void
-  fixedUpdate(float fixedDeltaTime);
+  fixedUpdate();
 
   /**
   *  @brief Main render function.

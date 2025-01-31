@@ -94,6 +94,7 @@ FORCEINLINE DX11Device::~DX11Device()
 FORCEINLINE DX11DeviceContext::~DX11DeviceContext()
 {
   m_pDeviceContext->ClearState();
+  m_pDeviceContext->Flush();
   SafeRelease(m_pDeviceContext);
 }
 }

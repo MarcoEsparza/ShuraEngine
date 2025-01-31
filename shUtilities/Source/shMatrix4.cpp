@@ -83,6 +83,130 @@ Matrix4::Matrix4(const Vector4& vec1,
   m[3][0] = vec4.x; m[3][1] = vec4.y; m[3][2] = vec4.z; m[3][3] = vec4.w;
 }
 
+TranslationMatrix::TranslationMatrix(const Vector3& position)
+{
+  m[0][0] = 1.0f; m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = position.x;
+  m[1][0] = 0.0f; m[1][1] = 1.0f; m[1][2] = 0.0f; m[1][3] = position.y;
+  m[2][0] = 0.0f; m[2][1] = 0.0f; m[2][2] = 1.0f; m[2][3] = position.z;
+  m[3][0] = 0.0f; m[3][1] = 0.0f; m[3][2] = 0.0f; m[3][3] = 1.0f;
+}
+
+ScaleMatrix::ScaleMatrix(const Vector3& scale)
+{
+  m[0][0] = scale.x; m[0][1] = 0.0f;    m[0][2] = 0.0f;    m[0][3] = 0.0f;
+  m[1][0] = 0.0f;    m[1][1] = scale.y; m[1][2] = 0.0f;    m[1][3] = 0.0f;
+  m[2][0] = 0.0f;    m[2][1] = 0.0f;    m[2][2] = scale.z; m[2][3] = 0.0f;
+  m[3][0] = 0.0f;    m[3][1] = 0.0f;    m[3][2] = 0.0f;    m[3][3] = 1.0f;
+}
+
+RotationXMatrix::RotationXMatrix(const float radAngle)
+{
+  m[0][0] = 1.0f;
+  m[0][1] = 0.0f;
+  m[0][2] = 0.0f;
+  m[0][3] = 0.0f;
+
+  m[1][0] = 0.0f;
+  m[1][1] = Math::cos(Radian(radAngle));
+  m[1][2] = -Math::sin(Radian(radAngle));
+  m[1][3] = 0.0f;
+
+  m[2][0] = 0.0f;
+  m[2][1] = Math::sin(Radian(radAngle));
+  m[2][2] = Math::cos(Radian(radAngle));
+  m[2][3] = 0.0f;
+
+  m[3][0] = 0.0f;
+  m[3][1] = 0.0f;
+  m[3][2] = 0.0f;
+  m[3][3] = 1.0f;
+}
+
+RotationYMatrix::RotationYMatrix(const float radAngle)
+{
+  m[0][0] = Math::cos(Radian(radAngle));
+  m[0][1] = 0.0f;
+  m[0][2] = Math::sin(Radian(radAngle));
+  m[0][3] = 0.0f;
+
+  m[1][0] = 0.0f;
+  m[1][1] = 1.0f;
+  m[1][2] = 0.0f;
+  m[1][3] = 0.0f;
+
+  m[2][0] = -Math::cos(Radian(radAngle));
+  m[2][1] = 0.0f;
+  m[2][2] = Math::cos(Radian(radAngle));
+  m[2][3] = 0.0f;
+
+  m[3][0] = 0.0f;
+  m[3][1] = 0.0f;
+  m[3][2] = 0.0f;
+  m[3][3] = 1.0f;
+}
+
+RotationZMatrix::RotationZMatrix(const float radAngle)
+{
+  m[0][0] = Math::cos(Radian(radAngle));
+  m[0][1] = -Math::sin(Radian(radAngle));
+  m[0][2] = 0.0f;
+  m[0][3] = 0.0f;
+
+  m[1][0] = Math::sin(Radian(radAngle));
+  m[1][1] = Math::cos(Radian(radAngle));
+  m[1][2] = 0.0f;
+  m[1][3] = 0.0f;
+
+  m[2][0] = 0.0f;
+  m[2][1] = 0.0f;
+  m[2][2] = 1.0f;
+  m[2][3] = 0.0f;
+
+  m[3][0] = 0.0f;
+  m[3][1] = 0.0f;
+  m[3][2] = 0.0f;
+  m[3][3] = 1.0f;
+}
+
+MatrixRotationAxis::MatrixRotationAxis(Vector3 axis, float angle)
+{
+  SH_ASSERT(!axis.isZero());
+  SH_ASSERT(!axis.containsNaN());
+
+  axis.normalize();
+
+  //Compute rotation matrix from axis and angle
+  float s = Math::sin(Radian(angle));
+  float c = Math::cos(Radian(angle));
+  float t = 1.0f - c;
+
+  float x = axis.x;  float y = axis.y;  float z = axis.z;
+
+  float tx = t * x;    float ty = t * y;    float tz = t * z;
+  float txy = tx * y;  float txz = tx * z;  float tyz = ty * z;
+  float sx = s * x;    float sy = s * y;    float sz = s * z;
+
+  m[0][0] = tx * x + c;
+  m[0][1] = txy + sz;
+  m[0][2] = txz - sy;
+  m[0][3] = 0.0f;
+
+  m[1][0] = txy - sz;
+  m[1][1] = ty * y + c;
+  m[1][2] = tyz + sx;
+  m[1][3] = 0.0f;
+
+  m[2][0] = txz + sy;
+  m[2][1] = tyz - sx;
+  m[2][2] = tz * z + c;
+  m[2][3] = 0.0f;
+
+  m[3][0] = 0.0f;
+  m[3][1] = 0.0f;
+  m[3][2] = 0.0f;
+  m[3][3] = 1.0f;
+}
+
 ViewMatrix::ViewMatrix(const Vector3& camPos,
                        const Vector3& targetPos,
                        const Vector3& upVector)

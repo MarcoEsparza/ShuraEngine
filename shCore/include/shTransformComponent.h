@@ -26,7 +26,7 @@ namespace shEngineSDK {
 /**
 *  @brief Transform Component class.
 */
-class TransformComponent : public Component
+class SH_CORE_EXPORT TransformComponent : public Component
 {
  public:
   /**

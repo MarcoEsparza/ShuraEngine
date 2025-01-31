@@ -2,7 +2,7 @@
 /*
 *  @file    shSceneGraph.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/01/30
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
@@ -18,6 +18,7 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
+#include "shModule.h"
 #include "shGameObject.h"
 #include "shBuffers.h"
 #include "shGraphicTypes.h"
@@ -27,7 +28,7 @@ namespace shEngineSDK {
 /**
 *  @brief Scene graph class.
 */
-class SceneGraph
+class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
 {
  public:
   /**
@@ -81,4 +82,10 @@ class SceneGraph
   */
   Vector<SPtr<GameObject>> m_gameObjects;
 };
+
+/**
+*  @brief Easier way to access the ScriptManager module.
+*/
+SH_CORE_EXPORT SceneGraph&
+g_sceneGraph();
 }

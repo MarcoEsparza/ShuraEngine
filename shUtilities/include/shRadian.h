@@ -25,7 +25,7 @@ class Degree;
 /**
 *  @brief Class for angles which value is in radians.
 */
-class Radian
+class SH_UTILITY_EXPORT Radian
 {
  public:
   /**

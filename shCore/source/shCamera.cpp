@@ -1,24 +1,23 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/21
+*  @date    2025/01/29
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
 *
 *  @bug     Camera movement not working properly.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shCamera.h"
 #include "shMath.h"
-#include "shRadian.h"
 
 namespace shEngineSDK {
 void
@@ -30,83 +29,136 @@ Camera::setViewData(const Vector3& camPos,
 
   m_position = camPos;
   m_target = targetPos;
-  m_upVector = upVector;
+  m_up = upVector;
 }
 
 void
-FPSCamera::setProjectionData(const float halfFOV,
-                             const float width,
-                             const float height,
-                             const float minZ,
-                             const float maxZ)
+Camera::setPerspectiveData(const float halfFOV,
+                          const float width,
+                          const float height,
+                          const float minZ,
+                          const float maxZ)
 {
   m_proj = ProjectionMatrix(halfFOV, width, height, minZ, maxZ);
 }
 
 void
-FPSCamera::moveX(const float dir)
+Camera::setOrthographicProjData(const float left,
+                                const float right,
+                                const float bottom,
+                                const float top,
+                                const float nearZ,
+                                const float farZ)
 {
-  const Vector3 forward = m_target - m_position;
-  m_right = m_upVector.cross(forward);
-  m_right.normalize();
+  m_proj = OrthographicProjectionMatrix(left, right, bottom, top, nearZ, farZ);
+}
 
-  m_position += m_right * dir;
-  m_target += m_right * dir;
+Vector3
+Camera::getRight()
+{
+  return Vector3::UP.cross(getFoward()).getNormalized();
+}
 
-  setViewData(m_position, m_target, m_upVector);
+Vector3
+Camera::getFoward()
+{
+  return (m_target - m_position);
 }
 
 void
-FPSCamera::moveY(const float dir)
+Camera::update()
 {
-  const Vector3 forward = m_target - m_position;
-  m_upVector = forward.cross(m_right);
-  m_upVector.normalize();
+  if (m_bIsDirty) {
+    m_view = ViewMatrix(m_position, m_target, m_up);
 
-  m_position += m_upVector * dir;
-  m_target += m_upVector * dir;
+    if (m_bIsOrtho) {
+      m_proj = OrthographicProjectionMatrix(-m_screenWidth * 0.5f,
+                                            m_screenWidth * 0.5f,
+                                            -m_screenHeight * 0.5f,
+                                            m_screenHeight * 0.5f,
+                                            m_near,
+                                            m_far);
+    }
+    else {
+      m_proj = ProjectionMatrix(m_halfFOV,
+                                m_screenWidth,
+                                m_screenHeight,
+                                m_near,
+                                m_far);
+    }
 
-  setViewData(m_position, m_target, m_upVector);
+    m_frustum.calculatePlanes(m_view, m_proj);
+
+    m_bIsDirty = false;
+  }
 }
 
 void
-FPSCamera::moveZ(const float dir)
+Camera::move(const Vector3& direction)
 {
-  const Vector3 temp = m_right.cross(m_upVector);
-  const Vector3 forward = temp.getNormalized();
+  Vector3 offset = (getRight() * direction.x) +
+                   (Vector3::UP * direction.y) +
+                   (getFoward() * direction.z);
+  m_position += offset;
+  m_target += offset;
 
-  m_position += forward * dir;
-  m_target += forward * dir;
+  //setViewData(m_position, m_target, Vector3::UP);
 
-  setViewData(m_position, m_target, m_upVector);
-}
-
-// TODO: Change above functions to this.
-void
-FPSCamera::move(const Vector3&)
-{
-
+  m_bIsDirty = true;
 }
 
 void
-FPSCamera::rotateCam(const float yaw, const float pitch)
+Camera::rotate(const float yaw, const float pitch)
 {
-  Matrix4 rotation = Matrix4::IDENTITY;
-  Matrix4 rotX = rotation.createRotationXMatrix(Radian(pitch));
-  Matrix4 rotY = rotation.createRotationYMatrix(Radian(yaw));
-  rotation = rotX * rotY;
+  Matrix4 rotation = MatrixRotationAxis(getRight(), pitch) * MatrixRotationAxis(Vector3::UP, yaw);
 
-  m_view *= rotation;
+  Vector3 newFoward = (rotation * getFoward()).getNormalized();
+
+  m_target = m_position + newFoward;
+
+  //setViewData(m_position, m_position + newFoward, Vector3::UP);
+
+  /*Quaternion yawRot(Vector3::UP, yaw);
+  Quaternion pitchRot(Vector3::RIGHT, pitch);
+
+  Vector3 forward = getForward();
+  forward = yawRot * forward;
+  forward = pitchRot * forward;
+
+  setViewData(m_position, m_position + forward, Vector3::UP);*/
+
+  m_bIsDirty = true;
 }
-
 void
-OrthographicCamera::setOrthographicProjData(const float left,
-  const float right,
-  const float bottom,
-  const float top,
-  const float nearZ,
-  const float farZ)
+Camera::orbitCamera(const Radian& yaw, const Radian& pitch, const Vector3& center)
 {
-  m_orthoProj = OrthographicProjectionMatrix(left, right, bottom, top, nearZ, farZ);
+  Vector3 forward = m_position - center;
+
+  Vector3 forwardNormal = forward.getNormalized();
+  float dot = forwardNormal.dot(Vector3::UP);
+  Radian currentPitch;
+  currentPitch = Math::acos(Radian(dot));
+
+  float newPitch = currentPitch.getValueOnRadians() + pitch.getValueOnRadians();
+  newPitch = Math::clamp(newPitch, Degree(5.0f).getValueOnRadians(), Degree(174.0f).getValueOnRadians());
+
+  Quaternion yawRot(Vector3::UP, yaw.getValueOnRadians());
+  Quaternion pitchRot(getRight(), newPitch - currentPitch.getValueOnRadians());
+
+  forward = yawRot * forward;
+  Vector3 tempForward = forward;
+  forward = pitchRot * forward;
+
+  dot = forward.getNormalized().dot(Vector3::UP);
+  if (Math::abs(dot) > 0.99f) {
+    forward = tempForward;
+  }
+
+  //m_position = center + forward;
+  //m_target = center;
+
+  setViewData(center + forward, center, Vector3::UP);
+
+  m_bIsDirty = true;
 }
 }
