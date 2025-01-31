@@ -19,6 +19,8 @@
 #include "shPhysicsApp.h"
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
+#include "shTime.h"
+
 #include "shShader.h"
 #include "shInputLayout.h"
 #include "shBlendState.h"
@@ -59,9 +61,9 @@ PhysicsApp::onCreate()
 }
 
 void
-PhysicsApp::onUpdate(float deltaTime)
+PhysicsApp::onUpdate()
 {
-  //m_player->update(deltaTime);
+  //m_player->update(g_time().getFrameDeltaTime());
 
   Vector2 boxNormal(0.0f, 0.0f);
   if (checkCollision(m_left, boxNormal)) {
@@ -79,9 +81,9 @@ PhysicsApp::onUpdate(float deltaTime)
 }
 
 void
-PhysicsApp::onFixedUpdate(float fixedDeltaTime)
+PhysicsApp::onFixedUpdate()
 {
-  m_player->update(fixedDeltaTime);
+  m_player->update(g_time().FIXED_DELTA_TIME);
 }
 
 void
@@ -258,7 +260,9 @@ PhysicsApp::initCamera()
 
   m_camera.setViewData(eye, at, up);
 
-  vp.proj = m_camera.getOrthographicProjection();
+  
+
+  vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();
 
   vp.proj.getTransposed();

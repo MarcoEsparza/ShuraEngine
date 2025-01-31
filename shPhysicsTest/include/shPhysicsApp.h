@@ -59,10 +59,10 @@ class PhysicsApp : public BaseApp
   onCreate() override;
 
   void
-  onUpdate(float deltaTime) override;
+  onUpdate() override;
 
   void
-  onFixedUpdate(float fixedDeltaTime) override;
+  onFixedUpdate() override;
 
   void
   onRender() override;
@@ -95,7 +95,7 @@ class PhysicsApp : public BaseApp
   SPtr<ConstantBuffer> m_pVP;
 
   SPtr<Player> m_player;
-  OrthographicCamera m_camera;
+  Camera m_camera;
 
   Box m_left;
   Box m_right;
