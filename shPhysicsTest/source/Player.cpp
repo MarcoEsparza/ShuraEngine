@@ -111,9 +111,9 @@ Player::update(float deltaTime)
     return;
   }
 
-  //eulerDrag(calculateDrag(), deltaTime);
+  eulerDrag(calculateDrag(), deltaTime);
 
-  verletDrag(calculateDrag(), deltaTime);
+  //verletDrag(calculateDrag(), deltaTime);
 
   Vector2 velPos = m_position + m_velocity;
 

@@ -49,9 +49,9 @@ PhysicsApp::onCreate()
                                  maxPlayerSize,
                                  textPath,
                                  Vector2(0.0f, 0.0f),
-                                 2.5f,
+                                 1.5f,
                                  500.0f,
-                                 0.1f,
+                                 0.8f,
                                  25.0f);
 
   Path arrowPath("resources/arrow.png");
@@ -63,7 +63,27 @@ PhysicsApp::onCreate()
 void
 PhysicsApp::onUpdate()
 {
-  //m_player->update(g_time().getFrameDeltaTime());
+  Vector2 direction(0.0f, 0.0f);
+
+  if (m_bUp) {
+    direction.y = 1.0f;
+  }
+
+  if (m_bLeft) {
+    direction.x = -1.0f;
+  }
+
+  if (m_bDown) {
+    direction.y = -1.0f;
+  }
+
+  if (m_bRight) {
+    direction.x = 1.0f;
+  }
+
+  m_player->move(direction);
+
+  m_player->update(g_time().getFrameDeltaTime());
 
   Vector2 boxNormal(0.0f, 0.0f);
   if (checkCollision(m_left, boxNormal)) {
@@ -83,7 +103,7 @@ PhysicsApp::onUpdate()
 void
 PhysicsApp::onFixedUpdate()
 {
-  m_player->update(g_time().FIXED_DELTA_TIME);
+  //m_player->update(g_time().FIXED_DELTA_TIME);
 }
 
 void
@@ -122,7 +142,7 @@ PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
 
-  if (key == KEY::kW) {
+  /*if (key == KEY::kW) {
     m_player->move(Vector2(0.0f, 1.0f));
   }
 
@@ -152,6 +172,44 @@ PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 
   if (key == KEY::kX) {
     m_player->move(Vector2(1.0f, -1.0f));
+  }*/
+
+  if (key == KEY::kW) {
+    m_bUp = true;
+  }
+
+  if (key == KEY::kA) {
+    m_bLeft = true;
+  }
+
+  if (key == KEY::kS) {
+    m_bDown = true;
+  }
+
+  if (key == KEY::kD) {
+    m_bRight = true;
+  }
+}
+
+void
+PhysicsApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (key == KEY::kW) {
+    m_bUp = false;
+  }
+
+  if (key == KEY::kA) {
+    m_bLeft = false;
+  }
+
+  if (key == KEY::kS) {
+    m_bDown = false;
+  }
+
+  if (key == KEY::kD) {
+    m_bRight = false;
   }
 }
 
@@ -244,23 +302,16 @@ PhysicsApp::initCamera()
   m_pVP = gManager.createConstantBuffer(sizeof(VP));
 
   VP vp;
-  
-  float aspectRatio = m_desc.width * 0.5f;
 
-  m_camera.setOrthographicProjData(-aspectRatio,
-                                   aspectRatio,
-                                   -aspectRatio,
-                                   aspectRatio,
-                                   0.1f,
-                                   100.0f);
+  m_camera = Camera(Vector3(0.0f, 0.0f, -10.0f),
+                    Vector3(0.0f, 0.0f, 0.0f),
+                    Vector3(0.0f, 1.0f, 0.0f),
+                    static_cast<float>(m_desc.width),
+                    static_cast<float>(m_desc.height),
+                    0.1f,
+                    100.0f);
 
-  Vector3 eye(0.0f, 0.0f, -10.0f);
-  Vector3 at(0.0f, 0.0f, 0.0f);
-  Vector3 up(0.0f, 1.0f, 0.0f);
-
-  m_camera.setViewData(eye, at, up);
-
-  
+  m_camera.update();
 
   vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();

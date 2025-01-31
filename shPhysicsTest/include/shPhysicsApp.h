@@ -70,6 +70,9 @@ class PhysicsApp : public BaseApp
   void
   onKeyPressed(const KEY::E key, const ModifierState modifier) override;
 
+  void
+  onKeyReleased(const KEY::E key, const ModifierState modifier) override;
+
   bool
   checkCollision(const Box& box, Vector2& collisionNormal);
 
@@ -101,5 +104,10 @@ class PhysicsApp : public BaseApp
   Box m_right;
   Box m_top;
   Box m_bottom;
+
+  bool m_bUp = false;
+  bool m_bDown = false;
+  bool m_bRight = false;
+  bool m_bLeft = false;
 };
 }
