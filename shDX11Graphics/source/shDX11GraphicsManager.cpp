@@ -329,6 +329,12 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
     else if (desc[i].type == INPUT_LAYOUT_TYPES::kTexcoord) {
       element.SemanticName = "TEXCOORD";
     }
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kTangents) {
+      element.SemanticName = "TANGENT";
+    }
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kBitangents) {
+      element.SemanticName = "BINORMAL";
+    }
     else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneIndices) {
       element.SemanticName = "BLENDINDICES";
     }

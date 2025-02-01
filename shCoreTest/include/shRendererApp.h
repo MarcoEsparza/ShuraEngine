@@ -23,6 +23,7 @@
 #include "shMatrix4.h"
 #include "shVector3.h"
 #include "shVector2.h"
+#include "shLight.h"
 
 namespace shEngineSDK {
 class ProgramShader;
@@ -112,6 +113,8 @@ class RendererApp : public BaseApp
   SPtr<DepthStencilState> m_pDepthStencilState;
   SPtr<ConstantBuffer> m_pVP;
   SPtr<ConstantBuffer> m_pModelTransform;
+  SPtr<ConstantBuffer> m_pCameraFoward;
+  SPtr<ConstantBuffer> m_pLightBuffer;
   SPtr<VertexBuffer> m_pModelVertexB;
   SPtr<IndexBuffer> m_pModelIndexB;
   SPtr<PBRMaterial> m_pModelMat;
@@ -128,5 +131,14 @@ class RendererApp : public BaseApp
   bool m_right = false;
   bool m_up = false;
   bool m_down = false;
+
+  bool m_rotRight = false;
+  bool m_rotLeft = false;
+  bool m_rotUp = false;
+  bool m_rotDown = false;
+
+  float m_leftRotR = 0.0f;
+
+  Light m_light;
 };
 }

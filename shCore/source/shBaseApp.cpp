@@ -206,10 +206,10 @@ BaseApp::render()
 void
 BaseApp::destroyManagers()
 {
-  GraphicsManager::shutDown();
+  SceneGraph::shutDown();
   ResourceManager::shutDown();
   ScriptManager::shutDown();
   Time::shutDown();
-  SceneGraph::shutDown();
+  GraphicsManager::shutDown();
 }
 }

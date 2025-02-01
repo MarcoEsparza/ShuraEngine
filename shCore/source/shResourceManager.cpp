@@ -444,6 +444,20 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
                            mesh->mTextureCoords[0][i].y);
     }
 
+    if (mesh->HasTangentsAndBitangents()) {
+      vertex.tangents.x = mesh->mTangents[i].x;
+      vertex.tangents.y = mesh->mTangents[i].y;
+      vertex.tangents.z = mesh->mTangents[i].z;
+
+      vertex.bitangents.x = mesh->mBitangents[i].x;
+      vertex.bitangents.y = mesh->mBitangents[i].y;
+      vertex.bitangents.z = mesh->mBitangents[i].z;
+    }
+    else {
+      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
+      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
+    }
+
     currentMesh->vertices.push_back(vertex);
   }
 
@@ -533,6 +547,20 @@ ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
     if (mesh->mTextureCoords[0]) {
       vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
                            mesh->mTextureCoords[0][i].y);
+    }
+
+    if (mesh->HasTangentsAndBitangents()) {
+      vertex.tangents.x = mesh->mTangents[i].x;
+      vertex.tangents.y = mesh->mTangents[i].y;
+      vertex.tangents.z = mesh->mTangents[i].z;
+
+      vertex.bitangents.x = mesh->mBitangents[i].x;
+      vertex.bitangents.y = mesh->mBitangents[i].y;
+      vertex.bitangents.z = mesh->mBitangents[i].z;
+    }
+    else {
+      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
+      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
     }
 
     currentMesh->vertices.push_back(vertex);
@@ -657,6 +685,20 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
     if (mesh->mTextureCoords[0]) {
       vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
                            mesh->mTextureCoords[0][i].y);
+    }
+
+    if (mesh->HasTangentsAndBitangents()) {
+      vertex.tangents.x = mesh->mTangents[i].x;
+      vertex.tangents.y = mesh->mTangents[i].y;
+      vertex.tangents.z = mesh->mTangents[i].z;
+
+      vertex.bitangents.x = mesh->mBitangents[i].x;
+      vertex.bitangents.y = mesh->mBitangents[i].y;
+      vertex.bitangents.z = mesh->mBitangents[i].z;
+    }
+    else {
+      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
+      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
     }
 
     currentMeshVertices.push_back(vertex);
