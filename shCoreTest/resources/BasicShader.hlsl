@@ -99,7 +99,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
   //float3 finalColor = (ambient + diffuse * LightColor + specular) * baseColor.rgb;
   float3 finalColor = (ambient * diffuseColor) +
                       ((diffuse * LightColor.xyz) * diffuseColor) +
-                      specular + LightColor.xyz + specularColor;
+                      specular + LightColor.xyz * specularColor;
     
   //return t_baseColor.Sample(textureSampler, input.Tex);
     
