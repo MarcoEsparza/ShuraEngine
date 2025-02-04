@@ -45,7 +45,7 @@
     <ClInclude Include="include\shPass.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRasterizerState.h" />
-    <ClInclude Include="include\shRendererManager.h" />
+    <ClInclude Include="include\shRenderManager.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />
@@ -71,6 +71,7 @@
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
     <ClCompile Include="source\shPass.cpp" />
+    <ClCompile Include="source\shRenderManager.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />

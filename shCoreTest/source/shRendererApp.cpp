@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/02/04
 *  @brief
 *
 *
@@ -19,6 +19,7 @@
 #include "shRendererApp.h"
 
 #include "shGraphicsManager.h"
+#include "shRenderManager.h"
 #include "shResourceManager.h"
 #include "shTime.h"
 #include "shSceneGraph.h"
@@ -69,49 +70,34 @@ RendererApp::onCreate()
   auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
                   g_resourceMan().loadResourceFromFile(modelPath));
 
-  m_pModelMat = make_shared<PBRMaterial>();
-  m_pModelMat->baseColor = baseColor->texture;
-  m_pModelMat->normal = normal->texture;
-  m_pModelMat->metallic = metallic->texture;
-  m_pModelMat->roughness = roughness->texture;
-  m_pModelMat->ao = ao->texture;
+  auto modelMat = reinterpret_pointer_cast<PBRMaterial>(modelRes->materials[0]);
+  modelMat->baseColor = baseColor->texture;
+  modelMat->normal = normal->texture;
+  modelMat->metallic = metallic->texture;
+  modelMat->roughness = roughness->texture;
+  modelMat->ao = ao->texture;
 
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
-
-  for (auto& mesh : modelRes->meshes) {
-    for (auto& vertex : mesh->vertices) {
-      vertices.push_back(vertex);
-    }
-    for (auto& index : mesh->indices) {
-      indices.push_back(index);
-    }
-  }
-
-  m_pModelVertexB = g_graphicsMan().createVertexBuffer(vertices);
-  m_pModelIndexB = g_graphicsMan().createIndexBuffer(indices);
-
-  auto modelGO = make_shared<GameObject>();
+  m_pModel = make_shared<GameObject>();
   auto modelMC = make_shared<StaticMeshUnionComponent>();
 
-  modelMC->meshesData = modelRes;
-  modelGO->addComponent(modelMC);
+  modelMC->setMeshData(modelRes);
+  m_pModel->addComponent(modelMC);
 
-  modelGO->transform.getTransform().m[3][3] = 1.0f;
+  m_pModel->transform.getTransform().m[3][3] = 1.0f;
 
-  modelGO->setPosition(Vector3(0.0f, 0.0f, 0.0f));
-  modelGO->setScale(Vector3(1.0f, 1.0f, 1.0f));
-  modelGO->setRotation(Vector3(0.0f, 90.0f, 0.0f));
+  m_pModel->setPosition(Vector3(0.0f, 0.0f, 0.0f));
+  m_pModel->setScale(Vector3(1.0f, 1.0f, 1.0f));
+  m_pModel->setRotation(Vector3(0.0f, 90.0f, 0.0f));
 
-  g_sceneGraph().addObject(modelGO);
+  g_sceneGraph().addObject(m_pModel);
 
   m_pModelTransform = g_graphicsMan().createConstantBuffer(sizeof(Transform));
 
   g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                       &modelGO->transform.getTransform(),
+                                       &m_pModel->transform.getTransform(),
                                        sizeof(Transform));
 
-  m_light.position = Vector3(1.0f, 1.0f, 1.0f);
+  m_light.position = Vector3(5.0f, 5.0f, 5.0f);
   m_light.position.normalize();
   m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
   m_light.intensity = 1.0f;
@@ -159,27 +145,27 @@ RendererApp::onUpdate()
   const float rotSpeed = 15.0f;
   const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
   if (m_rotLeft) {
-    goList[0]->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
+    m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &goList[0]->transform.getTransform(),
+                                         &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
   if (m_rotRight) {
-    goList[0]->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
+    m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &goList[0]->transform.getTransform(),
+                                         &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
   if (m_rotUp) {
-    goList[0]->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
+    m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &goList[0]->transform.getTransform(),
+                                         &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
   if (m_rotDown) {
-    goList[0]->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
+    m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &goList[0]->transform.getTransform(),
+                                         &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
   
@@ -202,31 +188,13 @@ RendererApp::onRender()
   g_graphicsMan().vsSetConstantBuffers(m_pCameraFoward, 2);
   g_graphicsMan().vsSetConstantBuffers(m_pLightBuffer, 3);
 
-  g_graphicsMan().setVertexBuffers(m_pModelVertexB);
-  g_graphicsMan().setIndexBuffers(m_pModelIndexB);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->baseColor);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->normal, 1);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->metallic, 2);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->roughness, 3);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->ao, 4);
+  g_graphicsMan().psSetConstantBuffers(m_pVP);
+  g_graphicsMan().psSetConstantBuffers(m_pModelTransform, 1);
+  g_graphicsMan().psSetConstantBuffers(m_pCameraFoward, 2);
+  g_graphicsMan().psSetConstantBuffers(m_pLightBuffer, 3);
 
-  auto& goList = g_sceneGraph().getGameObjectList();
-  for (auto& gObject : goList) {
-    for (auto& component : gObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-        auto meshUC = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-        uint32 indexCount = 0;
-        uint32 vertexCount = 0;
-        for (auto mesh : meshUC->meshesData->meshes) {
-          g_graphicsMan().drawIndexed(mesh->numIndex,
-                                      indexCount,
-                                      vertexCount);
-          indexCount += mesh->numIndex;
-          vertexCount += mesh->numVertex;
-        }
-      }
-    }
-  }
+  auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
+  g_renderMan().drawStaticMeshUnionInScene(smucList);
 }
 
 void

@@ -88,6 +88,9 @@
     <Filter Include="Source Files\Renderer">
       <UniqueIdentifier>{de3bcec0-66c0-4a24-8af2-a764c101b623}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GameObject">
+      <UniqueIdentifier>{996cbf49-57ab-4a7c-90c1-cd8223301621}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -201,7 +204,7 @@
     <ClInclude Include="include\shFrustum.h">
       <Filter>Header Files\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="include\shRendererManager.h">
+    <ClInclude Include="include\shRenderManager.h">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\shPass.h">
@@ -242,9 +245,6 @@
     <ClCompile Include="source\shSceneGraph.cpp">
       <Filter>Source Files\SceneGraph</Filter>
     </ClCompile>
-    <ClCompile Include="source\shGameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\shMeshComponent.cpp">
       <Filter>Source Files\Component</Filter>
     </ClCompile>
@@ -256,6 +256,12 @@
     </ClCompile>
     <ClCompile Include="source\shPass.cpp">
       <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shRenderManager.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shGameObject.cpp">
+      <Filter>Source Files\GameObject</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

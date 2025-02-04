@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/29
+*  @date    2025/02/04
 *  @brief   
 *
 *  
@@ -38,6 +38,7 @@ class IndexBuffer;
 class ConstantBuffer;
 class SceneGraph;
 class PBRMaterial;
+class GameObject;
 
 struct VP
 {
@@ -105,13 +106,12 @@ class RendererApp : public BaseApp
   ScreenDesc m_desc;
   UPtr<Pass> m_pBasicShader;
 
+  SPtr<GameObject> m_pModel;
+
   SPtr<ConstantBuffer> m_pVP;
   SPtr<ConstantBuffer> m_pModelTransform;
   SPtr<ConstantBuffer> m_pCameraFoward;
   SPtr<ConstantBuffer> m_pLightBuffer;
-  SPtr<VertexBuffer> m_pModelVertexB;
-  SPtr<IndexBuffer> m_pModelIndexB;
-  SPtr<PBRMaterial> m_pModelMat;
 
   Camera m_camera;
 

@@ -20,6 +20,7 @@
 #include "shMath.h"
 
 #include "shGraphicsManager.h"
+#include "shRenderManager.h"
 #include "shResourceManager.h"
 #include "shScriptManager.h"
 #include "shTime.h"
@@ -119,6 +120,7 @@ void
 BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
+  RenderManager::startUp();
   ResourceManager::startUp();
   ScriptManager::startUp();
   Time::startUp();
@@ -210,6 +212,7 @@ BaseApp::destroyManagers()
   ResourceManager::shutDown();
   ScriptManager::shutDown();
   Time::shutDown();
+  RenderManager::shutDown();
   GraphicsManager::shutDown();
 }
 }

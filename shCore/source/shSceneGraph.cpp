@@ -47,6 +47,23 @@ SceneGraph::getGameObjectList() const
   return m_gameObjects;
 }
 
+const Vector<SPtr<StaticMeshUnionComponent>>
+SceneGraph::getStaticMeshUnionComponentInScene() const
+{
+  Vector<SPtr<StaticMeshUnionComponent>> smuComponents;
+
+  for (auto& object : m_gameObjects) {
+    for (auto& component : object->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
+        auto meshUC = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
+        smuComponents.push_back(meshUC);
+      }
+    }
+  }
+
+  return smuComponents;
+}
+
 SceneGraph& g_sceneGraph()
 {
   return SceneGraph::instance();

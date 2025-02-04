@@ -25,6 +25,8 @@
 #include "shInputLayout.h"
 
 namespace shEngineSDK {
+class StaticMeshUnionComponent;
+
 /**
 *  @brief Scene graph class.
 */
@@ -71,6 +73,9 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   const Vector<SPtr<GameObject>>&
   getGameObjectList() const;
 
+  const Vector<SPtr<StaticMeshUnionComponent>>
+  getStaticMeshUnionComponentInScene() const;
+
   /*************************************************************/
   /*
   *  Functions
@@ -84,7 +89,7 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
 };
 
 /**
-*  @brief Easier way to access the ScriptManager module.
+*  @brief Easier way to access the SceneGraph module.
 */
 SH_CORE_EXPORT SceneGraph&
 g_sceneGraph();
