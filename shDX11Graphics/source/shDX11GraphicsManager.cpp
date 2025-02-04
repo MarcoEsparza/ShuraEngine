@@ -352,6 +352,102 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
   return pInputLayout;
 }
 
+SPtr<InputLayout>
+DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader)
+{
+  auto pInputLayout = make_shared<DX11InputLayout>();
+  auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
+
+  ID3D11ShaderReflection* pReflector = nullptr;
+  HRESULT hr = (D3DReflect(pProgramShader->m_pVertexBlob->GetBufferPointer(),
+                           pProgramShader->m_pVertexBlob->GetBufferSize(),
+                           __uuidof(ID3D11ShaderReflection),
+                           reinterpret_cast<void**>(&pReflector)));
+
+  SH_ASSERT(hr == S_OK);
+
+  D3D11_SHADER_DESC shaderDesc;
+  pReflector->GetDesc(&shaderDesc);
+
+  Vector<D3D11_INPUT_ELEMENT_DESC> ilDesc;
+
+  UINT byteOffset = 0;
+  for (uint32 i = 0; i < shaderDesc.InputParameters; ++i) {
+    D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+    pReflector->GetInputParameterDesc(i, &paramDesc);
+
+    D3D11_INPUT_ELEMENT_DESC element;
+    element.SemanticName = paramDesc.SemanticName;
+    element.SemanticIndex = paramDesc.SemanticIndex;
+    element.InputSlot = 0;
+    element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    //element.AlignedByteOffset = byteOffset;
+    element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    element.InstanceDataStepRate = 0;
+
+    if (paramDesc.Mask == 1) {
+      if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) {
+        element.Format = DXGI_FORMAT_R32_UINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) {
+        element.Format = DXGI_FORMAT_R32_SINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) {
+        element.Format = DXGI_FORMAT_R32_FLOAT;
+      }
+      byteOffset += 1;
+    }
+    else if (paramDesc.Mask <= 3) {
+      if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) {
+        element.Format = DXGI_FORMAT_R32G32_UINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) {
+        element.Format = DXGI_FORMAT_R32G32_SINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) {
+        element.Format = DXGI_FORMAT_R32G32_FLOAT;
+      }
+      byteOffset += 2;
+    }
+    else if (paramDesc.Mask <= 7) {
+      if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) {
+        element.Format = DXGI_FORMAT_R32G32B32_UINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) {
+        element.Format = DXGI_FORMAT_R32G32B32_SINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) {
+        element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+      }
+      byteOffset += 3;
+    }
+    else if (paramDesc.Mask <= 15) {
+      if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) {
+        element.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) {
+        element.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+      }
+      else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) {
+        element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+      }
+      byteOffset += 4;
+    }
+
+    ilDesc.push_back(element);
+  }
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&ilDesc[0],
+                                      static_cast<UINT>(ilDesc.size()),
+                                      pProgramShader->m_pVertexBlob->GetBufferPointer(),
+                                      pProgramShader->m_pVertexBlob->GetBufferSize(),
+                                      &pInputLayout->m_pLayout));
+
+  SafeRelease(pReflector);
+
+  return pInputLayout;
+}
+
 SPtr<ProgramShader>
 DX11GraphicsManager::internalCreateProgramShader(const String& fileName,
                                                  const String& vsEntryPoint,

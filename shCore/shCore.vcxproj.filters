@@ -85,6 +85,9 @@
     <Filter Include="Header Files\Renderer">
       <UniqueIdentifier>{e5e03b66-1e8c-4bcf-a69c-0279555046b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Renderer">
+      <UniqueIdentifier>{de3bcec0-66c0-4a24-8af2-a764c101b623}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -250,6 +253,9 @@
     </ClCompile>
     <ClCompile Include="source\shFrustum.cpp">
       <Filter>Source Files\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shPass.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

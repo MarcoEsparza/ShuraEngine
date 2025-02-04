@@ -71,6 +71,12 @@ GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
   return internalCreateInputLayout(desc, pShader);
 }
 
+SPtr<InputLayout>
+GraphicsManager::createInputLayoutFromShader(const SPtr<ProgramShader>& pShader)
+{
+  return internalCreateInputLayoutFromShader(pShader);
+}
+
 SPtr<ProgramShader>
 GraphicsManager::createProgramShader(const String& fileName,
                                      const String& vsEntryPoint,

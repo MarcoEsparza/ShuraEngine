@@ -24,6 +24,7 @@
 #include "shVector3.h"
 #include "shVector2.h"
 #include "shLight.h"
+#include "shPass.h"
 
 namespace shEngineSDK {
 class ProgramShader;
@@ -89,9 +90,6 @@ class RendererApp : public BaseApp
   onDestroy() override;
 
   void
-  compileShader();
-
-  void
   initGraphicAssets();
 
   void
@@ -105,12 +103,8 @@ class RendererApp : public BaseApp
 
  private:
   ScreenDesc m_desc;
-  SPtr<ProgramShader> m_pShader;
-  SPtr<InputLayout> m_pInputLayout;
-  SPtr<SamplerState> m_pSamplerState;
-  SPtr<RasterizerState> m_pRasterState;
-  SPtr<BlendState> m_pBlendState;
-  SPtr<DepthStencilState> m_pDepthStencilState;
+  UPtr<Pass> m_pBasicShader;
+
   SPtr<ConstantBuffer> m_pVP;
   SPtr<ConstantBuffer> m_pModelTransform;
   SPtr<ConstantBuffer> m_pCameraFoward;
@@ -137,8 +131,9 @@ class RendererApp : public BaseApp
   bool m_rotUp = false;
   bool m_rotDown = false;
 
-  float m_leftRotR = 0.0f;
+  float m_horizontalRot = 0.0f;
+  float m_verticalRot = 0.0f;
 
-  Light m_light;
+  Light m_light = {};
 };
 }

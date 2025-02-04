@@ -135,6 +135,16 @@ class DX11GraphicsManager : public GraphicsManager
                             const SPtr<ProgramShader>& pVShader) override;
 
   /**
+  *  @brief Creates Input Layout from VertexShader.
+  *
+  *  @param SPtr<ProgramShader> pVShader
+  *
+  *  @return SPtr<InputLayout>
+  */
+  virtual SPtr<InputLayout>
+  internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader) override;
+
+  /**
   *  @brief Creates a Vertex Shader.
   * 
   *  @param const String& fileName

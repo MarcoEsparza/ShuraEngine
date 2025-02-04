@@ -70,6 +70,7 @@
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
+    <ClCompile Include="source\shPass.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />

@@ -111,11 +111,10 @@ RendererApp::onCreate()
                                        &modelGO->transform.getTransform(),
                                        sizeof(Transform));
 
-  m_light.direction = Vector3(1.0f, 1.0f, 1.0f);
-  m_light.direction.normalize();
-  m_light.color = Vector3(1.0f, 1.0f, 1.0f);
+  m_light.position = Vector3(1.0f, 1.0f, 1.0f);
+  m_light.position.normalize();
+  m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
   m_light.intensity = 1.0f;
-  m_light.nothing = 0.0f;
 
   m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(Light));
 
@@ -157,10 +156,28 @@ RendererApp::onUpdate()
 
   auto& goList = g_sceneGraph().getGameObjectList();
   
-  
+  const float rotSpeed = 15.0f;
+  const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
   if (m_rotLeft) {
-    m_leftRotR += (0.1f * g_time().getFrameDeltaTime());
-    goList[0]->transform.setRotation(Vector3(0.0f, m_leftRotR * Math::DEG2RAD, 0.0f));
+    goList[0]->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotRight) {
+    goList[0]->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotUp) {
+    goList[0]->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotDown) {
+    goList[0]->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
                                          &goList[0]->transform.getTransform(),
                                          sizeof(Transform));
@@ -176,14 +193,9 @@ RendererApp::onRender()
   g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
                                    g_graphicsMan().getMainDepthStencil(),
                                    1);
-  g_graphicsMan().setSamplerState(m_pSamplerState);
-  g_graphicsMan().setRasterizerState(m_pRasterState);
-  g_graphicsMan().setBlendState(m_pBlendState);
-  //g_graphicsMan().setDepthStencilState(m_pDepthStencilState);
-
-  g_graphicsMan().setProgramShader(m_pShader);
+  
+  m_pBasicShader->setPass();
   g_graphicsMan().setPrimitiveTopology();
-  g_graphicsMan().setInputLayout(m_pInputLayout);
 
   g_graphicsMan().vsSetConstantBuffers(m_pVP);
   g_graphicsMan().vsSetConstantBuffers(m_pModelTransform, 1);
@@ -309,7 +321,7 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   }
 
   if (key == KEY::kC) {
-    compileShader();
+    m_pBasicShader->compileShader();
   }
 }
 
@@ -352,53 +364,18 @@ RendererApp::onDestroy()
 }
 
 void
-RendererApp::compileShader()
-{
-  m_pShader->~ProgramShader();
-  m_pShader.reset();
-  m_pShader = g_graphicsMan().createProgramShader("resources/BasicShader.hlsl",
-                                                  "main",
-                                                  "mainPS",
-                                                  "vs_5_0",
-                                                  "ps_5_0");
-}
-
-void
 RendererApp::initGraphicAssets()
 {
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
 
-  m_pShader = g_graphicsMan().createProgramShader("resources/BasicShader.hlsl",
-                                                  "main",
-                                                  "mainPS",
-                                                  "vs_5_0",
-                                                  "ps_5_0");
+  m_pBasicShader = make_unique<Pass>();
 
-  Vector<InputDesc> ilDesc;
-  ilDesc.resize(5);
-  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
-  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[0].size = sizeof(float) * 3;
-
-  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
-  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[1].size = sizeof(float) * 3;
-
-  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
-  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
-  ilDesc[2].size = sizeof(float) * 2;
-
-  ilDesc[3].type = INPUT_LAYOUT_TYPES::kTangents;
-  ilDesc[3].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[3].size = sizeof(float) * 3;
-
-  ilDesc[4].type = INPUT_LAYOUT_TYPES::kBitangents;
-  ilDesc[4].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[4].size = sizeof(float) * 3;
-
-  m_pInputLayout = g_graphicsMan().createInputLayout(ilDesc, m_pShader);
-
-  m_pSamplerState = g_graphicsMan().createSamplerState();
+  m_pBasicShader->setShaderInfo("resources/BasicShader.hlsl",
+                                "main",
+                                "mainPS",
+                                "vs_5_0",
+                                "ps_5_0");
+  m_pBasicShader->compileShader();
 
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -412,8 +389,6 @@ RendererApp::initGraphicAssets()
   rasterDesc.multisampleEnable = false;
   rasterDesc.antialiasedLineEnable = false;
 
-  m_pRasterState = g_graphicsMan().createRasterizerState(rasterDesc);
-
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
   blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
@@ -423,8 +398,6 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-
-  m_pBlendState = g_graphicsMan().createBlendState(blendDesc);
 
   DepthStencilDesc depthSDesc = {};
   depthSDesc.depthEnable = false;
@@ -446,7 +419,12 @@ RendererApp::initGraphicAssets()
   depthSDesc.frontFace = frontOPDesc;
   depthSDesc.backFace = backOPDesc;
 
-  //m_pDepthStencilState = g_graphicsMan().createDepthStencilState(depthSDesc);
+  m_pBasicShader->generateInputLayout();
+  auto pSamplerLinear = g_graphicsMan().createSamplerState();
+  m_pBasicShader->setSamplerState(pSamplerLinear);
+  m_pBasicShader->setRasterizerState(rasterDesc);
+  m_pBasicShader->setBlendState(blendDesc);
+  //m_pBasicShader->setDepthStencilState(depthSDesc);
 }
 
 void

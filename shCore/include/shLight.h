@@ -19,13 +19,13 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shVector3.h"
+#include "shLinearColor.h"
 
 namespace shEngineSDK {
 struct SH_CORE_EXPORT Light
 {
-  Vector3 direction;
-  Vector3 color;
+  Vector3 position;
+  LinearColor color;
   float intensity;
-  float nothing;
 };
 }

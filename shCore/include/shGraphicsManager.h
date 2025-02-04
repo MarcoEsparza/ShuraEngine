@@ -144,6 +144,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                     const SPtr<ProgramShader>& pShader);
 
   /**
+  *  @brief Creates Input Layout from a VertexShader.
+  *
+  *  @param SPtr<ProgramShader>& pShader
+  *
+  *  @return SPtr<InputLayout>
+  */
+  SPtr<InputLayout>
+  createInputLayoutFromShader(const SPtr<ProgramShader>& pShader);
+
+  /**
   *  @brief Creates a Program Shader.
   *
   *  @param const String& fileName
@@ -535,6 +545,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual SPtr<InputLayout>
   internalCreateInputLayout(const Vector<InputDesc>& desc,
                             const SPtr<ProgramShader>& pPShader) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  * 
+  *  @param SPtr<ProgramShader>& pPShader
+  *
+  *  @return SPtr<InputLayout>
+  */
+  virtual SPtr<InputLayout>
+  internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

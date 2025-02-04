@@ -18,15 +18,14 @@ cbuffer Model : register(b1)
 
 cbuffer ViewDir : register(b2)
 {
-  float4 Foward;
+  float4 ViewPos;
 }
 
 cbuffer Light : register(b3)
 {
-  float3 LightDir;
-  float3 LightColor;
+  float3 LightPosition;
+  float4 LightColor;
   float Intensity;
-  float Ignore;
 }
 
 struct VS_INPUT
@@ -77,12 +76,18 @@ float4 mainPS(PS_INPUT input) : SV_Target
   float3 normal = normalize(mul(normalMapColor.xyz, TBN));
     
   //float diffuse = max(normal, 0.0f);
-  float diffuse = max(dot(normal, LightDir), 0.0f);
     
-  float3 viewDir = Foward.xyz - input.Position.xyz;
+  float lightDir = LightPosition - input.Position.xyz;
     
-  float3 halfVector = normalize(LightDir + viewDir);
-  float3 specular = pow(max(dot(normal, halfVector), 0.0f), 0.5f);
+  //float diffuse = max(dot(normal, LightPosition), 0.0f);
+  float diffuse = max(dot(normal, lightDir), 0.0f);
+    
+  float3 viewDir = ViewPos.xyz - input.Position.xyz;
+  float3 halfWayDir = normalize(lightDir + viewDir);
+    
+  //float3 halfVector = normalize(LightPosition + viewDir);
+  
+  float3 specular = pow(max(dot(normal, halfWayDir), 0.0f), Intensity);
   specular *= 1.0f - roughnessMapColor;
   float3 diffuseColor = baseColor.rgb * (1.0f - metallicMapColor);
   float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallicMapColor);
@@ -93,8 +98,8 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   //float3 finalColor = (ambient + diffuse * LightColor + specular) * baseColor.rgb;
   float3 finalColor = (ambient * diffuseColor) +
-    ((diffuse * LightColor) * diffuseColor) +
-    specular + LightColor + specularColor;
+                      ((diffuse * LightColor.xyz) * diffuseColor) +
+                      specular + LightColor.xyz + specularColor;
     
   //return t_baseColor.Sample(textureSampler, input.Tex);
     
