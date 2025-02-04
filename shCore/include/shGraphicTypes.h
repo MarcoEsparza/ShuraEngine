@@ -61,6 +61,8 @@ enum SH_CORE_EXPORT E
   kPosition = 0,
   kNormal,
   kTexcoord,
+  kTangents,
+  kBitangents,
   kBoneIndices,
   kBoneWieghts
 };
@@ -74,6 +76,8 @@ struct SH_CORE_EXPORT VertexData
   Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
   Vector3 normal = Vector3(0.0f, 0.0f, 0.0f);
   Vector2 tex = Vector2(0.0f, 0.0f);
+  Vector3 tangents = Vector3(0.0f, 0.0f, 0.0f);
+  Vector3 bitangents = Vector3(0.0f, 0.0f, 0.0f);
   Vector4 boneIds = Vector4(-1.0f, -1.0f, -1.0f, -1.0f);
   Vector4 boneWeights = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 };

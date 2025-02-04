@@ -97,4 +97,10 @@ GameObject::setScale(const Vector3& scale)
     child->setScale(child->getScale() + scale);
   }
 }
+
+void
+GameObject::rotate(const Vector3& rotation, float angle)
+{
+  transform.getTransform() *= MatrixRotationAxis(rotation, angle);
+}
 }

@@ -79,6 +79,15 @@
     <Filter Include="Source Files\SceneGraph">
       <UniqueIdentifier>{8a28dd9a-f521-4e7a-97e1-7e17de4b10d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Light">
+      <UniqueIdentifier>{b1ede7fa-9ecf-40ca-a0fd-b1459c6b8f78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderer">
+      <UniqueIdentifier>{e5e03b66-1e8c-4bcf-a69c-0279555046b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer">
+      <UniqueIdentifier>{de3bcec0-66c0-4a24-8af2-a764c101b623}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -192,6 +201,15 @@
     <ClInclude Include="include\shFrustum.h">
       <Filter>Header Files\Camera</Filter>
     </ClInclude>
+    <ClInclude Include="include\shRendererManager.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shPass.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shLight.h">
+      <Filter>Header Files\Light</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -235,6 +253,9 @@
     </ClCompile>
     <ClCompile Include="source\shFrustum.cpp">
       <Filter>Source Files\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shPass.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

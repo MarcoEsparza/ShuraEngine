@@ -32,6 +32,7 @@
 #include "shMaterial.h"
 
 #include "shRadian.h"
+#include "shVector4.h"
 
 using std::reinterpret_pointer_cast;
 
@@ -50,7 +51,19 @@ RendererApp::onCreate()
                    g_resourceMan().loadResourceFromFile(text1)); 
   Path text2("resources/base_normal.png");
   auto normal = reinterpret_pointer_cast<ImageResource>(
-                   g_resourceMan().loadResourceFromFile(text2));
+                g_resourceMan().loadResourceFromFile(text2));
+
+  Path text3("resources/base_metallic.png");
+  auto metallic = reinterpret_pointer_cast<ImageResource>(
+                  g_resourceMan().loadResourceFromFile(text3));
+
+  Path text4("resources/base_roughness.png");
+  auto roughness = reinterpret_pointer_cast<ImageResource>(
+                   g_resourceMan().loadResourceFromFile(text4));
+
+  Path text5("resources/base_AO.png");
+  auto ao = reinterpret_pointer_cast<ImageResource>(
+            g_resourceMan().loadResourceFromFile(text5));
 
   Path modelPath("resources/DrakeFire.fbx");
   auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
@@ -59,6 +72,9 @@ RendererApp::onCreate()
   m_pModelMat = make_shared<PBRMaterial>();
   m_pModelMat->baseColor = baseColor->texture;
   m_pModelMat->normal = normal->texture;
+  m_pModelMat->metallic = metallic->texture;
+  m_pModelMat->roughness = roughness->texture;
+  m_pModelMat->ao = ao->texture;
 
   Vector<VertexData> vertices;
   Vector<uint32> indices;
@@ -94,6 +110,15 @@ RendererApp::onCreate()
   g_graphicsMan().updateConstantBuffer(m_pModelTransform,
                                        &modelGO->transform.getTransform(),
                                        sizeof(Transform));
+
+  m_light.position = Vector3(1.0f, 1.0f, 1.0f);
+  m_light.position.normalize();
+  m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
+  m_light.intensity = 1.0f;
+
+  m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(Light));
+
+  g_graphicsMan().updateConstantBuffer(m_pLightBuffer, &m_light, sizeof(Light));
 }
 
 void
@@ -128,6 +153,35 @@ RendererApp::onUpdate()
   if (m_down) {
     m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * speed);
   }
+
+  auto& goList = g_sceneGraph().getGameObjectList();
+  
+  const float rotSpeed = 15.0f;
+  const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
+  if (m_rotLeft) {
+    goList[0]->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotRight) {
+    goList[0]->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotUp) {
+    goList[0]->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotDown) {
+    goList[0]->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &goList[0]->transform.getTransform(),
+                                         sizeof(Transform));
+  }
   
   m_camera.update();
   updateCamera();
@@ -139,19 +193,22 @@ RendererApp::onRender()
   g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
                                    g_graphicsMan().getMainDepthStencil(),
                                    1);
-  g_graphicsMan().setSamplerState(m_pSamplerState);
-  g_graphicsMan().setRasterizerState(m_pRasterState);
-  g_graphicsMan().setBlendState(m_pBlendState);
-
-  g_graphicsMan().setProgramShader(m_pShader);
+  
+  m_pBasicShader->setPass();
   g_graphicsMan().setPrimitiveTopology();
-  g_graphicsMan().setInputLayout(m_pInputLayout);
+
   g_graphicsMan().vsSetConstantBuffers(m_pVP);
   g_graphicsMan().vsSetConstantBuffers(m_pModelTransform, 1);
+  g_graphicsMan().vsSetConstantBuffers(m_pCameraFoward, 2);
+  g_graphicsMan().vsSetConstantBuffers(m_pLightBuffer, 3);
+
   g_graphicsMan().setVertexBuffers(m_pModelVertexB);
   g_graphicsMan().setIndexBuffers(m_pModelIndexB);
   g_graphicsMan().setShaderResourceView(m_pModelMat->baseColor);
   g_graphicsMan().setShaderResourceView(m_pModelMat->normal, 1);
+  g_graphicsMan().setShaderResourceView(m_pModelMat->metallic, 2);
+  g_graphicsMan().setShaderResourceView(m_pModelMat->roughness, 3);
+  g_graphicsMan().setShaderResourceView(m_pModelMat->ao, 4);
 
   auto& goList = g_sceneGraph().getGameObjectList();
   for (auto& gObject : goList) {
@@ -200,6 +257,22 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
   if (key == KEY::kE) {
     m_up = true;
   }
+
+  if (key == KEY::kUp) {
+    m_rotUp = true;
+  }
+
+  if (key == KEY::kDown) {
+    m_rotDown = true;
+  }
+
+  if (key == KEY::kLeft) {
+    m_rotLeft = true;
+  }
+
+  if (key == KEY::kRight) {
+    m_rotRight = true;
+  }
 }
 
 void
@@ -231,8 +304,24 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
     m_up = false;
   }
 
+  if (key == KEY::kUp) {
+    m_rotUp = false;
+  }
+
+  if (key == KEY::kDown) {
+    m_rotDown = false;
+  }
+
+  if (key == KEY::kLeft) {
+    m_rotLeft = false;
+  }
+
+  if (key == KEY::kRight) {
+    m_rotRight = false;
+  }
+
   if (key == KEY::kC) {
-    compileShader();
+    m_pBasicShader->compileShader();
   }
 }
 
@@ -275,45 +364,18 @@ RendererApp::onDestroy()
 }
 
 void
-RendererApp::compileShader()
-{
-  m_pShader->~ProgramShader();
-  m_pShader.reset();
-  m_pShader = g_graphicsMan().createProgramShader("resources/BasicShader.hlsl",
-                                                  "main",
-                                                  "mainPS",
-                                                  "vs_5_0",
-                                                  "ps_5_0");
-}
-
-void
 RendererApp::initGraphicAssets()
 {
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
 
-  m_pShader = g_graphicsMan().createProgramShader("resources/BasicShader.hlsl",
-                                                  "main",
-                                                  "mainPS",
-                                                  "vs_5_0",
-                                                  "ps_5_0");
+  m_pBasicShader = make_unique<Pass>();
 
-  Vector<InputDesc> ilDesc;
-  ilDesc.resize(3);
-  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
-  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[0].size = sizeof(float) * 3;
-
-  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
-  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[1].size = sizeof(float) * 3;
-
-  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
-  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
-  ilDesc[2].size = sizeof(float) * 2;
-
-  m_pInputLayout = g_graphicsMan().createInputLayout(ilDesc, m_pShader);
-
-  m_pSamplerState = g_graphicsMan().createSamplerState();
+  m_pBasicShader->setShaderInfo("resources/BasicShader.hlsl",
+                                "main",
+                                "mainPS",
+                                "vs_5_0",
+                                "ps_5_0");
+  m_pBasicShader->compileShader();
 
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -327,8 +389,6 @@ RendererApp::initGraphicAssets()
   rasterDesc.multisampleEnable = false;
   rasterDesc.antialiasedLineEnable = false;
 
-  m_pRasterState = g_graphicsMan().createRasterizerState(rasterDesc);
-
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
   blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
@@ -339,9 +399,32 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
-  m_pBlendState = g_graphicsMan().createBlendState(blendDesc);
+  DepthStencilDesc depthSDesc = {};
+  depthSDesc.depthEnable = false;
+  depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
+  depthSDesc.depthFunc = COMPARISON_FUNC::kAlways;
+  depthSDesc.stencilEnable = false;
+  depthSDesc.stencilReadMask = 0;
+  depthSDesc.stencilWriteMask = 0;
+  DepthStencilOpDesc frontOPDesc = {};
+  frontOPDesc.stencilFailOp = STENCIL_OP::kZero;
+  frontOPDesc.stencilDepthFailOp = STENCIL_OP::kZero;
+  frontOPDesc.stencilPassOp = STENCIL_OP::kZero;
+  frontOPDesc.stencilFunc = COMPARISON_FUNC::kNever;
+  DepthStencilOpDesc backOPDesc = {};
+  backOPDesc.stencilFailOp = STENCIL_OP::kZero;
+  backOPDesc.stencilDepthFailOp = STENCIL_OP::kZero;
+  backOPDesc.stencilPassOp = STENCIL_OP::kZero;
+  backOPDesc.stencilFunc = COMPARISON_FUNC::kNever;
+  depthSDesc.frontFace = frontOPDesc;
+  depthSDesc.backFace = backOPDesc;
 
-  
+  m_pBasicShader->generateInputLayout();
+  auto pSamplerLinear = g_graphicsMan().createSamplerState();
+  m_pBasicShader->setSamplerState(pSamplerLinear);
+  m_pBasicShader->setRasterizerState(rasterDesc);
+  m_pBasicShader->setBlendState(blendDesc);
+  //m_pBasicShader->setDepthStencilState(depthSDesc);
 }
 
 void
@@ -367,6 +450,14 @@ RendererApp::initCamera()
   vp.view.getTransposed();
 
   g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+
+  Vector4 foward(m_camera.getPosition(), 0.0f);
+  
+  m_pCameraFoward = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
+
+  g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
+                                       &foward,
+                                       sizeof(Vector4));
 }
 
 void
@@ -398,5 +489,11 @@ RendererApp::updateCamera()
   vp.view.getTransposed();
 
   g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+
+  Vector4 foward(m_camera.getPosition(), 0.0f);
+
+  g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
+                                       &foward,
+                                       sizeof(Vector4));
 }
 }
