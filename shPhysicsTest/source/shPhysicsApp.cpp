@@ -41,9 +41,9 @@ PhysicsApp::onCreate()
   initCamera();
   initCollisionBoxes();
 
-  Path textPath("resources/ttgl.png");
   Vector2 minPlayerSize(-25.0f, 25.0f);
   Vector2 maxPlayerSize(25.0f, -25.0f);
+  /*Path textPath("resources/ttgl.png");
 
   m_player = make_shared<Player>(minPlayerSize,
                                  maxPlayerSize,
@@ -57,7 +57,20 @@ PhysicsApp::onCreate()
   Path arrowPath("resources/arrow.png");
   auto arrow = make_shared<Arrow>(arrowPath, Vector2(0.0f, 40.0f), Vector2(80.0f, -40.0f));
 
-  m_player->setArrow(arrow);
+  m_player->setArrow(arrow);*/
+
+  Path basePath("resources/Tower.png");
+  Path turretPath("resources/Cannon3.png");
+  m_pSpriteBase = make_unique<Sprite>(basePath, minPlayerSize, minPlayerSize);
+  m_pSpriteCannon = make_unique<Sprite>(turretPath, minPlayerSize, minPlayerSize);
+  m_pBase = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
+  m_pTurret = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
+  g_graphicsMan().updateConstantBuffer(m_pBase,
+                                       &m_pSpriteBase->m_transform,
+                                       sizeof(Matrix4));
+  g_graphicsMan().updateConstantBuffer(m_pTurret,
+                                       &m_pSpriteCannon->m_transform,
+                                       sizeof(Matrix4));
 }
 
 void
@@ -81,7 +94,7 @@ PhysicsApp::onUpdate()
     direction.x = 1.0f;
   }
 
-  m_player->move(direction);
+  /*m_player->move(direction);
 
   m_player->update(g_time().getFrameDeltaTime());
 
@@ -97,7 +110,7 @@ PhysicsApp::onUpdate()
   }
   else if (checkCollision(m_bottom, boxNormal)) {
     playerBounce(boxNormal);
-  }
+  }*/
 }
 
 void
@@ -109,71 +122,45 @@ PhysicsApp::onFixedUpdate()
 void
 PhysicsApp::onRender()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
-
-  gManager.setRenderTargets(gManager.getMainRenderTargetView(),
-                            gManager.getMainDepthStencil(),
-                            1);
-  gManager.setRasterizerState(m_pRasterS);
-  gManager.setBlendState(m_pBlendS);
-
-  gManager.setProgramShader(m_pShader);
-  gManager.setSamplerState(m_pSamplerLinear);
-  gManager.vsSetConstantBuffers(m_pVP);
-  gManager.setPrimitiveTopology();
-  gManager.setInputLayout(m_pIL);
+  g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
+                                   g_graphicsMan().getMainDepthStencil(),
+                                   1);
+  
+  m_pPhysicsShader->setPass();
+  g_graphicsMan().vsSetConstantBuffers(m_pVP);
+  g_graphicsMan().setPrimitiveTopology();
 
   // Player
-  gManager.vsSetConstantBuffers(m_player->m_modelBuffer, 1);
-  gManager.setVertexBuffers(m_player->m_sprite->m_pVB);
-  gManager.setIndexBuffers(m_player->m_sprite->m_pIB);
-  gManager.setShaderResourceView(m_player->m_sprite->m_pTexture);
-  gManager.drawIndexed(static_cast<uint32>(m_player->m_sprite->m_indices.size()), 0, 0);
+  //g_graphicsMan().vsSetConstantBuffers(m_player->m_modelBuffer, 1);
+  //g_graphicsMan().setVertexBuffers(m_player->m_sprite->m_pVB);
+  //g_graphicsMan().setIndexBuffers(m_player->m_sprite->m_pIB);
+  //g_graphicsMan().setShaderResourceView(m_player->m_sprite->m_pTexture);
+  //g_graphicsMan().drawIndexed(static_cast<uint32>(m_player->m_sprite->m_indices.size()), 0, 0);
+  
+  //g_graphicsMan().vsSetConstantBuffers(m_player->m_pDirArrow->m_modelBuffer, 1);
+  //g_graphicsMan().setVertexBuffers(m_player->m_pDirArrow->m_sprite->m_pVB);
+  //g_graphicsMan().setIndexBuffers(m_player->m_pDirArrow->m_sprite->m_pIB);
+  //g_graphicsMan().setShaderResourceView(m_player->m_pDirArrow->m_sprite->m_pTexture);
+  //g_graphicsMan().drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_sprite->m_indices.size()), 0, 0);
 
-  gManager.vsSetConstantBuffers(m_player->m_pDirArrow->m_modelBuffer, 1);
-  gManager.setVertexBuffers(m_player->m_pDirArrow->m_sprite->m_pVB);
-  gManager.setIndexBuffers(m_player->m_pDirArrow->m_sprite->m_pIB);
-  gManager.setShaderResourceView(m_player->m_pDirArrow->m_sprite->m_pTexture);
-  gManager.drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_sprite->m_indices.size()), 0, 0);
+  g_graphicsMan().vsSetConstantBuffers(m_pBase, 1);
+  g_graphicsMan().setVertexBuffers(m_pSpriteBase->m_pVB);
+  g_graphicsMan().setIndexBuffers(m_pSpriteBase->m_pIB);
+  g_graphicsMan().setShaderResourceView(m_pSpriteBase->m_pTexture);
+  g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
+
+  //g_graphicsMan().vsSetConstantBuffers(m_pTurret, 1);
+  //g_graphicsMan().setVertexBuffers(m_pSpriteCannon->m_pVB);
+  //g_graphicsMan().setIndexBuffers(m_pSpriteCannon->m_pIB);
+  //g_graphicsMan().setShaderResourceView(m_pSpriteCannon->m_pTexture);
+  //g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);
 }
 
 void
 PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
-
-  /*if (key == KEY::kW) {
-    m_player->move(Vector2(0.0f, 1.0f));
-  }
-
-  if (key == KEY::kA) {
-    m_player->move(Vector2(-1.0f, 0.0f));
-  }
-
-  if (key == KEY::kS) {
-    m_player->move(Vector2(0.0f, -1.0f));
-  }
-
-  if (key == KEY::kD) {
-    m_player->move(Vector2(1.0f, 0.0f));
-  }
-
-  if (key == KEY::kE) {
-    m_player->move(Vector2(1.0f, 1.0f));
-  }
-
-  if (key == KEY::kQ) {
-    m_player->move(Vector2(-1.0f, 1.0f));
-  }
-
-  if (key == KEY::kZ) {
-    m_player->move(Vector2(-1.0f, -1.0f));
-  }
-
-  if (key == KEY::kX) {
-    m_player->move(Vector2(1.0f, -1.0f));
-  }*/
-
+  
   if (key == KEY::kW) {
     m_bUp = true;
   }
@@ -239,33 +226,15 @@ PhysicsApp::playerBounce(Vector2& collisionNormal)
 void
 PhysicsApp::initGraphicAssets()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
-
   setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
 
-  m_pShader = gManager.createProgramShader("resources/PhysicsShader.hlsl",
-                                          "main",
-                                          "mainPS",
-                                          "vs_5_0",
-                                          "ps_5_0");
-
-  Vector<InputDesc> ilDesc;
-  ilDesc.resize(3);
-  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
-  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[0].size = sizeof(float) * 3;
-
-  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
-  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[1].size = sizeof(float) * 3;
-
-  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
-  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
-  ilDesc[2].size = sizeof(float) * 2;
-
-  m_pIL = gManager.createInputLayout(ilDesc, m_pShader);
-
-  m_pSamplerLinear = gManager.createSamplerState();
+  m_pPhysicsShader = make_unique<Pass>();
+  m_pPhysicsShader->setShaderInfo("resources/PhysicsShader.hlsl",
+                                  "main",
+                                  "mainPS",
+                                  "vs_5_0",
+                                  "ps_5_0");
+  m_pPhysicsShader->compileShader();
 
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -279,8 +248,6 @@ PhysicsApp::initGraphicAssets()
   rasterDesc.multisampleEnable = false;
   rasterDesc.antialiasedLineEnable = false;
 
-  m_pRasterS = gManager.createRasterizerState(rasterDesc);
-
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
   blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
@@ -291,15 +258,17 @@ PhysicsApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
-  m_pBlendS = gManager.createBlendState(blendDesc);
+  auto pSamplerLinear = g_graphicsMan().createSamplerState();
+  m_pPhysicsShader->setSamplerState(pSamplerLinear);
+  m_pPhysicsShader->generateInputLayout();
+  m_pPhysicsShader->setRasterizerState(rasterDesc);
+  m_pPhysicsShader->setBlendState(blendDesc);
 }
 
 void
 PhysicsApp::initCamera()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
-
-  m_pVP = gManager.createConstantBuffer(sizeof(VP));
+  m_pVP = g_graphicsMan().createConstantBuffer(sizeof(VP));
 
   VP vp;
 
@@ -319,7 +288,7 @@ PhysicsApp::initCamera()
   vp.proj.getTransposed();
   vp.view.getTransposed();
 
-  gManager.updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 }
 
 void

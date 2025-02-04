@@ -22,6 +22,8 @@
 #include "shBaseApp.h"
 #include "Player.h"
 #include "shCamera.h"
+#include "shPass.h"
+#include "shGameObject.h"
 
 namespace shEngineSDK {
 class ProgramShader;
@@ -90,14 +92,17 @@ class PhysicsApp : public BaseApp
 
  private:
   ScreenDesc m_desc;
-  SPtr<ProgramShader> m_pShader;
-  SPtr<InputLayout> m_pIL;
-  SPtr<SamplerState> m_pSamplerLinear;
-  SPtr<BlendState> m_pBlendS;
-  SPtr<RasterizerState> m_pRasterS;
+  UPtr<Pass> m_pPhysicsShader;
+
   SPtr<ConstantBuffer> m_pVP;
+  SPtr<ConstantBuffer> m_pBase;
+  SPtr<ConstantBuffer> m_pTurret;
 
   SPtr<Player> m_player;
+
+  UPtr<Sprite> m_pSpriteBase;
+  UPtr<Sprite> m_pSpriteCannon;
+
   Camera m_camera;
 
   Box m_left;

@@ -60,6 +60,7 @@ class Sprite
   SPtr<Texture2D> m_pTexture;
   Vector<VertexData> m_vertices;
   Vector<uint32> m_indices;
+  Matrix4 m_transform = Matrix4::IDENTITY;
 };
 
 class Arrow

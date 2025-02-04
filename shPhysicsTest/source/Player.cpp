@@ -23,7 +23,7 @@
 #include "shMath.h"
 #include "shRadian.h"
 
-#define MAX_VERTEX 4.0f
+#define MAX_VERTEX 4
 
 namespace shEngineSDK {
 Player::Player(const Vector2& min,
