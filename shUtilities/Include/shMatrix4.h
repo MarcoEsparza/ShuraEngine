@@ -244,6 +244,28 @@ public:
   operator*(const float delta) const;
 
   /**
+  *  @brief The multiplication of a Matrix4 and a Vector3.
+  *
+  *  @param lValue-Matrix4.
+  *  @param rValue-Vector3.
+  *
+  *  @return Vector3
+  */
+  FORCEINLINE Vector3
+  operator*(const Vector3& vec) const;
+
+  /**
+  *  @brief The multiplication of a Matrix4 and a Vector4.
+  *
+  *  @param lValue-Matrix4.
+  *  @param rValue-Vector4.
+  *
+  *  @return Vector4
+  */
+  FORCEINLINE Vector4
+  operator*(const Vector4& v) const;
+
+  /**
   *  @brief Operator to sum a Matrix4 values and other Matrix4 values and store
   *         the result in the first Matrix4.
   *
@@ -309,16 +331,126 @@ public:
 };
 
 /**
+*  @brief Translation matrix.
+*/
+class SH_UTILITY_EXPORT TranslationMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param Vector3& position
+  */
+  TranslationMatrix(const Vector3& position);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~TranslationMatrix() = default;
+};
+
+/**
+*  @brief Scale matrix.
+*/
+class SH_UTILITY_EXPORT ScaleMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param Vector3& scale
+  */
+  ScaleMatrix(const Vector3& scale);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~ScaleMatrix() = default;
+};
+
+/**
+*  @brief Rotation in X axis.
+*/
+class SH_UTILITY_EXPORT RotationXMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param float radAngle
+  */
+  RotationXMatrix(const float radAngle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~RotationXMatrix() = default;
+};
+
+/**
+*  @brief Rotation in Y axis.
+*/
+class SH_UTILITY_EXPORT RotationYMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param float radAngle
+  */
+  RotationYMatrix(const float radAngle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~RotationYMatrix() = default;
+};
+
+/**
+*  @brief Rotation in Z axis.
+*/
+class SH_UTILITY_EXPORT RotationZMatrix : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param float radAngle
+  */
+  RotationZMatrix(const float radAngle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~RotationZMatrix() = default;
+};
+
+/**
+*  @brief Rotation in Z axis.
+*/
+class SH_UTILITY_EXPORT MatrixRotationAxis : public Matrix4
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param Vector3& axis
+  *  @param float angle
+  */
+  MatrixRotationAxis(Vector3 axis, float angle);
+
+  /**
+  *  @brief Default destructor.
+  */
+  ~MatrixRotationAxis() = default;
+};
+
+/**
 *  @brief View Matrix for graphics.
 */
 class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
 {
  public:
-  /**
-  *  @brief Default constructor.
-  */
-  ViewMatrix() = default;
-
   /**
   *  @brief Constructor to initialize matrix values.
   * 
@@ -342,11 +474,6 @@ class SH_UTILITY_EXPORT ViewMatrix : public Matrix4
 class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
 {
  public:
-  /**
-  *  @brief Default constructor.
-  */
-  ProjectionMatrix() = default;
-
   /**
   *  @brief Constructor to initialize matrix values.
   * 
@@ -374,11 +501,6 @@ class SH_UTILITY_EXPORT ProjectionMatrix : public Matrix4
 class SH_UTILITY_EXPORT OrthographicProjectionMatrix : public Matrix4
 {
  public:
-  /**
-  *  @brief Default constructor.
-  */
-  OrthographicProjectionMatrix() = default;
-
   /**
   *  @brief Constructor to initialize matrix values.
   * 
@@ -562,6 +684,25 @@ Matrix4::operator*(const float delta) const
                  m[3][1] * delta,
                  m[3][2] * delta,
                  m[3][3] * delta);
+}
+
+FORCEINLINE Vector3
+Matrix4::operator*(const Vector3& vec) const
+{
+  Vector4 tempVec(vec, 0.0f);
+
+  tempVec = *this * tempVec;
+
+  return Vector3(tempVec.x, tempVec.y, tempVec.z);
+}
+
+FORCEINLINE Vector4
+Matrix4::operator*(const Vector4& v) const
+{
+  return Vector4((m[0][0] * v.x) + (m[0][1] * v.y) + (m[0][2] * v.z) + (m[0][3] * v.w),
+                 (m[1][0] * v.x) + (m[1][1] * v.y) + (m[1][2] * v.z) + (m[1][3] * v.w),
+                 (m[2][0] * v.x) + (m[2][1] * v.y) + (m[2][2] * v.z) + (m[2][3] * v.w),
+                 (m[3][0] * v.x) + (m[3][1] * v.y) + (m[3][2] * v.z) + (m[3][3] * v.w));
 }
 
 FORCEINLINE Matrix4&

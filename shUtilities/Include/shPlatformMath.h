@@ -165,6 +165,16 @@ public:
   static Array<float, 4>::iterator
   max_element(const Array<float, 4>::iterator first, const Array<float, 4>::iterator last);
   
+  /**
+  *  @brief Checks if a value is NaN.
+  *
+  *  @param const float value
+  *
+  *  @return bool
+  */
+  static bool
+  is_NaN(const float value);
+
   /*************************************************************/
   /*
   *  Trigonometric functions

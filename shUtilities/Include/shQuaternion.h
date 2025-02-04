@@ -56,6 +56,14 @@ class SH_UTILITY_EXPORT Quaternion
   explicit Quaternion(const Vector3& _vec);
 
   /**
+  *  @brief Constructor with given axis and angle.
+  *
+  *  @param Vector3& axis
+  *  @param float angle
+  */
+  Quaternion(const Vector3& axis, const float angle);
+
+  /**
   *  @brief Copy constructor
   *
   *  @param Quaternion
@@ -263,6 +271,17 @@ class SH_UTILITY_EXPORT Quaternion
   operator*(const float delta) const;
 
   /**
+  *  @brief Quaternion multiplication with an axis.
+  *
+  *  @param lValue-Quaternion.
+  *  @param rValue-Vector3.
+  *
+  *  @return Vector3
+  */
+  FORCEINLINE Vector3
+  operator*(const Vector3& axis) const;
+
+  /**
   *  @brief Operator to sum a Quaternion values and other Quaternion values and
   *         store the result in the first Quaternion.
   *
@@ -340,10 +359,15 @@ Quaternion::operator-(const Quaternion& other) const
 FORCEINLINE Quaternion
 Quaternion::operator*(const Quaternion& other) const
 {
-  return Quaternion(x * other.w + w * other.x + y * other.z + z * other.y,
-                    y * other.w + w * other.y + z * other.x + x * other.z,
-                    z * other.w + w * other.z + x * other.y + y * other.x,
-                    w * other.w - x * other.x - y * other.y - z * other.z);
+  // w = (w1 * w2) - (x1 * x2) - (y1 * y2) - (z1 * z2)
+  // x = (w1 * x2) + (x1 * w2) + (y1 * z2) - (z1 * y2)
+  // y = (w1 * y2) - (x1 * z2) + (y1 * w2) + (z1 * x2)
+  // z = (w1 * z2) + (x1 * y2) - (y1 * x2) + (z1 * w2)
+
+  return Quaternion((w * other.w) - (x * other.x) - (y * other.y) - (z * other.z),
+                    (w * other.x) + (x * other.w) + (y * other.z) - (z * other.y),
+                    (w * other.y) - (x * other.z) + (y * other.w) + (z * other.x),
+                    (w * other.z) + (x * other.y) + (y * other.x) + (z * other.w));
 }
 
 FORCEINLINE Quaternion
@@ -353,6 +377,17 @@ Quaternion::operator*(const float delta) const
                     y * delta,
                     z * delta,
                     w * delta);
+}
+
+FORCEINLINE Vector3
+Quaternion::operator*(const Vector3& axis) const
+{
+  const Quaternion qVec(0.0f, axis.x, axis.y, axis.z);
+  const Quaternion qConj = conjugate();
+
+  const Quaternion qRot = (*this * qVec) * qConj;
+
+  return Vector3(qRot.x, qRot.y, qRot.z);
 }
 
 FORCEINLINE Quaternion&

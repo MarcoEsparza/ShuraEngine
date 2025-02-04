@@ -26,8 +26,10 @@
     <ClInclude Include="include\shComponent.h" />
     <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
+    <ClInclude Include="include\shFrustum.h" />
     <ClInclude Include="include\shGameObject.h" />
     <ClInclude Include="include\shImageResource.h" />
+    <ClInclude Include="include\shLight.h" />
     <ClInclude Include="include\shMaterial.h" />
     <ClInclude Include="include\shMeshResource.h" />
     <ClInclude Include="include\shMeshComponent.h" />
@@ -40,8 +42,10 @@
     <ClInclude Include="include\shGraphicsManager.h" />
     <ClInclude Include="include\shGraphicTypes.h" />
     <ClInclude Include="include\shInputLayout.h" />
+    <ClInclude Include="include\shPass.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRasterizerState.h" />
+    <ClInclude Include="include\shRenderManager.h" />
     <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />
@@ -62,9 +66,12 @@
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
+    <ClCompile Include="source\shFrustum.cpp" />
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
+    <ClCompile Include="source\shPass.cpp" />
+    <ClCompile Include="source\shRenderManager.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />

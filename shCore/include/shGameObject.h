@@ -130,6 +130,9 @@ class SH_CORE_EXPORT GameObject
   void
   setScale(const Vector3& scale);
 
+  void
+  rotate(const Vector3& rotation, float angle);
+
   /*************************************************************/
   /*
   *  Variables

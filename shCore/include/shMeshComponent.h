@@ -1,4 +1,4 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shMeshComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
@@ -9,23 +9,23 @@
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shComponent.h"
 
 namespace shEngineSDK {
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Forward declarations
 */
-/*************************************************************/
+/*****************************************************************************/
 class Material;
 class StaticMeshResource;
 class StaticMeshUnionResource;
@@ -52,11 +52,11 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   */
   ~StaticMeshComponent() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Mesh component Material.
@@ -67,6 +67,16 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   *  @brief Resource with mesh data.
   */
   SPtr<StaticMeshResource> meshData;
+
+  /**
+  *  @brief Vertex Buffer.
+  */
+  SPtr<VertexBuffer> m_vertexBuffer;
+
+  /**
+  *  @brief Index Buffer.
+  */
+  SPtr<IndexBuffer> m_indexBuffer;
 };
 
 /**
@@ -85,11 +95,11 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   */
   ~SkeletalMeshComponent() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Set the mesh data and creates the vertex and index buffer.
@@ -99,11 +109,11 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   void
   setMeshData(const SPtr<SkeletalMeshResource>& meshResource);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Meshes materials.
@@ -148,15 +158,81 @@ public:
   */
   ~StaticMeshUnionComponent() = default;
 
-  /*************************************************************/
+  /**
+  *  @brief Sets the mesh data.
+  * 
+  *  @param SPtr<StaticMeshUnionResource>& pSMUResource
+  */
+  void
+  setMeshData(const SPtr<StaticMeshUnionResource>& pSMUResource);
+
+  /**
+  *  @brief Returns the static mesh union resource.
+  * 
+  *  @return SPtr<StaticMeshUnionResource>&
+  */
+  FORCEINLINE const SPtr<StaticMeshUnionResource>&
+  getMeshResource() const;
+
+  /**
+  *  @brief Returns the vertex buffer.
+  *
+  *  @return SPtr<VertexBuffer>&
+  */
+  FORCEINLINE const SPtr<VertexBuffer>&
+  getVertexBuffer() const;
+
+  /**
+  *  @brief Returns the index buffer.
+  * 
+  *  @return SPtr<IndexBuffer>&
+  */
+  FORCEINLINE const SPtr<IndexBuffer>&
+  getIndexBuffer() const;
+
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
-public:
+  /***************************************************************************/
+ private:
   /**
   *  @brief Resource with mesh data.
   */
-  SPtr<StaticMeshUnionResource> meshesData;
+  SPtr<StaticMeshUnionResource> m_meshesData;
+
+  /**
+  *  @brief Vertex Buffer.
+  */
+  SPtr<VertexBuffer> m_vertexBuffer;
+
+  /**
+  *  @brief Index Buffer.
+  */
+  SPtr<IndexBuffer> m_indexBuffer;
 };
+
+/*****************************************************************************/
+/*
+*  Implementations
+*/
+/*****************************************************************************/
+
+FORCEINLINE const SPtr<StaticMeshUnionResource>&
+StaticMeshUnionComponent::getMeshResource() const
+{
+  return m_meshesData;
+}
+
+FORCEINLINE const SPtr<VertexBuffer>&
+StaticMeshUnionComponent::getVertexBuffer() const
+{
+  return m_vertexBuffer;
+}
+
+FORCEINLINE const SPtr<IndexBuffer>&
+StaticMeshUnionComponent::getIndexBuffer() const
+{
+  return m_indexBuffer;
+}
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/02/04
 *  @brief
 *
 *
@@ -19,17 +19,21 @@
 #include "shRendererApp.h"
 
 #include "shGraphicsManager.h"
+#include "shRenderManager.h"
 #include "shResourceManager.h"
 #include "shTime.h"
+#include "shSceneGraph.h"
 #include "shMath.h"
 
 #include "shPath.h"
 #include "shImageResource.h"
 #include "shMeshResource.h"
-#include "shSceneGraph.h"
 #include "shGameObject.h"
 #include "shMeshComponent.h"
 #include "shMaterial.h"
+
+#include "shRadian.h"
+#include "shVector4.h"
 
 using std::reinterpret_pointer_cast;
 
@@ -40,8 +44,6 @@ RendererApp::onCreate()
   initGraphicAssets();
   initCamera();
 
-  m_scene = make_shared<SceneGraph>();
-
   Path whitePNG("resources/White.png");
   g_resourceMan().loadResourceFromFile(whitePNG);
 
@@ -50,56 +52,125 @@ RendererApp::onCreate()
                    g_resourceMan().loadResourceFromFile(text1)); 
   Path text2("resources/base_normal.png");
   auto normal = reinterpret_pointer_cast<ImageResource>(
-                   g_resourceMan().loadResourceFromFile(text2));
+                g_resourceMan().loadResourceFromFile(text2));
+
+  Path text3("resources/base_metallic.png");
+  auto metallic = reinterpret_pointer_cast<ImageResource>(
+                  g_resourceMan().loadResourceFromFile(text3));
+
+  Path text4("resources/base_roughness.png");
+  auto roughness = reinterpret_pointer_cast<ImageResource>(
+                   g_resourceMan().loadResourceFromFile(text4));
+
+  Path text5("resources/base_AO.png");
+  auto ao = reinterpret_pointer_cast<ImageResource>(
+            g_resourceMan().loadResourceFromFile(text5));
 
   Path modelPath("resources/DrakeFire.fbx");
   auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
                   g_resourceMan().loadResourceFromFile(modelPath));
 
-  m_pModelMat = make_shared<PBRMaterial>();
-  m_pModelMat->baseColor = baseColor->texture;
-  m_pModelMat->normal = normal->texture;
+  auto modelMat = reinterpret_pointer_cast<PBRMaterial>(modelRes->materials[0]);
+  modelMat->baseColor = baseColor->texture;
+  modelMat->normal = normal->texture;
+  modelMat->metallic = metallic->texture;
+  modelMat->roughness = roughness->texture;
+  modelMat->ao = ao->texture;
 
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
-
-  for (auto& mesh : modelRes->meshes) {
-    for (auto& vertex : mesh->vertices) {
-      vertices.push_back(vertex);
-    }
-    for (auto& index : mesh->indices) {
-      indices.push_back(index);
-    }
-  }
-
-  m_pModelVertexB = g_graphicsMan().createVertexBuffer(vertices);
-  m_pModelIndexB = g_graphicsMan().createIndexBuffer(indices);
-
-  auto modelGO = make_shared<GameObject>();
+  m_pModel = make_shared<GameObject>();
   auto modelMC = make_shared<StaticMeshUnionComponent>();
 
-  modelMC->meshesData = modelRes;
-  modelGO->addComponent(modelMC);
+  modelMC->setMeshData(modelRes);
+  m_pModel->addComponent(modelMC);
 
-  modelGO->transform.getTransform().m[3][3] = 1.0f;
+  m_pModel->transform.getTransform().m[3][3] = 1.0f;
 
-  modelGO->setPosition(Vector3(0.0f, 0.0f, 0.0f));
-  modelGO->setScale(Vector3(1.0f, 1.0f, 1.0f));
-  modelGO->setRotation(Vector3(0.0f, 90.0f, 0.0f));
+  m_pModel->setPosition(Vector3(0.0f, 0.0f, 0.0f));
+  m_pModel->setScale(Vector3(1.0f, 1.0f, 1.0f));
+  m_pModel->setRotation(Vector3(0.0f, 90.0f, 0.0f));
 
-  m_scene->addObject(modelGO);
+  g_sceneGraph().addObject(m_pModel);
 
   m_pModelTransform = g_graphicsMan().createConstantBuffer(sizeof(Transform));
 
   g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                       &modelGO->transform.getTransform(),
+                                       &m_pModel->transform.getTransform(),
                                        sizeof(Transform));
+
+  m_light.position = Vector3(5.0f, 5.0f, 5.0f);
+  m_light.position.normalize();
+  m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
+  m_light.intensity = 1.0f;
+
+  m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(Light));
+
+  g_graphicsMan().updateConstantBuffer(m_pLightBuffer, &m_light, sizeof(Light));
 }
 
 void
 RendererApp::onUpdate()
 {
+  if (m_leftClick) {
+    rotateCamera();
+  }
+
+  const float speed = 0.01f;
+
+  if (m_foward) {
+    m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * speed);
+  }
   
+  if (m_left) {
+    m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * speed);
+  }
+
+  if (m_back) {
+    m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * speed);
+  }
+  
+  if (m_right) {
+    m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * speed);
+  }
+
+  if (m_up) {
+    m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * speed);
+  }
+
+  if (m_down) {
+    m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * speed);
+  }
+
+  auto& goList = g_sceneGraph().getGameObjectList();
+  
+  const float rotSpeed = 15.0f;
+  const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
+  if (m_rotLeft) {
+    m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &m_pModel->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotRight) {
+    m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &m_pModel->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotUp) {
+    m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &m_pModel->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  if (m_rotDown) {
+    m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
+    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                         &m_pModel->transform.getTransform(),
+                                         sizeof(Transform));
+  }
+  
+  m_camera.update();
+  updateCamera();
 }
 
 void
@@ -108,100 +179,171 @@ RendererApp::onRender()
   g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
                                    g_graphicsMan().getMainDepthStencil(),
                                    1);
-  g_graphicsMan().setSamplerState(m_pSamplerState);
-  g_graphicsMan().setRasterizerState(m_pRasterState);
-  g_graphicsMan().setBlendState(m_pBlendState);
-
-  g_graphicsMan().setProgramShader(m_pShader);
+  
+  m_pBasicShader->setPass();
   g_graphicsMan().setPrimitiveTopology();
-  g_graphicsMan().setInputLayout(m_pInputLayout);
+
   g_graphicsMan().vsSetConstantBuffers(m_pVP);
   g_graphicsMan().vsSetConstantBuffers(m_pModelTransform, 1);
-  g_graphicsMan().setVertexBuffers(m_pModelVertexB);
-  g_graphicsMan().setIndexBuffers(m_pModelIndexB);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->baseColor);
-  g_graphicsMan().setShaderResourceView(m_pModelMat->normal, 1);
+  g_graphicsMan().vsSetConstantBuffers(m_pCameraFoward, 2);
+  g_graphicsMan().vsSetConstantBuffers(m_pLightBuffer, 3);
 
-  auto& goList = m_scene->getGameObjectList();
-  for (auto& gObject : goList) {
-    for (auto& component : gObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-        auto meshUC = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-        uint32 indexCount = 0;
-        uint32 vertexCount = 0;
-        for (auto mesh : meshUC->meshesData->meshes) {
-          g_graphicsMan().drawIndexed(mesh->numIndex,
-                                      indexCount,
-                                      vertexCount);
-          indexCount += mesh->numIndex;
-          vertexCount += mesh->numVertex;
-        }
-      }
-    }
-  }
+  g_graphicsMan().psSetConstantBuffers(m_pVP);
+  g_graphicsMan().psSetConstantBuffers(m_pModelTransform, 1);
+  g_graphicsMan().psSetConstantBuffers(m_pCameraFoward, 2);
+  g_graphicsMan().psSetConstantBuffers(m_pLightBuffer, 3);
+
+  auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
+  g_renderMan().drawStaticMeshUnionInScene(smucList);
 }
 
 void
 RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
-  if (key == KEY::kW) {
+  SH_UNREFERENCED_PARAMETER(modifier);
 
+  if (key == KEY::kW) {
+    m_foward = true;
   }
 
   if (key == KEY::kA) {
-
+    m_left = true;
   }
 
   if (key == KEY::kS) {
-
+    m_back = true;
   }
 
   if (key == KEY::kD) {
+    m_right = true;
+  }
 
+  if (key == KEY::kQ) {
+    m_down = true;
+  }
+
+  if (key == KEY::kE) {
+    m_up = true;
+  }
+
+  if (key == KEY::kUp) {
+    m_rotUp = true;
+  }
+
+  if (key == KEY::kDown) {
+    m_rotDown = true;
+  }
+
+  if (key == KEY::kLeft) {
+    m_rotLeft = true;
+  }
+
+  if (key == KEY::kRight) {
+    m_rotRight = true;
   }
 }
 
 void
-RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton, const ModifierState modifier)
+RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
 {
+  SH_UNREFERENCED_PARAMETER(modifier);
 
+  if (key == KEY::kW) {
+    m_foward = false;
+  }
+
+  if (key == KEY::kA) {
+    m_left = false;
+  }
+
+  if (key == KEY::kS) {
+    m_back = false;
+  }
+
+  if (key == KEY::kD) {
+    m_right = false;
+  }
+
+  if (key == KEY::kQ) {
+    m_down = false;
+  }
+
+  if (key == KEY::kE) {
+    m_up = false;
+  }
+
+  if (key == KEY::kUp) {
+    m_rotUp = false;
+  }
+
+  if (key == KEY::kDown) {
+    m_rotDown = false;
+  }
+
+  if (key == KEY::kLeft) {
+    m_rotLeft = false;
+  }
+
+  if (key == KEY::kRight) {
+    m_rotRight = false;
+  }
+
+  if (key == KEY::kC) {
+    m_pBasicShader->compileShader();
+  }
+}
+
+void
+RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
+                                  const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (mouseButton == MOUSE_INPUT::kLeft)
+  {
+    m_leftClick = true;
+  }
+}
+
+void
+RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
+                                   const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (mouseButton == MOUSE_INPUT::kLeft)
+  {
+    m_leftClick = false;
+  }
 }
 
 void
 RendererApp::onMouseMove(const MouseMoveData& mouse)
 {
+  m_lastMousePos = m_currentMousePos;
+  m_currentMousePos.x = static_cast<float>(mouse.x);
+  m_currentMousePos.y = static_cast<float>(mouse.y);
+}
 
+void
+RendererApp::onDestroy()
+{
+  
 }
 
 void
 RendererApp::initGraphicAssets()
 {
-  setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
+  setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
 
-  Path shaderPath("resources/BasicShader.hlsl");
-  m_pShader = g_graphicsMan().createProgramShader(shaderPath.toString(),
-                                      "main",
-                                      "mainPS",
-                                      "vs_5_0",
-                                      "ps_5_0");
+  m_pBasicShader = make_unique<Pass>();
 
-  Vector<InputDesc> ilDesc;
-  ilDesc.resize(3);
-  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
-  ilDesc[0].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[0].size = sizeof(float) * 3;
-
-  ilDesc[1].type = INPUT_LAYOUT_TYPES::kNormal;
-  ilDesc[1].format = TEXTURE_FORMAT::kR32G32B32_float;
-  ilDesc[1].size = sizeof(float) * 3;
-
-  ilDesc[2].type = INPUT_LAYOUT_TYPES::kTexcoord;
-  ilDesc[2].format = TEXTURE_FORMAT::kR32G32_float;
-  ilDesc[2].size = sizeof(float) * 2;
-
-  m_pInputLayout = g_graphicsMan().createInputLayout(ilDesc, m_pShader);
-
-  m_pSamplerState = g_graphicsMan().createSamplerState();
+  m_pBasicShader->setShaderInfo("resources/BasicShader.hlsl",
+                                "main",
+                                "mainPS",
+                                "vs_5_0",
+                                "ps_5_0");
+  m_pBasicShader->compileShader();
 
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -215,8 +357,6 @@ RendererApp::initGraphicAssets()
   rasterDesc.multisampleEnable = false;
   rasterDesc.antialiasedLineEnable = false;
 
-  m_pRasterState = g_graphicsMan().createRasterizerState(rasterDesc);
-
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
   blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
@@ -227,9 +367,32 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
-  m_pBlendState = g_graphicsMan().createBlendState(blendDesc);
+  DepthStencilDesc depthSDesc = {};
+  depthSDesc.depthEnable = false;
+  depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
+  depthSDesc.depthFunc = COMPARISON_FUNC::kAlways;
+  depthSDesc.stencilEnable = false;
+  depthSDesc.stencilReadMask = 0;
+  depthSDesc.stencilWriteMask = 0;
+  DepthStencilOpDesc frontOPDesc = {};
+  frontOPDesc.stencilFailOp = STENCIL_OP::kZero;
+  frontOPDesc.stencilDepthFailOp = STENCIL_OP::kZero;
+  frontOPDesc.stencilPassOp = STENCIL_OP::kZero;
+  frontOPDesc.stencilFunc = COMPARISON_FUNC::kNever;
+  DepthStencilOpDesc backOPDesc = {};
+  backOPDesc.stencilFailOp = STENCIL_OP::kZero;
+  backOPDesc.stencilDepthFailOp = STENCIL_OP::kZero;
+  backOPDesc.stencilPassOp = STENCIL_OP::kZero;
+  backOPDesc.stencilFunc = COMPARISON_FUNC::kNever;
+  depthSDesc.frontFace = frontOPDesc;
+  depthSDesc.backFace = backOPDesc;
 
-  
+  m_pBasicShader->generateInputLayout();
+  auto pSamplerLinear = g_graphicsMan().createSamplerState();
+  m_pBasicShader->setSamplerState(pSamplerLinear);
+  m_pBasicShader->setRasterizerState(rasterDesc);
+  m_pBasicShader->setBlendState(blendDesc);
+  //m_pBasicShader->setDepthStencilState(depthSDesc);
 }
 
 void
@@ -239,13 +402,14 @@ RendererApp::initCamera()
 
   VP vp;
 
-  m_camera.setProjectionData(45.0f, m_desc.width, m_desc.height, 0.1f, 100.0f);
-
-  Vector3 eye(0.0f, 0.0f, -2.0f);
-  Vector3 at(0.0f, 0.0f, 0.0f);
-  Vector3 up(0.0f, 1.0f, 0.0f);
-
-  m_camera.setViewData(eye, at, up);
+  m_camera = Camera(Vector3(0.0f, 0.0f, -2.0f),
+                    Vector3(0.0f, 0.0f, 0.0f),
+                    Vector3::UP,
+                    45.0f * Math::DEG2RAD,
+                    static_cast<float>(m_desc.width),
+                    static_cast<float>(m_desc.height),
+                    0.1f,
+                    100.0f);
 
   vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();
@@ -254,17 +418,50 @@ RendererApp::initCamera()
   vp.view.getTransposed();
 
   g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+
+  Vector4 foward(m_camera.getPosition(), 0.0f);
+  
+  m_pCameraFoward = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
+
+  g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
+                                       &foward,
+                                       sizeof(Vector4));
 }
 
 void
-RendererApp::moveCamera(const Vector3& direction)
+RendererApp::rotateCamera()
 {
+  const float speed = 0.005f;
 
+  const float dx = (m_lastMousePos.x - m_currentMousePos.x) * speed;
+  const float dy = (m_lastMousePos.y - m_currentMousePos.y) * speed;
+
+  if (m_lastMousePos.x != m_currentMousePos.x ||
+      m_lastMousePos.y != m_currentMousePos.y) {
+    m_camera.rotate(dx * Math::DEG2RAD, dy * Math::DEG2RAD);
+    /*m_camera.orbitCamera(Radian(dx * Math::DEG2RAD),
+                         Radian(dy * Math::DEG2RAD),
+                         Vector3::ZERO);*/
+  }
 }
 
 void
-RendererApp::rotateCamera(const float pitch, const float yaw)
+RendererApp::updateCamera()
 {
+  VP vp;
 
+  vp.proj = m_camera.getProjection();
+  vp.view = m_camera.getView();
+
+  vp.proj.getTransposed();
+  vp.view.getTransposed();
+
+  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+
+  Vector4 foward(m_camera.getPosition(), 0.0f);
+
+  g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
+                                       &foward,
+                                       sizeof(Vector4));
 }
 }

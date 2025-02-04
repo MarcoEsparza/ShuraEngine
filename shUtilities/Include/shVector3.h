@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/01/29
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
@@ -59,11 +59,11 @@ class SH_UTILITY_EXPORT Vector3
   */
   ~Vector3() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
 
   /**
   *  @brief Calculates the dot product of two given Vector3s.
@@ -169,7 +169,7 @@ class SH_UTILITY_EXPORT Vector3
   toRadians();
 
   /*
-  *  @breif Computes the closest point betwwen two given Vector3 to this.
+  *  @brief Computes the closest point betwwen two given Vector3 to this.
   * 
   *  @param Vector3& other
   * 
@@ -178,11 +178,27 @@ class SH_UTILITY_EXPORT Vector3
   Vector3
   closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const;
 
-  /*************************************************************/
+  /*
+  *  @brief Returns true if all components are zero.
+  *
+  *  @return bool
+  */
+  bool
+  isZero() const;
+
+  /*
+  *  @brief Returns true if a component is NaN.
+  *
+  *  @return bool
+  */
+  bool
+  containsNaN() const;
+
+  /***************************************************************************/
   /*
   *  Operator overload
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Operator to sum a Vector3 values and other Vector3 values.
@@ -252,11 +268,11 @@ class SH_UTILITY_EXPORT Vector3
   FORCEINLINE Vector3&
   operator-=(const Vector3& other);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   * @brief Vector3 X value.
@@ -272,13 +288,39 @@ class SH_UTILITY_EXPORT Vector3
   * Vector3 Z value.
   */
   float z;
+
+  /***************************************************************************/
+  /*
+  *  Static Variables
+  */
+  /***************************************************************************/
+ public:
+   /**
+   * Vector3 Forward vector = 0.0f, 0.0f, 1.0f.
+   */
+   static const Vector3 FORWARD;
+
+   /**
+   * Vector3 Up vector = 0.0f, 1.0f, 0.0f.
+   */
+   static const Vector3 UP;
+
+   /**
+   * Vector3 Right vector = 1.0f, 0.0f, 0.0f.
+   */
+   static const Vector3 RIGHT;
+
+   /**
+   * Vector3 Zerp vector = 0.0f, 0.0f, 0.0f.
+   */
+   static const Vector3 ZERO;
 };
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Implementations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 FORCEINLINE Vector3
 Vector3::operator+(const Vector3& other) const

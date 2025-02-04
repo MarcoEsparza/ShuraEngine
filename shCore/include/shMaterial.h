@@ -22,6 +22,14 @@
 #include "shShader.h"
 
 namespace shEngineSDK {
+namespace MATERIAL_TYPE {
+enum E
+{
+  kPBR = 0,
+  kTranslucent
+};
+}
+
 /**
 *  @brief Matrial Base.
 */
@@ -32,6 +40,11 @@ class SH_CORE_EXPORT Material
   *  @brief Default constructor.
   */
   Material() = default;
+
+  /**
+  *  @brief Constructor for material type.
+  */
+  Material(MATERIAL_TYPE::E type) : m_type(type) {}
 
   /**
   *  @brief Default destructor.
@@ -45,9 +58,19 @@ class SH_CORE_EXPORT Material
   String name;
 
   /**
-  *  @brief Material shader.
+  *  @brief Material cast shadows.
   */
-  SPtr<ProgramShader> shader;
+  bool m_bCastShadows = true;
+
+  /**
+  *  @brief Material receive shadows.
+  */
+  bool m_bReceiveShadows = true;
+
+  /**
+  *  @brief Material type.
+  */
+  MATERIAL_TYPE::E m_type;
 };
 
 /**
@@ -59,7 +82,7 @@ class SH_CORE_EXPORT PBRMaterial : public Material
   /**
   *  @brief Default constructor.
   */
-  PBRMaterial() = default;
+  PBRMaterial() : Material(MATERIAL_TYPE::kPBR) {}
 
   /**
   *  @brief Default destructor.
@@ -85,5 +108,10 @@ class SH_CORE_EXPORT PBRMaterial : public Material
   *  @brief Normal texture.
   */
   SPtr<Texture2D> normal;
+
+  /**
+  *  @brief Ambient occlusion texture.
+  */
+  SPtr<Texture2D> ao;
 };
 }
