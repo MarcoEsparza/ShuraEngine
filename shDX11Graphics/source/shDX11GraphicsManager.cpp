@@ -498,7 +498,7 @@ DX11GraphicsManager::internalCreateVertexBuffer(const Vector<VertexData>& vertic
 
   D3D11_SUBRESOURCE_DATA initData;
   initData.pSysMem = &vertices[0];
-  initData.SysMemPitch = 0;
+  initData.SysMemPitch = vertices.size();
   initData.SysMemSlicePitch = 0;
 
   m_pDevice->m_pDevice->CreateBuffer(&desc, &initData, &pVBuffer->m_pBuffer);
