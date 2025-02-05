@@ -167,21 +167,19 @@
   <ItemGroup>
     <ClInclude Include="include\externals\imconfig.h" />
     <ClInclude Include="include\externals\imgui.h" />
-    <ClInclude Include="include\externals\imgui_impl_dx11.h" />
-    <ClInclude Include="include\externals\imgui_impl_win32.h" />
     <ClInclude Include="include\externals\imgui_internal.h" />
     <ClInclude Include="include\externals\imstb_rectpack.h" />
     <ClInclude Include="include\externals\imstb_textedit.h" />
     <ClInclude Include="include\externals\imstb_truetype.h" />
+    <ClInclude Include="include\imgui_impl_shura.h" />
     <ClInclude Include="include\shButton.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\externals\imgui.cpp" />
     <ClCompile Include="source\externals\imgui_draw.cpp" />
-    <ClCompile Include="source\externals\imgui_impl_dx11.cpp" />
-    <ClCompile Include="source\externals\imgui_impl_win32.cpp" />
     <ClCompile Include="source\externals\imgui_tables.cpp" />
     <ClCompile Include="source\externals\imgui_widgets.cpp" />
+    <ClCompile Include="source\imgui_impl_shura.cpp" />
     <ClCompile Include="source\shButton.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

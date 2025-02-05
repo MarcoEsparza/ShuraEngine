@@ -24,8 +24,9 @@ cbuffer ViewDir : register(b2)
 cbuffer Light : register(b3)
 {
   float3 LightPosition;
-  float4 LightColor;
   float Intensity;
+  float4 LightColor;
+  //float size[10];
 }
 
 struct VS_INPUT
@@ -87,7 +88,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   //float3 halfVector = normalize(LightPosition + viewDir);
   
-  float3 specular = pow(max(dot(normal, halfWayDir), 0.0f), Intensity);
+  float specular = pow(max(dot(normal, halfWayDir), 0.0f), Intensity);
   specular *= 1.0f - roughnessMapColor;
   float3 diffuseColor = baseColor.rgb * (1.0f - metallicMapColor);
   float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallicMapColor);

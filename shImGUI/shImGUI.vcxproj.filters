@@ -24,12 +24,6 @@
     <ClInclude Include="include\shButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\externals\imgui_impl_dx11.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="include\externals\imgui_impl_win32.h">
-      <Filter>Header Files\ImGui</Filter>
-    </ClInclude>
     <ClInclude Include="include\externals\imgui_internal.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
@@ -48,16 +42,13 @@
     <ClInclude Include="include\externals\imgui.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="include\imgui_impl_shura.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shButton.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\externals\imgui_impl_dx11.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="source\externals\imgui_impl_win32.cpp">
-      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="source\externals\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
@@ -70,6 +61,9 @@
     </ClCompile>
     <ClCompile Include="source\externals\imgui_widgets.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\imgui_impl_shura.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
