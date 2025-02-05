@@ -40,4 +40,26 @@ SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResourc
   m_indexBuffer = GraphicsManager::instance().createIndexBuffer(skeletalIndex);
 }
 
+
+
+void
+StaticMeshUnionComponent::setMeshData(const SPtr<StaticMeshUnionResource>& pSMUResource)
+{
+  m_meshesData = pSMUResource;
+  Vector<VertexData> vertices;
+  Vector<uint32> indices;
+
+  for (auto& mesh : m_meshesData->meshes) {
+    for (auto& vertex : mesh->vertices) {
+      vertices.push_back(vertex);
+    }
+
+    for (auto& index : mesh->indices) {
+      indices.push_back(index);
+    }
+  }
+
+  m_vertexBuffer = g_graphicsMan().createVertexBuffer(vertices);
+  m_indexBuffer = g_graphicsMan().createIndexBuffer(indices);
+}
 }

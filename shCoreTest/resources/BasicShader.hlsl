@@ -24,8 +24,9 @@ cbuffer ViewDir : register(b2)
 cbuffer Light : register(b3)
 {
   float3 LightPosition;
-  float4 LightColor;
   float Intensity;
+  float4 LightColor;
+  //float size[10];
 }
 
 struct VS_INPUT
@@ -53,10 +54,13 @@ PS_INPUT main(VS_INPUT input)
   float4x4 wvp = mul(ModelTransform, mul(View, Proj));
 
   output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
-  output.Normal = input.Normal;
+  output.Normal = mul(input.Normal, (float3x3)ModelTransform);
+  output.Normal = normalize(output.Normal);
   output.Tex = input.Tex;
-  output.Tangent = input.Tangent;
-  output.Bitangent = input.Bitangent;
+  output.Tangent = mul(input.Tangent, (float3x3)ModelTransform);
+  output.Bitangent = mul(input.Bitangent, (float3x3)ModelTransform);
+  output.Tangent = normalize(output.Tangent);
+  output.Bitangent = normalize(output.Bitangent);
   
   return output;
 }
@@ -70,14 +74,15 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   float3x3 TBN = float3x3(input.Tangent, input.Bitangent, input.Normal);
     
-  //normalMapColor.xyz = normalize(mul(normalMapColor.xyz, TBN));
-  //return normalMapColor;
+  normalMapColor.xyz = normalize(mul(normalMapColor.xyz, TBN));
+  normalMapColor = normalMapColor * 0.5f + 0.5f;
+  return normalMapColor;
 
   float3 normal = normalize(mul(normalMapColor.xyz, TBN));
     
   //float diffuse = max(normal, 0.0f);
     
-  float lightDir = LightPosition - input.Position.xyz;
+  float3 lightDir = LightPosition - input.Position.xyz;
     
   //float diffuse = max(dot(normal, LightPosition), 0.0f);
   float diffuse = max(dot(normal, lightDir), 0.0f);
@@ -87,7 +92,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   //float3 halfVector = normalize(LightPosition + viewDir);
   
-  float3 specular = pow(max(dot(normal, halfWayDir), 0.0f), Intensity);
+  float specular = pow(max(dot(normal, halfWayDir), 0.0f), Intensity);
   specular *= 1.0f - roughnessMapColor;
   float3 diffuseColor = baseColor.rgb * (1.0f - metallicMapColor);
   float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallicMapColor);
@@ -99,7 +104,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
   //float3 finalColor = (ambient + diffuse * LightColor + specular) * baseColor.rgb;
   float3 finalColor = (ambient * diffuseColor) +
                       ((diffuse * LightColor.xyz) * diffuseColor) +
-                      specular + LightColor.xyz + specularColor;
+                      specular + LightColor.xyz * specularColor;
     
   //return t_baseColor.Sample(textureSampler, input.Tex);
     

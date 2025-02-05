@@ -22,10 +22,11 @@
 #include "shLinearColor.h"
 
 namespace shEngineSDK {
+MS_ALIGN(16)
 struct SH_CORE_EXPORT Light
 {
   Vector3 position;
-  LinearColor color;
   float intensity;
-};
+  LinearColor color;
+} GCC_ALIGN(16);
 }
