@@ -24,6 +24,7 @@
 #include "shCamera.h"
 #include "shPass.h"
 #include "shGameObject.h"
+#include "shBoxAAB.h"
 
 namespace shEngineSDK {
 class ProgramShader;
@@ -79,6 +80,9 @@ class PhysicsApp : public BaseApp
   checkCollision(const Box& box, Vector2& collisionNormal);
 
   void
+  checkBallCollision(const SPtr<Ball>& ball);
+
+  void
   playerBounce(Vector2& collisionNormal);
 
   void
@@ -88,7 +92,7 @@ class PhysicsApp : public BaseApp
   initCamera();
 
   void
-  initCollisionBoxes();
+  spawnBall();
 
  private:
   ScreenDesc m_desc;
@@ -98,21 +102,25 @@ class PhysicsApp : public BaseApp
   SPtr<ConstantBuffer> m_pBase;
   SPtr<ConstantBuffer> m_pTurret;
 
-  SPtr<Player> m_player;
+  Matrix4 m_baseTransform = Matrix4::IDENTITY;
+  Matrix4 m_turretTransform = Matrix4::IDENTITY;
 
-  UPtr<Sprite> m_pSpriteBase;
-  UPtr<Sprite> m_pSpriteCannon;
+  SPtr<Player> m_player;
+  Vector<SPtr<Ball>> m_activeBalls;
+
+  SPtr<Sprite> m_pSpriteBase;
+  SPtr<Sprite> m_pSpriteCannon;
+  SPtr<Sprite> m_pSpriteBall;
 
   Camera m_camera;
 
-  Box m_left;
-  Box m_right;
-  Box m_top;
-  Box m_bottom;
+  bool m_bShot = false;
+  bool m_bRotLeft = false;
+  bool m_bRotRight = false;
+  float m_rotSpeed = 0.0f;
 
-  bool m_bUp = false;
-  bool m_bDown = false;
-  bool m_bRight = false;
-  bool m_bLeft = false;
+  float m_rotAccumulator = 0.0f;
+
+  INTEGRATION::E m_integration = INTEGRATION::kEuler;
 };
 }

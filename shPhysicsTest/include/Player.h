@@ -31,6 +31,14 @@ class IndexBuffer;
 class ConstantBuffer;
 class Texture2D;
 
+namespace INTEGRATION {
+enum E
+{
+  kEuler = 0,
+  kVerlet
+};
+}
+
 namespace DIRECTION {
 enum E
 {
@@ -60,7 +68,6 @@ class Sprite
   SPtr<Texture2D> m_pTexture;
   Vector<VertexData> m_vertices;
   Vector<uint32> m_indices;
-  Matrix4 m_transform = Matrix4::IDENTITY;
 };
 
 class Arrow
@@ -145,5 +152,48 @@ class Player
 
   Matrix4 m_transform = Matrix4::IDENTITY;
   SPtr<ConstantBuffer> m_modelBuffer;
+};
+
+class Ball
+{
+ public:
+  Ball() = default;
+  ~Ball() = default;
+
+  void
+  setSprite(const SPtr<Sprite>& sprite);
+
+  void
+  update(INTEGRATION::E integration);
+
+  void
+  simulateEuler();
+
+  void
+  simulateVerlet();
+
+ public:
+  SPtr<Sprite> m_sprite;
+  Matrix4 m_transform = Matrix4::IDENTITY;
+  SPtr<ConstantBuffer> m_buffer;
+
+  Vector2 m_velocity;
+  Vector2 m_position;
+
+  float m_eulerSpeed = 0.0f;
+  float m_eulerGravity = 0.0f;
+
+  float m_verletSpeed = 0.0f;
+  float m_verletGravity = 0.0f;
+
+  float m_mass = 0.0f;
+  float m_dragC = 0.0f;
+  float m_radius = 0.0f;
+
+  Vector2 m_previousPosition;
+
+  float m_time = 0.0f;
+  bool m_bDestroy = false;
+  float m_lifeSpan = 0.0f;
 };
 }

@@ -20,6 +20,7 @@
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shImageResource.h"
+#include "shTime.h"
 #include "shMath.h"
 #include "shRadian.h"
 
@@ -160,7 +161,7 @@ Player::updateModelBuffer()
 void
 Player::updateArrow()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
+  /*GraphicsManager& gManager = GraphicsManager::instance();
 
   float angle = 0.0f;
 
@@ -200,7 +201,7 @@ Player::updateArrow()
 
   gManager.updateConstantBuffer(m_pDirArrow->m_modelBuffer,
                                 &m_pDirArrow->m_position,
-                                sizeof(Matrix4));
+                                sizeof(Matrix4));*/
 }
 
 Sprite::Sprite(const Path& filePath, const Vector2& min, const Vector2& max)
@@ -211,9 +212,6 @@ Sprite::Sprite(const Path& filePath, const Vector2& min, const Vector2& max)
 void
 Sprite::setSprite(const Path& filePath, const Vector2& min, const Vector2& max)
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
-  ResourceManager& rManager = ResourceManager::instance();
-
   m_vertices.resize(MAX_VERTEX);
   m_vertices[0].position = Vector3(min.x, min.y, 0.0f);
   m_vertices[0].normal = Vector3(0.0f, 0.0f, 0.0f);
@@ -234,22 +232,91 @@ Sprite::setSprite(const Path& filePath, const Vector2& min, const Vector2& max)
   m_indices = { 0, 1, 2,
                 2, 1, 3 };
 
-  auto pImg = reinterpret_pointer_cast<ImageResource>(rManager.loadResourceFromFile(filePath));
+  auto pImg = reinterpret_pointer_cast<ImageResource>(g_resourceMan().loadResourceFromFile(filePath));
 
   m_pTexture = pImg->texture;
 
-  m_pVB = gManager.createVertexBuffer(m_vertices);
-  m_pIB = gManager.createIndexBuffer(m_indices);
+  m_pVB = g_graphicsMan().createVertexBuffer(m_vertices);
+  m_pIB = g_graphicsMan().createIndexBuffer(m_indices);
 }
 
 Arrow::Arrow(const Path& filePath, const Vector2& min, const Vector2& max)
 {
   m_sprite = make_shared<Sprite>(filePath, min, max);
 
-  GraphicsManager& gManager = GraphicsManager::instance();
+  m_modelBuffer = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
 
-  m_modelBuffer = GraphicsManager::instance().createConstantBuffer(sizeof(Matrix4));
+  g_graphicsMan().updateConstantBuffer(m_modelBuffer, &m_position, sizeof(Matrix4));
+}
 
-  gManager.updateConstantBuffer(m_modelBuffer, &m_position, sizeof(Matrix4));
+void
+Ball::setSprite(const SPtr<Sprite>& sprite)
+{
+  m_sprite = sprite;
+
+  m_buffer = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
+  g_graphicsMan().updateConstantBuffer(m_buffer, &m_transform, sizeof(Matrix4));
+}
+
+void
+Ball::update(INTEGRATION::E integration)
+{
+  if (integration == INTEGRATION::kEuler) {
+    m_time += g_time().getFrameDeltaTime();
+  }
+  else if (integration == INTEGRATION::kVerlet) {
+    m_time += g_time().FIXED_DELTA_TIME;
+  }
+
+  if (m_time >= m_lifeSpan) {
+    m_bDestroy = true;
+  }
+
+  //m_position += m_velocity * g_time().getFrameDeltaTime();
+  if (integration == INTEGRATION::kEuler) {
+    simulateEuler();
+  }
+  else if (integration == INTEGRATION::kVerlet) {
+    simulateVerlet();
+  }
+
+  m_transform = TranslationMatrix(Vector3(m_position.x, m_position.y, 0.0f));
+  g_graphicsMan().updateConstantBuffer(m_buffer, &m_transform, sizeof(Matrix4));
+}
+
+void
+Ball::simulateEuler()
+{
+  const Vector2 gravity(0.0f, m_eulerGravity);
+
+  const Vector2 gravityForce = gravity * m_mass;
+  const Vector2 dragForce = m_velocity * -m_dragC;
+  const Vector2 accel = dragForce * (1.0f / m_mass);
+  m_velocity += gravityForce + (accel * g_time().getFrameDeltaTime());
+  m_position += m_velocity * g_time().getFrameDeltaTime();
+}
+
+void
+Ball::simulateVerlet()
+{
+  if (m_previousPosition.x == 0.0f && m_previousPosition.y == 0.0f)
+  {
+    m_previousPosition = m_position;
+  }
+
+  const Vector2 gravity(0.0f, m_verletGravity);
+
+  const Vector2 gravityForce = gravity * m_mass;
+  m_velocity.x = (m_position.x - m_previousPosition.x) / g_time().FIXED_DELTA_TIME;
+  m_velocity.y = (m_position.y - m_previousPosition.y) / g_time().FIXED_DELTA_TIME;
+  const Vector2 dragForce = m_velocity * -m_dragC;
+
+  const Vector2 accel = (gravityForce + dragForce) * (1.0f / m_mass);
+
+  const Vector2 newPos = m_position + (m_position - m_previousPosition) + accel *
+                         (g_time().FIXED_DELTA_TIME * g_time().FIXED_DELTA_TIME);
+
+  m_previousPosition = m_position;
+  m_position = newPos;
 }
 }

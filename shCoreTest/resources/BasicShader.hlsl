@@ -45,6 +45,7 @@ struct PS_INPUT
   float2 Tex : TEXCOORD0;
   float3 Tangent : TANGENT0;
   float3 Bitangent : BINORMAL0;
+  float3 WorldPosition : TEXCOORD1;
 };
 
 PS_INPUT main(VS_INPUT input)
@@ -54,14 +55,13 @@ PS_INPUT main(VS_INPUT input)
   float4x4 wvp = mul(ModelTransform, mul(View, Proj));
 
   output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
-  output.Normal = mul(input.Normal, (float3x3)ModelTransform);
+  output.Normal = normalize(mul(input.Normal, (float3x3)ModelTransform));
   output.Normal = normalize(output.Normal);
   output.Tex = input.Tex;
-  output.Tangent = mul(input.Tangent, (float3x3)ModelTransform);
-  output.Bitangent = mul(input.Bitangent, (float3x3)ModelTransform);
-  output.Tangent = normalize(output.Tangent);
-  output.Bitangent = normalize(output.Bitangent);
-  
+  output.Tangent = normalize(mul(input.Tangent, (float3x3)ModelTransform));
+  output.Bitangent = normalize(mul(input.Bitangent, (float3x3)ModelTransform));
+  output.WorldPosition = mul(float4(input.Position, 1.0f), View);
+    
   return output;
 }
 
@@ -70,29 +70,26 @@ float4 mainPS(PS_INPUT input) : SV_Target
   float4 baseColor = t_baseColor.Sample(textureSampler, input.Tex);
   float roughnessMapColor = t_roughness.Sample(textureSampler, input.Tex).g;
   float metallicMapColor = t_metallic.Sample(textureSampler, input.Tex).b;
-  float4 normalMapColor = float4(t_normal.Sample(textureSampler, input.Tex).rg, 1.0f, 1.0f) * 2.0f - 1.0f;
+  float4 normalMapColor = float4(t_normal.Sample(textureSampler,
+                          input.Tex).rg, 1.0f, 1.0f) * 2.0f - 1.0f;
     
   float3x3 TBN = float3x3(input.Tangent, input.Bitangent, input.Normal);
     
   normalMapColor.xyz = normalize(mul(normalMapColor.xyz, TBN));
   normalMapColor = normalMapColor * 0.5f + 0.5f;
   return normalMapColor;
-
-  float3 normal = normalize(mul(normalMapColor.xyz, TBN));
     
-  //float diffuse = max(normal, 0.0f);
-    
-  float3 lightDir = LightPosition - input.Position.xyz;
+  float3 lightDir = LightPosition - input.WorldPosition;
     
   //float diffuse = max(dot(normal, LightPosition), 0.0f);
-  float diffuse = max(dot(normal, lightDir), 0.0f);
+  float diffuse = max(dot(normalMapColor.xyz, lightDir), 0.0f);
     
-  float3 viewDir = ViewPos.xyz - input.Position.xyz;
+  float3 viewDir = ViewPos.xyz - input.WorldPosition;
   float3 halfWayDir = normalize(lightDir + viewDir);
     
   //float3 halfVector = normalize(LightPosition + viewDir);
   
-  float specular = pow(max(dot(normal, halfWayDir), 0.0f), Intensity);
+  float specular = pow(max(dot(normalMapColor.xyz, halfWayDir), 0.0f), Intensity);
   specular *= 1.0f - roughnessMapColor;
   float3 diffuseColor = baseColor.rgb * (1.0f - metallicMapColor);
   float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallicMapColor);

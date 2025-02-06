@@ -30,6 +30,7 @@
 #include "shImageResource.h"
 #include "shPath.h"
 #include "shMath.h"
+#include "shRadian.h"
 
 using std::reinterpret_pointer_cast;
 
@@ -39,37 +40,31 @@ PhysicsApp::onCreate()
 {
   initGraphicAssets();
   initCamera();
-  initCollisionBoxes();
+
+  m_rotSpeed = 25.0f;
 
   Vector2 minPlayerSize(-25.0f, 25.0f);
   Vector2 maxPlayerSize(25.0f, -25.0f);
-  /*Path textPath("resources/ttgl.png");
-
-  m_player = make_shared<Player>(minPlayerSize,
-                                 maxPlayerSize,
-                                 textPath,
-                                 Vector2(0.0f, 0.0f),
-                                 1.5f,
-                                 500.0f,
-                                 0.8f,
-                                 25.0f);
-
-  Path arrowPath("resources/arrow.png");
-  auto arrow = make_shared<Arrow>(arrowPath, Vector2(0.0f, 40.0f), Vector2(80.0f, -40.0f));
-
-  m_player->setArrow(arrow);*/
+  float spawnPointY = -350.0f;
 
   Path basePath("resources/Tower.png");
   Path turretPath("resources/Cannon3.png");
-  m_pSpriteBase = make_unique<Sprite>(basePath, minPlayerSize, minPlayerSize);
-  m_pSpriteCannon = make_unique<Sprite>(turretPath, minPlayerSize, minPlayerSize);
+  m_pSpriteBase = make_shared<Sprite>(basePath, minPlayerSize, maxPlayerSize);
+  m_pSpriteCannon = make_shared<Sprite>(turretPath, minPlayerSize, maxPlayerSize);
   m_pBase = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
   m_pTurret = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
+
+  Path ballPath("resources/egball.png");
+  m_pSpriteBall = make_shared<Sprite>(ballPath, minPlayerSize, maxPlayerSize);
+
+  m_baseTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 10.0f));
+  m_turretTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 0.0f));
+
   g_graphicsMan().updateConstantBuffer(m_pBase,
-                                       &m_pSpriteBase->m_transform,
+                                       &m_baseTransform,
                                        sizeof(Matrix4));
   g_graphicsMan().updateConstantBuffer(m_pTurret,
-                                       &m_pSpriteCannon->m_transform,
+                                       &m_turretTransform,
                                        sizeof(Matrix4));
 }
 
@@ -78,45 +73,62 @@ PhysicsApp::onUpdate()
 {
   Vector2 direction(0.0f, 0.0f);
 
-  if (m_bUp) {
-    direction.y = 1.0f;
+  const float rotAngle = m_rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
+
+  if (m_bRotLeft) {
+    if (m_rotAccumulator > -(90.0f * Math::DEG2RAD)) {
+      m_turretTransform *= MatrixRotationAxis(Vector3::FORWARD, -rotAngle);
+      g_graphicsMan().updateConstantBuffer(m_pTurret,
+                                           &m_turretTransform,
+                                           sizeof(Matrix4));
+      m_rotAccumulator -= rotAngle;
+    }
   }
 
-  if (m_bLeft) {
-    direction.x = -1.0f;
+  if (m_bRotRight) {
+    if (m_rotAccumulator < (90.0f * Math::DEG2RAD)) {
+      m_turretTransform *= MatrixRotationAxis(Vector3::FORWARD, rotAngle);
+      g_graphicsMan().updateConstantBuffer(m_pTurret,
+                                           &m_turretTransform,
+                                           sizeof(Matrix4));
+      m_rotAccumulator += rotAngle;
+    }
   }
 
-  if (m_bDown) {
-    direction.y = -1.0f;
+  if (m_bShot) {
+    m_bShot = false;
+    spawnBall();
   }
 
-  if (m_bRight) {
-    direction.x = 1.0f;
-  }
+  if (m_integration == INTEGRATION::kEuler) {
+    for (auto& ball : m_activeBalls) {
+      if (ball) {
+        checkBallCollision(ball);
 
-  /*m_player->move(direction);
-
-  m_player->update(g_time().getFrameDeltaTime());
-
-  Vector2 boxNormal(0.0f, 0.0f);
-  if (checkCollision(m_left, boxNormal)) {
-    playerBounce(boxNormal);
+        ball->update(m_integration);
+        if (ball->m_bDestroy) {
+          m_activeBalls.erase(m_activeBalls.begin());
+        }
+      }
+    }
   }
-  else if (checkCollision(m_right, boxNormal)) {
-    playerBounce(boxNormal);
-  }
-  else if (checkCollision(m_top, boxNormal)) {
-    playerBounce(boxNormal);
-  }
-  else if (checkCollision(m_bottom, boxNormal)) {
-    playerBounce(boxNormal);
-  }*/
 }
 
 void
 PhysicsApp::onFixedUpdate()
 {
-  //m_player->update(g_time().FIXED_DELTA_TIME);
+  if (m_integration == INTEGRATION::kVerlet) {
+    for (auto& ball : m_activeBalls) {
+      if (ball) {
+        checkBallCollision(ball);
+    
+         ball->update(m_integration);
+         if (ball->m_bDestroy) {
+           m_activeBalls.erase(m_activeBalls.begin());
+         }
+      }
+    }
+  }
 }
 
 void
@@ -130,18 +142,11 @@ PhysicsApp::onRender()
   g_graphicsMan().vsSetConstantBuffers(m_pVP);
   g_graphicsMan().setPrimitiveTopology();
 
-  // Player
-  //g_graphicsMan().vsSetConstantBuffers(m_player->m_modelBuffer, 1);
-  //g_graphicsMan().setVertexBuffers(m_player->m_sprite->m_pVB);
-  //g_graphicsMan().setIndexBuffers(m_player->m_sprite->m_pIB);
-  //g_graphicsMan().setShaderResourceView(m_player->m_sprite->m_pTexture);
-  //g_graphicsMan().drawIndexed(static_cast<uint32>(m_player->m_sprite->m_indices.size()), 0, 0);
-  
-  //g_graphicsMan().vsSetConstantBuffers(m_player->m_pDirArrow->m_modelBuffer, 1);
-  //g_graphicsMan().setVertexBuffers(m_player->m_pDirArrow->m_sprite->m_pVB);
-  //g_graphicsMan().setIndexBuffers(m_player->m_pDirArrow->m_sprite->m_pIB);
-  //g_graphicsMan().setShaderResourceView(m_player->m_pDirArrow->m_sprite->m_pTexture);
-  //g_graphicsMan().drawIndexed(static_cast<uint32>(m_player->m_pDirArrow->m_sprite->m_indices.size()), 0, 0);
+  g_graphicsMan().vsSetConstantBuffers(m_pTurret, 1);
+  g_graphicsMan().setVertexBuffers(m_pSpriteCannon->m_pVB);
+  g_graphicsMan().setIndexBuffers(m_pSpriteCannon->m_pIB);
+  g_graphicsMan().setShaderResourceView(m_pSpriteCannon->m_pTexture);
+  g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);
 
   g_graphicsMan().vsSetConstantBuffers(m_pBase, 1);
   g_graphicsMan().setVertexBuffers(m_pSpriteBase->m_pVB);
@@ -149,11 +154,13 @@ PhysicsApp::onRender()
   g_graphicsMan().setShaderResourceView(m_pSpriteBase->m_pTexture);
   g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
 
-  //g_graphicsMan().vsSetConstantBuffers(m_pTurret, 1);
-  //g_graphicsMan().setVertexBuffers(m_pSpriteCannon->m_pVB);
-  //g_graphicsMan().setIndexBuffers(m_pSpriteCannon->m_pIB);
-  //g_graphicsMan().setShaderResourceView(m_pSpriteCannon->m_pTexture);
-  //g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);
+  for (auto& ball : m_activeBalls) {
+    g_graphicsMan().vsSetConstantBuffers(ball->m_buffer, 1);
+    g_graphicsMan().setVertexBuffers(ball->m_sprite->m_pVB);
+    g_graphicsMan().setIndexBuffers(ball->m_sprite->m_pIB);
+    g_graphicsMan().setShaderResourceView(ball->m_sprite->m_pTexture);
+    g_graphicsMan().drawIndexed(static_cast<uint32>(ball->m_sprite->m_indices.size()), 0, 0);
+  }
 }
 
 void
@@ -161,20 +168,12 @@ PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
   
-  if (key == KEY::kW) {
-    m_bUp = true;
+  if (key == KEY::kLeft) {
+    m_bRotLeft = true;
   }
 
-  if (key == KEY::kA) {
-    m_bLeft = true;
-  }
-
-  if (key == KEY::kS) {
-    m_bDown = true;
-  }
-
-  if (key == KEY::kD) {
-    m_bRight = true;
+  if (key == KEY::kRight) {
+    m_bRotRight = true;
   }
 }
 
@@ -183,20 +182,27 @@ PhysicsApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
 
-  if (key == KEY::kW) {
-    m_bUp = false;
+  if (key == KEY::kLeft) {
+    m_bRotLeft = false;
   }
 
-  if (key == KEY::kA) {
-    m_bLeft = false;
+  if (key == KEY::kRight) {
+    m_bRotRight = false;
   }
 
-  if (key == KEY::kS) {
-    m_bDown = false;
+  if (key == KEY::kSpace) {
+    m_bShot = true;
   }
 
-  if (key == KEY::kD) {
-    m_bRight = false;
+  if (key == KEY::kC) {
+    if (m_integration == INTEGRATION::kEuler) {
+      setBackgroundColor(LinearColor(0.5f, 1.0f, 0.5f));
+      m_integration = INTEGRATION::kVerlet;
+    }
+    else if (m_integration == INTEGRATION::kVerlet) {
+      setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
+      m_integration = INTEGRATION::kEuler;
+    }
   }
 }
 
@@ -214,6 +220,52 @@ PhysicsApp::checkCollision(const Box& box, Vector2& collisionNormal)
     return true;
   }
   return false;
+}
+
+void
+PhysicsApp::checkBallCollision(const SPtr<Ball>& ball)
+{
+  const float ballTopPos = ball->m_position.y + ball->m_radius;
+  const float ballBottomPos = ball->m_position.y - ball->m_radius;
+  const float ballLeftPos = ball->m_position.x - ball->m_radius;
+  const float ballRightPos = ball->m_position.x + ball->m_radius;
+
+  const float limit = m_desc.width * 0.5f;
+
+  if (ballTopPos >= limit) {
+    //ball->m_position.x = ball->m_position.x;
+    //ball->m_position.y = ball->m_position.y - ball->m_radius;
+    ball->m_velocity.y = -ball->m_velocity.y;
+    ball->m_previousPosition.y = ball->m_position.y - ball->m_velocity.y *
+                                 g_time().FIXED_DELTA_TIME;
+  }
+
+  if (ballBottomPos <= -limit) {
+    //ball->m_position.x = ball->m_position.x;
+    //ball->m_position.y = ball->m_position.y + ball->m_radius;
+    ball->m_velocity.y = -ball->m_velocity.y;
+    ball->m_previousPosition.y = -ball->m_previousPosition.y;
+    ball->m_previousPosition.y = ball->m_position.y - ball->m_velocity.y *
+                                 g_time().FIXED_DELTA_TIME;
+  }
+
+  if (ballLeftPos <= -limit) {
+    //ball->m_position.x = ball->m_position.x + ball->m_radius;
+    //ball->m_position.y = ball->m_position.y;
+    ball->m_velocity.x = -ball->m_velocity.x;
+    ball->m_previousPosition.x = -ball->m_previousPosition.x;
+    ball->m_previousPosition.x = ball->m_position.x - ball->m_velocity.x *
+                                 g_time().FIXED_DELTA_TIME;
+  }
+
+  if (ballRightPos >= limit) {
+    //ball->m_position.x = ball->m_position.x - ball->m_radius;
+    //ball->m_position.y = ball->m_position.y;
+    ball->m_velocity.x = -ball->m_velocity.x;
+    ball->m_previousPosition.x = -ball->m_previousPosition.x;
+    ball->m_previousPosition.x = ball->m_position.x - ball->m_velocity.x *
+                                 g_time().FIXED_DELTA_TIME;
+  }
 }
 
 void
@@ -292,17 +344,43 @@ PhysicsApp::initCamera()
 }
 
 void
-PhysicsApp::initCollisionBoxes()
+PhysicsApp::spawnBall()
 {
-  float size = m_desc.width * 0.5f;
+  auto newBall = make_shared<Ball>();
+  newBall->setSprite(m_pSpriteBall);
+  newBall->m_transform = m_turretTransform;
 
-  m_left.min = Vector2(-size, -size);
-  m_left.max = Vector2(-size, size);
-  m_right.min = Vector2(size, -size);
-  m_right.max = Vector2(size, size);
-  m_top.min = Vector2(-size, -size);
-  m_top.max = Vector2(size, -size);
-  m_bottom.min = Vector2(-size, size);
-  m_bottom.max = Vector2(size, size);
+  // This values are exposed here to test
+  newBall->m_eulerSpeed = 5000.0f;
+  newBall->m_verletSpeed = 3000.0f;
+
+  newBall->m_eulerGravity = -1.0f;
+  newBall->m_verletGravity = -150.0f;
+
+  newBall->m_mass = 1.0f;
+  newBall->m_dragC = 0.6f;
+  newBall->m_radius = 25.0f;
+
+  newBall->m_position = Vector2(0.0f, -370.0f);
+  newBall->m_lifeSpan = 8.0f;
+
+  Vector2 direction = Vector2(0.0f, 1.0f).getNormalized();
+  float cosA = Math::cos(Radian(-m_rotAccumulator));
+  float sinA = Math::sin(Radian(-m_rotAccumulator));
+  Vector2 newDirection(0.0f, 0.0f);
+  newDirection.x = direction.x * cosA - direction.y * sinA;
+  newDirection.y = direction.x * sinA + direction.y * cosA;
+
+  if (m_integration == INTEGRATION::kEuler) {
+    newBall->m_velocity = newDirection * newBall->m_eulerSpeed;
+  }
+  else if (m_integration == INTEGRATION::kVerlet) {
+    newBall->m_velocity = newDirection * newBall->m_verletSpeed;
+  }
+
+  newBall->m_previousPosition = newBall->m_position - newBall->m_velocity *
+                                g_time().FIXED_DELTA_TIME;
+
+  m_activeBalls.push_back(newBall);
 }
 }
