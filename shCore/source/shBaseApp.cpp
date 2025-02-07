@@ -190,19 +190,20 @@ BaseApp::fixedUpdate()
 void
 BaseApp::render()
 {
-  GraphicsManager& gManager = GraphicsManager::instance();
-
-  gManager.clearRenderTarget(gManager.getMainRenderTargetView(), m_backgroundColor);
-  gManager.clearDepthStencil(gManager.getMainDepthStencil());
+  g_graphicsMan().clearRenderTarget(g_graphicsMan().getMainRenderTargetView(),
+                                    m_backgroundColor);
+  g_graphicsMan().clearDepthStencil(g_graphicsMan().getMainDepthStencil());
 
   // Call overridable render function
   onRender();
 
   // Set main render target
-  gManager.setRenderTargets(gManager.getMainRenderTargetView(), gManager.getMainDepthStencil(), 1);
+  //g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
+  //                                 g_graphicsMan().getMainDepthStencil(),
+  //                                 1);
   
   // Present backbuffer
-  gManager.present();
+  g_graphicsMan().present();
 }
 
 void

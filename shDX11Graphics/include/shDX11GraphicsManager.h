@@ -78,7 +78,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param LinearColor& color
   */
   void
-  internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+  internalClearRenderTarget(const SPtr<Texture2D>& pTarget,
                             const LinearColor& color) override;
 
   /**
@@ -107,7 +107,7 @@ class DX11GraphicsManager : public GraphicsManager
   * 
   *  @return SPtr<RenderTargetView>
   */
-  SPtr<RenderTargetView>
+  SPtr<Texture2D>
   internalGetMainRenderTargetView() const override;
 
   /**
@@ -121,6 +121,24 @@ class DX11GraphicsManager : public GraphicsManager
   /********************
   *  Creates
   ********************/
+
+  /**
+  *  @brief Creates a Render Target View.
+  *
+  *  @param uint32 width
+  *  @param uint32 height
+  *  @param uint32 format = DXGI_FORMAT_B8G8R8A8_UNORM 87
+  *  @param uint32 usage = D3D11_USAGE_DEFAULT 0
+  *  @param uint32 bindFlags = D3D11_BIND_SHADER_RESOURCE 8
+  *
+  *  @return SPtr<RenderTargetView>
+  */
+  SPtr<Texture2D>
+  internalCreateRenderTarget(const uint32 width,
+                             const uint32 height,
+                             const uint32 format,
+                             const uint32 usage,
+                             const uint32 bindFlags) override;
 
   /**
   *  @brief Creates Input Layout with given descriptor and Vertex Shader.
@@ -294,14 +312,13 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief Set the render targets with number of views.
   * 
-  *  @param SPtr<RenderTargetView> pRenderTV
+  *  @param Vector<SPtr<RenderTargetView>>& pRenderTVs
   *  @param SPtr<Texture2D> pDepthSV
   *  @param uint32 numViews
   */
   void
-  internalSetRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                           const SPtr<Texture2D>& pDepthSV,
-                           const uint32 numViews) override;
+  internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
+                           const SPtr<Texture2D>& pDepthSV) override;
 
   /**
   *  @brief Sets the Input Layout.
@@ -497,6 +514,6 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief The main Render Target View.
   */
-  SPtr<DX11RenderTargetView> m_pRenderTargetView;
+  SPtr<DX11Texture2D> m_pRenderTargetView;
 };
 }

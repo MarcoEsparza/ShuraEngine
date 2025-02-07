@@ -27,6 +27,7 @@
 #include "shPass.h"
 
 namespace shEngineSDK {
+class RenderTargetView;
 class ProgramShader;
 class InputLayout;
 class SamplerState;
@@ -39,11 +40,18 @@ class ConstantBuffer;
 class SceneGraph;
 class PBRMaterial;
 class GameObject;
+class Texture2D;
 
 struct VP
 {
   Matrix4 view;
   Matrix4 proj;
+};
+
+struct InvVP
+{
+  Matrix4 invVP;
+  Matrix4 invV;
 };
 
 /**
@@ -105,13 +113,18 @@ class RendererApp : public BaseApp
  private:
   ScreenDesc m_desc;
   UPtr<Pass> m_pBasicShader;
+  UPtr<Pass> m_pDeferredShader;
+
+  Vector<SPtr<Texture2D>> m_targets;
 
   SPtr<GameObject> m_pModel;
 
   SPtr<ConstantBuffer> m_pVP;
+  SPtr<ConstantBuffer> m_pInvVP;
   SPtr<ConstantBuffer> m_pModelTransform;
   SPtr<ConstantBuffer> m_pCameraFoward;
   SPtr<ConstantBuffer> m_pLightBuffer;
+  SPtr<ConstantBuffer> m_pViewportBuffer;
 
   Camera m_camera;
 

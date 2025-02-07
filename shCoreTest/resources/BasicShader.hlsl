@@ -5,6 +5,9 @@ Texture2D t_metallic : register(t2);
 Texture2D t_roughness : register(t3);
 Texture2D t_ambientO : register(t4);
 
+float fNearClipPlane = 0.1f;
+float fFarClipPlane = 100.0f;
+
 cbuffer VP : register(b0)
 {
   float4x4 View;
@@ -14,19 +17,6 @@ cbuffer VP : register(b0)
 cbuffer Model : register(b1)
 {
   float4x4 ModelTransform;
-}
-
-cbuffer ViewDir : register(b2)
-{
-  float4 ViewPos;
-}
-
-cbuffer Light : register(b3)
-{
-  float3 LightPosition;
-  float Intensity;
-  float4 LightColor;
-  //float size[10];
 }
 
 struct VS_INPUT
@@ -41,11 +31,18 @@ struct VS_INPUT
 struct PS_INPUT
 {
   float4 Position : SV_POSITION;
-  float3 Normal : NORMAL0;
   float2 Tex : TEXCOORD0;
-  float3 Tangent : TANGENT0;
-  float3 Bitangent : BINORMAL0;
-  float3 WorldPosition : TEXCOORD1;
+  float3 Normal : TEXCOORD1;
+  float3 Tangent : TEXCOORD2;
+  float3 Bitangent : TEXCOORD3;
+  float Depth : TEXCOORD5;
+};
+
+struct GBUFFER_OUTPUT
+{
+  float4 Depth : COLOR0;
+  float4 Normal : COLOR1;
+  float4 Color : COLOR2;
 };
 
 PS_INPUT main(VS_INPUT input)
@@ -55,55 +52,25 @@ PS_INPUT main(VS_INPUT input)
   float4x4 wvp = mul(ModelTransform, mul(View, Proj));
 
   output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
-  output.Normal = normalize(mul(input.Normal, (float3x3)ModelTransform));
-  output.Normal = normalize(output.Normal);
   output.Tex = input.Tex;
+  output.Depth = output.Position.z / (100.0f - 0.1f);
+    
+  output.Normal = normalize(mul(input.Normal, (float3x3)ModelTransform));
   output.Tangent = normalize(mul(input.Tangent, (float3x3)ModelTransform));
   output.Bitangent = normalize(mul(input.Bitangent, (float3x3)ModelTransform));
-  output.WorldPosition = mul(float4(input.Position, 1.0f), View);
     
   return output;
 }
 
-float4 mainPS(PS_INPUT input) : SV_Target
+GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
 {
-  float4 baseColor = t_baseColor.Sample(textureSampler, input.Tex);
-  float roughnessMapColor = t_roughness.Sample(textureSampler, input.Tex).g;
-  float metallicMapColor = t_metallic.Sample(textureSampler, input.Tex).b;
-  float4 normalMapColor = float4(t_normal.Sample(textureSampler,
-                          input.Tex).rg, 1.0f, 1.0f) * 2.0f - 1.0f;
+  GBUFFER_OUTPUT output = (GBUFFER_OUTPUT)0;
     
-  float3x3 TBN = float3x3(input.Tangent, input.Bitangent, input.Normal);
-    
-  normalMapColor.xyz = normalize(mul(normalMapColor.xyz, TBN));
-  normalMapColor = normalMapColor * 0.5f + 0.5f;
-  return normalMapColor;
-    
-  float3 lightDir = LightPosition - input.WorldPosition;
-    
-  //float diffuse = max(dot(normal, LightPosition), 0.0f);
-  float diffuse = max(dot(normalMapColor.xyz, lightDir), 0.0f);
-    
-  float3 viewDir = ViewPos.xyz - input.WorldPosition;
-  float3 halfWayDir = normalize(lightDir + viewDir);
-    
-  //float3 halfVector = normalize(LightPosition + viewDir);
+  output.Color = t_baseColor.Sample(textureSampler, input.Tex);
+  float3 fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f; 
+  fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
+  output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  output.Depth = input.Depth.xxxx;
   
-  float specular = pow(max(dot(normalMapColor.xyz, halfWayDir), 0.0f), Intensity);
-  specular *= 1.0f - roughnessMapColor;
-  float3 diffuseColor = baseColor.rgb * (1.0f - metallicMapColor);
-  float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallicMapColor);
-    
-  //float3 finalColor = baseColor.rgb * diffuse;
-    
-  float3 ambient = { 0.5f, 0.5f, 0.5f };
-    
-  //float3 finalColor = (ambient + diffuse * LightColor + specular) * baseColor.rgb;
-  float3 finalColor = (ambient * diffuseColor) +
-                      ((diffuse * LightColor.xyz) * diffuseColor) +
-                      specular + LightColor.xyz * specularColor;
-    
-  //return t_baseColor.Sample(textureSampler, input.Tex);
-    
-  return float4(finalColor, baseColor.a);
+  return output;
 }

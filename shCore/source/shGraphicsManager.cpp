@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/02/06
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -31,7 +31,7 @@ GraphicsManager::initManager(const SPtr<Screen> screen,
 }
 
 void
-GraphicsManager::clearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+GraphicsManager::clearRenderTarget(const SPtr<Texture2D>& pTarget,
                                    const LinearColor& color)
 {
   internalClearRenderTarget(pTarget, color);
@@ -52,7 +52,7 @@ GraphicsManager::present(uint32 syncInterval, uint32 flags)
   internalPresent(syncInterval, flags);
 }
 
-SPtr<RenderTargetView>
+SPtr<Texture2D>
 GraphicsManager::getMainRenderTargetView() const
 {
   return internalGetMainRenderTargetView();
@@ -62,6 +62,16 @@ SPtr<Texture2D>
 GraphicsManager::getMainDepthStencil() const
 {
   return internalGetMainDepthStencil();
+}
+
+SPtr<Texture2D>
+GraphicsManager::createRenderTarget(const uint32 width,
+                                    const uint32 height,
+                                    const uint32 format,
+                                    const uint32 usage,
+                                    const uint32 bindFlags)
+{
+  return internalCreateRenderTarget(width, height, format, usage, bindFlags);
 }
 
 SPtr<InputLayout>
@@ -168,11 +178,10 @@ GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
-GraphicsManager::setRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                                  const SPtr<Texture2D>& pDepthSV,
-                                  const uint32 numViews)
+GraphicsManager::setRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
+                                  const SPtr<Texture2D>& pDepthSV)
 {
-  internalSetRenderTargets(pRenderTV, pDepthSV, numViews);
+  internalSetRenderTargets(pRenderTVs, pDepthSV);
 }
 
 void

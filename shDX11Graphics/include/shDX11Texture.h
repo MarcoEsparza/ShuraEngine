@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Texture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/21
+*  @date    2025/02/06
 *  @brief   DirectX11 Texture and Texture2D class wrappers.
 *
 *  DirectX11 Texture and Texture2D class wrappers.
@@ -84,6 +84,11 @@ class DX11Texture2D : public Texture2D
   *  @brief DirectX11 Depth Stencil View pointer.
   */
   ID3D11DepthStencilView* m_pDepthSV = nullptr;
+
+  /**
+  *  @brief DirectX11 Render Target View pointer.
+  */
+  ID3D11RenderTargetView* m_pRenderTV = nullptr;
 
   /**
   *  @brief DirectX11 Texture2D pointer.

@@ -98,7 +98,6 @@ RendererApp::onCreate()
                                        sizeof(Transform));
 
   m_light.position = Vector3(5.0f, 5.0f, 5.0f);
-  m_light.position.normalize();
   m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
   m_light.intensity = 1.0f;
 
@@ -176,25 +175,39 @@ RendererApp::onUpdate()
 void
 RendererApp::onRender()
 {
-  g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
-                                   g_graphicsMan().getMainDepthStencil(),
-                                   1);
-  
+  for (auto& target : m_targets) {
+    g_graphicsMan().clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
+  }
+
+  g_graphicsMan().setRenderTargets(m_targets, g_graphicsMan().getMainDepthStencil());
+
   m_pBasicShader->setPass();
   g_graphicsMan().setPrimitiveTopology();
 
   g_graphicsMan().vsSetConstantBuffers(m_pVP);
   g_graphicsMan().vsSetConstantBuffers(m_pModelTransform, 1);
-  g_graphicsMan().vsSetConstantBuffers(m_pCameraFoward, 2);
-  g_graphicsMan().vsSetConstantBuffers(m_pLightBuffer, 3);
 
   g_graphicsMan().psSetConstantBuffers(m_pVP);
   g_graphicsMan().psSetConstantBuffers(m_pModelTransform, 1);
-  g_graphicsMan().psSetConstantBuffers(m_pCameraFoward, 2);
-  g_graphicsMan().psSetConstantBuffers(m_pLightBuffer, 3);
 
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   g_renderMan().drawStaticMeshUnionInScene(smucList);
+
+  Vector<SPtr<Texture2D>> mainRTV;
+  mainRTV.push_back(g_graphicsMan().getMainRenderTargetView());
+  g_graphicsMan().setRenderTargets(mainRTV, g_graphicsMan().getMainDepthStencil());
+  m_pDeferredShader->setPass();
+
+  g_graphicsMan().setShaderResourceView(m_targets[0], 0);
+  g_graphicsMan().setShaderResourceView(m_targets[1], 1);
+  g_graphicsMan().setShaderResourceView(m_targets[2], 2);
+  
+  g_graphicsMan().psSetConstantBuffers(m_pInvVP);
+  g_graphicsMan().psSetConstantBuffers(m_pCameraFoward, 1);
+  g_graphicsMan().psSetConstantBuffers(m_pLightBuffer, 2);
+  g_graphicsMan().psSetConstantBuffers(m_pViewportBuffer, 3);
+  
+  g_graphicsMan().draw(3, 0);
 }
 
 void
@@ -345,6 +358,15 @@ RendererApp::initGraphicAssets()
                                 "ps_5_0");
   m_pBasicShader->compileShader();
 
+  m_pDeferredShader = make_unique<Pass>();
+
+  m_pDeferredShader->setShaderInfo("resources/DeferredShader.hlsl",
+                                   "main",
+                                   "mainPS",
+                                   "vs_5_0",
+                                   "ps_5_0");
+  m_pDeferredShader->compileShader();
+
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
   rasterDesc.cullMode = CULL_MODE::kNone;
@@ -393,6 +415,37 @@ RendererApp::initGraphicAssets()
   m_pBasicShader->setRasterizerState(rasterDesc);
   m_pBasicShader->setBlendState(blendDesc);
   //m_pBasicShader->setDepthStencilState(depthSDesc);
+
+  m_pDeferredShader->generateInputLayout();
+  m_pDeferredShader->setSamplerState(pSamplerLinear);
+  m_pDeferredShader->setRasterizerState(rasterDesc);
+  m_pDeferredShader->setBlendState(blendDesc);
+
+  auto depthTarget = g_graphicsMan().createRenderTarget(m_desc.width,
+                                                        m_desc.height,
+                                                        TEXTURE_FORMAT::kR32G32B32A32_float,
+                                                        USAGE::kDefault,
+                                                        BIND_FLAGS::kRenderTarget);
+
+  auto normalTarget = g_graphicsMan().createRenderTarget(m_desc.width,
+                                                         m_desc.height,
+                                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                         USAGE::kDefault,
+                                                         BIND_FLAGS::kRenderTarget);
+
+  auto colorTarget = g_graphicsMan().createRenderTarget(m_desc.width,
+                                                        m_desc.height,
+                                                        TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                        USAGE::kDefault,
+                                                        BIND_FLAGS::kRenderTarget);
+
+  m_targets.push_back(depthTarget);
+  m_targets.push_back(normalTarget);
+  m_targets.push_back(colorTarget);
+
+  Vector4 viewport(m_desc.width, m_desc.height, 1.0f, 1.0f);
+  m_pViewportBuffer = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
+  g_graphicsMan().updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
 }
 
 void
@@ -426,6 +479,20 @@ RendererApp::initCamera()
   g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
                                        &foward,
                                        sizeof(Vector4));
+
+  InvVP invVP;
+
+  m_pInvVP = g_graphicsMan().createConstantBuffer(sizeof(InvVP));
+
+  invVP.invVP = (m_camera.getProjection() * m_camera.getView()).getInversed();
+  invVP.invV = m_camera.getView().getInversed();
+
+  invVP.invVP.getTransposed();
+  invVP.invV.getTransposed();
+
+  g_graphicsMan().updateConstantBuffer(m_pInvVP,
+                                       &invVP,
+                                       sizeof(InvVP));
 }
 
 void
@@ -463,5 +530,13 @@ RendererApp::updateCamera()
   g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
                                        &foward,
                                        sizeof(Vector4));
+
+  InvVP invVP;
+
+  invVP.invVP = (vp.proj * vp.view).getInversed();
+  invVP.invV = vp.view.getInversed();
+  g_graphicsMan().updateConstantBuffer(m_pInvVP,
+                                       &invVP,
+                                       sizeof(InvVP));
 }
 }

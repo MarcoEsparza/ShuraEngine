@@ -34,7 +34,6 @@ class VertexBuffer;
 class IndexBuffer;
 class ConstantBuffer;
 class InputLayout;
-class RenderTargetView;
 class SamplerState;
 class ProgramShader;
 class Texture2D;
@@ -87,7 +86,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param LinearColor& color
   */
   void
-  clearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+  clearRenderTarget(const SPtr<Texture2D>& pTarget,
                     const LinearColor& color);
 
   /**
@@ -116,7 +115,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<RenderTargetView>
   */
-  SPtr<RenderTargetView>
+  SPtr<Texture2D>
   getMainRenderTargetView() const;
 
   /**
@@ -130,6 +129,24 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /********************
   *  Creates
   ********************/
+
+  /**
+  *  @brief Creates a RenderTargetView.
+  *
+  *  @param uint32 width
+  *  @param uint32 height
+  *  @param uint32 format = 87
+  *  @param uint32 usage = 0
+  *  @param uint32 bindFlags = 8
+  *
+  *  @return SPtr<RenderTargetView>
+  */
+  SPtr<Texture2D>
+  createRenderTarget(const uint32 width,
+                     const uint32 height,
+                     const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                     const uint32 usage = USAGE::kDefault,
+                     const uint32 bindFlags = BIND_FLAGS::kRenderTarget);
 
   /**
   *  @brief Creates Input Layout with given types and Vertex Shader.
@@ -303,14 +320,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Set the render targets with number of views.
   *
-  *  @param SPtr<RenderTargetView>& pRenderTV
+  *  @param Vector<SPtr<RenderTargetView>>& pRenderTVs
   *  @param SPtr<DepthStencilView>& pDepthSV
-  *  @param uint32 numViews
   */
   void
-  setRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                   const SPtr<Texture2D>& pDepthSV,
-                   const uint32 numViews);
+  setRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
+                   const SPtr<Texture2D>& pDepthSV);
 
   /**
   *  @brief Sets the Input Layout.
@@ -490,7 +505,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param LinearColor& color
   */
   virtual void
-  internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+  internalClearRenderTarget(const SPtr<Texture2D>& pTarget,
                             const LinearColor& color) = 0;
 
   /**
@@ -519,7 +534,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   * 
   *  @return SPtr<RenderTargetView>
   */
-  virtual SPtr<RenderTargetView>
+  virtual SPtr<Texture2D>
   internalGetMainRenderTargetView() const = 0;
 
   /**
@@ -533,6 +548,24 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /********************
   *  Creates
   ********************/
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param uint32 width
+  *  @param uint32 height
+  *  @param uint32 format = 87
+  *  @param uint32 usage = 0
+  *  @param uint32 bindFlags = 8
+  *
+  *  @return SPtr<RenderTargetView>
+  */
+  virtual SPtr<Texture2D>
+  internalCreateRenderTarget(const uint32 width,
+                             const uint32 height,
+                             const uint32 format,
+                             const uint32 usage,
+                             const uint32 bindFlags) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -707,14 +740,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   * 
-  *  @param SPtr<RenderTargetView>& pRenderTV
+  *  @param Vector<SPtr<RenderTargetView>>& pRenderTVs
   *  @param SPtr<Texture2D>& pDepthSV
   *  @param uint32 numViews
   */
   virtual void
-  internalSetRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                           const SPtr<Texture2D>& pDepthSV,
-                           const uint32 numViews) = 0;
+  internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
+                           const SPtr<Texture2D>& pDepthSV) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

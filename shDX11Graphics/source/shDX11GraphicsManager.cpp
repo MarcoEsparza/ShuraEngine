@@ -67,6 +67,18 @@ compileShaderFromFile(const String& fileName,
                             pVertexBlob,
                             &pErrorBlob);
 
+  if (FAILED(hrVS)) {
+    if (nullptr != pErrorBlob) {
+      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
+      SafeRelease(pErrorBlob);
+    }
+
+    return false;
+  }
+
+  SafeRelease(pErrorBlob);
+  pErrorBlob = nullptr;
+
   hrPS = D3DCompileFromFile(wFileName.c_str(),
                             nullptr,
                             nullptr,
@@ -76,15 +88,6 @@ compileShaderFromFile(const String& fileName,
                             0,
                             pPixelBlob,
                             &pErrorBlob);
-
-  if (FAILED(hrVS)) {
-    if (nullptr != pErrorBlob) {
-      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
-      SafeRelease(pErrorBlob);
-    }
-
-    return false;
-  }
 
   if (FAILED(hrPS)) {
     if (nullptr != pErrorBlob) {
@@ -215,7 +218,7 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                               __uuidof(ID3D11Texture2D),
                               reinterpret_cast<LPVOID*>(&m_pBackbuffer->m_pTexture2D)));
 
-  m_pRenderTargetView = make_shared<DX11RenderTargetView>();
+  m_pRenderTargetView = make_shared<DX11Texture2D>();
 
   throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(m_pBackbuffer->m_pTexture2D,
                                       nullptr,
@@ -253,10 +256,10 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
 }
 
 void
-DX11GraphicsManager::internalClearRenderTarget(const SPtr<RenderTargetView>& pTarget,
+DX11GraphicsManager::internalClearRenderTarget(const SPtr<Texture2D>& pTarget,
                                                const LinearColor& color)
 {
-  auto pRTV = reinterpret_pointer_cast<DX11RenderTargetView>(pTarget);
+  auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pTarget);
   
   FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
@@ -284,7 +287,7 @@ DX11GraphicsManager::internalPresent(uint32 syncInterval, uint32 flags)
   m_pSwapChain->m_pSwapChain->Present(syncInterval, flags);
 }
 
-SPtr<RenderTargetView>
+SPtr<Texture2D>
 DX11GraphicsManager::internalGetMainRenderTargetView() const
 {
   return m_pRenderTargetView;
@@ -294,6 +297,22 @@ SPtr<Texture2D>
 DX11GraphicsManager::internalGetMainDepthStencil() const
 {
   return m_pDepthStencil;
+}
+
+SPtr<Texture2D>
+DX11GraphicsManager::internalCreateRenderTarget(const uint32 width,
+                                                const uint32 height,
+                                                const uint32 format,
+                                                const uint32 usage, 
+                                                const uint32 bindFlags)
+{
+  auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(createTexture2D(width,
+                                                                      height,
+                                                                      format,
+                                                                      usage,
+    D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE));
+
+  return pRTV;
 }
 
 SPtr<InputLayout>
@@ -498,7 +517,7 @@ DX11GraphicsManager::internalCreateVertexBuffer(const Vector<VertexData>& vertic
 
   D3D11_SUBRESOURCE_DATA initData;
   initData.pSysMem = &vertices[0];
-  initData.SysMemPitch = vertices.size();
+  initData.SysMemPitch = static_cast<UINT>(vertices.size());
   initData.SysMemSlicePitch = 0;
 
   m_pDevice->m_pDevice->CreateBuffer(&desc, &initData, &pVBuffer->m_pBuffer);
@@ -659,6 +678,18 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
                                                                &pTexture->m_pDepthSV));
   }
 
+  if ((bindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET)
+  {
+    D3D11_RENDER_TARGET_VIEW_DESC descRTV;
+    memset(&descRTV, 0, sizeof(descRTV));
+    descRTV.Format = textureDesc.Format;
+    descRTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    descRTV.Texture2D.MipSlice = 0;
+    throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
+                                                               &descRTV,
+                                                               &pTexture->m_pRenderTV));
+  }
+
   return pTexture;
 }
 
@@ -766,15 +797,19 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pC
 }
 
 void
-DX11GraphicsManager::internalSetRenderTargets(const SPtr<RenderTargetView>& pRenderTV,
-                                              const SPtr<Texture2D>& pDepthSV,
-                                              const uint32 numViews)
+DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
+                                              const SPtr<Texture2D>& pDepthSV)
 {
-  auto pRenderTarget = reinterpret_pointer_cast<DX11RenderTargetView>(pRenderTV);
   auto pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
+  Vector<ID3D11RenderTargetView*> pRTVs;
 
-  m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(numViews,
-                                                         &pRenderTarget->m_pRenderTV,
+  for (auto& pRenderTarget : pRenderTVs) {
+    auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pRenderTarget);
+  
+    pRTVs.push_back(pRTV->m_pRenderTV);
+  }
+  m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(pRTVs.size(),
+                                                         pRTVs.data(),
                                                          pDepthStencil->m_pDepthSV);
 }
 
