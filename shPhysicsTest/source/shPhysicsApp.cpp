@@ -66,6 +66,8 @@ PhysicsApp::onCreate()
   g_graphicsMan().updateConstantBuffer(m_pTurret,
                                        &m_turretTransform,
                                        sizeof(Matrix4));
+
+  m_mainTarget.push_back(g_graphicsMan().getMainRenderTargetView());
 }
 
 void
@@ -134,9 +136,7 @@ PhysicsApp::onFixedUpdate()
 void
 PhysicsApp::onRender()
 {
-  g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
-                                   g_graphicsMan().getMainDepthStencil(),
-                                   1);
+  g_graphicsMan().setRenderTargets(m_mainTarget, g_graphicsMan().getMainDepthStencil());
   
   m_pPhysicsShader->setPass();
   g_graphicsMan().vsSetConstantBuffers(m_pVP);

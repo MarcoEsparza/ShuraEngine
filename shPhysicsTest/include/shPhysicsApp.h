@@ -98,6 +98,8 @@ class PhysicsApp : public BaseApp
   ScreenDesc m_desc;
   UPtr<Pass> m_pPhysicsShader;
 
+  Vector<SPtr<Texture2D>> m_mainTarget;
+
   SPtr<ConstantBuffer> m_pVP;
   SPtr<ConstantBuffer> m_pBase;
   SPtr<ConstantBuffer> m_pTurret;
