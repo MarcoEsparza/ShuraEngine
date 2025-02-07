@@ -120,13 +120,7 @@
     <ClInclude Include="include\shDevice.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
-    <ClInclude Include="include\shDepthStencilView.h">
-      <Filter>Header Files\GraphicsManager</Filter>
-    </ClInclude>
     <ClInclude Include="include\shInputLayout.h">
-      <Filter>Header Files\GraphicsManager</Filter>
-    </ClInclude>
-    <ClInclude Include="include\shRenderTargetView.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
     <ClInclude Include="include\shSamplerState.h">

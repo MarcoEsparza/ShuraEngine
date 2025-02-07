@@ -35,7 +35,7 @@ struct PS_INPUT
   float3 Normal : TEXCOORD1;
   float3 Tangent : TEXCOORD2;
   float3 Bitangent : TEXCOORD3;
-  float Depth : TEXCOORD5;
+  float Depth : TEXCOORD4;
 };
 
 struct GBUFFER_OUTPUT

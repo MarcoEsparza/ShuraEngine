@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/03
+*  @date    2025/02/07
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -58,6 +58,18 @@ Pass::setDepthStencilState(const DepthStencilDesc& dsDesc)
 }
 
 void
+Pass::addVSConstantBuffer(const SPtr<ConstantBuffer>& buffer)
+{
+  m_vsCBuffers.push_back(buffer);
+}
+
+void
+Pass::addPSConstantBuffer(const SPtr<ConstantBuffer>& buffer)
+{
+  m_psCBuffers.push_back(buffer);
+}
+
+void
 Pass::compileShader()
 {
   if (m_pShader) {
@@ -99,6 +111,18 @@ Pass::setPass() const
 
   if (m_pDsState) {
     g_graphicsMan().setDepthStencilState(m_pDsState);
+  }
+
+  for (uint32 i = 0; i < m_vsCBuffers.size(); ++i) {
+    if (m_vsCBuffers[i]) {
+      g_graphicsMan().vsSetConstantBuffers(m_vsCBuffers[i], i);
+    }
+  }
+
+  for (uint32 i = 0; i < m_psCBuffers.size(); ++i) {
+    if (m_psCBuffers[i]) {
+      g_graphicsMan().psSetConstantBuffers(m_psCBuffers[i], i);
+    }
   }
 }
 }

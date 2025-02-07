@@ -36,7 +36,6 @@
     <ClInclude Include="include\shCamera.h" />
     <ClInclude Include="include\shDevice.h" />
     <ClInclude Include="include\shBuffers.h" />
-    <ClInclude Include="include\shDepthStencilView.h" />
     <ClInclude Include="include\shEvent.h" />
     <ClInclude Include="Include\shEventData.h" />
     <ClInclude Include="include\shGraphicsManager.h" />
@@ -46,7 +45,6 @@
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRasterizerState.h" />
     <ClInclude Include="include\shRenderManager.h" />
-    <ClInclude Include="include\shRenderTargetView.h" />
     <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />
     <ClInclude Include="include\shSamplerState.h" />

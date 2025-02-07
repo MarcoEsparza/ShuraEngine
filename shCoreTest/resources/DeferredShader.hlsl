@@ -25,7 +25,8 @@ cbuffer Light : register(b2)
 cbuffer Viewport : register(b3)
 {
   float2 Dimensions;
-  float2 unused;
+  float FarClip;
+  float NearClip;
 }
 
 struct PS_INPUT
@@ -69,7 +70,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
   normal.xyz = mul(float4(normal.xyz, 0.0f), InvView);
     
   float2 xyClipPos = screenUV * 2.0f - 1.0f;
-  float4 positionClip = float4(xyClipPos, depth.x * (100.0f - 0.1f), 1.0f);
+  float4 positionClip = float4(xyClipPos, depth.x * (FarClip - NearClip), 1.0f);
   float4 posWorld = mul(positionClip, InvViewProj);
     
   float3 lightDir = normalize(LightPosition - posWorld.xyz);

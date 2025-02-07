@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/03
+*  @date    2025/02/07
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -21,12 +21,19 @@
 #include "shGraphicTypes.h"
 
 namespace shEngineSDK {
+/*****************************************************************************/
+/*
+*  Foward declarations
+*/
+/*****************************************************************************/
+
 class ProgramShader;
 class InputLayout;
 class RasterizerState;
 class BlendState;
 class DepthStencilState;
 class SamplerState;
+class ConstantBuffer;
 
 /**
 *  @brief Pass for renderer.
@@ -66,6 +73,15 @@ class SH_CORE_EXPORT Pass
   FORCEINLINE void
   setSamplerState(SPtr<SamplerState>& pSamplerLinear);
 
+  /**
+  *  @brief Sets the info for the shader compile.
+  *
+  *  @param String& shaderPath
+  *  @param String& vsEntry
+  *  @param String& psEntry
+  *  @param String& vsModel
+  *  @param String& psModel
+  */
   void
   setShaderInfo(const String& shaderPath,
                 const String& vsEntry,
@@ -97,6 +113,27 @@ class SH_CORE_EXPORT Pass
   void
   setDepthStencilState(const DepthStencilDesc& dsDesc);
 
+  /**
+  *  @brief Add a constant buffer to the Vertex Shader Constant Buffer container.
+  *
+  *  @param SPtr<ConstantBuffer>& buffer
+  */
+  void
+  addVSConstantBuffer(const SPtr<ConstantBuffer>& buffer);
+
+  /**
+  *  @brief Add a constant buffer to the Pixel Shader Constant Buffer container.
+  *
+  *  @param SPtr<ConstantBuffer>& buffer
+  */
+  void
+  addPSConstantBuffer(const SPtr<ConstantBuffer>& buffer);
+
+  /**
+  *  @brief Compiles the shader.
+  *
+  *  @param DepthStencilDesc& dsDesc
+  */
   void
   compileShader();
 
@@ -147,11 +184,40 @@ class SH_CORE_EXPORT Pass
   *  @brief Depth Stencil state.
   */
   SPtr<DepthStencilState> m_pDsState;
+  
+  /**
+  *  @brief Vertex Shader Constant Buffer container.
+  */
+  Vector<SPtr<ConstantBuffer>> m_vsCBuffers;
 
+  /**
+  *  @brief Pixel Shader Constant Buffer container.
+  */
+  Vector<SPtr<ConstantBuffer>> m_psCBuffers;
+
+  /**
+  *  @brief Path of the shader file.
+  */
   String m_shaderPath;
+
+  /**
+  *  @brief Vertex Shader entry point.
+  */
   String m_vsEntryPoint;
+
+  /**
+  *  @brief Pixel Shader entry point.
+  */
   String m_psEntryPoint;
+
+  /**
+  *  @brief Vertex Shader model.
+  */
   String m_vsShaderModel;
+
+  /**
+  *  @brief Pixel Shader model.
+  */
   String m_psShaderModel;
 
   /**

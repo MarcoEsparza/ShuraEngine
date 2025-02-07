@@ -1,35 +1,34 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/14
+*  @date    2025/02/07
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
 #include "shGraphicsManager.h"
 
 #include "shDX11Buffers.h"
 #include "shDX11Device.h"
 #include "shDX11InputLayout.h"
-#include "shDX11RenderTargetView.h"
-#include "shDX11SamplerState.h"
 #include "shDX11Shader.h"
 #include "shDX11SwapChain.h"
 #include "shDX11Texture.h"
-#include "shDX11BlendState.h"
+#include "shDX11SamplerState.h"
 #include "shDX11RasterizerState.h"
+#include "shDX11BlendState.h"
 #include "shDX11DepthStencilState.h"
 
 namespace shEngineSDK {
@@ -49,11 +48,11 @@ class DX11GraphicsManager : public GraphicsManager
   */
   ~DX11GraphicsManager() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /********************
   *  Init and clears
@@ -121,24 +120,6 @@ class DX11GraphicsManager : public GraphicsManager
   /********************
   *  Creates
   ********************/
-
-  /**
-  *  @brief Creates a Render Target View.
-  *
-  *  @param uint32 width
-  *  @param uint32 height
-  *  @param uint32 format = DXGI_FORMAT_B8G8R8A8_UNORM 87
-  *  @param uint32 usage = D3D11_USAGE_DEFAULT 0
-  *  @param uint32 bindFlags = D3D11_BIND_SHADER_RESOURCE 8
-  *
-  *  @return SPtr<RenderTargetView>
-  */
-  SPtr<Texture2D>
-  internalCreateRenderTarget(const uint32 width,
-                             const uint32 height,
-                             const uint32 format,
-                             const uint32 usage,
-                             const uint32 bindFlags) override;
 
   /**
   *  @brief Creates Input Layout with given descriptor and Vertex Shader.
@@ -470,11 +451,11 @@ class DX11GraphicsManager : public GraphicsManager
                       const uint32 startIndexLocation,
                       const uint32 baseVertexLocation) override;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  private:
   /**
   *  @brief Descriptor for sample configuration.

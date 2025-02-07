@@ -1,21 +1,21 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/14
+*  @date    2025/02/07
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shDX11GraphicsManager.h"
 #include "shScreen.h"
 #include "shLinearColor.h"
@@ -77,7 +77,6 @@ compileShaderFromFile(const String& fileName,
   }
 
   SafeRelease(pErrorBlob);
-  pErrorBlob = nullptr;
 
   hrPS = D3DCompileFromFile(wFileName.c_str(),
                             nullptr,
@@ -297,22 +296,6 @@ SPtr<Texture2D>
 DX11GraphicsManager::internalGetMainDepthStencil() const
 {
   return m_pDepthStencil;
-}
-
-SPtr<Texture2D>
-DX11GraphicsManager::internalCreateRenderTarget(const uint32 width,
-                                                const uint32 height,
-                                                const uint32 format,
-                                                const uint32 usage, 
-                                                const uint32 bindFlags)
-{
-  auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(createTexture2D(width,
-                                                                      height,
-                                                                      format,
-                                                                      usage,
-    D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE));
-
-  return pRTV;
 }
 
 SPtr<InputLayout>
@@ -808,9 +791,13 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
   
     pRTVs.push_back(pRTV->m_pRenderTV);
   }
-  m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(pRTVs.size(),
+  m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(static_cast<UINT>(pRTVs.size()),
                                                          pRTVs.data(),
                                                          pDepthStencil->m_pDepthSV);
+
+  for (auto& d3d11RTV : pRTVs) {
+    SafeRelease(d3d11RTV);
+  }
 }
 
 void

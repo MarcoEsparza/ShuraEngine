@@ -1,21 +1,21 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/04
-*  @brief
+*  @date    2025/02/07
+*  @brief   App for render testing.
 *
-*
+*  App for render testing.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shRendererApp.h"
 
 #include "shGraphicsManager.h"
@@ -44,6 +44,7 @@ RendererApp::onCreate()
   initGraphicAssets();
   initCamera();
 
+  // Load images
   Path whitePNG("resources/White.png");
   g_resourceMan().loadResourceFromFile(whitePNG);
 
@@ -66,6 +67,7 @@ RendererApp::onCreate()
   auto ao = reinterpret_pointer_cast<ImageResource>(
             g_resourceMan().loadResourceFromFile(text5));
 
+  // Load model and set the gameobject
   Path modelPath("resources/DrakeFire.fbx");
   auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
                   g_resourceMan().loadResourceFromFile(modelPath));
@@ -97,6 +99,7 @@ RendererApp::onCreate()
                                        &m_pModel->transform.getTransform(),
                                        sizeof(Transform));
 
+  // Set light buffer
   m_light.position = Vector3(5.0f, 5.0f, 5.0f);
   m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
   m_light.intensity = 1.0f;
@@ -104,108 +107,106 @@ RendererApp::onCreate()
   m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(Light));
 
   g_graphicsMan().updateConstantBuffer(m_pLightBuffer, &m_light, sizeof(Light));
+
+  // Set pass buffers
+  m_pBasicShader->addVSConstantBuffer(m_pVP);
+  m_pBasicShader->addVSConstantBuffer(m_pModelTransform);
+
+  m_pDeferredShader->addPSConstantBuffer(m_pInvVP);
+  m_pDeferredShader->addPSConstantBuffer(m_pCameraPosition);
+  m_pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
+  m_pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
+
+  m_mainTarget.push_back(g_graphicsMan().getMainRenderTargetView());
 }
 
 void
 RendererApp::onUpdate()
 {
-  if (m_leftClick) {
+  if (m_bLeftClick) {
     rotateCamera();
   }
 
   const float speed = 0.01f;
 
-  if (m_foward) {
+  if (m_bFoward) {
     m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * speed);
   }
   
-  if (m_left) {
+  if (m_bLeft) {
     m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * speed);
   }
 
-  if (m_back) {
+  if (m_bBack) {
     m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * speed);
   }
   
-  if (m_right) {
+  if (m_bRight) {
     m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * speed);
   }
 
-  if (m_up) {
+  if (m_bUp) {
     m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * speed);
   }
 
-  if (m_down) {
+  if (m_bDown) {
     m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * speed);
   }
 
-  auto& goList = g_sceneGraph().getGameObjectList();
-  
   const float rotSpeed = 15.0f;
   const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
-  if (m_rotLeft) {
+  if (m_bRotLeft) {
     m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
                                          &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
-  if (m_rotRight) {
+  if (m_bRotRight) {
     m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
                                          &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
-  if (m_rotUp) {
+  if (m_bRotUp) {
     m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
                                          &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
-  if (m_rotDown) {
+  if (m_bRotDown) {
     m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
     g_graphicsMan().updateConstantBuffer(m_pModelTransform,
                                          &m_pModel->transform.getTransform(),
                                          sizeof(Transform));
   }
   
-  m_camera.update();
+  
   updateCamera();
 }
 
 void
 RendererApp::onRender()
 {
+  g_graphicsMan().setPrimitiveTopology();
+
+  // First pass
   for (auto& target : m_targets) {
     g_graphicsMan().clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
 
   g_graphicsMan().setRenderTargets(m_targets, g_graphicsMan().getMainDepthStencil());
-
   m_pBasicShader->setPass();
-  g_graphicsMan().setPrimitiveTopology();
-
-  g_graphicsMan().vsSetConstantBuffers(m_pVP);
-  g_graphicsMan().vsSetConstantBuffers(m_pModelTransform, 1);
-
-  g_graphicsMan().psSetConstantBuffers(m_pVP);
-  g_graphicsMan().psSetConstantBuffers(m_pModelTransform, 1);
 
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   g_renderMan().drawStaticMeshUnionInScene(smucList);
 
-  Vector<SPtr<Texture2D>> mainRTV;
-  mainRTV.push_back(g_graphicsMan().getMainRenderTargetView());
-  g_graphicsMan().setRenderTargets(mainRTV, g_graphicsMan().getMainDepthStencil());
+  // Second pass
+  g_graphicsMan().setRenderTargets(m_mainTarget, g_graphicsMan().getMainDepthStencil());
   m_pDeferredShader->setPass();
 
   g_graphicsMan().setShaderResourceView(m_targets[0], 0);
   g_graphicsMan().setShaderResourceView(m_targets[1], 1);
   g_graphicsMan().setShaderResourceView(m_targets[2], 2);
-  
-  g_graphicsMan().psSetConstantBuffers(m_pInvVP);
-  g_graphicsMan().psSetConstantBuffers(m_pCameraFoward, 1);
-  g_graphicsMan().psSetConstantBuffers(m_pLightBuffer, 2);
-  g_graphicsMan().psSetConstantBuffers(m_pViewportBuffer, 3);
   
   g_graphicsMan().draw(3, 0);
 }
@@ -216,43 +217,43 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
   SH_UNREFERENCED_PARAMETER(modifier);
 
   if (key == KEY::kW) {
-    m_foward = true;
+    m_bFoward = true;
   }
 
   if (key == KEY::kA) {
-    m_left = true;
+    m_bLeft = true;
   }
 
   if (key == KEY::kS) {
-    m_back = true;
+    m_bBack = true;
   }
 
   if (key == KEY::kD) {
-    m_right = true;
+    m_bRight = true;
   }
 
   if (key == KEY::kQ) {
-    m_down = true;
+    m_bDown = true;
   }
 
   if (key == KEY::kE) {
-    m_up = true;
+    m_bUp = true;
   }
 
   if (key == KEY::kUp) {
-    m_rotUp = true;
+    m_bRotUp = true;
   }
 
   if (key == KEY::kDown) {
-    m_rotDown = true;
+    m_bRotDown = true;
   }
 
   if (key == KEY::kLeft) {
-    m_rotLeft = true;
+    m_bRotLeft = true;
   }
 
   if (key == KEY::kRight) {
-    m_rotRight = true;
+    m_bRotRight = true;
   }
 }
 
@@ -262,47 +263,48 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   SH_UNREFERENCED_PARAMETER(modifier);
 
   if (key == KEY::kW) {
-    m_foward = false;
+    m_bFoward = false;
   }
 
   if (key == KEY::kA) {
-    m_left = false;
+    m_bLeft = false;
   }
 
   if (key == KEY::kS) {
-    m_back = false;
+    m_bBack = false;
   }
 
   if (key == KEY::kD) {
-    m_right = false;
+    m_bRight = false;
   }
 
   if (key == KEY::kQ) {
-    m_down = false;
+    m_bDown = false;
   }
 
   if (key == KEY::kE) {
-    m_up = false;
+    m_bUp = false;
   }
 
   if (key == KEY::kUp) {
-    m_rotUp = false;
+    m_bRotUp = false;
   }
 
   if (key == KEY::kDown) {
-    m_rotDown = false;
+    m_bRotDown = false;
   }
 
   if (key == KEY::kLeft) {
-    m_rotLeft = false;
+    m_bRotLeft = false;
   }
 
   if (key == KEY::kRight) {
-    m_rotRight = false;
+    m_bRotRight = false;
   }
 
   if (key == KEY::kC) {
     m_pBasicShader->compileShader();
+    m_pDeferredShader->compileShader();
   }
 }
 
@@ -314,7 +316,7 @@ RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
 
   if (mouseButton == MOUSE_INPUT::kLeft)
   {
-    m_leftClick = true;
+    m_bLeftClick = true;
   }
 }
 
@@ -326,7 +328,7 @@ RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
 
   if (mouseButton == MOUSE_INPUT::kLeft)
   {
-    m_leftClick = false;
+    m_bLeftClick = false;
   }
 }
 
@@ -349,6 +351,7 @@ RendererApp::initGraphicAssets()
 {
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
 
+  // Init pass shaders
   m_pBasicShader = make_unique<Pass>();
 
   m_pBasicShader->setShaderInfo("resources/BasicShader.hlsl",
@@ -367,6 +370,7 @@ RendererApp::initGraphicAssets()
                                    "ps_5_0");
   m_pDeferredShader->compileShader();
 
+  // Set pass states
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
   rasterDesc.cullMode = CULL_MODE::kNone;
@@ -409,6 +413,7 @@ RendererApp::initGraphicAssets()
   depthSDesc.frontFace = frontOPDesc;
   depthSDesc.backFace = backOPDesc;
 
+  // Fill pass info
   m_pBasicShader->generateInputLayout();
   auto pSamplerLinear = g_graphicsMan().createSamplerState();
   m_pBasicShader->setSamplerState(pSamplerLinear);
@@ -421,36 +426,34 @@ RendererApp::initGraphicAssets()
   m_pDeferredShader->setRasterizerState(rasterDesc);
   m_pDeferredShader->setBlendState(blendDesc);
 
-  auto depthTarget = g_graphicsMan().createRenderTarget(m_desc.width,
-                                                        m_desc.height,
-                                                        TEXTURE_FORMAT::kR32G32B32A32_float,
-                                                        USAGE::kDefault,
-                                                        BIND_FLAGS::kRenderTarget);
+  // Create and set render targets for deferred rendering
+  auto depthTarget = g_graphicsMan().createTexture2D(m_desc.width,
+                                     m_desc.height,
+                                     TEXTURE_FORMAT::kR32G32B32A32_float,
+                                     USAGE::kDefault,
+                                     BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  auto normalTarget = g_graphicsMan().createRenderTarget(m_desc.width,
-                                                         m_desc.height,
-                                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                                         USAGE::kDefault,
-                                                         BIND_FLAGS::kRenderTarget);
+  auto normalTarget = g_graphicsMan().createTexture2D(m_desc.width,
+                                      m_desc.height,
+                                      TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                      USAGE::kDefault,
+                                      BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  auto colorTarget = g_graphicsMan().createRenderTarget(m_desc.width,
-                                                        m_desc.height,
-                                                        TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                                        USAGE::kDefault,
-                                                        BIND_FLAGS::kRenderTarget);
+  auto colorTarget = g_graphicsMan().createTexture2D(m_desc.width,
+                                     m_desc.height,
+                                     TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                     USAGE::kDefault,
+                                     BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
   m_targets.push_back(depthTarget);
   m_targets.push_back(normalTarget);
   m_targets.push_back(colorTarget);
-
-  Vector4 viewport(m_desc.width, m_desc.height, 1.0f, 1.0f);
-  m_pViewportBuffer = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
-  g_graphicsMan().updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
 }
 
 void
 RendererApp::initCamera()
 {
+  // Init camera and its constant buffer
   m_pVP = g_graphicsMan().createConstantBuffer(sizeof(VP));
 
   VP vp;
@@ -472,14 +475,16 @@ RendererApp::initCamera()
 
   g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 
+  // Init constant buffer of camera position
   Vector4 foward(m_camera.getPosition(), 0.0f);
   
-  m_pCameraFoward = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
+  m_pCameraPosition = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
 
-  g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
+  g_graphicsMan().updateConstantBuffer(m_pCameraPosition,
                                        &foward,
                                        sizeof(Vector4));
 
+  // Init buffer for inverse view and projection
   InvVP invVP;
 
   m_pInvVP = g_graphicsMan().createConstantBuffer(sizeof(InvVP));
@@ -493,6 +498,14 @@ RendererApp::initCamera()
   g_graphicsMan().updateConstantBuffer(m_pInvVP,
                                        &invVP,
                                        sizeof(InvVP));
+
+  // Init buffer for viewport
+  Vector4 viewport(static_cast<float>(m_desc.width),
+                   static_cast<float>(m_desc.height),
+                   m_camera.getFar(),
+                   m_camera.getNear());
+  m_pViewportBuffer = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
+  g_graphicsMan().updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
 }
 
 void
@@ -515,24 +528,25 @@ RendererApp::rotateCamera()
 void
 RendererApp::updateCamera()
 {
-  VP vp;
+  m_camera.update();
 
+  // Update camera buffer
+  VP vp;
   vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();
-
   vp.proj.getTransposed();
   vp.view.getTransposed();
 
   g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 
+  // Update camera position buffer
   Vector4 foward(m_camera.getPosition(), 0.0f);
-
-  g_graphicsMan().updateConstantBuffer(m_pCameraFoward,
+  g_graphicsMan().updateConstantBuffer(m_pCameraPosition,
                                        &foward,
                                        sizeof(Vector4));
 
+  // Update inverse view-projection buffer
   InvVP invVP;
-
   invVP.invVP = (vp.proj * vp.view).getInversed();
   invVP.invV = vp.view.getInversed();
   g_graphicsMan().updateConstantBuffer(m_pInvVP,

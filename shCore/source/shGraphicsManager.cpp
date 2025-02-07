@@ -64,16 +64,6 @@ GraphicsManager::getMainDepthStencil() const
   return internalGetMainDepthStencil();
 }
 
-SPtr<Texture2D>
-GraphicsManager::createRenderTarget(const uint32 width,
-                                    const uint32 height,
-                                    const uint32 format,
-                                    const uint32 usage,
-                                    const uint32 bindFlags)
-{
-  return internalCreateRenderTarget(width, height, format, usage, bindFlags);
-}
-
 SPtr<InputLayout>
 GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
                                    const SPtr<ProgramShader>& pShader)
