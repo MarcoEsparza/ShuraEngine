@@ -795,9 +795,9 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
                                                          pRTVs.data(),
                                                          pDepthStencil->m_pDepthSV);
 
-  for (auto& d3d11RTV : pRTVs) {
+  /*for (auto& d3d11RTV : pRTVs) {
     SafeRelease(d3d11RTV);
-  }
+  }*/
 }
 
 void
