@@ -324,6 +324,6 @@ class RendererApp : public BaseApp
   /**
   *  @brief Light structure.
   */
-  Light m_light = {};
+  //Light m_light = {};
 };
 }

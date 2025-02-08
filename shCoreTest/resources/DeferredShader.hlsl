@@ -16,10 +16,7 @@ cbuffer ViewDir : register(b1)
 
 cbuffer Light : register(b2)
 {
-  float3 LightPosition;
-  float Intensity;
-  float4 LightColor;
-  //float size[10];
+  float4 LightPos[12];
 }
 
 cbuffer Viewport : register(b3)
@@ -71,9 +68,10 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   float2 xyClipPos = screenUV * 2.0f - 1.0f;
   float4 positionClip = float4(xyClipPos, depth.x * (FarClip - NearClip), 1.0f);
-  float4 posWorld = mul(positionClip, InvViewProj);
+  //float4 posWorld = mul(positionClip, InvViewProj);
+  float4 posWorld = float4(depth.xyz, 1.0f);
     
-  float3 lightDir = normalize(LightPosition - posWorld.xyz);
+  float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
   float3 viewDirection = normalize(ViewPos.xyz - posWorld.xyz);
   float NdL = saturate(dot(normal.xyz, lightDir));
     

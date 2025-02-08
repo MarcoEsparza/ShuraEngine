@@ -89,7 +89,7 @@ RendererApp::onCreate()
 
   m_pModel->setPosition(Vector3(0.0f, 0.0f, 0.0f));
   m_pModel->setScale(Vector3(1.0f, 1.0f, 1.0f));
-  m_pModel->setRotation(Vector3(0.0f, 90.0f, 0.0f));
+  m_pModel->setRotation(Vector3(0.0f, 0.0f, 0.0f));
 
   g_sceneGraph().addObject(m_pModel);
 
@@ -100,13 +100,18 @@ RendererApp::onCreate()
                                        sizeof(Transform));
 
   // Set light buffer
-  m_light.position = Vector3(5.0f, 5.0f, 5.0f);
-  m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
-  m_light.intensity = 1.0f;
+  Vector<Vector4> lights;
+  lights.resize(12);
+  lights[0] = Vector4(0.0f, 2.0f, 0.0f, 1.0f);
 
-  m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(Light));
 
-  g_graphicsMan().updateConstantBuffer(m_pLightBuffer, &m_light, sizeof(Light));
+  //m_light.position = Vector3(5.0f, 5.0f, 5.0f);
+  //m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
+  //m_light.intensity = 1.0f;
+
+  m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(lights));
+
+  g_graphicsMan().updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
   // Set pass buffers
   m_pBasicShader->addVSConstantBuffer(m_pVP);
@@ -458,10 +463,10 @@ RendererApp::initCamera()
 
   VP vp;
 
-  m_camera = Camera(Vector3(0.0f, 0.0f, -2.0f),
+  m_camera = Camera(Vector3(0.0f, 0.0f, -3.0f),
                     Vector3(0.0f, 0.0f, 0.0f),
                     Vector3::UP,
-                    45.0f * Math::DEG2RAD,
+                    30.0f * Math::DEG2RAD,
                     static_cast<float>(m_desc.width),
                     static_cast<float>(m_desc.height),
                     0.1f,
