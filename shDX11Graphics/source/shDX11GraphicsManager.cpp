@@ -361,12 +361,10 @@ DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShade
   auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
 
   ID3D11ShaderReflection* pReflector = nullptr;
-  HRESULT hr = (D3DReflect(pProgramShader->m_pVertexBlob->GetBufferPointer(),
-                           pProgramShader->m_pVertexBlob->GetBufferSize(),
-                           __uuidof(ID3D11ShaderReflection),
-                           reinterpret_cast<void**>(&pReflector)));
-
-  SH_ASSERT(hr == S_OK);
+  throwIfFailed((D3DReflect(pProgramShader->m_pVertexBlob->GetBufferPointer(),
+                            pProgramShader->m_pVertexBlob->GetBufferSize(),
+                            __uuidof(ID3D11ShaderReflection),
+                            reinterpret_cast<void**>(&pReflector))));
 
   D3D11_SHADER_DESC shaderDesc;
   pReflector->GetDesc(&shaderDesc);

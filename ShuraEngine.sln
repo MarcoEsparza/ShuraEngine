@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shUtilities", "shUtilities\shUtilities.vcxproj", "{79314BAD-2658-474A-B366-3C0F6E05FE0D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shUtilitiesTest", "shUtilitiesTest\shUtilitiesTest.vcxproj", "{B17BE37C-918B-40DB-BB1B-051A0969C14D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shCore", "shCore\shCore.vcxproj", "{668B73E8-D359-4EEF-843E-6E394D69709B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -21,6 +24,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shDX11Graphics", "shDX11Graphics\shDX11Graphics.vcxproj", "{A819837C-01C7-4A9C-A3AF-5245375A60BD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shOpenGLGraphics", "shOpenGLGraphics\shOpenGLGraphics.vcxproj", "{F65F5918-5D4E-4AA2-A27A-F652DEA30DF7}"
@@ -30,12 +34,28 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shOpenGLGraphics", "shOpenG
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shEditorApp", "shEditorApp\shEditorApp.vcxproj", "{30AA1F2F-119C-4D80-8F9B-AF26A1B4CAE4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shImGUI", "shImGUI\shImGUI.vcxproj", "{703CA36A-18FD-449B-845F-B6FDC550C97D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shPhysics", "shPhysics\shPhysics.vcxproj", "{5C111BD5-0466-4F2F-BF2F-9698280B365B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shPhysicsTest", "shPhysicsTest\shPhysicsTest.vcxproj", "{5EA9BBA9-4081-4C4D-B94B-C8C8A3EA16BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5C111BD5-0466-4F2F-BF2F-9698280B365B} = {5C111BD5-0466-4F2F-BF2F-9698280B365B}
+		{668B73E8-D359-4EEF-843E-6E394D69709B} = {668B73E8-D359-4EEF-843E-6E394D69709B}
+		{79314BAD-2658-474A-B366-3C0F6E05FE0D} = {79314BAD-2658-474A-B366-3C0F6E05FE0D}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

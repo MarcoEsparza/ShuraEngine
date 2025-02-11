@@ -87,9 +87,9 @@ RendererApp::onCreate()
 
   m_pModel->transform.getTransform().m[3][3] = 1.0f;
 
-  m_pModel->setPosition(Vector3(0.0f, 0.0f, 0.0f));
-  m_pModel->setScale(Vector3(1.0f, 1.0f, 1.0f));
-  m_pModel->setRotation(Vector3(0.0f, 0.0f, 0.0f));
+  m_pModel->setPosition(Vector3::ZERO);
+  m_pModel->setScale(Vector3::ONE);
+  m_pModel->setRotation(Vector3::ZERO);
 
   g_sceneGraph().addObject(m_pModel);
 

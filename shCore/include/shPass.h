@@ -44,7 +44,7 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Default constructor.
   */
-  Pass() = default;
+  FORCEINLINE Pass() = default;
 
   /**
   *  @brief Default destructor.

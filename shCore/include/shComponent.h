@@ -46,14 +46,14 @@ class SH_CORE_EXPORT Component
   /**
   *  @brief Default constructor.
   */
-  Component() = default;
+  FORCEINLINE Component() = default;
 
   /**
   *  @brief Constructor that initialize the type variable.
   *
   *  @param COMPONENT_TYPE::E cType
   */
-  Component(const COMPONENT_TYPE::E cType) : m_type(cType) {}
+  FORCEINLINE Component(const COMPONENT_TYPE::E cType) : m_type(cType) {}
 
   /**
   *  @brief Default destructor.

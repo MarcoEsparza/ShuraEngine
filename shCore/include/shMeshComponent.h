@@ -151,12 +151,12 @@ public:
   /**
   *  @brief Default constructor.
   */
-  StaticMeshUnionComponent() : Component(COMPONENT_TYPE::kStaticMeshUnion) {}
+  FORCEINLINE StaticMeshUnionComponent() : Component(COMPONENT_TYPE::kStaticMeshUnion) {}
 
   /**
   *  @brief Default destructor.
   */
-  ~StaticMeshUnionComponent() = default;
+  virtual ~StaticMeshUnionComponent() = default;
 
   /**
   *  @brief Sets the mesh data.

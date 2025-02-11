@@ -93,7 +93,7 @@ BaseApp::loadGraphicAPI()
 {
   // Select dll name
   String apiName = "";
-#ifdef SH_DEBUG_MODE
+#if SH_DEBUG_MODE == 1
   if (m_graphicAPI == GRAPHIC_API::kDX11) {
     apiName = "shDX11Graphicsd";
   }
