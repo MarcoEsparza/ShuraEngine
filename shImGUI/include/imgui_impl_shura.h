@@ -2,10 +2,10 @@
 /*
 *  @file    imgui_impl_shura.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/04
-*  @brief
+*  @date    2025/02/11
+*  @brief   ImGui implementation for Shura Engine.
 *
-*
+*  ImGui implementation for Shura Engine.
 *
 *  @bug     No bug known.
 */
@@ -27,11 +27,36 @@ class SwapChain;
 
 #ifndef IMGUI_DISABLE
 
-IMGUI_IMPL_API bool ImGui_ImplShura_Init(SPtr<Device>& pDevice, SPtr<DeviceContext>& pContext);
+/**
+*  @brief Initialize ImGui implementation for Shura Engine.
+*/
+IMGUI_IMPL_API bool ImGui_ImplShura_Init();
+
+/**
+*  @brief Render call ImGui implementation for Shura Engine.
+* 
+*  @param ImDrawData* drawData
+*/
 IMGUI_IMPL_API void ImGui_ImplShura_RenderDrawData(ImDrawData* drawData);
-IMGUI_IMPL_API void ImGui_ImplShura_CreateDeviceObjects();
+
+/**
+*  @brief Creates necesary objects ImGui implementation for Shura Engine.
+*/
+IMGUI_IMPL_API bool ImGui_ImplShura_CreateDeviceObjects();
+
+/**
+*  @brief Deletes objects ImGui implementation for Shura Engine.
+*/
 IMGUI_IMPL_API void ImGui_ImplShura_InvalidateDeviceObjects();
+
+/**
+*  @brief Updates ImGui implementation for Shura Engine.
+*/
 IMGUI_IMPL_API void ImGui_ImplShura_NewFrame();
+
+/**
+*  @brief Shuts down ImGui implementation for Shura Engine.
+*/
 IMGUI_IMPL_API void ImGui_ImplShura_Shutdown();
 
 #endif

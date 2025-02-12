@@ -21,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\shButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\externals\imgui_internal.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
@@ -47,9 +44,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\shButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\externals\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>

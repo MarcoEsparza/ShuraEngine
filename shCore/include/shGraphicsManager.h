@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/02/11
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -370,7 +370,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Sets the primitive topology.
   *
-  *  @param uint32 primitive = 4
+  *  @param uint32 primitive = PRIMITIVE_TOPOLOGY::kTrianglelist
   */
   void
   setPrimitiveTopology(const uint32 primitive = PRIMITIVE_TOPOLOGY::kTrianglelist);
