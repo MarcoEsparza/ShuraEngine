@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Externals">
+      <UniqueIdentifier>{434b9561-12af-4767-8855-95ad3982c878}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Externals\ImGui">
+      <UniqueIdentifier>{0883fee2-27a5-4b03-bcb6-4b377fe8e85a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Externals">
+      <UniqueIdentifier>{b71c1282-2f50-4034-925e-1515d31daabd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Externals\ImGui">
+      <UniqueIdentifier>{bb89fdcf-8caf-44bc-bfaf-1a84f53bd66a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shCoreTestMain.cpp">
@@ -21,9 +33,45 @@
     <ClCompile Include="source\shRendererApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\imgui_impl_shura.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\imgui.cpp">
+      <Filter>Source Files\Externals\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\imgui_draw.cpp">
+      <Filter>Source Files\Externals\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\imgui_tables.cpp">
+      <Filter>Source Files\Externals\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\imgui_widgets.cpp">
+      <Filter>Source Files\Externals\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shRendererApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\imconfig.h">
+      <Filter>Header Files\Externals\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\imgui.h">
+      <Filter>Header Files\Externals\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\imgui_internal.h">
+      <Filter>Header Files\Externals\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\imstb_rectpack.h">
+      <Filter>Header Files\Externals\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\imstb_textedit.h">
+      <Filter>Header Files\Externals\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\externals\imstb_truetype.h">
+      <Filter>Header Files\Externals\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui_impl_shura.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

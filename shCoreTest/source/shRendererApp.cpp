@@ -24,6 +24,7 @@
 #include "shTime.h"
 #include "shSceneGraph.h"
 #include "shMath.h"
+#include "imgui_impl_shura.h"
 
 #include "shPath.h"
 #include "shImageResource.h"
@@ -43,6 +44,12 @@ RendererApp::onCreate()
 {
   initGraphicAssets();
   initCamera();
+
+  //IMGUI_CHECKVERSION();
+  //ImGui::CreateContext();
+  //ImGui_ImplShura_Init();
+
+  //ImGui::StyleColorsDark();
 
   // Load images
   Path whitePNG("resources/White.png");
@@ -128,6 +135,13 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
+  //ImGui_ImplShura_NewFrame();
+  //ImGui::NewFrame();
+  
+  //ImGui::Begin("Window");
+  //ImGui::Text("This is some useful text.");
+  //ImGui::End();
+
   if (m_bLeftClick) {
     rotateCamera();
   }
@@ -214,6 +228,9 @@ RendererApp::onRender()
   g_graphicsMan().setShaderResourceView(m_targets[2], 2);
   
   g_graphicsMan().draw(3, 0);
+
+  //ImGui::Render();
+  //ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
 
 void
@@ -348,7 +365,8 @@ RendererApp::onMouseMove(const MouseMoveData& mouse)
 void
 RendererApp::onDestroy()
 {
-  
+  //ImGui_ImplShura_Shutdown();
+  //ImGui::DestroyContext();
 }
 
 void

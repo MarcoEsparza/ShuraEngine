@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/02/11
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -112,7 +112,9 @@ BaseApp::loadGraphicAPI()
   // Load DLL
   DynamicLibrary myDLL(apiName);
   auto dllSymbol = reinterpret_cast<void(*)()>(myDLL.getSymbol("loadPlugin"));
-  SH_ASSERT(dllSymbol && "Could not load function");
+  if (!dllSymbol) {
+    SH_ASSERT(dllSymbol && "Could not load function");
+  }
   dllSymbol();
 }
 

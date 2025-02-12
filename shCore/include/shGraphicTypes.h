@@ -83,6 +83,29 @@ struct SH_CORE_EXPORT VertexData
 };
 
 /**
+*  @brief Vertex struct for GUI
+*/
+struct SH_CORE_EXPORT GUIVertexData
+{
+  Vector2 position = Vector2(0.0f, 0.0f);
+  Vector2 texcoord = Vector2(0.0f, 0.0f);
+  uint32 color = 0;
+};
+
+/**
+*  @brief Viewport structure
+*/
+struct SH_CORE_EXPORT Viewport
+{
+  float width = 0.0f;
+  float height = 0.0f;
+  float minDepth = 0.0f;
+  float maxDepth = 0.0f;
+  float topLeftX = 0.0f;
+  float topLeftY = 0.0f;
+};
+
+/**
 *  @brief Filters enumerator.
 */
 namespace SAMPLER_FILTER {

@@ -21,6 +21,7 @@
 #include "shGraphicTypes.h"
 #include "shModule.h"
 #include "shLinearColor.h"
+#include "shRect.h"
 
 namespace shEngineSDK {
 /*************************************************************/
@@ -173,14 +174,21 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
   *
-  *  @param Vector<VertexData>& vertices
+  *  @param Vector<T>& vertices : Template vector.
   *  @param uint32 usage = 0
   *
   *  @return SPtr<VertexBuffer>
   */
+  template<typename T>
   SPtr<VertexBuffer>
-  createVertexBuffer(const Vector<VertexData>& vertices,
-                     const uint32 usage = USAGE::kDefault);
+  createVertexBuffer(const Vector<T>& vertices,
+                     const uint32 usage = USAGE::kDefault)
+  {
+    return internalCreateVertexBuffer(&vertices[0],
+                                      static_cast<uint32>(vertices.size()),
+                                      sizeof(T),
+                                      usage);
+  }
 
   /**
   *  @brief Creates a Index Buffer with given indices.
@@ -298,6 +306,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /********************
   *  Setters
   ********************/
+
+  /**
+  *  @brief Set the viewport.
+  *
+  *  @param Viewport& vp
+  */
+  void
+  setViewport(const Viewport& vp);
 
   /**
   *  @brief Set the render targets with number of views.
@@ -428,7 +444,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   setRasterizerState(const SPtr<RasterizerState>& pRasterizerState);
 
   /**
-  *  @brief Sets the depth stenci state to the device context.
+  *  @brief Sets the depth stencil state to the device context.
   *
   *  @param SPtr<DepthStencilState>& pDepthStencilState
   *  @param uint8 stencilRef = 0
@@ -436,6 +452,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   void
   setDepthStencilState(const SPtr<DepthStencilState>& pDepthStencilState,
                        const uint8 stencilRef = 0);
+
+  /**
+  *  @brief Sets the scissor rect.
+  *
+  *  @param Rect& scissorClip
+  */
+  void
+  setScissorRects(const Rect& scissorClip);
 
   /**
   *  @brief Draw with vertices info.
@@ -580,7 +604,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<VertexBuffer>
   */
   virtual SPtr<VertexBuffer>
-  internalCreateVertexBuffer(const Vector<VertexData>& vertices,
+  internalCreateVertexBuffer(const void* pData,
+                             const uint32 bufferSize,
+                             const uint32 stride,
                              const uint32 usage) = 0;
 
   /**
@@ -700,6 +726,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /********************
   *  Setters
   ********************/
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param Viewport& vp
+  */
+  virtual void
+  internalSetViewport(const Viewport& vp) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -838,6 +872,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual void
   internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthStencilState,
                                const uint8 stencilRef) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param Rect& scissorClip
+  */
+  virtual void
+  internalSetScissorRects(const Rect& scissorClip) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

@@ -76,6 +76,9 @@ ImGui_ImplShura_Init()
   io.BackendRendererUserData = reinterpret_cast<void*>(bd);
   io.BackendRendererName = "ImGui_impl_Shura_Renderer";
   io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+  io.BackendPlatformName = "ImGui_impl_Shura_Platform";
+  io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+  io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 
   return true;
 }
@@ -83,16 +86,23 @@ ImGui_ImplShura_Init()
 static void
 ImGui_ImplShura_SetupRenderState(ImDrawData* drawData)
 {
+  GraphicsManager& graphMan = g_graphicsMan();
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
 
   // Setup viewport
-
+  Viewport vp = {};
+  vp.width = drawData->DisplaySize.x;
+  vp.height = drawData->DisplaySize.y;
+  vp.minDepth = 0.0f;
+  vp.maxDepth = 1.0f;
+  vp.topLeftX = vp.topLeftY = 0.0f;
+  graphMan.setViewport(vp);
 
   // Set Pass
-  g_graphicsMan().setPrimitiveTopology();
+  graphMan.setPrimitiveTopology();
   bd->pImGuiShuraProgram->setPass();
-  g_graphicsMan().setVertexBuffers(bd->pVB);
-  g_graphicsMan().setIndexBuffers(bd->pIB);
+  graphMan.setVertexBuffers(bd->pVB);
+  graphMan.setIndexBuffers(bd->pIB);
 }
 
 void
@@ -102,6 +112,7 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
     return;
   }
 
+  GraphicsManager& graphMan = g_graphicsMan();
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
 
   Vector<ImDrawVert> vertList;
@@ -123,7 +134,17 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
     if (bd->pVB) {
       bd->pVB.reset();
     }
-    //bd->pVB = g_graphicsMan().createVertexBuffer()
+    Vector<GUIVertexData> vertVec;
+    for (auto& imVert : vertList) {
+      GUIVertexData vertex = {};
+      vertex.position.x = imVert.pos.x;
+      vertex.position.y = imVert.pos.y;
+      vertex.texcoord.x = imVert.uv.x;
+      vertex.texcoord.y = imVert.uv.y;
+      vertex.color = imVert.col;
+      vertVec.push_back(vertex);
+    }
+    bd->pVB = graphMan.createVertexBuffer(vertVec);
 
     if (bd->pIB) {
       bd->pIB.reset();
@@ -132,7 +153,7 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
     for (auto& idx : idxList) {
       idxVec.push_back(static_cast<uint32>(idx));
     }
-    bd->pIB = g_graphicsMan().createIndexBuffer(idxVec);
+    bd->pIB = graphMan.createIndexBuffer(idxVec);
 
     // Constant buffer
     float L = drawData->DisplayPos.x;
@@ -143,7 +164,7 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
                       0.0f,              2.0f / (T - B),    0.0f, 0.0f,
                       0.0f,              0.0f,              0.5f, 0.0f,
                       (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f);
-    g_graphicsMan().updateConstantBuffer(bd->pProjBuffer, &orthoProj, sizeof(Matrix4));
+    graphMan.updateConstantBuffer(bd->pProjBuffer, &orthoProj, sizeof(Matrix4));
 
     ImGui_ImplShura_SetupRenderState(drawData);
 
@@ -152,8 +173,8 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
     int32 global_idx_offset = 0;
     int32 global_vtx_offset = 0;
     ImVec2 clip_off = drawData->DisplayPos;
-    for (int32 i = 0; i < drawData->CmdListsCount; ++i) {
-      const ImDrawList* cmd_list = drawData->CmdLists[i];
+    for (int32 j = 0; j < drawData->CmdListsCount; ++j) {
+      const ImDrawList* cmd_list = drawData->CmdLists[j];
       for (int32 cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i) {
         const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
         if (pcmd->UserCallback != nullptr)
@@ -178,14 +199,19 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
           }
 
           // Apply scissor/clipping rectangle
-          
+          Rect scissorClip = {};
+          scissorClip.min.x = clip_min.x;
+          scissorClip.min.y = clip_min.y;
+          scissorClip.max.x = clip_max.x;
+          scissorClip.max.y = clip_max.y;
+          graphMan.setScissorRects(scissorClip);
 
           // Bind texture, Draw
           SPtr<Texture2D>& pTexture = *reinterpret_cast<SPtr<Texture2D>*>(pcmd->GetTexID());
-          g_graphicsMan().setShaderResourceView(pTexture);
-          g_graphicsMan().drawIndexed(pcmd->ElemCount,
-                                      pcmd->IdxOffset + global_idx_offset,
-                                      pcmd->VtxOffset + global_vtx_offset);
+          graphMan.setShaderResourceView(pTexture);
+          graphMan.drawIndexed(pcmd->ElemCount,
+                               pcmd->IdxOffset + global_idx_offset,
+                               pcmd->VtxOffset + global_vtx_offset);
         }
       }
       global_idx_offset += cmd_list->IdxBuffer.Size;

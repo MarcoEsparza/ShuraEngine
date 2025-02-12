@@ -168,7 +168,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<VertexBuffer>
   */
   SPtr<VertexBuffer>
-  internalCreateVertexBuffer(const Vector<VertexData>& vertices,
+  internalCreateVertexBuffer(const void* pData,
+                             const uint32 bufferSize,
+                             const uint32 stride,
                              const uint32 usage) override;
 
   /**
@@ -289,6 +291,14 @@ class DX11GraphicsManager : public GraphicsManager
   /********************
   *  Setters
   ********************/
+
+  /**
+  *  @brief Set the viewport.
+  *
+  *  @param Viewport& vp
+  */
+  void
+  internalSetViewport(const Viewport& vp) override;
 
   /**
   *  @brief Set the render targets with number of views.
@@ -429,6 +439,14 @@ class DX11GraphicsManager : public GraphicsManager
   void
   internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
                                const uint8 stencilRef) override;
+
+  /**
+  *  @brief Sets the scissor rect.
+  *
+  *  @param Rect& scissorClip
+  */
+  void
+  internalSetScissorRects(const Rect& scissorClip) override;
 
   /**
   *  @brief Draw with vertices info.
