@@ -39,6 +39,7 @@ class SH_UTILITY_EXPORT ScriptManager : public Module<ScriptManager>
 
  private:
   ScriptState m_state;
+  UMap<uint32, ScriptManager> m_stateMap;
 };
 
 FORCEINLINE ScriptState&

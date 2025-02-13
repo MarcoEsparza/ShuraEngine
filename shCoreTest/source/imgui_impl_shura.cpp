@@ -65,7 +65,7 @@ ImGuiImplShura_BackendRendererData()
 }
 
 bool
-ImGui_ImplShura_Init()
+ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle)
 {
   ImGuiIO& io = ImGui::GetIO();
   IMGUI_CHECKVERSION();
@@ -79,6 +79,13 @@ ImGui_ImplShura_Init()
   io.BackendPlatformName = "ImGui_impl_Shura_Platform";
   io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
   io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+  
+  io.DisplaySize.x = static_cast<float>(screenHandle->getWidth());
+  io.DisplaySize.y = static_cast<float>(screenHandle->getHeight());
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  viewport->PlatformHandle = reinterpret_cast<void*>(screenHandle->getPlatformHandler());
+  viewport->Size.x = static_cast<float>(screenHandle->getWidth());
+  viewport->Size.y = static_cast<float>(screenHandle->getHeight());
 
   return true;
 }
@@ -117,107 +124,108 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
 
   Vector<ImDrawVert> vertList;
   Vector<ImDrawIdx> idxList;
-
   for (int32 i = 0; i < drawData->CmdListsCount; ++i) {
     const ImDrawList* drawList = drawData->CmdLists[i];
     vertList.insert(vertList.end(),
-                    drawList->VtxBuffer.Data,
-                    drawList->VtxBuffer.Data + drawList->VtxBuffer.size());
+      drawList->VtxBuffer.Data,
+      drawList->VtxBuffer.Data + drawList->VtxBuffer.size());
     idxList.insert(idxList.end(),
-                   drawList->IdxBuffer.Data,
-                   drawList->IdxBuffer.Data + drawList->IdxBuffer.size());
+      drawList->IdxBuffer.Data,
+      drawList->IdxBuffer.Data + drawList->IdxBuffer.size());
 
     if (vertList.size() == 0) {
       return;
     }
+  }
 
-    if (bd->pVB) {
-      bd->pVB.reset();
-    }
-    Vector<GUIVertexData> vertVec;
-    for (auto& imVert : vertList) {
-      GUIVertexData vertex = {};
-      vertex.position.x = imVert.pos.x;
-      vertex.position.y = imVert.pos.y;
-      vertex.texcoord.x = imVert.uv.x;
-      vertex.texcoord.y = imVert.uv.y;
-      vertex.color = imVert.col;
-      vertVec.push_back(vertex);
-    }
-    bd->pVB = graphMan.createVertexBuffer(vertVec);
+  if (bd->pVB) {
+    bd->pVB.reset();
+  }
+  Vector<GUIVertexData> vertVec;
+  for (auto& imVert : vertList) {
+    GUIVertexData vertex = {};
+    vertex.position.x = imVert.pos.x;
+    vertex.position.y = imVert.pos.y;
+    vertex.texcoord.x = imVert.uv.x;
+    vertex.texcoord.y = imVert.uv.y;
+    vertex.color = imVert.col;
+    vertVec.push_back(vertex);
+  }
+  bd->pVB = graphMan.createVertexBuffer(vertVec);
 
-    if (bd->pIB) {
-      bd->pIB.reset();
-    }
-    Vector<uint32> idxVec;
-    for (auto& idx : idxList) {
-      idxVec.push_back(static_cast<uint32>(idx));
-    }
-    bd->pIB = graphMan.createIndexBuffer(idxVec);
+  if (bd->pIB) {
+    bd->pIB.reset();
+  }
+  Vector<uint32> idxVec;
+  for (auto& idx : idxList) {
+    idxVec.push_back(static_cast<uint32>(idx));
+  }
+  bd->pIB = graphMan.createIndexBuffer(idxVec);
 
-    // Constant buffer
-    float L = drawData->DisplayPos.x;
-    float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
-    float T = drawData->DisplayPos.y;
-    float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
-    Matrix4 orthoProj(2.0f / (R - L),    0.0f,              0.0f, 0.0f,
-                      0.0f,              2.0f / (T - B),    0.0f, 0.0f,
-                      0.0f,              0.0f,              0.5f, 0.0f,
-                      (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f);
-    graphMan.updateConstantBuffer(bd->pProjBuffer, &orthoProj, sizeof(Matrix4));
+  // Constant buffer
+  float L = drawData->DisplayPos.x;
+  float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
+  float T = drawData->DisplayPos.y;
+  float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
+  /*Matrix4 orthoProj(2.0f / (R - L),    0.0f,              0.0f, 0.0f,
+                    0.0f,              2.0f / (T - B),    0.0f, 0.0f,
+                    0.0f,              0.0f,              0.5f, 0.0f,
+                    (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f);*/
+  Matrix4 orthoProj = OrthographicProjectionMatrix(L, R, B, T, 0.1f, 1.0f);
+  graphMan.updateConstantBuffer(bd->pProjBuffer, &orthoProj, sizeof(Matrix4));
 
-    ImGui_ImplShura_SetupRenderState(drawData);
+  ImGui_ImplShura_SetupRenderState(drawData);
 
-    // Render command lists
-    // (Because we merged all buffers into a single one, we maintain our own offset into them)
-    int32 global_idx_offset = 0;
-    int32 global_vtx_offset = 0;
-    ImVec2 clip_off = drawData->DisplayPos;
-    for (int32 j = 0; j < drawData->CmdListsCount; ++j) {
-      const ImDrawList* cmd_list = drawData->CmdLists[j];
-      for (int32 cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i) {
-        const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-        if (pcmd->UserCallback != nullptr)
-        {
-          // User callback, registered via ImDrawList::AddCallback()
-          // (ImDrawCallback_ResetRenderState is a special callback value used by the
-          // user to request the renderer to reset render state.)
-          if (pcmd->UserCallback == ImDrawCallback_ResetRenderState) {
-            ImGui_ImplShura_SetupRenderState(drawData);
-          }
-          else {
-            pcmd->UserCallback(cmd_list, pcmd);
-          }
+  // Render command lists
+  // (Because we merged all buffers into a single one, we maintain our own offset into them)
+  int32 global_idx_offset = 0;
+  int32 global_vtx_offset = 0;
+  ImVec2 clip_off = drawData->DisplayPos;
+  for (int32 i = 0; i < drawData->CmdListsCount; ++i) {
+    const ImDrawList* cmd_list = drawData->CmdLists[i];
+    for (int32 cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i) {
+      const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+      if (pcmd->UserCallback != nullptr)
+      {
+        // User callback, registered via ImDrawList::AddCallback()
+        // (ImDrawCallback_ResetRenderState is a special callback value used by the
+        // user to request the renderer to reset render state.)
+        if (pcmd->UserCallback == ImDrawCallback_ResetRenderState) {
+          ImGui_ImplShura_SetupRenderState(drawData);
         }
-        else
-        {
-          // Project scissor/clipping rectangles into framebuffer space
-          ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
-          ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
-          if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y) {
-            continue;
-          }
-
-          // Apply scissor/clipping rectangle
-          Rect scissorClip = {};
-          scissorClip.min.x = clip_min.x;
-          scissorClip.min.y = clip_min.y;
-          scissorClip.max.x = clip_max.x;
-          scissorClip.max.y = clip_max.y;
-          graphMan.setScissorRects(scissorClip);
-
-          // Bind texture, Draw
-          SPtr<Texture2D>& pTexture = *reinterpret_cast<SPtr<Texture2D>*>(pcmd->GetTexID());
-          graphMan.setShaderResourceView(pTexture);
-          graphMan.drawIndexed(pcmd->ElemCount,
-                               pcmd->IdxOffset + global_idx_offset,
-                               pcmd->VtxOffset + global_vtx_offset);
+        else {
+          pcmd->UserCallback(cmd_list, pcmd);
         }
       }
-      global_idx_offset += cmd_list->IdxBuffer.Size;
-      global_vtx_offset += cmd_list->VtxBuffer.Size;
+      else
+      {
+        // Project scissor/clipping rectangles into framebuffer space
+        ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
+        ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
+        if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y) {
+          continue;
+        }
+
+        // Apply scissor/clipping rectangle
+        Rect scissorClip = {};
+        scissorClip.min.x = clip_min.x;
+        scissorClip.min.y = clip_min.y;
+        scissorClip.max.x = clip_max.x;
+        scissorClip.max.y = clip_max.y;
+        graphMan.setScissorRects(scissorClip);
+
+        // Bind texture, Draw
+        SPtr<Texture2D>& pTexture = *reinterpret_cast<SPtr<Texture2D>*>(pcmd->GetTexID());
+        graphMan.setShaderResourceView(pTexture);
+        graphMan.drawIndexed(pcmd->ElemCount,
+                             pcmd->IdxOffset + global_idx_offset,
+                             pcmd->VtxOffset + global_vtx_offset);
+      }
     }
+    global_idx_offset += cmd_list->IdxBuffer.Size;
+    global_vtx_offset += cmd_list->VtxBuffer.Size;
   }
+  
 }
 
 static void
@@ -238,7 +246,7 @@ ImGui_ImplShura_CreateFontsTexture()
                                                      BIND_FLAGS::kShaderResource);
 
   // How do i pass the texture id from the shader resource view?
-  io.Fonts->SetTexID(static_cast<ImTextureID>(0));
+  io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(&bd->pFontTexture));
 
   auto pSampler = g_graphicsMan().createSamplerState();
   bd->pImGuiShuraProgram->setSamplerState(pSampler);
@@ -282,13 +290,14 @@ ImGui_ImplShura_CreateDeviceObjects()
 
   BlendDesc blendDesc = {};
   blendDesc.alphaToCoverageEnable = false;
+  blendDesc.independentBlendEnable = false;
   blendDesc.renderTarget[0].blendEnable = true;
   blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
   blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
   blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kSrcAlpha;
   blendDesc.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
+  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kMax;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
   DepthStencilDesc depthSDesc = {};
@@ -302,11 +311,14 @@ ImGui_ImplShura_CreateDeviceObjects()
   depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kKeep;
   depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  depthSDesc.backFace = depthSDesc.frontFace;
+  depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
   bd->pImGuiShuraProgram->setRasterizerState(rasterDesc);
   bd->pImGuiShuraProgram->setBlendState(blendDesc);
-  bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
+  //bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
 
   // Create texture and sampler state
   ImGui_ImplShura_CreateFontsTexture();

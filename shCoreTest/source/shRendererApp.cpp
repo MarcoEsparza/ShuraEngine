@@ -42,14 +42,22 @@ namespace shEngineSDK {
 void
 RendererApp::onCreate()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
   initGraphicAssets();
   initCamera();
 
-  //IMGUI_CHECKVERSION();
-  //ImGui::CreateContext();
-  //ImGui_ImplShura_Init();
+  /*auto pGuiRTV = graphMan.createTexture2D(m_desc.width,
+                                          m_desc.height,
+                                          TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                          USAGE::kDefault,
+                                          BIND_FLAGS::kRenderTarget);
+  m_guiTarget.push_back(pGuiRTV);*/
 
-  //ImGui::StyleColorsDark();
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui_ImplShura_Init(getScreen());
+
+  ImGui::StyleColorsDark();
 
   // Load images
   Path whitePNG("resources/White.png");
@@ -135,12 +143,15 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  //ImGui_ImplShura_NewFrame();
-  //ImGui::NewFrame();
+  ImGui_ImplShura_NewFrame();
+  ImGui::NewFrame();
   
-  //ImGui::Begin("Window");
-  //ImGui::Text("This is some useful text.");
-  //ImGui::End();
+  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(400.0f, 400.0f));
+  ImGui::Begin("Window", 0, ImGuiWindowFlags_NoResize);
+  ImGui::Text("This is some useful text.");
+  ImGui::Button("CACA");
+  ImGui::End();
 
   if (m_bLeftClick) {
     rotateCamera();
@@ -206,31 +217,35 @@ RendererApp::onUpdate()
 void
 RendererApp::onRender()
 {
-  g_graphicsMan().setPrimitiveTopology();
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  graphMan.setPrimitiveTopology();
 
   // First pass
   for (auto& target : m_targets) {
-    g_graphicsMan().clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
+    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
 
-  g_graphicsMan().setRenderTargets(m_targets, g_graphicsMan().getMainDepthStencil());
+  graphMan.setRenderTargets(m_targets, graphMan.getMainDepthStencil());
   m_pBasicShader->setPass();
 
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   g_renderMan().drawStaticMeshUnionInScene(smucList);
 
   // Second pass
-  g_graphicsMan().setRenderTargets(m_mainTarget, g_graphicsMan().getMainDepthStencil());
+  graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
   m_pDeferredShader->setPass();
 
-  g_graphicsMan().setShaderResourceView(m_targets[0], 0);
-  g_graphicsMan().setShaderResourceView(m_targets[1], 1);
-  g_graphicsMan().setShaderResourceView(m_targets[2], 2);
+  graphMan.setShaderResourceView(m_targets[0], 0);
+  graphMan.setShaderResourceView(m_targets[1], 1);
+  graphMan.setShaderResourceView(m_targets[2], 2);
   
-  g_graphicsMan().draw(3, 0);
+  graphMan.draw(3, 0);
 
-  //ImGui::Render();
-  //ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
+  ImGui::Render();
+  //graphMan.clearRenderTarget(m_guiTarget[0], LinearColor(0.0f, 0.0f, 0.0f));
+  //graphMan.setRenderTargets(m_guiTarget, g_graphicsMan().getMainDepthStencil());
+  ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
 
 void
@@ -365,8 +380,8 @@ RendererApp::onMouseMove(const MouseMoveData& mouse)
 void
 RendererApp::onDestroy()
 {
-  //ImGui_ImplShura_Shutdown();
-  //ImGui::DestroyContext();
+  ImGui_ImplShura_Shutdown();
+  ImGui::DestroyContext();
 }
 
 void

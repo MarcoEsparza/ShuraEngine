@@ -73,6 +73,10 @@ class SH_CORE_EXPORT BaseApp
   FORCEINLINE void
   setBackgroundColor(const LinearColor& color);
 
+ protected:
+  FORCEINLINE SPtr<Screen> const
+  getScreen() const;
+
   /***************************************************************************/
   /*
   *  Messages
@@ -305,5 +309,11 @@ FORCEINLINE void
 BaseApp::setBackgroundColor(const LinearColor& color)
 {
   m_backgroundColor = color;
+}
+
+FORCEINLINE SPtr<Screen> const
+BaseApp::getScreen() const
+{
+  return m_mainScreen;
 }
 }

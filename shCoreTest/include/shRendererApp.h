@@ -215,6 +215,8 @@ class RendererApp : public BaseApp
   *  @brief Main render target.
   */
   Vector<SPtr<Texture2D>> m_mainTarget;
+  
+  //Vector<SPtr<Texture2D>> m_guiTarget;
 
   /**
   *  @brief Model game object.

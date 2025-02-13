@@ -19,6 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "imgui.h"
+#include "shScreen.h"
 
 namespace shEngineSDK {
 
@@ -28,7 +29,7 @@ namespace shEngineSDK {
 *  @brief Initialize ImGui implementation for Shura Engine.
 */
 bool
-ImGui_ImplShura_Init();
+ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle);
 
 /**
 *  @brief Render call ImGui implementation for Shura Engine.

@@ -21,7 +21,14 @@
 namespace shEngineSDK {
 ScriptManager::ScriptManager()
 {
-
+  m_state.open_libraries(
+    sol::lib::base,
+    sol::lib::package,
+    sol::lib::string,
+    sol::lib::math,
+    sol::lib::table,
+    sol::lib::os
+  );
 }
 
 void
