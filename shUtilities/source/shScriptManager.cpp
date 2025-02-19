@@ -2,10 +2,10 @@
 /*
 *  @file    shScriptManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/29
-*  @brief
+*  @date    2025/02/17
+*  @brief   Module that handles all scripts.
 *
-*
+*  Module that handles all scripts.
 *
 *  @bug     No bug known.
 */
@@ -21,7 +21,10 @@
 namespace shEngineSDK {
 ScriptManager::ScriptManager()
 {
-  m_state.open_libraries(
+  m_states[0] = ScriptState();
+  auto& state = m_states[0];
+
+  state.open_libraries(
     sol::lib::base,
     sol::lib::package,
     sol::lib::string,
@@ -34,7 +37,12 @@ ScriptManager::ScriptManager()
 void
 ScriptManager::executeScript(const String& script)
 {
-  m_state.script(script);
+  auto pState = getState(0);
+  if (pState == nullptr) {
+    return;
+  }
+
+  pState->script(script);
 }
 
 SH_UTILITY_EXPORT ScriptManager&

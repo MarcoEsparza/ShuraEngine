@@ -39,6 +39,7 @@
     <ClInclude Include="include\shRadian.h" />
     <ClInclude Include="Include\shRect.h" />
     <ClInclude Include="include\shScriptManager.h" />
+    <ClInclude Include="include\shScriptVector3.h" />
     <ClInclude Include="Include\shSphere.h" />
     <ClInclude Include="Include\shStdHeaders.h" />
     <ClInclude Include="include\shTime.h" />

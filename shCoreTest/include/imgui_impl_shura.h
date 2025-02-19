@@ -55,7 +55,9 @@ ImGui_ImplShura_InvalidateDeviceObjects();
 *  @brief Updates ImGui implementation for Shura Engine.
 */
 void
-ImGui_ImplShura_NewFrame();
+ImGui_ImplShura_NewFrame(const SPtr<Screen>& screenHandle,
+                         bool clicked,
+                         float wheel);
 
 /**
 *  @brief Shuts down ImGui implementation for Shura Engine.

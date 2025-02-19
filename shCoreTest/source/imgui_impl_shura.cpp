@@ -231,24 +231,32 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
 static void
 ImGui_ImplShura_CreateFontsTexture()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   // Build texture atlas
   ImGuiIO& io = ImGui::GetIO();
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
-  unsigned char* pixels;
+  ImFontAtlas* atlas = io.Fonts;
+  atlas->AddFontDefault();
+  atlas->Build();
+
+  uint8* pixels;
   int32 width, height;
-  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  atlas->GetTexDataAsRGBA32(&pixels, &width, &height);
 
   // Upload texture to graphics system
-  bd->pFontTexture = g_graphicsMan().createTexture2D(width,
-                                                     height,
-                                                     TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                                     USAGE::kDefault,
-                                                     BIND_FLAGS::kShaderResource);
+  bd->pFontTexture = graphMan.createTexture2D(width,
+                                              height,
+                                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                              USAGE::kDefault,
+                                              BIND_FLAGS::kShaderResource);
+
+  graphMan.updateTexture2D(bd->pFontTexture, pixels, width, 4);
 
   // How do i pass the texture id from the shader resource view?
-  io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(&bd->pFontTexture));
+  atlas->SetTexID(reinterpret_cast<ImTextureID>(&bd->pFontTexture));
 
-  auto pSampler = g_graphicsMan().createSamplerState();
+  auto pSampler = graphMan.createSamplerState();
   bd->pImGuiShuraProgram->setSamplerState(pSampler);
 }
 
@@ -295,9 +303,9 @@ ImGui_ImplShura_CreateDeviceObjects()
   blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
   blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
   blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kSrcAlpha;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kMax;
+  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kInvSrcAlpha;
+  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
+  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
   DepthStencilDesc depthSDesc = {};
@@ -318,7 +326,7 @@ ImGui_ImplShura_CreateDeviceObjects()
 
   bd->pImGuiShuraProgram->setRasterizerState(rasterDesc);
   bd->pImGuiShuraProgram->setBlendState(blendDesc);
-  //bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
+  bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
 
   // Create texture and sampler state
   ImGui_ImplShura_CreateFontsTexture();
@@ -338,12 +346,35 @@ ImGui_ImplShura_InvalidateDeviceObjects()
   bd->pFontTexture.reset();
 }
 
+static void
+updateMouseData(const SPtr<Screen>& screenHandle,
+                bool clicked,
+                float wheel)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.MousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
+  io.MousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
+  
+  if (clicked) {
+    io.MouseClicked[0] = true;
+    ImVec2 mousePos;
+    mousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
+    mousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
+    io.MouseClickedPos[0] = mousePos;
+  }
+  io.MouseWheel = wheel;
+}
+
 void
-ImGui_ImplShura_NewFrame()
+ImGui_ImplShura_NewFrame(const SPtr<Screen>& screenHandle,
+                         bool clicked,
+                         float wheel)
 {
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
   IM_ASSERT(bd != nullptr &&
             "Context or backend not initialized! Did you call ImGui_ImplDX11_Init()?");
+
+  updateMouseData(screenHandle, clicked, wheel);
 
   if (!bd->pFontTexture) {
     ImGui_ImplShura_CreateDeviceObjects();

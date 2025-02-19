@@ -22,6 +22,23 @@
 #include "shShader.h"
 
 namespace shEngineSDK {
+Pass::~Pass()
+{
+  m_pShader.reset();
+  m_pInputLayout.reset();
+  m_pSamplerState.reset();
+  m_pRasterState.reset();
+  m_pBlendState.reset();
+  m_pDsState.reset();
+
+  for (auto& pCBuffer : m_vsCBuffers) {
+    pCBuffer.reset();
+  }
+  for (auto& pCBuffer : m_psCBuffers) {
+    pCBuffer.reset();
+  }
+}
+
 void
 Pass::setShaderInfo(const String& shaderPath,
                     const String& vsEntry,

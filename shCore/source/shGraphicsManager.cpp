@@ -168,6 +168,18 @@ GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
+GraphicsManager::updateTexture2D(SPtr<Texture2D>& pTexture,
+                                 uint8* pData,
+                                 uint32 width,
+                                 uint32 bpp)
+{
+  internalUpdateTexture2D(pTexture,
+                          pData,
+                          width,
+                          bpp);
+}
+
+void
 GraphicsManager::setViewport(const Viewport& vp)
 {
   internalSetViewport(vp);

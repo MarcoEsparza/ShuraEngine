@@ -780,6 +780,23 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pC
 }
 
 void
+DX11GraphicsManager::internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
+                                             uint8* pData,
+                                             uint32 width,
+                                             uint32 bpp)
+{
+  auto pTex2D = reinterpret_pointer_cast<DX11Texture2D>(pTexture);
+  int32 pitch = width * bpp;
+
+  m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTex2D->m_pTexture2D,
+                                                        0,
+                                                        nullptr,
+                                                        pData,
+                                                        pitch,
+                                                        0);
+}
+
+void
 DX11GraphicsManager::internalSetViewport(const Viewport& vp)
 {
   D3D11_VIEWPORT viewPort;

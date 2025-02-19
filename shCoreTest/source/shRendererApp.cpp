@@ -39,6 +39,26 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+RendererApp::~RendererApp()
+{
+  m_pBasicShader.reset();
+  m_pDeferredShader.reset();
+  
+  for (auto& pTex : m_targets) {
+    pTex.reset();
+  }
+  for (auto& pTex : m_mainTarget) {
+    pTex.reset();
+  }
+
+  m_pVP.reset();
+  m_pInvVP.reset();
+  m_pModelTransform.reset();
+  m_pCameraPosition.reset();
+  m_pLightBuffer.reset();
+  m_pViewportBuffer.reset();
+}
+
 void
 RendererApp::onCreate()
 {
@@ -108,11 +128,11 @@ RendererApp::onCreate()
 
   g_sceneGraph().addObject(m_pModel);
 
-  m_pModelTransform = g_graphicsMan().createConstantBuffer(sizeof(Transform));
+  m_pModelTransform = graphMan.createConstantBuffer(sizeof(Transform));
 
-  g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                       &m_pModel->transform.getTransform(),
-                                       sizeof(Transform));
+  graphMan.updateConstantBuffer(m_pModelTransform,
+                                &m_pModel->transform.getTransform(),
+                                sizeof(Transform));
 
   // Set light buffer
   Vector<Vector4> lights;
@@ -124,9 +144,9 @@ RendererApp::onCreate()
   //m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
   //m_light.intensity = 1.0f;
 
-  m_pLightBuffer = g_graphicsMan().createConstantBuffer(sizeof(lights));
+  m_pLightBuffer = graphMan.createConstantBuffer(sizeof(lights));
 
-  g_graphicsMan().updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
+  graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
   // Set pass buffers
   m_pBasicShader->addVSConstantBuffer(m_pVP);
@@ -137,20 +157,22 @@ RendererApp::onCreate()
   m_pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
   m_pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
 
-  m_mainTarget.push_back(g_graphicsMan().getMainRenderTargetView());
+  m_mainTarget.push_back(graphMan.getMainRenderTargetView());
 }
 
 void
 RendererApp::onUpdate()
 {
-  ImGui_ImplShura_NewFrame();
+  ImGui_ImplShura_NewFrame(getScreen(), m_bLeftClick, 0.0f);
   ImGui::NewFrame();
   
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImVec2(400.0f, 400.0f));
-  ImGui::Begin("Window", 0, ImGuiWindowFlags_NoResize);
+  ImGui::Begin("Window", 0);
   ImGui::Text("This is some useful text.");
-  ImGui::Button("CACA");
+  if (ImGui::Button("CACA")) {
+    ImGui::Button("CACA");
+  }
   ImGui::End();
 
   if (m_bLeftClick) {
@@ -221,7 +243,7 @@ RendererApp::onRender()
 
   graphMan.setPrimitiveTopology();
 
-  // First pass
+  // Gbuffer pass
   for (auto& target : m_targets) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
@@ -232,7 +254,19 @@ RendererApp::onRender()
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   g_renderMan().drawStaticMeshUnionInScene(smucList);
 
-  // Second pass
+  // Ao pass
+  /*for (auto& target : m_aoTarget) {
+    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
+  }
+  graphMan.setRenderTargets(m_aoTarget, graphMan.getMainDepthStencil());
+  m_pAOShader->setPass();
+
+  graphMan.setShaderResourceView(m_targets[0], 0);
+  graphMan.setShaderResourceView(m_targets[1], 1);
+
+  graphMan.draw(3, 0);*/
+
+  // Deferred pass
   graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
   m_pDeferredShader->setPass();
 
@@ -382,12 +416,15 @@ RendererApp::onDestroy()
 {
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
+
+
 }
 
 void
 RendererApp::initGraphicAssets()
 {
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
+  GraphicsManager& graphMan = g_graphicsMan();
 
   // Init pass shaders
   m_pBasicShader = make_unique<Pass>();
@@ -407,6 +444,15 @@ RendererApp::initGraphicAssets()
                                    "vs_5_0",
                                    "ps_5_0");
   m_pDeferredShader->compileShader();
+
+  m_pAOShader = make_unique<Pass>();
+
+  m_pAOShader->setShaderInfo("resources/AOShader.hlsl",
+                             "main",
+                             "mainPS",
+                             "vs_5_0",
+                             "ps_5_0");
+  m_pAOShader->compileShader();
 
   // Set pass states
   RasterizerDesc rasterDesc = {};
@@ -432,24 +478,20 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
   DepthStencilDesc depthSDesc = {};
-  depthSDesc.depthEnable = false;
+  depthSDesc.depthEnable = true;
   depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
-  depthSDesc.depthFunc = COMPARISON_FUNC::kAlways;
-  depthSDesc.stencilEnable = false;
-  depthSDesc.stencilReadMask = 0;
-  depthSDesc.stencilWriteMask = 0;
-  DepthStencilOpDesc frontOPDesc = {};
-  frontOPDesc.stencilFailOp = STENCIL_OP::kZero;
-  frontOPDesc.stencilDepthFailOp = STENCIL_OP::kZero;
-  frontOPDesc.stencilPassOp = STENCIL_OP::kZero;
-  frontOPDesc.stencilFunc = COMPARISON_FUNC::kNever;
-  DepthStencilOpDesc backOPDesc = {};
-  backOPDesc.stencilFailOp = STENCIL_OP::kZero;
-  backOPDesc.stencilDepthFailOp = STENCIL_OP::kZero;
-  backOPDesc.stencilPassOp = STENCIL_OP::kZero;
-  backOPDesc.stencilFunc = COMPARISON_FUNC::kNever;
-  depthSDesc.frontFace = frontOPDesc;
-  depthSDesc.backFace = backOPDesc;
+  depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+  depthSDesc.stencilEnable = true;
+  depthSDesc.stencilReadMask = 0xFF;
+  depthSDesc.stencilWriteMask = 0xFF;
+  depthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
+  depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
+  depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
+  depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
+  depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
+  depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
   // Fill pass info
   m_pBasicShader->generateInputLayout();
@@ -457,35 +499,50 @@ RendererApp::initGraphicAssets()
   m_pBasicShader->setSamplerState(pSamplerLinear);
   m_pBasicShader->setRasterizerState(rasterDesc);
   m_pBasicShader->setBlendState(blendDesc);
-  //m_pBasicShader->setDepthStencilState(depthSDesc);
+  m_pBasicShader->setDepthStencilState(depthSDesc);
 
   m_pDeferredShader->generateInputLayout();
   m_pDeferredShader->setSamplerState(pSamplerLinear);
   m_pDeferredShader->setRasterizerState(rasterDesc);
   m_pDeferredShader->setBlendState(blendDesc);
+  m_pDeferredShader->setDepthStencilState(depthSDesc);
+
+  m_pAOShader->generateInputLayout();
+  m_pAOShader->setSamplerState(pSamplerLinear);
+  m_pAOShader->setRasterizerState(rasterDesc);
+  m_pAOShader->setBlendState(blendDesc);
+  m_pAOShader->setDepthStencilState(depthSDesc);
 
   // Create and set render targets for deferred rendering
-  auto depthTarget = g_graphicsMan().createTexture2D(m_desc.width,
-                                     m_desc.height,
-                                     TEXTURE_FORMAT::kR32G32B32A32_float,
-                                     USAGE::kDefault,
-                                     BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+  auto depthTarget = graphMan.createTexture2D(m_desc.width,
+                              m_desc.height,
+                              TEXTURE_FORMAT::kR32G32B32A32_float,
+                              USAGE::kDefault,
+                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  auto normalTarget = g_graphicsMan().createTexture2D(m_desc.width,
-                                      m_desc.height,
-                                      TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                      USAGE::kDefault,
-                                      BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+  auto normalTarget = graphMan.createTexture2D(m_desc.width,
+                               m_desc.height,
+                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                               USAGE::kDefault,
+                               BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  auto colorTarget = g_graphicsMan().createTexture2D(m_desc.width,
-                                     m_desc.height,
-                                     TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                     USAGE::kDefault,
-                                     BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+  auto colorTarget = graphMan.createTexture2D(m_desc.width,
+                              m_desc.height,
+                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                              USAGE::kDefault,
+                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
   m_targets.push_back(depthTarget);
   m_targets.push_back(normalTarget);
   m_targets.push_back(colorTarget);
+
+  auto aoTarget = graphMan.createTexture2D(m_desc.width,
+                           m_desc.height,
+                           TEXTURE_FORMAT::kR16_FLOAT,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_aoTarget.push_back(aoTarget);
 }
 
 void

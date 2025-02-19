@@ -303,6 +303,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                        const void* pData,
                        const uint32 dataSize);
 
+  void
+  updateTexture2D(SPtr<Texture2D>& pTexture,
+                  uint8* pData,
+                  uint32 width,
+                  uint32 bpp);
+
   /********************
   *  Setters
   ********************/
@@ -722,6 +728,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                const void* pData,
                                const uint32 dataSize) = 0;
+
+  virtual void
+  internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
+                          uint8* pData,
+                          uint32 width,
+                          uint32 bpp) = 0;
 
   /********************
   *  Setters

@@ -49,7 +49,7 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Default destructor.
   */
-  ~Pass() = default;
+  ~Pass();
 
   /***************************************************************************/
   /*

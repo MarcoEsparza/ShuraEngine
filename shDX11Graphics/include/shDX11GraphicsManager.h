@@ -288,6 +288,12 @@ class DX11GraphicsManager : public GraphicsManager
                                const void* pData,
                                const uint32 dataSize) override;
 
+  void
+  internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
+                          uint8* pData,
+                          uint32 width,
+                          uint32 bpp) override;
+
   /********************
   *  Setters
   ********************/

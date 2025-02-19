@@ -93,7 +93,7 @@ class RendererApp : public BaseApp
   /**
   *  @brief Default destructor.
   */
-  ~RendererApp() = default;
+  ~RendererApp();
 
  private:
   /**
@@ -206,6 +206,8 @@ class RendererApp : public BaseApp
   */
   UPtr<Pass> m_pDeferredShader;
 
+  UPtr<Pass> m_pAOShader;
+
   /**
   *  @brief Targets for first pass.
   */
@@ -216,7 +218,7 @@ class RendererApp : public BaseApp
   */
   Vector<SPtr<Texture2D>> m_mainTarget;
   
-  //Vector<SPtr<Texture2D>> m_guiTarget;
+  Vector<SPtr<Texture2D>> m_aoTarget;
 
   /**
   *  @brief Model game object.

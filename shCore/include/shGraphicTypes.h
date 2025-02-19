@@ -155,7 +155,14 @@ enum SH_CORE_EXPORT E
   kR8G8B8A8_snorm = 29,
   kR8G8B8A8_uint = 30,
   kR8G8B8A8_sint = 32,
-  kD24_UNORM_S8_uint = 45
+  kD24_UNORM_S8_uint = 45,
+  kR16_TYPELESS = 53,
+  kR16_FLOAT = 54,
+  kD16_UNORM = 55,
+  kR16_UNORM = 56,
+  kR16_UINT = 57,
+  kR16_SNORM = 58,
+  kR16_SINT = 59
 };
 }
 
