@@ -163,15 +163,22 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  ImGui_ImplShura_NewFrame(getScreen(), m_bLeftClick, 0.0f);
+  ImGui_ImplShura_NewFrame(getScreen(), m_bLeftClick, m_delta);
   ImGui::NewFrame();
   
+  bool show = true;
+  ImGui::ShowDemoWindow(&show);
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImVec2(400.0f, 400.0f));
   ImGui::Begin("Window", 0);
   ImGui::Text("This is some useful text.");
   if (ImGui::Button("CACA")) {
-    ImGui::Button("CACA");
+    m_test = true;
+  }
+  if (m_test) {
+    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 0xff));
+    ImGui::Button("CACA2");
+    ImGui::PopStyleColor();
   }
   ImGui::End();
 
@@ -409,6 +416,13 @@ RendererApp::onMouseMove(const MouseMoveData& mouse)
   m_lastMousePos = m_currentMousePos;
   m_currentMousePos.x = static_cast<float>(mouse.x);
   m_currentMousePos.y = static_cast<float>(mouse.y);
+}
+
+void
+RendererApp::onMouseWheel(const double delta, const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+  m_delta = static_cast<float>(delta);
 }
 
 void

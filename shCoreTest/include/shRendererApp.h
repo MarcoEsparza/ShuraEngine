@@ -160,6 +160,9 @@ class RendererApp : public BaseApp
   void
   onMouseMove(const MouseMoveData& mouse) override;
 
+  void
+  onMouseWheel(const double delta, const ModifierState modifier) override;
+
   /**
   *  @brief Override function to add functionallity on app destroy
   */
@@ -324,6 +327,10 @@ class RendererApp : public BaseApp
   *  @brief Is model rotating down?
   */
   bool m_bRotDown = false;
+
+  bool m_test = false;
+
+  float m_delta;
 
   /**
   *  @brief Light structure.

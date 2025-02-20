@@ -64,7 +64,8 @@ enum SH_CORE_EXPORT E
   kTangents,
   kBitangents,
   kBoneIndices,
-  kBoneWieghts
+  kBoneWieghts,
+  kColor
 };
 }
 

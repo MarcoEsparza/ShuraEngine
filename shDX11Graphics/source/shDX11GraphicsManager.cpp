@@ -343,6 +343,9 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
     else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneWieghts) {
       element.SemanticName = "BLENDWEIGHT";
     }
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kColor) {
+      element.SemanticName = "COLOR";
+    }
   }
 
   throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&dxInputDesc[0],

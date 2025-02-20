@@ -237,7 +237,15 @@ ImGui_ImplShura_CreateFontsTexture()
   ImGuiIO& io = ImGui::GetIO();
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
   ImFontAtlas* atlas = io.Fonts;
-  atlas->AddFontDefault();
+  ImFontConfig config;
+  config.RasterizerDensity = 2.0f;
+  auto font = atlas->AddFontFromFileTTF("resources/fonts/DroidSans.ttf", 18.0f, &config);
+  
+  if (font == nullptr) {
+    SH_ASSERT(false && "Font loading failed");
+  }
+
+  io.FontDefault = font;
   atlas->Build();
 
   uint8* pixels;
@@ -263,6 +271,7 @@ ImGui_ImplShura_CreateFontsTexture()
 bool
 ImGui_ImplShura_CreateDeviceObjects()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
   
   if (bd->pImGuiShuraProgram) {
@@ -278,9 +287,26 @@ ImGui_ImplShura_CreateDeviceObjects()
                                         "vs_5_0",
                                         "ps_5_0");
   bd->pImGuiShuraProgram->compileShader();
-  bd->pImGuiShuraProgram->generateInputLayout();
 
-  bd->pProjBuffer = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
+  Vector<InputDesc> ilDesc;
+  ilDesc.resize(3);
+
+  ilDesc[0].format = TEXTURE_FORMAT::kR32G32_float;
+  ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
+  ilDesc[0].size = 8;
+
+  ilDesc[1].format = TEXTURE_FORMAT::kR32G32_float;
+  ilDesc[1].type = INPUT_LAYOUT_TYPES::kTexcoord;
+  ilDesc[1].size = 8;
+
+  ilDesc[2].format = TEXTURE_FORMAT::kR8G8B8A8_unorm;
+  ilDesc[2].type = INPUT_LAYOUT_TYPES::kColor;
+  ilDesc[2].size = 4;
+
+  auto pIL = graphMan.createInputLayout(ilDesc, bd->pImGuiShuraProgram->getShader());
+  bd->pImGuiShuraProgram->setInputLayout(pIL);
+
+  bd->pProjBuffer = graphMan.createConstantBuffer(sizeof(Matrix4));
   bd->pImGuiShuraProgram->addVSConstantBuffer(bd->pProjBuffer);
 
   // Set states
@@ -303,8 +329,8 @@ ImGui_ImplShura_CreateDeviceObjects()
   blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
   blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
   blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kInvSrcAlpha;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
+  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
@@ -352,8 +378,10 @@ updateMouseData(const SPtr<Screen>& screenHandle,
                 float wheel)
 {
   ImGuiIO& io = ImGui::GetIO();
-  io.MousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
-  io.MousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
+  ImVec2 mousePos;
+  mousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
+  mousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
+  io.AddMousePosEvent(mousePos.x, mousePos.y);
   
   if (clicked) {
     io.MouseClicked[0] = true;
@@ -361,6 +389,11 @@ updateMouseData(const SPtr<Screen>& screenHandle,
     mousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
     mousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
     io.MouseClickedPos[0] = mousePos;
+    io.AddMouseButtonEvent(0, true);
+  }
+  else {
+    io.MouseClicked[0] = false;
+    io.AddMouseButtonEvent(0, false);
   }
   io.MouseWheel = wheel;
 }

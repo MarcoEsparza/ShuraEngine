@@ -48,6 +48,9 @@
     <ClCompile Include="source\imgui_widgets.cpp">
       <Filter>Source Files\Externals\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="source\imgui_demo.cpp">
+      <Filter>Source Files\Externals\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shRendererApp.h">
