@@ -40,6 +40,7 @@ enum SH_CORE_EXPORT E
   kMouseMove,
   kMouseRaw,
   kMouseWheel,
+  kMouseHWheel,
   kMouseInput,
   kDropFile,
   kHoverFile,

@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenEventHandle.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/26
+*  @date    2025/02/20
 *  @brief   Base screen event handler for windows.
 *
 *  Base screen event handler for windows.
@@ -95,6 +95,11 @@ ScreenEventHandle::emplace(const Event& ev)
     m_queue.emplace(ev.data.mouseWheel.delta,
                     ev.data.mouseWheel.modifiers);
   }
+  else if (ev.type == EVENT_TYPE::kMouseHWheel) {
+    m_queue.emplace(ev.data.mouseWheel.delta,
+                    ev.data.mouseWheel.modifiers,
+                    true);
+  }
   else if (ev.type == EVENT_TYPE::kMouseRaw) {
     m_queue.emplace(ev.data.mouseRaw.deltaX,
                     ev.data.mouseRaw.deltaY);
@@ -176,6 +181,17 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                                        modifiers & MK_ALT,
                                        modifiers & MK_SHIFT,
                                        modifiers & 0));
+    break;
+  }
+  case WM_MOUSEHWHEEL:
+  {
+    short modifiers = LOWORD(wParam);
+    currentEvent = Event(-GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA,
+                         ModifierState(modifiers & MK_CONTROL,
+                                       modifiers & MK_ALT,
+                                       modifiers & MK_SHIFT,
+                                       modifiers & 0),
+                         true);
     break;
   }
   case WM_LBUTTONDOWN:

@@ -2,7 +2,7 @@
 /*
 *  @file    shEventData.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2025/02/20
 *  @brief   Event data types.
 *
 *  Event data types.
@@ -302,6 +302,33 @@ struct SH_CORE_EXPORT MouseWheelData
   ModifierState modifiers;
 };
 
+
+/**
+*  @brief Structure for mouse horizontal wheel data.
+*/
+struct SH_CORE_EXPORT MouseHWheelData
+{
+  /**
+  *  @brief Constructor.
+  *
+  *  @param double _delta
+  *  @param ModifierState& _modifiers
+  */
+  FORCEINLINE MouseHWheelData(const double _delta, const ModifierState& _modifiers)
+    : delta(_delta), modifiers(_modifiers) {
+  }
+
+  /**
+  *  @brief Mouse wheel move up or down.
+  */
+  double delta;
+
+  /**
+  *  @brief Keyboard modifiers.
+  */
+  ModifierState modifiers;
+};
+
 /**
 * @brief Union of events data.
 */
@@ -341,6 +368,11 @@ union SH_CORE_EXPORT EventData
   *  @brief Mouse wheel data.
   */
   MouseWheelData mouseWheel;
+
+  /**
+  *  @brief Mouse horizontal wheel data.
+  */
+  MouseHWheelData mouseHWheel;
 
   /**
   *  @brief Mouse raw data.

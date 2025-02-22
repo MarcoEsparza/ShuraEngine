@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/11
+*  @date    2025/02/20
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -373,41 +373,60 @@ ImGui_ImplShura_InvalidateDeviceObjects()
 }
 
 static void
-updateMouseData(const SPtr<Screen>& screenHandle,
-                bool clicked,
-                float wheel)
+updateMouseData(const Vector2& mousePos,
+                const bool clicked,
+                const float wheel,
+                const float hWheel)
 {
   ImGuiIO& io = ImGui::GetIO();
-  ImVec2 mousePos;
-  mousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
-  mousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
   io.AddMousePosEvent(mousePos.x, mousePos.y);
   
   if (clicked) {
-    io.MouseClicked[0] = true;
-    ImVec2 mousePos;
-    mousePos.x = static_cast<float>(screenHandle->getPreviousMousePos().x);
-    mousePos.y = static_cast<float>(screenHandle->getPreviousMousePos().y);
-    io.MouseClickedPos[0] = mousePos;
     io.AddMouseButtonEvent(0, true);
   }
   else {
-    io.MouseClicked[0] = false;
     io.AddMouseButtonEvent(0, false);
   }
-  io.MouseWheel = wheel;
+  io.AddMouseWheelEvent(hWheel, wheel);
+}
+
+static ImGuiKey
+getImGuiKey(KEY::E key)
+{
+  switch (key) {
+  case KEY::kA:
+  {
+    return ImGuiKey_A;
+    break;
+  }
+  case KEY::kKeysMax:
+  {
+    return ImGuiKey_COUNT;
+    break;
+  }
+  default:
+    break;
+  }
+}
+
+static void
+addKeyboardEvents(KEY::E key, bool pressed)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.AddKeyEvent(getImGuiKey(key), pressed);
 }
 
 void
-ImGui_ImplShura_NewFrame(const SPtr<Screen>& screenHandle,
-                         bool clicked,
-                         float wheel)
+ImGui_ImplShura_NewFrame(const Vector2& mousePos,
+                         const bool clicked,
+                         const float wheel,
+                         const float hWheel)
 {
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
   IM_ASSERT(bd != nullptr &&
             "Context or backend not initialized! Did you call ImGui_ImplDX11_Init()?");
 
-  updateMouseData(screenHandle, clicked, wheel);
+  updateMouseData(mousePos, clicked, wheel, hWheel);
 
   if (!bd->pFontTexture) {
     ImGui_ImplShura_CreateDeviceObjects();

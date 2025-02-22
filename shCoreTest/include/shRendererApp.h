@@ -93,7 +93,7 @@ class RendererApp : public BaseApp
   /**
   *  @brief Default destructor.
   */
-  ~RendererApp();
+  ~RendererApp() = default;
 
  private:
   /**
@@ -162,6 +162,9 @@ class RendererApp : public BaseApp
 
   void
   onMouseWheel(const double delta, const ModifierState modifier) override;
+
+  void
+  onMouseHWheel(const double delta, const ModifierState modifier) override;
 
   /**
   *  @brief Override function to add functionallity on app destroy
@@ -328,9 +331,15 @@ class RendererApp : public BaseApp
   */
   bool m_bRotDown = false;
 
-  bool m_test = false;
+  /**
+  *  @brief Mouse wheel delta.
+  */
+  float m_delta = 0.0f;
 
-  float m_delta;
+  /**
+  *  @brief Mouse horizontal wheel delta.
+  */
+  float m_hdelta = 0.0f;
 
   /**
   *  @brief Light structure.

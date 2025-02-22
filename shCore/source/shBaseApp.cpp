@@ -158,18 +158,23 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
     else if (mouseButton.state == BUTTON_STATE::kReleased) {
       onMouseButtonReleased(mouseButton.button, mouseButton.modifiers);
     }
+  }
 
-    // Mouse raw
-    if (wndEvent.type == EVENT_TYPE::kMouseRaw) {
-      const auto& mouseRaw = wndEvent.data.mouseRaw;
-      onMouseRaw(mouseRaw);
-    }
+  // Mouse raw
+  if (wndEvent.type == EVENT_TYPE::kMouseRaw) {
+    const auto& mouseRaw = wndEvent.data.mouseRaw;
+    onMouseRaw(mouseRaw);
+  }
 
-    // Mouse wheel
-    if (wndEvent.type == EVENT_TYPE::kMouseWheel) {
-      const auto& mouseWheel = wndEvent.data.mouseWheel;
-      onMouseWheel(mouseWheel.delta, mouseWheel.modifiers);
-    }
+  // Mouse wheel
+  if (wndEvent.type == EVENT_TYPE::kMouseWheel) {
+    const auto& mouseWheel = wndEvent.data.mouseWheel;
+    onMouseWheel(mouseWheel.delta, mouseWheel.modifiers);
+  }
+
+  if (wndEvent.type == EVENT_TYPE::kMouseHWheel) {
+    const auto& mouseHWheel = wndEvent.data.mouseHWheel;
+    onMouseHWheel(mouseHWheel.delta, mouseHWheel.modifiers);
   }
 }
 

@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/11
+*  @date    2025/02/20
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -18,8 +18,9 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
-#include "imgui.h"
 #include "shScreen.h"
+#include "shVector2.h"
+#include "imgui.h"
 
 namespace shEngineSDK {
 
@@ -55,9 +56,10 @@ ImGui_ImplShura_InvalidateDeviceObjects();
 *  @brief Updates ImGui implementation for Shura Engine.
 */
 void
-ImGui_ImplShura_NewFrame(const SPtr<Screen>& screenHandle,
-                         bool clicked,
-                         float wheel);
+ImGui_ImplShura_NewFrame(const Vector2& mousePos,
+                         const bool clicked,
+                         const float wheel,
+                         const float hWheel);
 
 /**
 *  @brief Shuts down ImGui implementation for Shura Engine.

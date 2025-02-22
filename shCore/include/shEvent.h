@@ -2,7 +2,7 @@
 /*
 *  @file    shEvent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2025/02/20
 *  @brief   Event class.
 *
 *  Event class.
@@ -109,6 +109,15 @@ class SH_CORE_EXPORT Event
   *  @param ModifierState& _modifiers
   */
   Event(const double _delta, const ModifierState& _modifiers);
+
+  /**
+  *  @brief MouseHorizontalWheel Event constructor.
+  *
+  *  @param double _delta
+  *  @param ModifierState& _modifiers
+  *  @param const bool _used
+  */
+  Event(const double _delta, const ModifierState& _modifiers, const bool _used);
 
   /**
   *  @brief MouseRaw Event constructor.

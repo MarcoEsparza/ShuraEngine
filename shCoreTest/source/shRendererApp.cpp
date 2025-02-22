@@ -39,26 +39,6 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
-RendererApp::~RendererApp()
-{
-  m_pBasicShader.reset();
-  m_pDeferredShader.reset();
-  
-  for (auto& pTex : m_targets) {
-    pTex.reset();
-  }
-  for (auto& pTex : m_mainTarget) {
-    pTex.reset();
-  }
-
-  m_pVP.reset();
-  m_pInvVP.reset();
-  m_pModelTransform.reset();
-  m_pCameraPosition.reset();
-  m_pLightBuffer.reset();
-  m_pViewportBuffer.reset();
-}
-
 void
 RendererApp::onCreate()
 {
@@ -115,6 +95,7 @@ RendererApp::onCreate()
   modelMat->ao = ao->texture;
 
   m_pModel = make_shared<GameObject>();
+  m_pModel->name = "DrakeFire";
   auto modelMC = make_shared<StaticMeshUnionComponent>();
 
   modelMC->setMeshData(modelRes);
@@ -163,23 +144,69 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  ImGui_ImplShura_NewFrame(getScreen(), m_bLeftClick, m_delta);
+  ImGui_ImplShura_NewFrame(m_currentMousePos,
+                           m_bLeftClick,
+                           m_delta,
+                           m_hdelta);
   ImGui::NewFrame();
+  m_delta = 0.0f;
+  m_hdelta = 0.0f;
   
-  bool show = true;
-  ImGui::ShowDemoWindow(&show);
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(400.0f, 400.0f));
-  ImGui::Begin("Window", 0);
-  ImGui::Text("This is some useful text.");
-  if (ImGui::Button("CACA")) {
-    m_test = true;
-  }
-  if (m_test) {
-    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 0xff));
-    ImGui::Button("CACA2");
+  ImGui::SetNextWindowSize(ImVec2(250.0f, static_cast<float>(m_desc.height)));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
+  ImGui::Begin("Scenegraph",
+               0,
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoCollapse |
+               ImGuiWindowFlags_NoResize);
+  ImGui::PopStyleColor();
+  ImGui::Text(m_pModel->name.c_str());
+  ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(1100.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(300.0f, static_cast<float>(m_desc.height)));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
+  ImGui::Begin(m_pModel->name.c_str(),
+               0,
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoCollapse |
+               ImGuiWindowFlags_NoResize);
+  ImGui::PopStyleColor();
+
+  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
+  if (ImGui::CollapsingHeader("Transform")) {
+    ImGui::Text("Position:");
+    ImGui::SameLine(90.0f);
+    float pos[3] = { m_pModel->getPosition().x,
+                     m_pModel->getPosition().y,
+                     m_pModel->getPosition().z };
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::InputFloat3("##Positions", pos);
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    ImGui::Text("Rotation:");
+    ImGui::SameLine(90.0f);
+    float rot[3] = { m_pModel->getRotation().x,
+                     m_pModel->getRotation().y,
+                     m_pModel->getRotation().z };
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::InputFloat3("##Rotations", rot);
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    ImGui::Text("Scale:");
+    ImGui::SameLine(90.0f);
+    float scl[3] = { m_pModel->getScale().x,
+                     m_pModel->getScale().y,
+                     m_pModel->getScale().z };
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::InputFloat3("##Scales", scl);
     ImGui::PopStyleColor();
   }
+  ImGui::PopStyleColor(3);
+  
   ImGui::End();
 
   if (m_bLeftClick) {
@@ -426,12 +453,34 @@ RendererApp::onMouseWheel(const double delta, const ModifierState modifier)
 }
 
 void
+RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+  m_hdelta = static_cast<float>(delta);
+}
+
+void
 RendererApp::onDestroy()
 {
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
 
+  m_pBasicShader.reset();
+  m_pDeferredShader.reset();
 
+  for (auto& pTex : m_targets) {
+    pTex.reset();
+  }
+  for (auto& pTex : m_mainTarget) {
+    pTex.reset();
+  }
+
+  m_pVP.reset();
+  m_pInvVP.reset();
+  m_pModelTransform.reset();
+  m_pCameraPosition.reset();
+  m_pLightBuffer.reset();
+  m_pViewportBuffer.reset();
 }
 
 void

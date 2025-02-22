@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/31
+*  @date    2025/02/20
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -169,6 +169,17 @@ class SH_CORE_EXPORT BaseApp
   */
   virtual void
   onMouseWheel(const double delta, const ModifierState modifier)
+  {
+    SH_UNREFERENCED_PARAMETER(delta);
+    SH_UNREFERENCED_PARAMETER(modifier);
+  }
+
+  /**
+  *  @brief Override to set mouse wheel event. This will be called every time
+  *         the mouse wheel is used.
+  */
+  virtual void
+  onMouseHWheel(const double delta, const ModifierState modifier)
   {
     SH_UNREFERENCED_PARAMETER(delta);
     SH_UNREFERENCED_PARAMETER(modifier);
