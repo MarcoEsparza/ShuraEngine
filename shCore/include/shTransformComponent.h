@@ -112,8 +112,8 @@ class SH_CORE_EXPORT TransformComponent : public Component
   */
   Transform m_transform;
 
-  //Vector3 position;
-  //Vector3 rotation;
-  //Vector3 scale;
+  Vector3 m_position;
+  Vector3 m_rotation;
+  Vector3 m_scale;
 };
 }

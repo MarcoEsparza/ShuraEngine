@@ -138,6 +138,9 @@ RendererApp::onCreate()
   m_pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
   m_pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
 
+  m_pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
+  m_pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
+
   m_mainTarget.push_back(graphMan.getMainRenderTargetView());
 }
 
@@ -147,7 +150,9 @@ RendererApp::onUpdate()
   ImGui_ImplShura_NewFrame(m_currentMousePos,
                            m_bLeftClick,
                            m_delta,
-                           m_hdelta);
+                           m_hdelta,
+                           m_bKeyTest,
+                           m_key);
   ImGui::NewFrame();
   m_delta = 0.0f;
   m_hdelta = 0.0f;
@@ -206,7 +211,7 @@ RendererApp::onUpdate()
     ImGui::PopStyleColor();
   }
   ImGui::PopStyleColor(3);
-  
+
   ImGui::End();
 
   if (m_bLeftClick) {
@@ -288,8 +293,8 @@ RendererApp::onRender()
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   g_renderMan().drawStaticMeshUnionInScene(smucList);
 
-  // Ao pass
-  /*for (auto& target : m_aoTarget) {
+  // Ambient Occlusion pass
+  for (auto& target : m_aoTarget) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_aoTarget, graphMan.getMainDepthStencil());
@@ -298,7 +303,29 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(m_targets[0], 0);
   graphMan.setShaderResourceView(m_targets[1], 1);
 
-  graphMan.draw(3, 0);*/
+  graphMan.draw(3, 0);
+
+  // Horizontal Blur pass
+  for (auto& target : m_hbTarget) {
+    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
+  }
+  graphMan.setRenderTargets(m_hbTarget, graphMan.getMainDepthStencil());
+  m_pHBlurShader->setPass();
+
+  graphMan.setShaderResourceView(m_aoTarget[0], 0);
+
+  graphMan.draw(3, 0);
+
+  // Vetical Blur pass
+  for (auto& target : m_vbTarget) {
+    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
+  }
+  graphMan.setRenderTargets(m_vbTarget, graphMan.getMainDepthStencil());
+  m_pVBlurShader->setPass();
+
+  graphMan.setShaderResourceView(m_aoTarget[0], 0);
+
+  graphMan.draw(3, 0);
 
   // Deferred pass
   graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
@@ -307,12 +334,12 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(m_targets[0], 0);
   graphMan.setShaderResourceView(m_targets[1], 1);
   graphMan.setShaderResourceView(m_targets[2], 2);
+  graphMan.setShaderResourceView(m_hbTarget[0], 3);
+  graphMan.setShaderResourceView(m_vbTarget[0], 4);
   
   graphMan.draw(3, 0);
 
   ImGui::Render();
-  //graphMan.clearRenderTarget(m_guiTarget[0], LinearColor(0.0f, 0.0f, 0.0f));
-  //graphMan.setRenderTargets(m_guiTarget, g_graphicsMan().getMainDepthStencil());
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
 
@@ -360,6 +387,9 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
   if (key == KEY::kRight) {
     m_bRotRight = true;
   }
+
+  m_key = key;
+  m_bKeyTest = true;
 }
 
 void
@@ -411,6 +441,9 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
     m_pBasicShader->compileShader();
     m_pDeferredShader->compileShader();
   }
+
+  m_key = key;
+  m_bKeyTest = false;
 }
 
 void
@@ -491,8 +524,7 @@ RendererApp::initGraphicAssets()
 
   // Init pass shaders
   m_pBasicShader = make_unique<Pass>();
-
-  m_pBasicShader->setShaderInfo("resources/BasicShader.hlsl",
+  m_pBasicShader->setShaderInfo("resources/shaders/BasicShader.hlsl",
                                 "main",
                                 "mainPS",
                                 "vs_5_0",
@@ -500,8 +532,7 @@ RendererApp::initGraphicAssets()
   m_pBasicShader->compileShader();
 
   m_pDeferredShader = make_unique<Pass>();
-
-  m_pDeferredShader->setShaderInfo("resources/DeferredShader.hlsl",
+  m_pDeferredShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
                                    "main",
                                    "mainPS",
                                    "vs_5_0",
@@ -509,13 +540,28 @@ RendererApp::initGraphicAssets()
   m_pDeferredShader->compileShader();
 
   m_pAOShader = make_unique<Pass>();
-
-  m_pAOShader->setShaderInfo("resources/AOShader.hlsl",
+  m_pAOShader->setShaderInfo("resources/shaders/AOShader.hlsl",
                              "main",
                              "mainPS",
                              "vs_5_0",
                              "ps_5_0");
   m_pAOShader->compileShader();
+
+  m_pHBlurShader = make_unique<Pass>();
+  m_pHBlurShader->setShaderInfo("resources/shaders/AOShader.hlsl",
+                                "main",
+                                "mainPS",
+                                "vs_5_0",
+                                "ps_5_0");
+  m_pHBlurShader->compileShader();
+
+  m_pVBlurShader = make_unique<Pass>();
+  m_pVBlurShader->setShaderInfo("resources/shaders/AOShader.hlsl",
+                                "main",
+                                "mainPS",
+                                "vs_5_0",
+                                "ps_5_0");
+  m_pVBlurShader->compileShader();
 
   // Set pass states
   RasterizerDesc rasterDesc = {};
@@ -566,15 +612,15 @@ RendererApp::initGraphicAssets()
 
   m_pDeferredShader->generateInputLayout();
   m_pDeferredShader->setSamplerState(pSamplerLinear);
-  m_pDeferredShader->setRasterizerState(rasterDesc);
-  m_pDeferredShader->setBlendState(blendDesc);
-  m_pDeferredShader->setDepthStencilState(depthSDesc);
 
   m_pAOShader->generateInputLayout();
   m_pAOShader->setSamplerState(pSamplerLinear);
-  m_pAOShader->setRasterizerState(rasterDesc);
-  m_pAOShader->setBlendState(blendDesc);
-  m_pAOShader->setDepthStencilState(depthSDesc);
+
+  m_pHBlurShader->generateInputLayout();
+  m_pHBlurShader->setSamplerState(pSamplerLinear);
+
+  m_pVBlurShader->generateInputLayout();
+  m_pVBlurShader->setSamplerState(pSamplerLinear);
 
   // Create and set render targets for deferred rendering
   auto depthTarget = graphMan.createTexture2D(m_desc.width,
@@ -606,6 +652,22 @@ RendererApp::initGraphicAssets()
                            BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
   m_aoTarget.push_back(aoTarget);
+
+  auto hbTarget = graphMan.createTexture2D(m_desc.width,
+                           m_desc.height,
+                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_hbTarget.push_back(hbTarget);
+
+  auto vbTarget = graphMan.createTexture2D(m_desc.width,
+                           m_desc.height,
+                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_vbTarget.push_back(vbTarget);
 }
 
 void

@@ -281,7 +281,7 @@ ImGui_ImplShura_CreateDeviceObjects()
   // Set pass
   bd->pImGuiShuraProgram = make_unique<Pass>();
 
-  bd->pImGuiShuraProgram->setShaderInfo("resources/ImGuiShuraShader.hlsl",
+  bd->pImGuiShuraProgram->setShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
                                         "main",
                                         "mainPS",
                                         "vs_5_0",
@@ -399,6 +399,56 @@ getImGuiKey(KEY::E key)
     return ImGuiKey_A;
     break;
   }
+  case KEY::kNum1:
+  {
+    return ImGuiKey_1;
+    break;
+  }
+  case KEY::kNum2:
+  {
+    return ImGuiKey_2;
+    break;
+  }
+  case KEY::kNum3:
+  {
+    return ImGuiKey_3;
+    break;
+  }
+  case KEY::kNum4:
+  {
+    return ImGuiKey_4;
+    break;
+  }
+  case KEY::kNum5:
+  {
+    return ImGuiKey_5;
+    break;
+  }
+  case KEY::kNum6:
+  {
+    return ImGuiKey_6;
+    break;
+  }
+  case KEY::kNum7:
+  {
+    return ImGuiKey_7;
+    break;
+  }
+  case KEY::kNum8:
+  {
+    return ImGuiKey_8;
+    break;
+  }
+  case KEY::kNum9:
+  {
+    return ImGuiKey_9;
+    break;
+  }
+  case KEY::kNum0:
+  {
+    return ImGuiKey_0;
+    break;
+  }
   case KEY::kKeysMax:
   {
     return ImGuiKey_COUNT;
@@ -420,13 +470,19 @@ void
 ImGui_ImplShura_NewFrame(const Vector2& mousePos,
                          const bool clicked,
                          const float wheel,
-                         const float hWheel)
+                         const float hWheel,
+                         const float btnPressed,
+                         const KEY::E key)
 {
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
   IM_ASSERT(bd != nullptr &&
             "Context or backend not initialized! Did you call ImGui_ImplDX11_Init()?");
 
   updateMouseData(mousePos, clicked, wheel, hWheel);
+
+  /*if (btnPressed) {
+    addKeyboardEvents(key, btnPressed);
+  }*/
 
   if (!bd->pFontTexture) {
     ImGui_ImplShura_CreateDeviceObjects();

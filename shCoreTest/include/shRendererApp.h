@@ -213,6 +213,8 @@ class RendererApp : public BaseApp
   UPtr<Pass> m_pDeferredShader;
 
   UPtr<Pass> m_pAOShader;
+  UPtr<Pass> m_pHBlurShader;
+  UPtr<Pass> m_pVBlurShader;
 
   /**
   *  @brief Targets for first pass.
@@ -225,6 +227,8 @@ class RendererApp : public BaseApp
   Vector<SPtr<Texture2D>> m_mainTarget;
   
   Vector<SPtr<Texture2D>> m_aoTarget;
+  Vector<SPtr<Texture2D>> m_hbTarget;
+  Vector<SPtr<Texture2D>> m_vbTarget;
 
   /**
   *  @brief Model game object.
@@ -340,6 +344,10 @@ class RendererApp : public BaseApp
   *  @brief Mouse horizontal wheel delta.
   */
   float m_hdelta = 0.0f;
+
+  KEY::E m_key;
+  bool m_bKeyTest;
+  bool m_testingBox = false;
 
   /**
   *  @brief Light structure.

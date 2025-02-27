@@ -59,7 +59,9 @@ void
 ImGui_ImplShura_NewFrame(const Vector2& mousePos,
                          const bool clicked,
                          const float wheel,
-                         const float hWheel);
+                         const float hWheel,
+                         const float btnPressed,
+                         const KEY::E key);
 
 /**
 *  @brief Shuts down ImGui implementation for Shura Engine.

@@ -76,7 +76,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   /**
   *  @brief Default destructor.
   */
-  ~ResourceManager() = default;
+  ~ResourceManager();
 
   /*************************************************************/
   /*
