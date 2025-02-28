@@ -39,6 +39,15 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+struct AOBuffer {
+  Vector2 viewport;
+  float samplerRad = 0.0f;
+  float scale = 0.0f;
+  float bias = 0.0f;
+  float intensity = 0.0f;
+  Vector2 unused;
+};
+
 void
 RendererApp::onCreate()
 {
@@ -137,6 +146,18 @@ RendererApp::onCreate()
   m_pDeferredShader->addPSConstantBuffer(m_pCameraPosition);
   m_pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
   m_pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
+
+  AOBuffer aoBuffer;
+  aoBuffer.viewport.x = m_desc.width;
+  aoBuffer.viewport.y = m_desc.height;
+  aoBuffer.samplerRad = 1.0f;
+  aoBuffer.scale = 1.0f;
+  aoBuffer.bias = 1.0f;
+  aoBuffer.intensity = 1.0f;
+
+  auto aoCBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
+  graphMan.updateConstantBuffer(aoCBuffer, &aoBuffer, sizeof(AOBuffer));
+  m_pAOShader->addPSConstantBuffer(aoCBuffer);
 
   m_pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
   m_pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
@@ -306,7 +327,7 @@ RendererApp::onRender()
   graphMan.draw(3, 0);
 
   // Horizontal Blur pass
-  for (auto& target : m_hbTarget) {
+  /*for (auto& target : m_hbTarget) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_hbTarget, graphMan.getMainDepthStencil());
@@ -314,10 +335,10 @@ RendererApp::onRender()
 
   graphMan.setShaderResourceView(m_aoTarget[0], 0);
 
-  graphMan.draw(3, 0);
+  graphMan.draw(3, 0);*/
 
   // Vetical Blur pass
-  for (auto& target : m_vbTarget) {
+  /*for (auto& target : m_vbTarget) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_vbTarget, graphMan.getMainDepthStencil());
@@ -325,7 +346,7 @@ RendererApp::onRender()
 
   graphMan.setShaderResourceView(m_aoTarget[0], 0);
 
-  graphMan.draw(3, 0);
+  graphMan.draw(3, 0);*/
 
   // Deferred pass
   graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
@@ -334,8 +355,7 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(m_targets[0], 0);
   graphMan.setShaderResourceView(m_targets[1], 1);
   graphMan.setShaderResourceView(m_targets[2], 2);
-  graphMan.setShaderResourceView(m_hbTarget[0], 3);
-  graphMan.setShaderResourceView(m_vbTarget[0], 4);
+  graphMan.setShaderResourceView(m_aoTarget[0], 3);
   
   graphMan.draw(3, 0);
 
