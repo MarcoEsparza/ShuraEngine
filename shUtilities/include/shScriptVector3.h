@@ -1,13 +1,13 @@
 /*****************************************************************************/
 /*
-*  @file    shLight.h
+*  @file    shScriptVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/31
-*  @brief   
+*  @date    2025/02/17
+*  @brief   Script for Vector3.
 *
-*  
+*  Script for Vector3.
 *
-*  @bug     No bug known.
+*  @bug     No bug known
 */
 /*****************************************************************************/
 #pragma once
@@ -17,18 +17,22 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
+#include "shPrerequisitesUtilities.h"
+#include "shScriptManager.h"
 #include "shVector3.h"
-#include "shVector4.h"
-#include "shLinearColor.h"
 
 namespace shEngineSDK {
-MS_ALIGN(16)
-struct SH_CORE_EXPORT Light
+FORCEINLINE static void
+registerVector3(ScriptState* state)
 {
-  //Vector3 position;
-  //float intensity;
-  //LinearColor color;
-  Vector4 pos;
-} GCC_ALIGN(16);
+  state->new_usertype<Vector3>(
+  //Typename
+  "Vector3",
+  sol::constructors<
+  Vector3(),
+  Vector3(float _x, float _y, float _z),
+  Vector3(const Vector3 & other),
+  >()
+  );
+}
 }

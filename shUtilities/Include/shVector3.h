@@ -311,9 +311,14 @@ class SH_UTILITY_EXPORT Vector3
    static const Vector3 RIGHT;
 
    /**
-   * Vector3 Zerp vector = 0.0f, 0.0f, 0.0f.
+   * Vector3 Zero vector = 0.0f, 0.0f, 0.0f.
    */
    static const Vector3 ZERO;
+
+   /**
+   * Vector3 One vector = 1.0f, 1.0f, 1.0f.
+   */
+   static const Vector3 ONE;
 };
 
 /*****************************************************************************/

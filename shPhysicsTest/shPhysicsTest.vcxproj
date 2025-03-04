@@ -169,11 +169,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\imgui.cpp" />
+    <ClCompile Include="source\imgui_demo.cpp" />
+    <ClCompile Include="source\imgui_draw.cpp" />
+    <ClCompile Include="source\imgui_impl_shura.cpp" />
+    <ClCompile Include="source\imgui_tables.cpp" />
+    <ClCompile Include="source\imgui_widgets.cpp" />
     <ClCompile Include="source\Player.cpp" />
     <ClCompile Include="source\shPhysicsApp.cpp" />
     <ClCompile Include="source\shPhysicsTestMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\imconfig.h" />
+    <ClInclude Include="include\imgui.h" />
+    <ClInclude Include="include\imgui_impl_shura.h" />
+    <ClInclude Include="include\imgui_internal.h" />
+    <ClInclude Include="include\imstb_rectpack.h" />
+    <ClInclude Include="include\imstb_textedit.h" />
+    <ClInclude Include="include\imstb_truetype.h" />
     <ClInclude Include="include\Player.h" />
     <ClInclude Include="include\shPhysicsApp.h" />
   </ItemGroup>

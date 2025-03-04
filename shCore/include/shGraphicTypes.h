@@ -64,7 +64,8 @@ enum SH_CORE_EXPORT E
   kTangents,
   kBitangents,
   kBoneIndices,
-  kBoneWieghts
+  kBoneWieghts,
+  kColor
 };
 }
 
@@ -80,6 +81,29 @@ struct SH_CORE_EXPORT VertexData
   Vector3 bitangents = Vector3(0.0f, 0.0f, 0.0f);
   Vector4 boneIds = Vector4(-1.0f, -1.0f, -1.0f, -1.0f);
   Vector4 boneWeights = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+};
+
+/**
+*  @brief Vertex struct for GUI
+*/
+struct SH_CORE_EXPORT GUIVertexData
+{
+  Vector2 position = Vector2(0.0f, 0.0f);
+  Vector2 texcoord = Vector2(0.0f, 0.0f);
+  uint32 color = 0;
+};
+
+/**
+*  @brief Viewport structure
+*/
+struct SH_CORE_EXPORT Viewport
+{
+  float width = 0.0f;
+  float height = 0.0f;
+  float minDepth = 0.0f;
+  float maxDepth = 0.0f;
+  float topLeftX = 0.0f;
+  float topLeftY = 0.0f;
 };
 
 /**
@@ -132,7 +156,14 @@ enum SH_CORE_EXPORT E
   kR8G8B8A8_snorm = 29,
   kR8G8B8A8_uint = 30,
   kR8G8B8A8_sint = 32,
-  kD24_UNORM_S8_uint = 45
+  kD24_UNORM_S8_uint = 45,
+  kR16_TYPELESS = 53,
+  kR16_FLOAT = 54,
+  kD16_UNORM = 55,
+  kR16_UNORM = 56,
+  kR16_UINT = 57,
+  kR16_SNORM = 58,
+  kR16_SINT = 59
 };
 }
 

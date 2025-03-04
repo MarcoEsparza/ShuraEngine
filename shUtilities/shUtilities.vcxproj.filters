@@ -37,6 +37,9 @@
     <Filter Include="Source\Script">
       <UniqueIdentifier>{b9319a3d-7ad3-4d6e-ab30-feb7f856d49d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\RegisterUtilities">
+      <UniqueIdentifier>{46f1ad5a-18d7-4d20-8b27-ea7af5d971b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shBoxAAB.h">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="include\shScriptManager.h">
       <Filter>Include\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shScriptVector3.h">
+      <Filter>Include\RegisterUtilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

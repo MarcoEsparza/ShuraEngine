@@ -35,7 +35,7 @@ struct PS_INPUT
   float3 Normal : TEXCOORD1;
   float3 Tangent : TEXCOORD2;
   float3 Bitangent : TEXCOORD3;
-  float Depth : TEXCOORD4;
+  float3 Depth : TEXCOORD4;
 };
 
 struct GBUFFER_OUTPUT
@@ -53,7 +53,7 @@ PS_INPUT main(VS_INPUT input)
 
   output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
   output.Tex = input.Tex;
-  output.Depth = output.Position.z / (100.0f - 0.1f);
+  output.Depth = mul(float4(input.Position.xyz, 1.0f), ModelTransform);
     
   output.Normal = normalize(mul(input.Normal, (float3x3)ModelTransform));
   output.Tangent = normalize(mul(input.Tangent, (float3x3)ModelTransform));
@@ -70,7 +70,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   float3 fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f; 
   fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
   output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
-  output.Depth = input.Depth.xxxx;
+  output.Depth = float4(input.Depth.xyz, 1.0f);
   
   return output;
 }

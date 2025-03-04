@@ -300,6 +300,11 @@ ReadMissingBoneTracks(const aiAnimation* aiAnim,
 */
 /*************************************************************/
 
+ResourceManager::~ResourceManager()
+{
+  m_loadedResources.clear();
+}
+
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {

@@ -2,7 +2,7 @@
 /*
 *  @file    shEvent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2025/02/20
 *  @brief   Event class.
 *
 *  Event class.
@@ -68,6 +68,12 @@ Event::Event(const double _delta, const ModifierState& _modifiers)
 {
   type = EVENT_TYPE::kMouseWheel;
   data.mouseWheel = MouseWheelData(_delta, _modifiers);
+}
+
+Event::Event(const double _delta, const ModifierState& _modifiers, const bool)
+{
+  type = EVENT_TYPE::kMouseHWheel;
+  data.mouseHWheel = MouseHWheelData(_delta, _modifiers);
 }
 
 Event::Event(const int32 _deltaX, const int32 _deltaY)

@@ -160,6 +160,12 @@ class RendererApp : public BaseApp
   void
   onMouseMove(const MouseMoveData& mouse) override;
 
+  void
+  onMouseWheel(const double delta, const ModifierState modifier) override;
+
+  void
+  onMouseHWheel(const double delta, const ModifierState modifier) override;
+
   /**
   *  @brief Override function to add functionallity on app destroy
   */
@@ -206,6 +212,10 @@ class RendererApp : public BaseApp
   */
   UPtr<Pass> m_pDeferredShader;
 
+  UPtr<Pass> m_pAOShader;
+  UPtr<Pass> m_pHBlurShader;
+  UPtr<Pass> m_pVBlurShader;
+
   /**
   *  @brief Targets for first pass.
   */
@@ -215,6 +225,10 @@ class RendererApp : public BaseApp
   *  @brief Main render target.
   */
   Vector<SPtr<Texture2D>> m_mainTarget;
+  
+  Vector<SPtr<Texture2D>> m_aoTarget;
+  Vector<SPtr<Texture2D>> m_hbTarget;
+  Vector<SPtr<Texture2D>> m_vbTarget;
 
   /**
   *  @brief Model game object.
@@ -322,8 +336,22 @@ class RendererApp : public BaseApp
   bool m_bRotDown = false;
 
   /**
+  *  @brief Mouse wheel delta.
+  */
+  float m_delta = 0.0f;
+
+  /**
+  *  @brief Mouse horizontal wheel delta.
+  */
+  float m_hdelta = 0.0f;
+
+  KEY::E m_key;
+  bool m_bKeyTest;
+  bool m_testingBox = false;
+
+  /**
   *  @brief Light structure.
   */
-  Light m_light = {};
+  //Light m_light = {};
 };
 }

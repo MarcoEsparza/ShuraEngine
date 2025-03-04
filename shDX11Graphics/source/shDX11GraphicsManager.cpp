@@ -233,14 +233,14 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                                                             D3D11_BIND_DEPTH_STENCIL));
 
   //Setup the viewport
-  D3D11_VIEWPORT viewPort;
-  viewPort.Width = static_cast<FLOAT>(scDesc.BufferDesc.Width);
-  viewPort.Height = static_cast<FLOAT>(scDesc.BufferDesc.Height);
-  viewPort.MinDepth = 0.0f;
-  viewPort.MaxDepth = 1.0f;
-  viewPort.TopLeftX = 0;
-  viewPort.TopLeftY = 0;
-  m_pDeviceContext->m_pDeviceContext->RSSetViewports(1, &viewPort);
+  Viewport viewPort;
+  viewPort.width = static_cast<float>(scDesc.BufferDesc.Width);
+  viewPort.height = static_cast<float>(scDesc.BufferDesc.Height);
+  viewPort.minDepth = 0.0f;
+  viewPort.maxDepth = 1.0f;
+  viewPort.topLeftX = 0.0f;
+  viewPort.topLeftY = 0.0f;
+  internalSetViewport(viewPort);
 
   //Release all objects
   SafeRelease(pFactory);
@@ -343,6 +343,9 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
     else if (desc[i].type == INPUT_LAYOUT_TYPES::kBoneWieghts) {
       element.SemanticName = "BLENDWEIGHT";
     }
+    else if (desc[i].type == INPUT_LAYOUT_TYPES::kColor) {
+      element.SemanticName = "COLOR";
+    }
   }
 
   throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&dxInputDesc[0],
@@ -361,12 +364,10 @@ DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShade
   auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
 
   ID3D11ShaderReflection* pReflector = nullptr;
-  HRESULT hr = (D3DReflect(pProgramShader->m_pVertexBlob->GetBufferPointer(),
-                           pProgramShader->m_pVertexBlob->GetBufferSize(),
-                           __uuidof(ID3D11ShaderReflection),
-                           reinterpret_cast<void**>(&pReflector)));
-
-  SH_ASSERT(hr == S_OK);
+  throwIfFailed((D3DReflect(pProgramShader->m_pVertexBlob->GetBufferPointer(),
+                            pProgramShader->m_pVertexBlob->GetBufferSize(),
+                            __uuidof(ID3D11ShaderReflection),
+                            reinterpret_cast<void**>(&pReflector))));
 
   D3D11_SHADER_DESC shaderDesc;
   pReflector->GetDesc(&shaderDesc);
@@ -485,7 +486,9 @@ DX11GraphicsManager::internalCreateProgramShader(const String& fileName,
 }
 
 SPtr<VertexBuffer>
-DX11GraphicsManager::internalCreateVertexBuffer(const Vector<VertexData>& vertices,
+DX11GraphicsManager::internalCreateVertexBuffer(const void* pData,
+                                                const uint32 bufferSize,
+                                                const uint32 stride,
                                                 const uint32 usage)
 {
   auto pVBuffer = std::make_shared<DX11VertexBuffer>();
@@ -493,18 +496,18 @@ DX11GraphicsManager::internalCreateVertexBuffer(const Vector<VertexData>& vertic
   D3D11_BUFFER_DESC desc;
   memset(&desc, 0, sizeof(desc));
   desc.Usage = static_cast<D3D11_USAGE>(usage);
-  desc.ByteWidth = static_cast<UINT>(vertices.size() * sizeof(VertexData));
+  desc.ByteWidth = bufferSize * stride;
   desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   desc.CPUAccessFlags = usage == D3D10_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
   desc.MiscFlags = 0;
 
   D3D11_SUBRESOURCE_DATA initData;
-  initData.pSysMem = &vertices[0];
-  initData.SysMemPitch = static_cast<UINT>(vertices.size());
+  initData.pSysMem = pData;
+  initData.SysMemPitch = bufferSize;
   initData.SysMemSlicePitch = 0;
 
   m_pDevice->m_pDevice->CreateBuffer(&desc, &initData, &pVBuffer->m_pBuffer);
-  pVBuffer->m_stride = sizeof(VertexData);
+  pVBuffer->m_stride = stride;
 
   return pVBuffer;
 }
@@ -780,6 +783,36 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pC
 }
 
 void
+DX11GraphicsManager::internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
+                                             uint8* pData,
+                                             uint32 width,
+                                             uint32 bpp)
+{
+  auto pTex2D = reinterpret_pointer_cast<DX11Texture2D>(pTexture);
+  int32 pitch = width * bpp;
+
+  m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTex2D->m_pTexture2D,
+                                                        0,
+                                                        nullptr,
+                                                        pData,
+                                                        pitch,
+                                                        0);
+}
+
+void
+DX11GraphicsManager::internalSetViewport(const Viewport& vp)
+{
+  D3D11_VIEWPORT viewPort;
+  viewPort.Width = vp.width;
+  viewPort.Height = vp.height;
+  viewPort.MinDepth = vp.minDepth;
+  viewPort.MaxDepth = vp.maxDepth;
+  viewPort.TopLeftX = vp.topLeftX;
+  viewPort.TopLeftY = vp.topLeftY;
+  m_pDeviceContext->m_pDeviceContext->RSSetViewports(1, &viewPort);
+}
+
+void
 DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
                                               const SPtr<Texture2D>& pDepthSV)
 {
@@ -936,6 +969,17 @@ DX11GraphicsManager::internalSetDepthStencilState(const SPtr<DepthStencilState>&
 
   m_pDeviceContext->m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS,
                                                              stencilRef);
+}
+
+void
+DX11GraphicsManager::internalSetScissorRects(const Rect& scissorClip)
+{
+  const D3D11_RECT r = { static_cast<LONG>(scissorClip.min.x),
+                         static_cast<LONG>(scissorClip.min.y),
+                         static_cast<LONG>(scissorClip.max.x),
+                         static_cast<LONG>(scissorClip.max.y) };
+
+  m_pDeviceContext->m_pDeviceContext->RSSetScissorRects(1, &r);
 }
 
 void

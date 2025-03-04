@@ -28,6 +28,7 @@
 
 namespace shEngineSDK {
 class ProgramShader;
+class Texture2D;
 class InputLayout;
 class SamplerState;
 class BlendState;
@@ -76,6 +77,41 @@ class PhysicsApp : public BaseApp
   void
   onKeyReleased(const KEY::E key, const ModifierState modifier) override;
 
+  /**
+  *  @brief Override function to add functionallity when a mouse button is pressed.
+  *
+  *  @param MOUSE_INPUT::E mouseButton
+  *  @param ModifierState modifier
+  */
+  void
+  onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
+                       const ModifierState modifier) override;
+
+  /**
+  *  @brief Override function to add functionallity when a mouse button is released.
+  *
+  *  @param MOUSE_INPUT::E mouseButton
+  *  @param ModifierState modifier
+  */
+  void
+  onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
+                       const ModifierState modifier) override;
+
+  void
+  onMouseMove(const MouseMoveData& mouse) override;
+
+  void
+  onMouseWheel(const double delta, const ModifierState modifier) override;
+
+  void
+  onMouseHWheel(const double delta, const ModifierState modifier) override;
+
+  /**
+  *  @brief Override function to add functionallity on app destroy
+  */
+  void
+  onDestroy() override;
+
   bool
   checkCollision(const Box& box, Vector2& collisionNormal);
 
@@ -98,7 +134,7 @@ class PhysicsApp : public BaseApp
   ScreenDesc m_desc;
   UPtr<Pass> m_pPhysicsShader;
 
-  Vector<SPtr<Texture2D>> m_mainTarget;
+  Vector<SPtr<Texture2D>> m_targets;
 
   SPtr<ConstantBuffer> m_pVP;
   SPtr<ConstantBuffer> m_pBase;
@@ -115,6 +151,11 @@ class PhysicsApp : public BaseApp
   SPtr<Sprite> m_pSpriteBall;
 
   Camera m_camera;
+
+  Vector2 m_mousePosition;
+  float m_delta;
+  float m_hdelta;
+  bool m_bLeftClick;
 
   bool m_bShot = false;
   bool m_bRotLeft = false;

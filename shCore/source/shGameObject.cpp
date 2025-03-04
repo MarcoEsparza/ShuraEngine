@@ -99,8 +99,20 @@ GameObject::setScale(const Vector3& scale)
 }
 
 void
+GameObject::move(const Vector3& position)
+{
+  transform.getTransform() *= TranslationMatrix(position);
+}
+
+void
 GameObject::rotate(const Vector3& rotation, float angle)
 {
   transform.getTransform() *= MatrixRotationAxis(rotation, angle);
+}
+
+void
+GameObject::scale(const Vector3& scale)
+{
+  transform.getTransform() *= ScaleMatrix(scale);
 }
 }

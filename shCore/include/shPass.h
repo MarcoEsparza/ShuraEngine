@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/07
+*  @date    2025/02/19
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -44,12 +44,12 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Default constructor.
   */
-  Pass() = default;
+  FORCEINLINE Pass() = default;
 
   /**
   *  @brief Default destructor.
   */
-  ~Pass() = default;
+  ~Pass();
 
   /***************************************************************************/
   /*
@@ -112,6 +112,9 @@ class SH_CORE_EXPORT Pass
   */
   void
   setDepthStencilState(const DepthStencilDesc& dsDesc);
+
+  FORCEINLINE SPtr<ProgramShader>
+  getShader() const;
 
   /**
   *  @brief Add a constant buffer to the Vertex Shader Constant Buffer container.
@@ -256,5 +259,11 @@ Pass::setSamplerState(SPtr<SamplerState>& pSamplerLinear)
   if (pSamplerLinear) {
     m_pSamplerState = pSamplerLinear;
   }
+}
+
+FORCEINLINE SPtr<ProgramShader>
+Pass::getShader() const
+{
+  return m_pShader;
 }
 }

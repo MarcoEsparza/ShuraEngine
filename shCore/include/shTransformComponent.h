@@ -111,5 +111,9 @@ class SH_CORE_EXPORT TransformComponent : public Component
   *  @brief Transform data.
   */
   Transform m_transform;
+
+  Vector3 m_position;
+  Vector3 m_rotation;
+  Vector3 m_scale;
 };
 }

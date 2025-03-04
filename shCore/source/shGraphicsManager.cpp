@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/06
+*  @date    2025/02/11
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -91,11 +91,11 @@ GraphicsManager::createProgramShader(const String& fileName,
                                      psShaderModel);
 }
 
-SPtr<VertexBuffer>
-GraphicsManager::createVertexBuffer(const Vector<VertexData>& vertices, const uint32 usage)
-{
-  return internalCreateVertexBuffer(vertices, usage);
-}
+//SPtr<VertexBuffer>
+//GraphicsManager::createVertexBuffer(const Vector<VertexData>& vertices, const uint32 usage)
+//{
+//  return internalCreateVertexBuffer(vertices, usage);
+//}
 
 SPtr<IndexBuffer>
 GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint32 usage)
@@ -165,6 +165,24 @@ GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                       const uint32 dataSize)
 {
   internalUpdateConstantBuffer(pCBuffer, pData, dataSize);
+}
+
+void
+GraphicsManager::updateTexture2D(SPtr<Texture2D>& pTexture,
+                                 uint8* pData,
+                                 uint32 width,
+                                 uint32 bpp)
+{
+  internalUpdateTexture2D(pTexture,
+                          pData,
+                          width,
+                          bpp);
+}
+
+void
+GraphicsManager::setViewport(const Viewport& vp)
+{
+  internalSetViewport(vp);
 }
 
 void
@@ -258,6 +276,12 @@ GraphicsManager::setDepthStencilState(const SPtr<DepthStencilState>& pDepthStenc
                                       const uint8 stencilRef)
 {
   internalSetDepthStencilState(pDepthStencilState, stencilRef);
+}
+
+void
+GraphicsManager::setScissorRects(const Rect& scissorClip)
+{
+  internalSetScissorRects(scissorClip);
 }
 
 void

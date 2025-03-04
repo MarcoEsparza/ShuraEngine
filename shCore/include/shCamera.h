@@ -48,7 +48,7 @@ class SH_CORE_EXPORT Camera
   *  @param const float minZ
   *  @param const float maxZ
   */
-  Camera(const Vector3& camPos,
+  FORCEINLINE Camera(const Vector3& camPos,
          const Vector3& targetPos,
          const Vector3& upVector,
          const float halfFOV,
@@ -76,7 +76,7 @@ class SH_CORE_EXPORT Camera
   *  @param const float minZ
   *  @param const float maxZ
   */
-  Camera(const Vector3& camPos,
+  FORCEINLINE Camera(const Vector3& camPos,
          const Vector3& targetPos,
          const Vector3& upVector,
          const float width,
@@ -95,7 +95,7 @@ class SH_CORE_EXPORT Camera
   /**
   *  @brief Default destructor.
   */
-  virtual ~Camera() = default;
+  ~Camera() = default;
 
   /***************************************************************************/
   /*

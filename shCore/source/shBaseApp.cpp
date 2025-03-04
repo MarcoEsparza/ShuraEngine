@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/02/11
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -93,7 +93,7 @@ BaseApp::loadGraphicAPI()
 {
   // Select dll name
   String apiName = "";
-#ifdef SH_DEBUG_MODE
+#if SH_DEBUG_MODE == 1
   if (m_graphicAPI == GRAPHIC_API::kDX11) {
     apiName = "shDX11Graphicsd";
   }
@@ -112,7 +112,9 @@ BaseApp::loadGraphicAPI()
   // Load DLL
   DynamicLibrary myDLL(apiName);
   auto dllSymbol = reinterpret_cast<void(*)()>(myDLL.getSymbol("loadPlugin"));
-  SH_ASSERT(dllSymbol && "Could not load function");
+  if (!dllSymbol) {
+    SH_ASSERT(dllSymbol && "Could not load function");
+  }
   dllSymbol();
 }
 
@@ -156,18 +158,23 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
     else if (mouseButton.state == BUTTON_STATE::kReleased) {
       onMouseButtonReleased(mouseButton.button, mouseButton.modifiers);
     }
+  }
 
-    // Mouse raw
-    if (wndEvent.type == EVENT_TYPE::kMouseRaw) {
-      const auto& mouseRaw = wndEvent.data.mouseRaw;
-      onMouseRaw(mouseRaw);
-    }
+  // Mouse raw
+  if (wndEvent.type == EVENT_TYPE::kMouseRaw) {
+    const auto& mouseRaw = wndEvent.data.mouseRaw;
+    onMouseRaw(mouseRaw);
+  }
 
-    // Mouse wheel
-    if (wndEvent.type == EVENT_TYPE::kMouseWheel) {
-      const auto& mouseWheel = wndEvent.data.mouseWheel;
-      onMouseWheel(mouseWheel.delta, mouseWheel.modifiers);
-    }
+  // Mouse wheel
+  if (wndEvent.type == EVENT_TYPE::kMouseWheel) {
+    const auto& mouseWheel = wndEvent.data.mouseWheel;
+    onMouseWheel(mouseWheel.delta, mouseWheel.modifiers);
+  }
+
+  if (wndEvent.type == EVENT_TYPE::kMouseHWheel) {
+    const auto& mouseHWheel = wndEvent.data.mouseHWheel;
+    onMouseHWheel(mouseHWheel.delta, mouseHWheel.modifiers);
   }
 }
 
