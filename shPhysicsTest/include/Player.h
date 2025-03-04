@@ -179,6 +179,7 @@ class Ball
 
   Vector2 m_velocity;
   Vector2 m_position;
+  Vector2 m_accel;
 
   float m_eulerSpeed = 0.0f;
   float m_eulerGravity = 0.0f;

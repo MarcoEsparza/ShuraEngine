@@ -20,6 +20,7 @@
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shTime.h"
+#include "imgui_impl_shura.h"
 
 #include "shShader.h"
 #include "shInputLayout.h"
@@ -40,6 +41,12 @@ PhysicsApp::onCreate()
 {
   initGraphicAssets();
   initCamera();
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui_ImplShura_Init(getScreen());
+
+  ImGui::StyleColorsDark();
 
   m_rotSpeed = 25.0f;
 
@@ -66,11 +73,28 @@ PhysicsApp::onCreate()
   g_graphicsMan().updateConstantBuffer(m_pTurret,
                                        &m_turretTransform,
                                        sizeof(Matrix4));
+
+  m_targets.push_back(g_graphicsMan().getMainRenderTargetView());
 }
 
 void
 PhysicsApp::onUpdate()
 {
+  ImGui_ImplShura_NewFrame(m_mousePosition,
+                           m_bLeftClick,
+                           m_delta,
+                           m_hdelta,
+                           false,
+                           KEY::kKeysMax);
+  ImGui::NewFrame();
+
+  //ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(250.0f, 150.0f));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
+  ImGui::Begin("Physics", 0);
+  ImGui::PopStyleColor();
+  ImGui::End();
+
   Vector2 direction(0.0f, 0.0f);
 
   const float rotAngle = m_rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
@@ -134,9 +158,7 @@ PhysicsApp::onFixedUpdate()
 void
 PhysicsApp::onRender()
 {
-  g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
-                                   g_graphicsMan().getMainDepthStencil(),
-                                   1);
+  g_graphicsMan().setRenderTargets(m_targets, g_graphicsMan().getMainDepthStencil());
   
   m_pPhysicsShader->setPass();
   g_graphicsMan().vsSetConstantBuffers(m_pVP);
@@ -161,6 +183,9 @@ PhysicsApp::onRender()
     g_graphicsMan().setShaderResourceView(ball->m_sprite->m_pTexture);
     g_graphicsMan().drawIndexed(static_cast<uint32>(ball->m_sprite->m_indices.size()), 0, 0);
   }
+
+  ImGui::Render();
+  ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
 
 void
@@ -206,6 +231,58 @@ PhysicsApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   }
 }
 
+void
+PhysicsApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
+                                 const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (mouseButton == MOUSE_INPUT::kLeft)
+  {
+    m_bLeftClick = true;
+  }
+}
+
+void
+PhysicsApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
+                                  const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+
+  if (mouseButton == MOUSE_INPUT::kLeft)
+  {
+    m_bLeftClick = false;
+  }
+}
+
+void
+PhysicsApp::onMouseMove(const MouseMoveData& mouse)
+{
+  m_mousePosition.x = mouse.x;
+  m_mousePosition.y = mouse.y;
+}
+
+void
+PhysicsApp::onMouseWheel(const double delta, const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+  m_delta = static_cast<float>(delta);
+}
+
+void
+PhysicsApp::onMouseHWheel(const double delta, const ModifierState modifier)
+{
+  SH_UNREFERENCED_PARAMETER(modifier);
+  m_hdelta = static_cast<float>(delta);
+}
+
+void
+PhysicsApp::onDestroy()
+{
+  ImGui_ImplShura_Shutdown();
+  ImGui::DestroyContext();
+}
+
 bool
 PhysicsApp::checkCollision(const Box& box, Vector2& collisionNormal)
 {
@@ -233,38 +310,23 @@ PhysicsApp::checkBallCollision(const SPtr<Ball>& ball)
   const float limit = m_desc.width * 0.5f;
 
   if (ballTopPos >= limit) {
-    //ball->m_position.x = ball->m_position.x;
-    //ball->m_position.y = ball->m_position.y - ball->m_radius;
     ball->m_velocity.y = -ball->m_velocity.y;
-    ball->m_previousPosition.y = ball->m_position.y - ball->m_velocity.y *
-                                 g_time().FIXED_DELTA_TIME;
+    ball->m_previousPosition.y = 2.0f * ball->m_position.y - ball->m_previousPosition.y;
   }
 
   if (ballBottomPos <= -limit) {
-    //ball->m_position.x = ball->m_position.x;
-    //ball->m_position.y = ball->m_position.y + ball->m_radius;
     ball->m_velocity.y = -ball->m_velocity.y;
-    ball->m_previousPosition.y = -ball->m_previousPosition.y;
-    ball->m_previousPosition.y = ball->m_position.y - ball->m_velocity.y *
-                                 g_time().FIXED_DELTA_TIME;
+    ball->m_previousPosition.y = 2.0f * ball->m_position.y - ball->m_previousPosition.y;
   }
 
   if (ballLeftPos <= -limit) {
-    //ball->m_position.x = ball->m_position.x + ball->m_radius;
-    //ball->m_position.y = ball->m_position.y;
     ball->m_velocity.x = -ball->m_velocity.x;
-    ball->m_previousPosition.x = -ball->m_previousPosition.x;
-    ball->m_previousPosition.x = ball->m_position.x - ball->m_velocity.x *
-                                 g_time().FIXED_DELTA_TIME;
+    ball->m_previousPosition.x = 2.0f * ball->m_position.x + ball->m_previousPosition.x;
   }
 
   if (ballRightPos >= limit) {
-    //ball->m_position.x = ball->m_position.x - ball->m_radius;
-    //ball->m_position.y = ball->m_position.y;
     ball->m_velocity.x = -ball->m_velocity.x;
-    ball->m_previousPosition.x = -ball->m_previousPosition.x;
-    ball->m_previousPosition.x = ball->m_position.x - ball->m_velocity.x *
-                                 g_time().FIXED_DELTA_TIME;
+    ball->m_previousPosition.x = 2.0f * ball->m_position.x - ball->m_previousPosition.x;
   }
 }
 
@@ -281,7 +343,7 @@ PhysicsApp::initGraphicAssets()
   setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
 
   m_pPhysicsShader = make_unique<Pass>();
-  m_pPhysicsShader->setShaderInfo("resources/PhysicsShader.hlsl",
+  m_pPhysicsShader->setShaderInfo("resources/shaders/PhysicsShader.hlsl",
                                   "main",
                                   "mainPS",
                                   "vs_5_0",
@@ -355,7 +417,7 @@ PhysicsApp::spawnBall()
   newBall->m_verletSpeed = 3000.0f;
 
   newBall->m_eulerGravity = -1.0f;
-  newBall->m_verletGravity = -150.0f;
+  newBall->m_verletGravity = -2.81f;
 
   newBall->m_mass = 1.0f;
   newBall->m_dragC = 0.6f;
@@ -376,6 +438,7 @@ PhysicsApp::spawnBall()
   }
   else if (m_integration == INTEGRATION::kVerlet) {
     newBall->m_velocity = newDirection * newBall->m_verletSpeed;
+    newBall->m_accel = newDirection * newBall->m_verletSpeed;
   }
 
   newBall->m_previousPosition = newBall->m_position - newBall->m_velocity *

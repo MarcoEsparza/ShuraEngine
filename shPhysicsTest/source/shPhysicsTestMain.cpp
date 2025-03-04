@@ -35,7 +35,7 @@ int main()
   desc.positionY = 0;
   desc.width = 800;
   desc.height = 800;
-  desc.iconPath = "M:/ShuraEngine/Repo/ShuraEngine/resources/ShuraIcon.ico";
+  desc.iconPath = "resources/ShuraIcon.ico";
 
   PhysicsApp app(desc);
   app.run();
