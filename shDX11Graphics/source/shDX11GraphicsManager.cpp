@@ -140,7 +140,7 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   D3D_FEATURE_LEVEL selectedFeatureLevel;
   
   uint32 deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#if SH_DEBUG_MODE
+#if SH_DEBUG_MODE == 1
   deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -921,6 +921,14 @@ DX11GraphicsManager::internalSetShaderResourceView(const SPtr<Texture2D>& pShade
                                                    const uint32 startSlot,
                                                    const uint32 numViews)
 {
+  if (pShaderRV == nullptr) {
+    ID3D11ShaderResourceView* dx11SRV = nullptr;
+    m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
+                                                             numViews,
+                                                             &dx11SRV);
+    return;
+  }
+
   auto pShaderTexture = reinterpret_pointer_cast<DX11Texture2D>(pShaderRV);
 
   m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,

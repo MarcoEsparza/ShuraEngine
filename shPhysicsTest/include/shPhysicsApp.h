@@ -156,6 +156,7 @@ class PhysicsApp : public BaseApp
   float m_delta;
   float m_hdelta;
   bool m_bLeftClick;
+  Vector<String> m_integrationList;
 
   bool m_bShot = false;
   bool m_bRotLeft = false;

@@ -93,6 +93,10 @@ PhysicsApp::onUpdate()
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Physics", 0);
   ImGui::PopStyleColor();
+
+  const char* items[] = { "Euler", "Verlet" };
+  //ImGui::ListBox("Integration: ", 0, items, 2);
+
   ImGui::End();
 
   Vector2 direction(0.0f, 0.0f);
@@ -146,10 +150,10 @@ PhysicsApp::onFixedUpdate()
       if (ball) {
         checkBallCollision(ball);
     
-         ball->update(m_integration);
-         if (ball->m_bDestroy) {
-           m_activeBalls.erase(m_activeBalls.begin());
-         }
+        ball->update(m_integration);
+        if (ball->m_bDestroy) {
+          m_activeBalls.erase(m_activeBalls.begin());
+        }
       }
     }
   }
@@ -414,10 +418,10 @@ PhysicsApp::spawnBall()
 
   // This values are exposed here to test
   newBall->m_eulerSpeed = 5000.0f;
-  newBall->m_verletSpeed = 3000.0f;
+  newBall->m_verletSpeed = 10.0f;
 
   newBall->m_eulerGravity = -1.0f;
-  newBall->m_verletGravity = -2.81f;
+  newBall->m_verletGravity = -1.5f;
 
   newBall->m_mass = 1.0f;
   newBall->m_dragC = 0.6f;
@@ -441,8 +445,7 @@ PhysicsApp::spawnBall()
     newBall->m_accel = newDirection * newBall->m_verletSpeed;
   }
 
-  newBall->m_previousPosition = newBall->m_position - newBall->m_velocity *
-                                g_time().FIXED_DELTA_TIME;
+  newBall->m_previousPosition = newBall->m_position - newBall->m_velocity;
 
   m_activeBalls.push_back(newBall);
 }

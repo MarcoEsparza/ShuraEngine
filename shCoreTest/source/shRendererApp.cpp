@@ -314,6 +314,10 @@ RendererApp::onRender()
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   g_renderMan().drawStaticMeshUnionInScene(smucList);
 
+  graphMan.setShaderResourceView(nullptr, 2);
+  graphMan.setShaderResourceView(nullptr, 3);
+  graphMan.setShaderResourceView(nullptr, 4);
+
   // Ambient Occlusion pass
   for (auto& target : m_aoTarget) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
@@ -326,8 +330,10 @@ RendererApp::onRender()
 
   graphMan.draw(3, 0);
 
+  graphMan.setShaderResourceView(nullptr, 1);
+
   // Horizontal Blur pass
-  /*for (auto& target : m_hbTarget) {
+  for (auto& target : m_hbTarget) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_hbTarget, graphMan.getMainDepthStencil());
@@ -335,18 +341,18 @@ RendererApp::onRender()
 
   graphMan.setShaderResourceView(m_aoTarget[0], 0);
 
-  graphMan.draw(3, 0);*/
+  graphMan.draw(3, 0);
 
   // Vetical Blur pass
-  /*for (auto& target : m_vbTarget) {
+  for (auto& target : m_vbTarget) {
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_vbTarget, graphMan.getMainDepthStencil());
   m_pVBlurShader->setPass();
 
-  graphMan.setShaderResourceView(m_aoTarget[0], 0);
+  graphMan.setShaderResourceView(m_hbTarget[0], 0);
 
-  graphMan.draw(3, 0);*/
+  graphMan.draw(3, 0);
 
   // Deferred pass
   graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
@@ -355,7 +361,7 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(m_targets[0], 0);
   graphMan.setShaderResourceView(m_targets[1], 1);
   graphMan.setShaderResourceView(m_targets[2], 2);
-  graphMan.setShaderResourceView(m_aoTarget[0], 3);
+  graphMan.setShaderResourceView(m_vbTarget[0], 3);
   
   graphMan.draw(3, 0);
 
@@ -459,6 +465,9 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
 
   if (key == KEY::kC) {
     m_pBasicShader->compileShader();
+    m_pAOShader->compileShader();
+    m_pHBlurShader->compileShader();
+    m_pVBlurShader->compileShader();
     m_pDeferredShader->compileShader();
   }
 
@@ -568,7 +577,7 @@ RendererApp::initGraphicAssets()
   m_pAOShader->compileShader();
 
   m_pHBlurShader = make_unique<Pass>();
-  m_pHBlurShader->setShaderInfo("resources/shaders/AOShader.hlsl",
+  m_pHBlurShader->setShaderInfo("resources/shaders/HBlurShader.hlsl",
                                 "main",
                                 "mainPS",
                                 "vs_5_0",
@@ -576,7 +585,7 @@ RendererApp::initGraphicAssets()
   m_pHBlurShader->compileShader();
 
   m_pVBlurShader = make_unique<Pass>();
-  m_pVBlurShader->setShaderInfo("resources/shaders/AOShader.hlsl",
+  m_pVBlurShader->setShaderInfo("resources/shaders/VBlurShader.hlsl",
                                 "main",
                                 "mainPS",
                                 "vs_5_0",
@@ -624,7 +633,7 @@ RendererApp::initGraphicAssets()
 
   // Fill pass info
   m_pBasicShader->generateInputLayout();
-  auto pSamplerLinear = g_graphicsMan().createSamplerState();
+  auto pSamplerLinear = graphMan.createSamplerState();
   m_pBasicShader->setSamplerState(pSamplerLinear);
   m_pBasicShader->setRasterizerState(rasterDesc);
   m_pBasicShader->setBlendState(blendDesc);
