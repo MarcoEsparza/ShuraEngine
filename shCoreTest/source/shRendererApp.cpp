@@ -631,6 +631,22 @@ RendererApp::initGraphicAssets()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
+  DepthStencilDesc planeDepthSDesc = {};
+  planeDepthSDesc.depthEnable = false;
+  planeDepthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
+  planeDepthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+  planeDepthSDesc.stencilEnable = false;
+  planeDepthSDesc.stencilReadMask = 0xFF;
+  planeDepthSDesc.stencilWriteMask = 0xFF;
+  planeDepthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
+  planeDepthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
+  planeDepthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
+  planeDepthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
+  planeDepthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
+  planeDepthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
+  planeDepthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
+  planeDepthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
+
   // Fill pass info
   m_pBasicShader->generateInputLayout();
   auto pSamplerLinear = graphMan.createSamplerState();
@@ -641,15 +657,19 @@ RendererApp::initGraphicAssets()
 
   m_pDeferredShader->generateInputLayout();
   m_pDeferredShader->setSamplerState(pSamplerLinear);
+  m_pDeferredShader->setDepthStencilState(planeDepthSDesc);
 
   m_pAOShader->generateInputLayout();
   m_pAOShader->setSamplerState(pSamplerLinear);
+  m_pAOShader->setDepthStencilState(planeDepthSDesc);
 
   m_pHBlurShader->generateInputLayout();
   m_pHBlurShader->setSamplerState(pSamplerLinear);
+  m_pHBlurShader->setDepthStencilState(planeDepthSDesc);
 
   m_pVBlurShader->generateInputLayout();
   m_pVBlurShader->setSamplerState(pSamplerLinear);
+  m_pVBlurShader->setDepthStencilState(planeDepthSDesc);
 
   // Create and set render targets for deferred rendering
   auto depthTarget = graphMan.createTexture2D(m_desc.width,
