@@ -16,11 +16,11 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{d6cf9547-25df-47a7-97b3-1d08d861c862}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{175ef3c2-c2b3-4842-b1ea-e4d18733609c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\ImGui">
       <UniqueIdentifier>{66a0e1af-8b2a-407e-8982-6d54095f9b42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ImGui">
+      <UniqueIdentifier>{175ef3c2-c2b3-4842-b1ea-e4d18733609c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +51,9 @@
     <ClCompile Include="source\imgui_widgets.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="source\shSprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shPhysicsApp.h">
@@ -60,25 +63,34 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\imconfig.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui_internal.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imstb_rectpack.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imstb_textedit.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imstb_truetype.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui_impl_shura.h">
-      <Filter>ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSprite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shPivot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSpringBall.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

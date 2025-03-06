@@ -178,6 +178,7 @@
     <ClCompile Include="source\Player.cpp" />
     <ClCompile Include="source\shPhysicsApp.cpp" />
     <ClCompile Include="source\shPhysicsTestMain.cpp" />
+    <ClCompile Include="source\shSprite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\imconfig.h" />
@@ -189,6 +190,9 @@
     <ClInclude Include="include\imstb_truetype.h" />
     <ClInclude Include="include\Player.h" />
     <ClInclude Include="include\shPhysicsApp.h" />
+    <ClInclude Include="include\shPivot.h" />
+    <ClInclude Include="include\shSpringBall.h" />
+    <ClInclude Include="include\shSprite.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

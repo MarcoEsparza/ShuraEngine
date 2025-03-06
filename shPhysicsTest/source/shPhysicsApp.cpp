@@ -314,23 +314,23 @@ PhysicsApp::checkBallCollision(const SPtr<Ball>& ball)
   const float limit = m_desc.width * 0.5f;
 
   if (ballTopPos >= limit) {
+    ball->m_previousPosition.y = ball->m_position.y + ball->m_velocity.y;
     ball->m_velocity.y = -ball->m_velocity.y;
-    ball->m_previousPosition.y = 2.0f * ball->m_position.y - ball->m_previousPosition.y;
   }
 
   if (ballBottomPos <= -limit) {
+    ball->m_previousPosition.y = ball->m_position.y + ball->m_velocity.y;
     ball->m_velocity.y = -ball->m_velocity.y;
-    ball->m_previousPosition.y = 2.0f * ball->m_position.y - ball->m_previousPosition.y;
   }
 
   if (ballLeftPos <= -limit) {
+    ball->m_previousPosition.x = ball->m_position.x + ball->m_velocity.x;
     ball->m_velocity.x = -ball->m_velocity.x;
-    ball->m_previousPosition.x = 2.0f * ball->m_position.x + ball->m_previousPosition.x;
   }
 
   if (ballRightPos >= limit) {
+    ball->m_previousPosition.x = ball->m_position.x + ball->m_velocity.x;
     ball->m_velocity.x = -ball->m_velocity.x;
-    ball->m_previousPosition.x = 2.0f * ball->m_position.x - ball->m_previousPosition.x;
   }
 }
 
@@ -418,7 +418,7 @@ PhysicsApp::spawnBall()
 
   // This values are exposed here to test
   newBall->m_eulerSpeed = 5000.0f;
-  newBall->m_verletSpeed = 10.0f;
+  newBall->m_verletSpeed = 30.0f;
 
   newBall->m_eulerGravity = -1.0f;
   newBall->m_verletGravity = -1.5f;

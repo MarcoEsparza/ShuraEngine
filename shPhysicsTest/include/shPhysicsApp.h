@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shPhysicsApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/11
-*  @brief   
+*  @date    2025/03/05
+*  @brief   App for physics simulation.
 *
-*  
+*  App for physics simulation.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shPrerequisitesPhysics.h"
 #include "shBaseApp.h"
@@ -27,6 +27,11 @@
 #include "shBoxAAB.h"
 
 namespace shEngineSDK {
+/*****************************************************************************/
+/*
+*  Foward declarations
+*/
+/*****************************************************************************/
 class ProgramShader;
 class Texture2D;
 class InputLayout;
@@ -35,45 +40,85 @@ class BlendState;
 class RasterizerState;
 class ConstantBuffer;
 
+/**
+*  @brief Struct for View Projection.
+*/
 struct VP
 {
   Matrix4 view = Matrix4::IDENTITY;
   Matrix4 proj = Matrix4::IDENTITY;
 };
 
+/**
+*  @brief Struct to determine the max and min positions of a 2d box.
+*/
 struct Box
 {
   Vector2 min;
   Vector2 max;
 };
 
+/**
+*  @brief App for physics simulation.
+*/
 class PhysicsApp : public BaseApp
 {
  public:
+  /**
+  *  @brief Constructor to initialize app.
+  * 
+  *  @param ScreenDesc& desc,
+  *  @param GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
+  *  @param SampleDesc& sample = SampleDesc(1, 1))
+  */
   PhysicsApp(const ScreenDesc& desc,
              const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
              const SampleDesc& sample = SampleDesc(1, 1))
              : BaseApp(desc, dllGAPI, sample),
                m_desc(desc) {}
 
+  /**
+  *  @brief Default destructor.
+  */
   ~PhysicsApp() = default;
 
  protected:
+  /**
+  *  @brief Override to add functionality when app creates. This will only be
+  *         called once.
+  */
   void
   onCreate() override;
 
+  /**
+  *  @brief Override to add functionality every frame.
+  */
   void
   onUpdate() override;
 
+  /**
+  *  @brief Override to update objects independant from frame rate.
+  */
   void
   onFixedUpdate() override;
 
+  /**
+  *  @brief Override to do the app render pipeline.
+  */
   void
   onRender() override;
 
+  /**
+  *  @brief Override to set keyboard button event. This will be called every
+  *         time a keyboard button is pressed.
+  */
   void
   onKeyPressed(const KEY::E key, const ModifierState modifier) override;
 
+  /**
+  *  @brief Override to set keyboard button event. This will be called every
+  *         time a keyboard button is released.
+  */
   void
   onKeyReleased(const KEY::E key, const ModifierState modifier) override;
 
@@ -97,12 +142,24 @@ class PhysicsApp : public BaseApp
   onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
                        const ModifierState modifier) override;
 
+  /**
+  *  @brief Override to set mouse move event. This will be called every time
+  *         the mouse move.
+  */
   void
   onMouseMove(const MouseMoveData& mouse) override;
 
+  /**
+  *  @brief Override to set mouse wheel event. This will be called every time
+  *         the mouse wheel is used.
+  */
   void
   onMouseWheel(const double delta, const ModifierState modifier) override;
 
+  /**
+  *  @brief Override to set mouse wheel event. This will be called every time
+  *         the mouse wheel is used.
+  */
   void
   onMouseHWheel(const double delta, const ModifierState modifier) override;
 
@@ -112,59 +169,161 @@ class PhysicsApp : public BaseApp
   void
   onDestroy() override;
 
+  /**
+  *  @brief Check if a ball made a collision with a border.
+  */
   bool
   checkCollision(const Box& box, Vector2& collisionNormal);
 
+  /**
+  *  @brief Check if a ball made a collision with a border.
+  */
   void
   checkBallCollision(const SPtr<Ball>& ball);
 
+  /**
+  *  @brief Simulate player bounce.
+  */
   void
   playerBounce(Vector2& collisionNormal);
 
+  /**
+  *  @brief Initialize the app graphic assets.
+  */
   void
   initGraphicAssets();
 
+  /**
+  *  @brief Initialize the app camera.
+  */
   void
   initCamera();
 
+  /**
+  *  @brief Spawns balls and adds them to the scene.
+  */
   void
   spawnBall();
 
  private:
+  /**
+  *  @brief Screen descriptor.
+  */
   ScreenDesc m_desc;
+
+  /**
+  *  @brief Shader pass.
+  */
   UPtr<Pass> m_pPhysicsShader;
 
+  /**
+  *  @brief Render targets.
+  */
   Vector<SPtr<Texture2D>> m_targets;
 
+  /**
+  *  @brief View projection constant buffer.
+  */
   SPtr<ConstantBuffer> m_pVP;
+
+  /**
+  *  @brief Constant buffer for turret base.
+  */
   SPtr<ConstantBuffer> m_pBase;
+
+  /**
+  *  @brief Constant buffer for turret.
+  */
   SPtr<ConstantBuffer> m_pTurret;
 
+  /**
+  *  @brief Turret base transform.
+  */
   Matrix4 m_baseTransform = Matrix4::IDENTITY;
+
+  /**
+  *  @brief Turret transform.
+  */
   Matrix4 m_turretTransform = Matrix4::IDENTITY;
 
+  /**
+  *  @brief Player.
+  */
   SPtr<Player> m_player;
+
+  /**
+  *  @brief Vector of spawned balls.
+  */
   Vector<SPtr<Ball>> m_activeBalls;
 
+  /**
+  *  @brief Turret base sprite.
+  */
   SPtr<Sprite> m_pSpriteBase;
+
+  /**
+  *  @brief Turret sprite.
+  */
   SPtr<Sprite> m_pSpriteCannon;
+
+  /**
+  *  @brief Ball sprite.
+  */
   SPtr<Sprite> m_pSpriteBall;
 
+  /**
+  *  @brief App Camera.
+  */
   Camera m_camera;
 
+  /**
+  *  @brief Current mouse position.
+  */
   Vector2 m_mousePosition;
-  float m_delta;
-  float m_hdelta;
-  bool m_bLeftClick;
-  Vector<String> m_integrationList;
 
+  /**
+  *  @brief Wheel delta.
+  */
+  float m_delta;
+
+  /**
+  *  @brief Wheel horizontal delta.
+  */
+  float m_hdelta;
+
+  /**
+  *  @brief Mouse left click.
+  */
+  bool m_bLeftClick;
+
+  /**
+  *  @brief Bool to check if user want to shot.
+  */
   bool m_bShot = false;
+
+  /**
+  *  @brief Enable rotation of the turret to the left.
+  */
   bool m_bRotLeft = false;
+
+  /**
+  *  @brief Enable rotation of the turret to the right.
+  */
   bool m_bRotRight = false;
+
+  /**
+  *  @brief Rotation speed.
+  */
   float m_rotSpeed = 0.0f;
 
+  /**
+  *  @brief Rotation accumulator.
+  */
   float m_rotAccumulator = 0.0f;
 
+  /**
+  *  @brief Wich integration is using.
+  */
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
 };
 }

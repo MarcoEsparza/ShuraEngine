@@ -1,9 +1,9 @@
 /*************************************************************/
 /*
-*  @file    Player.h
+*  @file    shSprite.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/13
-*  @brief
+*  @date    2025/03/05
+*  @brief   
 *
 *
 *
@@ -24,6 +24,7 @@
 #include "shMatrix4.h"
 #include "shSphere.h"
 #include "shPath.h"
+#include "shSprite.h"
 
 namespace shEngineSDK {
 class VertexBuffer;
@@ -53,36 +54,6 @@ enum E
 };
 }
 
-class Sprite
-{
- public:
-  Sprite() = default;
-  Sprite(const Path& filePath, const Vector2& min, const Vector2& max);
-  ~Sprite() = default;
-
-  void
-  setSprite(const Path& filePath, const Vector2& min, const Vector2& max);
-
-  SPtr<VertexBuffer> m_pVB;
-  SPtr<IndexBuffer> m_pIB;
-  SPtr<Texture2D> m_pTexture;
-  Vector<VertexData> m_vertices;
-  Vector<uint32> m_indices;
-};
-
-class Arrow
-{
- public:
-  Arrow() = default;
-  Arrow(const Path& filePath, const Vector2& min, const Vector2& max);
-  ~Arrow() = default;
-
- public:
-  SPtr<Sprite> m_sprite;
-  Matrix4 m_position = Matrix4::IDENTITY;
-  SPtr<ConstantBuffer> m_modelBuffer;
-};
-
 class Player
 {
  public:
@@ -108,9 +79,6 @@ class Player
             const float radius);
 
   void
-  setArrow(const SPtr<Arrow>& arrow);
-
-  void
   move(const Vector2& direction);
 
   Vector2
@@ -128,9 +96,6 @@ class Player
   void
   updateModelBuffer();
 
-  void
-  updateArrow();
-
   /*const Sprite&
   getSprite() const { return m_sprite; }*/
 
@@ -147,7 +112,6 @@ class Player
   float m_dragC;
   float m_radius;
 
-  SPtr<Arrow> m_pDirArrow;
   DIRECTION::E m_direction = DIRECTION::kRight;
 
   Matrix4 m_transform = Matrix4::IDENTITY;
