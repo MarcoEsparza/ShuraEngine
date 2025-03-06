@@ -326,7 +326,7 @@ class PhysicsApp : public BaseApp
   */
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
 
-  uint32 m_intIndex = 0;
+  int32 m_intIndex = 0;
   Vector<String> m_intList;
 };
 }

@@ -97,19 +97,31 @@ PhysicsApp::onUpdate()
   ImGui::Begin("Physics", 0);
   ImGui::PopStyleColor();
 
-  if (ImGui::BeginCombo("Integration:", m_intList[m_intIndex].data())) {
-    for (uint8 i = 0; i < m_intList.size(); ++i) {
-      const bool isSelected = (m_intIndex == i);
-      if (ImGui::Selectable(m_intList[i].data()), isSelected) {
-        m_intIndex = i;
-      }
-    }
-    ImGui::EndCombo();
-  }
+  const char* items = "Euler\0Verlet";
+  const char* text = "Integration";
+
+  ImGui::Combo(text,
+               &m_intIndex,
+               items,
+               static_cast<int32>(m_intList.size()));
+
+  ImGui::Text("Press 'space' to shoot");
+  ImGui::Spacing();
+  ImGui::Text("Press '<- ' button to rotate left");
+  ImGui::Spacing();
+  ImGui::Text("Press '-> ' button to rotate right");
+
   ImGui::End();
 
   if (m_intIndex != static_cast<uint32>(m_integration)) {
     m_integration = static_cast<INTEGRATION::E>(m_intIndex);
+
+    if (m_integration == INTEGRATION::kVerlet) {
+      setBackgroundColor(LinearColor(0.5f, 1.0f, 0.5f));
+    }
+    else if (m_integration == INTEGRATION::kEuler) {
+      setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
+    }
   }
 
   Vector2 direction(0.0f, 0.0f);
