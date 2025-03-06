@@ -208,7 +208,7 @@ Ball::simulateVerlet()
   const Vector2 gravityForce = m_accel + gravity;
   Vector2 tempPos = m_position;
   m_velocity = (m_position - m_previousPosition);
-  Vector2 dragForce = m_velocity * (1.0f - m_dragC);
+  Vector2 dragForce = m_velocity * (-m_dragC);
 
   m_position += dragForce + gravityForce;
   m_previousPosition = tempPos;

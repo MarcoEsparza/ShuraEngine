@@ -75,6 +75,9 @@ PhysicsApp::onCreate()
                                        sizeof(Matrix4));
 
   m_targets.push_back(g_graphicsMan().getMainRenderTargetView());
+
+  m_intList.push_back("Euler");
+  m_intList.push_back("Verlet");
 }
 
 void
@@ -94,10 +97,20 @@ PhysicsApp::onUpdate()
   ImGui::Begin("Physics", 0);
   ImGui::PopStyleColor();
 
-  const char* items[] = { "Euler", "Verlet" };
-  //ImGui::ListBox("Integration: ", 0, items, 2);
-
+  if (ImGui::BeginCombo("Integration:", m_intList[m_intIndex].data())) {
+    for (uint8 i = 0; i < m_intList.size(); ++i) {
+      const bool isSelected = (m_intIndex == i);
+      if (ImGui::Selectable(m_intList[i].data()), isSelected) {
+        m_intIndex = i;
+      }
+    }
+    ImGui::EndCombo();
+  }
   ImGui::End();
+
+  if (m_intIndex != static_cast<uint32>(m_integration)) {
+    m_integration = static_cast<INTEGRATION::E>(m_intIndex);
+  }
 
   Vector2 direction(0.0f, 0.0f);
 
@@ -315,21 +328,25 @@ PhysicsApp::checkBallCollision(const SPtr<Ball>& ball)
 
   if (ballTopPos >= limit) {
     ball->m_previousPosition.y = ball->m_position.y + ball->m_velocity.y;
+    ball->m_accel.y = -ball->m_accel.y;
     ball->m_velocity.y = -ball->m_velocity.y;
   }
 
   if (ballBottomPos <= -limit) {
     ball->m_previousPosition.y = ball->m_position.y + ball->m_velocity.y;
+    ball->m_accel.y = -ball->m_accel.y;
     ball->m_velocity.y = -ball->m_velocity.y;
   }
 
   if (ballLeftPos <= -limit) {
     ball->m_previousPosition.x = ball->m_position.x + ball->m_velocity.x;
+    ball->m_accel.x = -ball->m_accel.x;
     ball->m_velocity.x = -ball->m_velocity.x;
   }
 
   if (ballRightPos >= limit) {
     ball->m_previousPosition.x = ball->m_position.x + ball->m_velocity.x;
+    ball->m_accel.x = -ball->m_accel.x;
     ball->m_velocity.x = -ball->m_velocity.x;
   }
 }
@@ -376,11 +393,28 @@ PhysicsApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
+  DepthStencilDesc depthSDesc = {};
+  depthSDesc.depthEnable = true;
+  depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
+  depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+  depthSDesc.stencilEnable = true;
+  depthSDesc.stencilReadMask = 0xFF;
+  depthSDesc.stencilWriteMask = 0xFF;
+  depthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
+  depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
+  depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
+  depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
+  depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
+  depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
+  depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
+
   auto pSamplerLinear = g_graphicsMan().createSamplerState();
   m_pPhysicsShader->setSamplerState(pSamplerLinear);
   m_pPhysicsShader->generateInputLayout();
   m_pPhysicsShader->setRasterizerState(rasterDesc);
   m_pPhysicsShader->setBlendState(blendDesc);
+  m_pPhysicsShader->setDepthStencilState(depthSDesc);
 }
 
 void
@@ -418,7 +452,7 @@ PhysicsApp::spawnBall()
 
   // This values are exposed here to test
   newBall->m_eulerSpeed = 5000.0f;
-  newBall->m_verletSpeed = 30.0f;
+  newBall->m_verletSpeed = 50.0f;
 
   newBall->m_eulerGravity = -1.0f;
   newBall->m_verletGravity = -1.5f;

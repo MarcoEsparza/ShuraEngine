@@ -325,5 +325,8 @@ class PhysicsApp : public BaseApp
   *  @brief Wich integration is using.
   */
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
+
+  uint32 m_intIndex = 0;
+  Vector<String> m_intList;
 };
 }
