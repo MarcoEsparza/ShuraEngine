@@ -26,7 +26,7 @@ namespace shEngineSDK {
 */
 /*****************************************************************************/
 
-const float Time::FIXED_DELTA_TIME = 0.02f;
+const float Time::FIXED_DELTA_TIME = 1.0f / 60.0f;
 
 Time::Time()
 {

@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/07
+*  @date    2025/03/05
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -205,16 +205,16 @@ class RendererApp : public BaseApp
   /**
   *  @brief First pass.
   */
-  UPtr<Pass> m_pBasicShader;
+  //UPtr<Pass> m_pBasicShader;
 
   /**
   *  @brief Second pass.
   */
-  UPtr<Pass> m_pDeferredShader;
-
-  UPtr<Pass> m_pAOShader;
-  UPtr<Pass> m_pHBlurShader;
-  UPtr<Pass> m_pVBlurShader;
+  //UPtr<Pass> m_pDeferredShader;
+  
+  //UPtr<Pass> m_pAOShader;
+  //UPtr<Pass> m_pHBlurShader;
+  //UPtr<Pass> m_pVBlurShader;
 
   /**
   *  @brief Targets for first pass.
@@ -274,6 +274,11 @@ class RendererApp : public BaseApp
   *  @brief Is left mouse button clicked?
   */
   bool m_bLeftClick = false;
+
+  /**
+  *  @brief Is right mouse button clicked?
+  */
+  bool m_bRightClick = false;
 
   /**
   *  @brief Last mouse position.
@@ -348,6 +353,10 @@ class RendererApp : public BaseApp
   KEY::E m_key;
   bool m_bKeyTest;
   bool m_testingBox = false;
+
+  Vector3 m_modelPos;
+  Vector3 m_modelRot;
+  Vector3 m_modelScale;
 
   /**
   *  @brief Light structure.

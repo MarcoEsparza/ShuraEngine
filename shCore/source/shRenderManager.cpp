@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/04
+*  @date    2025/03/05
 *  @brief   Render module.
 *
 *  Render module.
@@ -22,10 +22,55 @@
 #include "shMeshComponent.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
+#include "shPass.h"
 
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+RenderManager::~RenderManager()
+{
+  m_passes.clear();
+}
+
+void
+RenderManager::createPass(const String& passName)
+{
+  auto pPass = make_shared<Pass>();
+  m_passes[passName] = pPass;
+}
+
+SPtr<Pass>
+RenderManager::getPass(const String& passName)
+{
+  auto pPass = m_passes.find(passName);
+
+  if (pPass != m_passes.end()) {
+      return (*pPass).second;
+  }
+
+  return nullptr;
+}
+
+void
+RenderManager::setPass(const SPtr<Pass>& pPass, const String& passName)
+{
+  m_passes[passName] = pPass;
+}
+
+void
+RenderManager::makePass(const String& passName)
+{
+  auto& pPass = m_passes[passName];
+  pPass->setPass();
+}
+
+void RenderManager::recompileShaders()
+{
+  for(auto& pPass : m_passes) {
+    pPass.second->compileShader();
+  }
+}
+
 void
 RenderManager::drawStaticMeshUnionInScene(const Vector<SPtr<StaticMeshUnionComponent>>&
                                           meshList)
