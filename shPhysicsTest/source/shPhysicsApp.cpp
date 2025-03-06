@@ -1,21 +1,21 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shPhysicsApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/11
-*  @brief   
+*  @date    2025/03/06
+*  @brief   App for physics simulation.
 *
-*  
+*  App for physics simulation.s
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPhysicsApp.h"
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
@@ -92,7 +92,7 @@ PhysicsApp::onUpdate()
   ImGui::NewFrame();
 
   //ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(250.0f, 150.0f));
+  ImGui::SetNextWindowSize(ImVec2(300.0f, 150.0f));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Physics", 0);
   ImGui::PopStyleColor();
@@ -113,7 +113,7 @@ PhysicsApp::onUpdate()
 
   ImGui::End();
 
-  if (m_intIndex != static_cast<uint32>(m_integration)) {
+  if (m_intIndex != static_cast<int32>(m_integration)) {
     m_integration = static_cast<INTEGRATION::E>(m_intIndex);
 
     if (m_integration == INTEGRATION::kVerlet) {
@@ -122,6 +122,8 @@ PhysicsApp::onUpdate()
     else if (m_integration == INTEGRATION::kEuler) {
       setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
     }
+
+    m_activeBalls.clear();
   }
 
   Vector2 direction(0.0f, 0.0f);
@@ -247,17 +249,6 @@ PhysicsApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   if (key == KEY::kSpace) {
     m_bShot = true;
   }
-
-  if (key == KEY::kC) {
-    if (m_integration == INTEGRATION::kEuler) {
-      setBackgroundColor(LinearColor(0.5f, 1.0f, 0.5f));
-      m_integration = INTEGRATION::kVerlet;
-    }
-    else if (m_integration == INTEGRATION::kVerlet) {
-      setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
-      m_integration = INTEGRATION::kEuler;
-    }
-  }
 }
 
 void
@@ -287,8 +278,8 @@ PhysicsApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
 void
 PhysicsApp::onMouseMove(const MouseMoveData& mouse)
 {
-  m_mousePosition.x = mouse.x;
-  m_mousePosition.y = mouse.y;
+  m_mousePosition.x = static_cast<float>(mouse.x);
+  m_mousePosition.y = static_cast<float>(mouse.y);
 }
 
 void
@@ -310,22 +301,6 @@ PhysicsApp::onDestroy()
 {
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
-}
-
-bool
-PhysicsApp::checkCollision(const Box& box, Vector2& collisionNormal)
-{
-  float closestX = Math::max(box.min.x, Math::min(m_player->m_position.x, box.max.x));
-  float closestY = Math::max(box.min.y, Math::min(m_player->m_position.y, box.max.y));
-
-  Vector2 closestPoint = { closestX, closestY };
-  Vector2 difference = m_player->m_position - closestPoint;
-
-  if (difference.mag() < m_player->m_radius) {
-    collisionNormal = difference.getNormalized();
-    return true;
-  }
-  return false;
 }
 
 void
@@ -361,13 +336,6 @@ PhysicsApp::checkBallCollision(const SPtr<Ball>& ball)
     ball->m_accel.x = -ball->m_accel.x;
     ball->m_velocity.x = -ball->m_velocity.x;
   }
-}
-
-void
-PhysicsApp::playerBounce(Vector2& collisionNormal)
-{
-  float dot = m_player->m_velocity.dot(collisionNormal);
-  m_player->m_velocity = m_player->m_velocity - collisionNormal * (2.0f * dot);
 }
 
 void
@@ -466,7 +434,7 @@ PhysicsApp::spawnBall()
   newBall->m_eulerSpeed = 5000.0f;
   newBall->m_verletSpeed = 50.0f;
 
-  newBall->m_eulerGravity = -1.0f;
+  newBall->m_eulerGravity = -2.5f;
   newBall->m_verletGravity = -1.5f;
 
   newBall->m_mass = 1.0f;

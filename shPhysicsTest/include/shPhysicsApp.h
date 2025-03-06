@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/05
+*  @date    2025/03/06
 *  @brief   App for physics simulation.
 *
 *  App for physics simulation.
@@ -20,11 +20,11 @@
 #include "shPrerequisitesCore.h"
 #include "shPrerequisitesPhysics.h"
 #include "shBaseApp.h"
-#include "Player.h"
 #include "shCamera.h"
 #include "shPass.h"
 #include "shGameObject.h"
 #include "shBoxAAB.h"
+#include "shBall.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -172,20 +172,8 @@ class PhysicsApp : public BaseApp
   /**
   *  @brief Check if a ball made a collision with a border.
   */
-  bool
-  checkCollision(const Box& box, Vector2& collisionNormal);
-
-  /**
-  *  @brief Check if a ball made a collision with a border.
-  */
   void
   checkBallCollision(const SPtr<Ball>& ball);
-
-  /**
-  *  @brief Simulate player bounce.
-  */
-  void
-  playerBounce(Vector2& collisionNormal);
 
   /**
   *  @brief Initialize the app graphic assets.
@@ -247,11 +235,6 @@ class PhysicsApp : public BaseApp
   Matrix4 m_turretTransform = Matrix4::IDENTITY;
 
   /**
-  *  @brief Player.
-  */
-  SPtr<Player> m_player;
-
-  /**
   *  @brief Vector of spawned balls.
   */
   Vector<SPtr<Ball>> m_activeBalls;
@@ -279,22 +262,22 @@ class PhysicsApp : public BaseApp
   /**
   *  @brief Current mouse position.
   */
-  Vector2 m_mousePosition;
+  Vector2 m_mousePosition = { 0.0f, 0.0f };
 
   /**
   *  @brief Wheel delta.
   */
-  float m_delta;
+  float m_delta = 0.0f;
 
   /**
   *  @brief Wheel horizontal delta.
   */
-  float m_hdelta;
+  float m_hdelta = 0.0f;
 
   /**
   *  @brief Mouse left click.
   */
-  bool m_bLeftClick;
+  bool m_bLeftClick = false;
 
   /**
   *  @brief Bool to check if user want to shot.
@@ -322,11 +305,18 @@ class PhysicsApp : public BaseApp
   float m_rotAccumulator = 0.0f;
 
   /**
-  *  @brief Wich integration is using.
+  *  @brief Which integration is using.
   */
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
 
+  /**
+  *  @brief Index for integration selection.
+  */
   int32 m_intIndex = 0;
+
+  /**
+  *  @brief Strings to use integration on gui.
+  */
   Vector<String> m_intList;
 };
 }
