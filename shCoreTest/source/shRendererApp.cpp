@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/07
+*  @date    2025/03/05
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -52,15 +52,10 @@ void
 RendererApp::onCreate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
+
   initGraphicAssets();
   initCamera();
-
-  /*auto pGuiRTV = graphMan.createTexture2D(m_desc.width,
-                                          m_desc.height,
-                                          TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                          USAGE::kDefault,
-                                          BIND_FLAGS::kRenderTarget);
-  m_guiTarget.push_back(pGuiRTV);*/
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -139,28 +134,33 @@ RendererApp::onCreate()
   graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
   // Set pass buffers
-  m_pBasicShader->addVSConstantBuffer(m_pVP);
-  m_pBasicShader->addVSConstantBuffer(m_pModelTransform);
+  auto pBasicShader = renderMan.getPass("BasicShader");
+  pBasicShader->addVSConstantBuffer(m_pVP);
+  pBasicShader->addVSConstantBuffer(m_pModelTransform);
 
-  m_pDeferredShader->addPSConstantBuffer(m_pInvVP);
-  m_pDeferredShader->addPSConstantBuffer(m_pCameraPosition);
-  m_pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
-  m_pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
+  auto pDeferredShader = renderMan.getPass("DeferredShader");
+  pDeferredShader->addPSConstantBuffer(m_pInvVP);
+  pDeferredShader->addPSConstantBuffer(m_pCameraPosition);
+  pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
+  pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
 
   AOBuffer aoBuffer;
-  aoBuffer.viewport.x = m_desc.width;
-  aoBuffer.viewport.y = m_desc.height;
+  aoBuffer.viewport.x = static_cast<float>(m_desc.width);
+  aoBuffer.viewport.y = static_cast<float>(m_desc.height);
   aoBuffer.samplerRad = 1.0f;
   aoBuffer.scale = 1.0f;
   aoBuffer.bias = 1.0f;
   aoBuffer.intensity = 1.0f;
 
+  auto pAOShader = renderMan.getPass("AOShader");
   auto aoCBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
   graphMan.updateConstantBuffer(aoCBuffer, &aoBuffer, sizeof(AOBuffer));
-  m_pAOShader->addPSConstantBuffer(aoCBuffer);
+  pAOShader->addPSConstantBuffer(aoCBuffer);
 
-  m_pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
-  m_pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
+  auto pHBlurShader = renderMan.getPass("HBlurShader");
+  auto pVBlurShader = renderMan.getPass("VBlurShader");
+  pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
+  pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
 
   m_mainTarget.push_back(graphMan.getMainRenderTargetView());
 }
@@ -177,6 +177,10 @@ RendererApp::onUpdate()
   ImGui::NewFrame();
   m_delta = 0.0f;
   m_hdelta = 0.0f;
+
+  m_modelPos = m_pModel->getPosition();
+  m_modelRot = m_pModel->getRotation();
+  m_modelScale = m_pModel->getScale();
   
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImVec2(250.0f, static_cast<float>(m_desc.height)));
@@ -193,7 +197,7 @@ RendererApp::onUpdate()
   ImGui::SetNextWindowPos(ImVec2(1100.0f, 0.0f));
   ImGui::SetNextWindowSize(ImVec2(300.0f, static_cast<float>(m_desc.height)));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
-  ImGui::Begin(m_pModel->name.c_str(),
+  ImGui::Begin("Renderer Settings",
                0,
                ImGuiWindowFlags_NoMove |
                ImGuiWindowFlags_NoCollapse |
@@ -203,39 +207,114 @@ RendererApp::onUpdate()
   ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
-  if (ImGui::CollapsingHeader("Transform")) {
+  if (ImGui::CollapsingHeader("Model Transform")) {
+
+    // Position
     ImGui::Text("Position:");
-    ImGui::SameLine(90.0f);
-    float pos[3] = { m_pModel->getPosition().x,
-                     m_pModel->getPosition().y,
-                     m_pModel->getPosition().z };
+    // Position X
+    ImGui::SameLine(80.0f);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::InputFloat3("##Positions", pos);
-    ImGui::PopStyleColor();
-    ImGui::Spacing();
-    ImGui::Text("Rotation:");
-    ImGui::SameLine(90.0f);
-    float rot[3] = { m_pModel->getRotation().x,
-                     m_pModel->getRotation().y,
-                     m_pModel->getRotation().z };
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::InputFloat3("##Rotations", rot);
-    ImGui::PopStyleColor();
-    ImGui::Spacing();
-    ImGui::Text("Scale:");
-    ImGui::SameLine(90.0f);
-    float scl[3] = { m_pModel->getScale().x,
-                     m_pModel->getScale().y,
-                     m_pModel->getScale().z };
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::InputFloat3("##Scales", scl);
-    ImGui::PopStyleColor();
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    // Rotation
+    ImGui::Text("Rotation:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    // Scale
+    ImGui::Text("Rotation:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.01f);
+    ImGui::PopStyleColor(3);
+  }
+  ImGui::PopStyleColor(3);
+
+  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
+  if (ImGui::CollapsingHeader("Shaders Data")) {
+    if(ImGui::Button("Recompile Shaders")) {
+      g_renderMan().recompileShaders();
+    }
   }
   ImGui::PopStyleColor(3);
 
   ImGui::End();
 
-  if (m_bLeftClick) {
+  if (m_modelPos != m_pModel->getPosition()) {
+    m_pModel->setPosition(m_modelPos);
+  }
+  if (m_modelRot != m_pModel->getRotation()) {
+    m_pModel->setRotation(m_modelRot);
+  }
+  if (m_modelScale != m_pModel->getScale()) {
+    m_pModel->setScale(m_modelScale);
+  }
+
+  if (m_bRightClick) {
     rotateCamera();
   }
 
@@ -269,29 +348,21 @@ RendererApp::onUpdate()
   const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
   if (m_bRotLeft) {
     m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
-    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &m_pModel->transform.getTransform(),
-                                         sizeof(Transform));
+    
   }
   if (m_bRotRight) {
     m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
-    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &m_pModel->transform.getTransform(),
-                                         sizeof(Transform));
   }
   if (m_bRotUp) {
     m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
-    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &m_pModel->transform.getTransform(),
-                                         sizeof(Transform));
   }
   if (m_bRotDown) {
     m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
-    g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                         &m_pModel->transform.getTransform(),
-                                         sizeof(Transform));
   }
   
+  g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                       &m_pModel->transform.getTransform(),
+                                       sizeof(Transform));
   
   updateCamera();
 }
@@ -300,6 +371,7 @@ void
 RendererApp::onRender()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
 
   graphMan.setPrimitiveTopology();
 
@@ -309,10 +381,10 @@ RendererApp::onRender()
   }
 
   graphMan.setRenderTargets(m_targets, graphMan.getMainDepthStencil());
-  m_pBasicShader->setPass();
+  renderMan.makePass("BasicShader");
 
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
-  g_renderMan().drawStaticMeshUnionInScene(smucList);
+  renderMan.drawStaticMeshUnionInScene(smucList);
 
   graphMan.setShaderResourceView(nullptr, 2);
   graphMan.setShaderResourceView(nullptr, 3);
@@ -323,7 +395,7 @@ RendererApp::onRender()
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_aoTarget, graphMan.getMainDepthStencil());
-  m_pAOShader->setPass();
+  renderMan.makePass("AOShader");
 
   graphMan.setShaderResourceView(m_targets[0], 0);
   graphMan.setShaderResourceView(m_targets[1], 1);
@@ -337,7 +409,7 @@ RendererApp::onRender()
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_hbTarget, graphMan.getMainDepthStencil());
-  m_pHBlurShader->setPass();
+  renderMan.makePass("HBlurShader");
 
   graphMan.setShaderResourceView(m_aoTarget[0], 0);
 
@@ -348,7 +420,7 @@ RendererApp::onRender()
     graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
   }
   graphMan.setRenderTargets(m_vbTarget, graphMan.getMainDepthStencil());
-  m_pVBlurShader->setPass();
+  renderMan.makePass("VBlurShader");
 
   graphMan.setShaderResourceView(m_hbTarget[0], 0);
 
@@ -356,7 +428,7 @@ RendererApp::onRender()
 
   // Deferred pass
   graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
-  m_pDeferredShader->setPass();
+  renderMan.makePass("DeferredShader");
 
   graphMan.setShaderResourceView(m_targets[0], 0);
   graphMan.setShaderResourceView(m_targets[1], 1);
@@ -464,11 +536,7 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   }
 
   if (key == KEY::kC) {
-    m_pBasicShader->compileShader();
-    m_pAOShader->compileShader();
-    m_pHBlurShader->compileShader();
-    m_pVBlurShader->compileShader();
-    m_pDeferredShader->compileShader();
+    g_renderMan().recompileShaders();
   }
 
   m_key = key;
@@ -485,6 +553,11 @@ RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
   {
     m_bLeftClick = true;
   }
+
+  if (mouseButton == MOUSE_INPUT::kRight)
+  {
+    m_bRightClick = true;
+  }
 }
 
 void
@@ -496,6 +569,11 @@ RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
   if (mouseButton == MOUSE_INPUT::kLeft)
   {
     m_bLeftClick = false;
+  }
+
+  if (mouseButton == MOUSE_INPUT::kRight)
+  {
+    m_bRightClick = false;
   }
 }
 
@@ -527,9 +605,6 @@ RendererApp::onDestroy()
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
 
-  m_pBasicShader.reset();
-  m_pDeferredShader.reset();
-
   for (auto& pTex : m_targets) {
     pTex.reset();
   }
@@ -550,47 +625,53 @@ RendererApp::initGraphicAssets()
 {
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
 
   // Init pass shaders
-  m_pBasicShader = make_unique<Pass>();
-  m_pBasicShader->setShaderInfo("resources/shaders/BasicShader.hlsl",
-                                "main",
-                                "mainPS",
-                                "vs_5_0",
-                                "ps_5_0");
-  m_pBasicShader->compileShader();
+  // Basic
+  auto pBasicShader = make_shared<Pass>();
+  pBasicShader->setShaderInfo("resources/shaders/BasicShader.hlsl",
+                              "main",
+                              "mainPS",
+                              "vs_5_0",
+                              "ps_5_0");
+  pBasicShader->compileShader();
 
-  m_pDeferredShader = make_unique<Pass>();
-  m_pDeferredShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
-                                   "main",
-                                   "mainPS",
-                                   "vs_5_0",
-                                   "ps_5_0");
-  m_pDeferredShader->compileShader();
+  // Deferred
+  auto pDeferredShader = make_shared<Pass>();
+  pDeferredShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
+                                 "main",
+                                 "mainPS",
+                                 "vs_5_0",
+                                 "ps_5_0");
+  pDeferredShader->compileShader();
 
-  m_pAOShader = make_unique<Pass>();
-  m_pAOShader->setShaderInfo("resources/shaders/AOShader.hlsl",
-                             "main",
-                             "mainPS",
-                             "vs_5_0",
-                             "ps_5_0");
-  m_pAOShader->compileShader();
+  // AO
+  auto pAOShader = make_shared<Pass>();
+  pAOShader->setShaderInfo("resources/shaders/AOShader.hlsl",
+                           "main",
+                           "mainPS",
+                           "vs_5_0",
+                           "ps_5_0");
+  pAOShader->compileShader();
 
-  m_pHBlurShader = make_unique<Pass>();
-  m_pHBlurShader->setShaderInfo("resources/shaders/HBlurShader.hlsl",
-                                "main",
-                                "mainPS",
-                                "vs_5_0",
-                                "ps_5_0");
-  m_pHBlurShader->compileShader();
+  // HBlur
+  auto pHBlurShader = make_shared<Pass>();
+  pHBlurShader->setShaderInfo("resources/shaders/HBlurShader.hlsl",
+                              "main",
+                              "mainPS",
+                              "vs_5_0",
+                              "ps_5_0");
+  pHBlurShader->compileShader();
 
-  m_pVBlurShader = make_unique<Pass>();
-  m_pVBlurShader->setShaderInfo("resources/shaders/VBlurShader.hlsl",
-                                "main",
-                                "mainPS",
-                                "vs_5_0",
-                                "ps_5_0");
-  m_pVBlurShader->compileShader();
+  // VBlur
+  auto pVBlurShader = make_shared<Pass>();
+  pVBlurShader->setShaderInfo("resources/shaders/VBlurShader.hlsl",
+                              "main",
+                              "mainPS",
+                              "vs_5_0",
+                              "ps_5_0");
+  pVBlurShader->compileShader();
 
   // Set pass states
   RasterizerDesc rasterDesc = {};
@@ -631,45 +712,45 @@ RendererApp::initGraphicAssets()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
-  DepthStencilDesc planeDepthSDesc = {};
+  DepthStencilDesc planeDepthSDesc = depthSDesc;
   planeDepthSDesc.depthEnable = false;
-  planeDepthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
-  planeDepthSDesc.depthFunc = COMPARISON_FUNC::kLess;
   planeDepthSDesc.stencilEnable = false;
-  planeDepthSDesc.stencilReadMask = 0xFF;
-  planeDepthSDesc.stencilWriteMask = 0xFF;
-  planeDepthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  planeDepthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  planeDepthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
-  planeDepthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  planeDepthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  planeDepthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  planeDepthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
-  planeDepthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
+
+  auto pSamplerLinear = graphMan.createSamplerState();
 
   // Fill pass info
-  m_pBasicShader->generateInputLayout();
-  auto pSamplerLinear = graphMan.createSamplerState();
-  m_pBasicShader->setSamplerState(pSamplerLinear);
-  m_pBasicShader->setRasterizerState(rasterDesc);
-  m_pBasicShader->setBlendState(blendDesc);
-  m_pBasicShader->setDepthStencilState(depthSDesc);
+  // Basic
+  pBasicShader->generateInputLayout();
+  pBasicShader->setSamplerState(pSamplerLinear);
+  pBasicShader->setRasterizerState(rasterDesc);
+  pBasicShader->setBlendState(blendDesc);
+  pBasicShader->setDepthStencilState(depthSDesc);
 
-  m_pDeferredShader->generateInputLayout();
-  m_pDeferredShader->setSamplerState(pSamplerLinear);
-  m_pDeferredShader->setDepthStencilState(planeDepthSDesc);
+  // Deferred
+  pDeferredShader->generateInputLayout();
+  pDeferredShader->setSamplerState(pSamplerLinear);
+  pDeferredShader->setDepthStencilState(planeDepthSDesc);
 
-  m_pAOShader->generateInputLayout();
-  m_pAOShader->setSamplerState(pSamplerLinear);
-  m_pAOShader->setDepthStencilState(planeDepthSDesc);
+  // AO
+  pAOShader->generateInputLayout();
+  pAOShader->setSamplerState(pSamplerLinear);
+  pAOShader->setDepthStencilState(planeDepthSDesc);
 
-  m_pHBlurShader->generateInputLayout();
-  m_pHBlurShader->setSamplerState(pSamplerLinear);
-  m_pHBlurShader->setDepthStencilState(planeDepthSDesc);
+  // HBlur
+  pHBlurShader->generateInputLayout();
+  pHBlurShader->setSamplerState(pSamplerLinear);
+  pHBlurShader->setDepthStencilState(planeDepthSDesc);
 
-  m_pVBlurShader->generateInputLayout();
-  m_pVBlurShader->setSamplerState(pSamplerLinear);
-  m_pVBlurShader->setDepthStencilState(planeDepthSDesc);
+  // VBlur
+  pVBlurShader->generateInputLayout();
+  pVBlurShader->setSamplerState(pSamplerLinear);
+  pVBlurShader->setDepthStencilState(planeDepthSDesc);
+
+  renderMan.setPass(pBasicShader, "BasicShader");
+  renderMan.setPass(pAOShader, "AOShader");
+  renderMan.setPass(pHBlurShader, "HBlurShader");
+  renderMan.setPass(pVBlurShader, "VBlurShader");
+  renderMan.setPass(pDeferredShader, "DeferredShader");
 
   // Create and set render targets for deferred rendering
   auto depthTarget = graphMan.createTexture2D(m_desc.width,

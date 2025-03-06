@@ -2,7 +2,7 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/29
+*  @date    2025/03/05
 *  @brief   Vector3 with float
 *
 *  Vector3 with float
@@ -268,6 +268,9 @@ class SH_UTILITY_EXPORT Vector3
   FORCEINLINE Vector3&
   operator-=(const Vector3& other);
 
+  FORCEINLINE bool
+  operator!=(const Vector3& other);
+
   /***************************************************************************/
   /*
   *  Variables
@@ -368,5 +371,11 @@ Vector3::operator-=(const Vector3& other)
   z -= other.z;
 
   return *this;
+}
+
+FORCEINLINE bool
+Vector3::operator!=(const Vector3& other)
+{
+  return x != other.x || y != other.y || z != other.z;
 }
 }
