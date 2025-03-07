@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -179,6 +179,7 @@
     <ClCompile Include="source\shPlayer.cpp" />
     <ClCompile Include="source\shPhysicsApp.cpp" />
     <ClCompile Include="source\shPhysicsTestMain.cpp" />
+    <ClCompile Include="source\shSpringBall.cpp" />
     <ClCompile Include="source\shSprite.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -190,9 +191,10 @@
     <ClInclude Include="include\imstb_textedit.h" />
     <ClInclude Include="include\imstb_truetype.h" />
     <ClInclude Include="include\shBall.h" />
+    <ClInclude Include="include\shPhysicsTestUsage.h" />
+    <ClInclude Include="include\shPhysicsTetsUsage.h" />
     <ClInclude Include="include\shPlayer.h" />
     <ClInclude Include="include\shPhysicsApp.h" />
-    <ClInclude Include="include\shPivot.h" />
     <ClInclude Include="include\shSpringBall.h" />
     <ClInclude Include="include\shSprite.h" />
   </ItemGroup>

@@ -39,6 +39,8 @@ namespace shEngineSDK {
 void
 PhysicsApp::onCreate()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   initGraphicAssets();
   initCamera();
 
@@ -48,36 +50,46 @@ PhysicsApp::onCreate()
 
   ImGui::StyleColorsDark();
 
-  m_rotSpeed = 25.0f;
+  //m_rotSpeed = 25.0f;
 
   Vector2 minPlayerSize(-25.0f, 25.0f);
   Vector2 maxPlayerSize(25.0f, -25.0f);
-  float spawnPointY = -350.0f;
+  float spawnPointY = 100.0f;
 
   Path basePath("resources/Tower.png");
-  Path turretPath("resources/Cannon3.png");
+  //Path turretPath("resources/Cannon3.png");
   m_pSpriteBase = make_shared<Sprite>(basePath, minPlayerSize, maxPlayerSize);
-  m_pSpriteCannon = make_shared<Sprite>(turretPath, minPlayerSize, maxPlayerSize);
-  m_pBase = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
-  m_pTurret = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
+  //m_pSpriteCannon = make_shared<Sprite>(turretPath, minPlayerSize, maxPlayerSize);
+  m_pBase = graphMan.createConstantBuffer(sizeof(Matrix4));
+  //m_pTurret = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
 
-  Path ballPath("resources/egball.png");
-  m_pSpriteBall = make_shared<Sprite>(ballPath, minPlayerSize, maxPlayerSize);
+  //Path ballPath("resources/egball.png");
+  //m_pSpriteBall = make_shared<Sprite>(ballPath, minPlayerSize, maxPlayerSize);
 
   m_baseTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 10.0f));
-  m_turretTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 0.0f));
+  //m_turretTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 0.0f));
 
-  g_graphicsMan().updateConstantBuffer(m_pBase,
-                                       &m_baseTransform,
-                                       sizeof(Matrix4));
-  g_graphicsMan().updateConstantBuffer(m_pTurret,
+  Path spballPath("resources/ttgl.png");
+  m_pSbSprite = make_shared<Sprite>(spballPath, minPlayerSize, maxPlayerSize);
+
+  graphMan.updateConstantBuffer(m_pBase,
+                                &m_baseTransform,
+                                sizeof(Matrix4));
+  /*graphMan.updateConstantBuffer(m_pTurret,
                                        &m_turretTransform,
-                                       sizeof(Matrix4));
+                                       sizeof(Matrix4));*/
 
-  m_targets.push_back(g_graphicsMan().getMainRenderTargetView());
+  m_targets.push_back(graphMan.getMainRenderTargetView());
 
   m_intList.push_back("Euler");
   m_intList.push_back("Verlet");
+
+  m_integration = INTEGRATION::kVerlet;
+  setBackgroundColor(LinearColor(0.5f, 1.0f, 0.5f));
+  m_intIndex = 1;
+  m_pivotPos = { 0.0f, spawnPointY };
+
+  initSpringBall();
 }
 
 void
@@ -105,12 +117,6 @@ PhysicsApp::onUpdate()
                items,
                static_cast<int32>(m_intList.size()));
 
-  ImGui::Text("Press 'space' to shoot");
-  ImGui::Spacing();
-  ImGui::Text("Press '<- ' button to rotate left");
-  ImGui::Spacing();
-  ImGui::Text("Press '-> ' button to rotate right");
-
   ImGui::End();
 
   if (m_intIndex != static_cast<int32>(m_integration)) {
@@ -123,14 +129,13 @@ PhysicsApp::onUpdate()
       setBackgroundColor(LinearColor(0.5f, 0.5f, 1.0f));
     }
 
-    m_activeBalls.clear();
+    //m_activeBalls.clear();
   }
 
-  Vector2 direction(0.0f, 0.0f);
+  //Vector2 direction(0.0f, 0.0f);
+  //const float rotAngle = m_rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
 
-  const float rotAngle = m_rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
-
-  if (m_bRotLeft) {
+  /*if (m_bRotLeft) {
     if (m_rotAccumulator > -(90.0f * Math::DEG2RAD)) {
       m_turretTransform *= MatrixRotationAxis(Vector3::FORWARD, -rotAngle);
       g_graphicsMan().updateConstantBuffer(m_pTurret,
@@ -153,10 +158,38 @@ PhysicsApp::onUpdate()
   if (m_bShot) {
     m_bShot = false;
     spawnBall();
+  }*/
+
+  if (m_bLeftClick) {
+    
+
+    Vector2 pivotBoxMin = m_pivotPos;
+    pivotBoxMin.x -= 25.0f;
+    pivotBoxMin.y -= 25.0f;
+    Vector2 pivotBoxMax = m_pivotPos;
+    pivotBoxMax.x += 25.0f;
+    pivotBoxMax.y += 25.0f;
+
+    Vector2 ballBoxMin = m_springBall->m_position;
+    ballBoxMin.x -= 25.0f;
+    ballBoxMin.y -= 25.0f;
+    Vector2 ballBoxMax = m_springBall->m_position;
+    ballBoxMax.x += 25.0f;
+    ballBoxMax.y += 25.0f;
+
+    if (mouseOnObject(pivotBoxMin, pivotBoxMax)) {
+      dragPivot();
+    }
+    if (mouseOnObject(ballBoxMin, ballBoxMax)) {
+      dragSpringBall();
+      m_springBall->m_bGrabbed = true;
+    }
+
+    m_springBall->m_bGrabbed = false;
   }
 
   if (m_integration == INTEGRATION::kEuler) {
-    for (auto& ball : m_activeBalls) {
+    /*for (auto& ball : m_activeBalls) {
       if (ball) {
         checkBallCollision(ball);
 
@@ -165,7 +198,8 @@ PhysicsApp::onUpdate()
           m_activeBalls.erase(m_activeBalls.begin());
         }
       }
-    }
+    }*/
+    //m_springBall->update(m_pivotPos, m_integration);
   }
 }
 
@@ -173,7 +207,7 @@ void
 PhysicsApp::onFixedUpdate()
 {
   if (m_integration == INTEGRATION::kVerlet) {
-    for (auto& ball : m_activeBalls) {
+    /*for (auto& ball : m_activeBalls) {
       if (ball) {
         checkBallCollision(ball);
     
@@ -182,38 +216,47 @@ PhysicsApp::onFixedUpdate()
           m_activeBalls.erase(m_activeBalls.begin());
         }
       }
-    }
+    }*/
+    m_springBall->update(m_pivotPos, m_integration);
   }
 }
 
 void
 PhysicsApp::onRender()
 {
-  g_graphicsMan().setRenderTargets(m_targets, g_graphicsMan().getMainDepthStencil());
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  graphMan.setRenderTargets(m_targets, g_graphicsMan().getMainDepthStencil());
   
   m_pPhysicsShader->setPass();
-  g_graphicsMan().vsSetConstantBuffers(m_pVP);
-  g_graphicsMan().setPrimitiveTopology();
+  graphMan.vsSetConstantBuffers(m_pVP);
+  graphMan.setPrimitiveTopology();
 
-  g_graphicsMan().vsSetConstantBuffers(m_pTurret, 1);
-  g_graphicsMan().setVertexBuffers(m_pSpriteCannon->m_pVB);
-  g_graphicsMan().setIndexBuffers(m_pSpriteCannon->m_pIB);
-  g_graphicsMan().setShaderResourceView(m_pSpriteCannon->m_pTexture);
-  g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);
+  /*graphMan.vsSetConstantBuffers(m_pTurret, 1);
+  graphMan.setVertexBuffers(m_pSpriteCannon->m_pVB);
+  graphMan.setIndexBuffers(m_pSpriteCannon->m_pIB);
+  graphMan.setShaderResourceView(m_pSpriteCannon->m_pTexture);
+  graphMan.drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);*/
 
-  g_graphicsMan().vsSetConstantBuffers(m_pBase, 1);
-  g_graphicsMan().setVertexBuffers(m_pSpriteBase->m_pVB);
-  g_graphicsMan().setIndexBuffers(m_pSpriteBase->m_pIB);
-  g_graphicsMan().setShaderResourceView(m_pSpriteBase->m_pTexture);
-  g_graphicsMan().drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
+  graphMan.vsSetConstantBuffers(m_pBase, 1);
+  graphMan.setVertexBuffers(m_pSpriteBase->m_pVB);
+  graphMan.setIndexBuffers(m_pSpriteBase->m_pIB);
+  graphMan.setShaderResourceView(m_pSpriteBase->m_pTexture);
+  graphMan.drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
 
-  for (auto& ball : m_activeBalls) {
-    g_graphicsMan().vsSetConstantBuffers(ball->m_buffer, 1);
-    g_graphicsMan().setVertexBuffers(ball->m_sprite->m_pVB);
-    g_graphicsMan().setIndexBuffers(ball->m_sprite->m_pIB);
-    g_graphicsMan().setShaderResourceView(ball->m_sprite->m_pTexture);
-    g_graphicsMan().drawIndexed(static_cast<uint32>(ball->m_sprite->m_indices.size()), 0, 0);
-  }
+  graphMan.vsSetConstantBuffers(m_springBall->m_ballBuffer, 1);
+  graphMan.setVertexBuffers(m_springBall->m_sprite->m_pVB);
+  graphMan.setIndexBuffers(m_springBall->m_sprite->m_pIB);
+  graphMan.setShaderResourceView(m_springBall->m_sprite->m_pTexture);
+  graphMan.drawIndexed(static_cast<uint32>(m_springBall->m_sprite->m_indices.size()), 0, 0);
+
+  /*for (auto& ball : m_activeBalls) {
+    graphMan.vsSetConstantBuffers(ball->m_buffer, 1);
+    graphMan.setVertexBuffers(ball->m_sprite->m_pVB);
+    graphMan.setIndexBuffers(ball->m_sprite->m_pIB);
+    graphMan.setShaderResourceView(ball->m_sprite->m_pTexture);
+    graphMan.drawIndexed(static_cast<uint32>(ball->m_sprite->m_indices.size()), 0, 0);
+  }*/
 
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
@@ -225,11 +268,11 @@ PhysicsApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
   SH_UNREFERENCED_PARAMETER(modifier);
   
   if (key == KEY::kLeft) {
-    m_bRotLeft = true;
+    //m_bRotLeft = true;
   }
 
   if (key == KEY::kRight) {
-    m_bRotRight = true;
+    //m_bRotRight = true;
   }
 }
 
@@ -239,15 +282,15 @@ PhysicsApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   SH_UNREFERENCED_PARAMETER(modifier);
 
   if (key == KEY::kLeft) {
-    m_bRotLeft = false;
+    //m_bRotLeft = false;
   }
 
   if (key == KEY::kRight) {
-    m_bRotRight = false;
+    //m_bRotRight = false;
   }
 
   if (key == KEY::kSpace) {
-    m_bShot = true;
+    //m_bShot = true;
   }
 }
 
@@ -462,5 +505,49 @@ PhysicsApp::spawnBall()
   newBall->m_previousPosition = newBall->m_position - newBall->m_velocity;
 
   m_activeBalls.push_back(newBall);
+}
+
+void
+PhysicsApp::initSpringBall()
+{
+  m_springBall = make_shared<SpringBall>(m_pSbSprite,          // Sprite
+                                        Vector2(0.0f, 0.0f),   // Position
+                                        Vector2(0.0f, 0.0f),   // Velocity
+                                        Vector2(0.0f, 0.0f),   // Accel
+                                        25.0f,                 // Radius
+                                        0.1f,                  // SpringConstant
+                                        -1.5f,                 // Gravity
+                                        150.0f);               // Limit
+}
+
+bool
+PhysicsApp::mouseOnObject(const Vector2& min, const Vector2& max)
+{
+  float screenOffset = -400.0f;
+  return (screenOffset + m_mousePosition.x > min.x) &&
+         (screenOffset + m_mousePosition.x < max.x) &&
+         (-screenOffset - m_mousePosition.y > min.y) &&
+         (-screenOffset - m_mousePosition.y < max.y);
+}
+
+void
+PhysicsApp::dragSpringBall()
+{
+  float screenOffset = -400.0f;
+  m_springBall->m_position.x = screenOffset + m_mousePosition.x;
+  m_springBall->m_position.y = -screenOffset - m_mousePosition.y;
+  m_springBall->updateCBuffer();
+}
+
+void
+PhysicsApp::dragPivot()
+{
+  float screenOffset = -400.0f;
+  m_pivotPos.x = screenOffset + m_mousePosition.x;
+  m_pivotPos.y = -screenOffset - m_mousePosition.y;
+  m_baseTransform = TranslationMatrix(Vector3(m_pivotPos.x,
+                                              m_pivotPos.y,
+                                              0.0f));
+  g_graphicsMan().updateConstantBuffer(m_pBase, &m_baseTransform, sizeof(Matrix4));
 }
 }

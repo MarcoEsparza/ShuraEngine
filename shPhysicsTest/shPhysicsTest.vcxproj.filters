@@ -63,6 +63,9 @@
     <ClCompile Include="source\shBall.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="source\shSpringBall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shPhysicsApp.h">
@@ -95,13 +98,16 @@
     <ClInclude Include="include\shPlayer.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="include\shPivot.h">
-      <Filter>Header Files\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="include\shSpringBall.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
     <ClInclude Include="include\shBall.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shPhysicsTestUsage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shPhysicsTetsUsage.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
   </ItemGroup>

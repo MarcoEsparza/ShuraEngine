@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/03/06
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -166,6 +166,39 @@ class SH_UTILITY_EXPORT  Vector2
   operator*(const float delta) const;
 
   /**
+  *  @brief Operator to divide the values of a Vector2 with a float.
+  *
+  *  @param lValue-Vector2.
+  *  @param rValue-float.
+  *
+  *  @return Vector2 The result of the division.
+  */
+  FORCEINLINE Vector2
+  operator/(const float delta) const;
+
+  /**
+  *  @brief Operator to multiply the values of a Vector2 with another Vector2.
+  *
+  *  @param lValue-Vector2.
+  *  @param rValue-Vector2.
+  *
+  *  @return Vector2 The result of the multiplication.
+  */
+  FORCEINLINE Vector2
+  operator*(const Vector2& other) const;
+
+  /**
+  *  @brief Operator to divide the values of a Vector2 with another Vector2.
+  *
+  *  @param lValue-Vector2.
+  *  @param rValue-Vector2.
+  *
+  *  @return Vector2 The result of the division.
+  */
+  FORCEINLINE Vector2
+  operator/(const Vector2& other) const;
+
+  /**
   *  @brief Operator to sum a Vector2 values and other Vector2 values and store
   *         the result in the first Vector2.
   *
@@ -228,6 +261,24 @@ FORCEINLINE Vector2
 Vector2::operator*(const float delta) const
 {
   return Vector2(x * delta, y * delta);
+}
+
+FORCEINLINE Vector2
+Vector2::operator/(const float delta) const
+{
+  return Vector2(x * delta, y * delta);
+}
+
+FORCEINLINE Vector2
+Vector2::operator*(const Vector2& other) const
+{
+  return Vector2(x * other.x, y * other.y);
+}
+
+FORCEINLINE Vector2
+Vector2::operator/(const Vector2& other) const
+{
+  return Vector2(x / other.x, y / other.y);
 }
 
 FORCEINLINE Vector2&

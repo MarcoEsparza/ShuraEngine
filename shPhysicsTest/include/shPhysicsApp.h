@@ -25,6 +25,7 @@
 #include "shGameObject.h"
 #include "shBoxAAB.h"
 #include "shBall.h"
+#include "shSpringBall.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -193,6 +194,18 @@ class PhysicsApp : public BaseApp
   void
   spawnBall();
 
+  void
+  initSpringBall();
+
+  bool
+  mouseOnObject(const Vector2& min, const Vector2& max);
+
+  void
+  dragSpringBall();
+
+  void
+  dragPivot();
+
  private:
   /**
   *  @brief Screen descriptor.
@@ -318,5 +331,10 @@ class PhysicsApp : public BaseApp
   *  @brief Strings to use integration on gui.
   */
   Vector<String> m_intList;
+
+  SPtr<Sprite> m_pSbSprite;
+  SPtr<SpringBall> m_springBall;
+  Vector2 m_pivotPos;
+  bool m_bPivotGrabbed;
 };
 }
