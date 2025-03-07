@@ -130,6 +130,7 @@ PhysicsApp::onUpdate()
     }
 
     //m_activeBalls.clear();
+    initSpringBall();
   }
 
   //Vector2 direction(0.0f, 0.0f);
@@ -180,7 +181,7 @@ PhysicsApp::onUpdate()
     if (mouseOnObject(pivotBoxMin, pivotBoxMax)) {
       dragPivot();
     }
-    if (mouseOnObject(ballBoxMin, ballBoxMax)) {
+    else if (mouseOnObject(ballBoxMin, ballBoxMax)) {
       dragSpringBall();
       m_springBall->m_bGrabbed = true;
     }
@@ -199,7 +200,7 @@ PhysicsApp::onUpdate()
         }
       }
     }*/
-    //m_springBall->update(m_pivotPos, m_integration);
+    m_springBall->update(m_pivotPos, m_integration);
   }
 }
 
@@ -510,14 +511,34 @@ PhysicsApp::spawnBall()
 void
 PhysicsApp::initSpringBall()
 {
-  m_springBall = make_shared<SpringBall>(m_pSbSprite,          // Sprite
-                                        Vector2(0.0f, 0.0f),   // Position
-                                        Vector2(0.0f, 0.0f),   // Velocity
-                                        Vector2(0.0f, 0.0f),   // Accel
-                                        25.0f,                 // Radius
-                                        0.1f,                  // SpringConstant
-                                        -1.5f,                 // Gravity
-                                        150.0f);               // Limit
+  if (m_springBall != nullptr) {
+    m_springBall.reset();
+  }
+
+  if(m_integration == INTEGRATION::kVerlet) {
+    m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
+                                           Vector2(0.0f, 0.0f),   // Position
+                                           Vector2(0.0f, 0.0f),   // Velocity
+                                           Vector2(0.0f, 0.0f),   // Accel
+                                           25.0f,                 // Radius
+                                           0.1f,                  // SpringConstant
+                                           -50.0f,                // Gravity
+                                           250.0f,                // Limit
+                                           0.001f,                // Elasticity
+                                           0.002);                // Drag
+  }
+  else if(m_integration == INTEGRATION::kEuler) {
+    m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
+                                           Vector2(0.0f, 0.0f),   // Position
+                                           Vector2(0.0f, 0.0f),   // Velocity
+                                           Vector2(0.0f, 0.0f),   // Accel
+                                           25.0f,                 // Radius
+                                           0.5f,                  // SpringConstant
+                                           -500.0f,                // Gravity
+                                           250.0f,                // Limit
+                                           0.2f,                // Elasticity
+                                           0.2);                // Drag
+  }
 }
 
 bool

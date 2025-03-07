@@ -62,7 +62,9 @@ class SpringBall
              const float radius,
              const float springC,
              const float gravity,
-             const float limit);
+             const float limit,
+             const float elasticity,
+             const float drag);
 
   /**
   *  @brief Default constructor.
@@ -160,5 +162,9 @@ class SpringBall
   *  @brief Limit distance to the pivot.
   */
   float m_limit = 0.0f;
+
+  float m_elasticity = 0.0f;
+
+  float m_drag = 0.0f;
 };
 }
