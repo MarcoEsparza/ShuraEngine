@@ -800,6 +800,92 @@ DX11GraphicsManager::internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
 }
 
 void
+DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
+{
+  auto hWnd = reinterpret_cast<HWND>(pScreen->getPlatformHandler());
+
+  DXGI_SWAP_CHAIN_DESC scDesc;
+  memset(&scDesc, 0, sizeof(scDesc));
+
+  scDesc.OutputWindow = hWnd;
+  scDesc.Windowed = !m_bFullScreen;
+
+  if (!m_bFullScreen) {
+    scDesc.BufferDesc.Width = pScreen->getWidth();
+    scDesc.BufferDesc.Height = pScreen->getHeight();
+    scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+  }
+
+  scDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+
+  DXGI_SAMPLE_DESC multiSample;
+  multiSample.Count = m_multiSampleConfig.count;
+  multiSample.Quality = m_multiSampleConfig.quality;
+
+  scDesc.SampleDesc = multiSample;
+  scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  scDesc.BufferCount = 2;
+  scDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+  scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+  IDXGIDevice* dxgiDevice = nullptr;
+  throwIfFailed(m_pDevice->m_pDevice->QueryInterface(__uuidof(IDXGIDevice),
+                                                     reinterpret_cast<void**>(&dxgiDevice)));
+
+  IDXGIAdapter* dxgiAdapter = nullptr;
+  dxgiDevice->GetAdapter(&dxgiAdapter);
+
+  IDXGIFactory* dxgiFactory = nullptr;
+  dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
+                         reinterpret_cast<void**>(&dxgiFactory));
+  
+  m_pSwapChain.reset();
+  m_pSwapChain = make_shared<DX11SwapChain>();
+  throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice->m_pDevice,
+                                             &scDesc,
+                                             &m_pSwapChain->m_pSwapChain));
+
+  //Get Backbuffer Interface
+  //Create a render target view
+
+  m_pBackbuffer.reset();
+  m_pBackbuffer = make_shared<DX11Texture2D>();
+  throwIfFailed(m_pSwapChain->m_pSwapChain->GetBuffer(0,
+                              __uuidof(ID3D11Texture2D),
+                              reinterpret_cast<LPVOID*>(&m_pBackbuffer->m_pTexture2D)));
+
+  m_pRenderTargetView.reset();
+  m_pRenderTargetView = make_shared<DX11Texture2D>();
+  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(m_pBackbuffer->m_pTexture2D,
+                                      nullptr,
+                                      &m_pRenderTargetView->m_pRenderTV));
+
+  m_pDepthStencil.reset();
+  m_pDepthStencil = make_shared<DX11Texture2D>();
+  m_pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
+                                                            pScreen->getWidth(),
+                                                            pScreen->getHeight(),
+                                                            DXGI_FORMAT_D24_UNORM_S8_UINT,
+                                                            D3D11_USAGE_DEFAULT,
+                                                            D3D11_BIND_DEPTH_STENCIL));
+
+  //Setup the viewport
+  Viewport viewPort;
+  viewPort.width = static_cast<float>(pScreen->getWidth());
+  viewPort.height = static_cast<float>(pScreen->getHeight());
+  viewPort.minDepth = 0.0f;
+  viewPort.maxDepth = 1.0f;
+  viewPort.topLeftX = 0.0f;
+  viewPort.topLeftY = 0.0f;
+  internalSetViewport(viewPort);
+
+  //Release all objects
+  SafeRelease(dxgiFactory);
+  SafeRelease(dxgiAdapter);
+  SafeRelease(dxgiDevice);
+}
+
+void
 DX11GraphicsManager::internalSetViewport(const Viewport& vp)
 {
   D3D11_VIEWPORT viewPort;

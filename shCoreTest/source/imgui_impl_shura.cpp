@@ -90,6 +90,19 @@ ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle)
   return true;
 }
 
+void
+ImGui_ImplShura_Resize(const SPtr<Screen>& screenHandle)
+{
+  ImGuiIO& io = ImGui::GetIO();
+
+  io.DisplaySize.x = static_cast<float>(screenHandle->getWidth());
+  io.DisplaySize.y = static_cast<float>(screenHandle->getHeight());
+
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  viewport->Size.x = static_cast<float>(screenHandle->getWidth());
+  viewport->Size.y = static_cast<float>(screenHandle->getHeight());
+}
+
 static void
 ImGui_ImplShura_SetupRenderState(ImDrawData* drawData)
 {
@@ -588,7 +601,7 @@ ImGui_ImplShura_NewFrame()
 }
 
 void
-addKeyEvent(const KEY::E key, const bool bPressed)
+ImGui_ImplShura_AddKeyEvent(const KEY::E key, const bool bPressed)
 {
   ImGuiIO& io = ImGui::GetIO();
   ImGuiKey imKey = getImGuiKey(key);
@@ -596,21 +609,21 @@ addKeyEvent(const KEY::E key, const bool bPressed)
 }
 
 void
-addMousePosEvent(const Vector2& mousePos)
+ImGui_ImplShura_AddMousePosEvent(const Vector2& mousePos)
 {
   ImGuiIO& io = ImGui::GetIO();
   io.AddMousePosEvent(mousePos.x, mousePos.y);
 }
 
 void
-addMouseButtonEvent(const bool bClicked)
+ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked)
 {
   ImGuiIO& io = ImGui::GetIO();
   io.AddMouseButtonEvent(0, bClicked);
 }
 
 void
-addMouseWheelEvent(const float wheel, const float hWheel)
+ImGui_ImplShura_AddMouseWheelEvent(const float wheel, const float hWheel)
 {
   ImGuiIO& io = ImGui::GetIO();
   io.AddMouseWheelEvent(hWheel, wheel);

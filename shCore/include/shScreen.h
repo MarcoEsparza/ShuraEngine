@@ -2,7 +2,7 @@
 /*
 *  @file    shScreen.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/10
+*  @date    2025/03/11
 *  @brief   Base screen
 *
 *  Base screen
@@ -169,15 +169,6 @@ class SH_CORE_EXPORT Screen
   FORCEINLINE uint32
   getHeight() const;
 
-
-  /**
-  *  @brief Return the previous mouse position in X axis.
-  *
-  *  @return uint32
-  */
-  FORCEINLINE Vector2i
-  getPreviousMousePos() const;
-
   /**
   *  @brief Get the Screen handler.
   * 
@@ -185,6 +176,22 @@ class SH_CORE_EXPORT Screen
   */
   FORCEINLINE PlatformScreen
   getPlatformHandler() const;
+
+  /**
+  *  @brief Get Screen width.
+  * 
+  *  @return uint32
+  */
+  FORCEINLINE void
+  setWidth(uint32 width);
+
+  /**
+  *  @brief Get Screen height.
+  * 
+  *  @return uint32
+  */
+  FORCEINLINE void
+  setHeight(uint32 height);
 
   /**
   *  @brief Is window open?
@@ -203,7 +210,7 @@ class SH_CORE_EXPORT Screen
   /**
   *  @brief is fullscreen?
   */
-  bool m_fullscreen;
+  bool m_fullscreen = false;
 
   /**
   * @brief Screen width.
@@ -227,7 +234,7 @@ class SH_CORE_EXPORT Screen
   /**
   *  @brief Previous mouse position.
   */
-  Vector2i m_prevMousePos;
+  Vector2i m_prevMousePos = { 0, 0 };
 
   /**
   *  @brief Screen handler.
@@ -269,10 +276,16 @@ Screen::getPlatformHandler() const
   return m_screenHandle;
 }
 
-FORCEINLINE Vector2i
-Screen::getPreviousMousePos() const
+FORCEINLINE void
+Screen::setWidth(uint32 width)
 {
-  return m_prevMousePos;
+  m_width = width;
+}
+
+FORCEINLINE void
+Screen::setHeight(uint32 height)
+{
+  m_height = height;
 }
 
 FORCEINLINE bool

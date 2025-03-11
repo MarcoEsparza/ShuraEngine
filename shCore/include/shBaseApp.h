@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/20
+*  @date    2025/03/11
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -44,8 +44,6 @@ class SH_CORE_EXPORT BaseApp
           : m_screenDesc(desc),
             m_graphicAPI(dllGAPI),
             m_sample(sample),
-            m_mousePos(Vector2i(0, 0)),
-            m_lastMousePos(Vector2i(0, 0)),
             m_backgroundColor(LinearColor(0.0f, 0.0f, 0.0f)) {}
 
   /**
@@ -73,7 +71,20 @@ class SH_CORE_EXPORT BaseApp
   FORCEINLINE void
   setBackgroundColor(const LinearColor& color);
 
+  /**
+  *  @brief Returns the screen description.
+  * 
+  *  @return ScreenDesc
+  */
+  FORCEINLINE ScreenDesc
+  getScreenDescription() const;
+
  protected:
+  /**
+  *  @brief Returns the screen pointer.
+  *
+  *  @return SPtr<Screen>
+  */
   FORCEINLINE SPtr<Screen> const
   getScreen() const;
 
@@ -128,6 +139,12 @@ class SH_CORE_EXPORT BaseApp
   */
   /***************************************************************************/
  protected:
+  /**
+  *  @brief Override to add functionality when this event pops.
+  */
+  virtual void
+  onResize(const ResizeData& rszData) { SH_UNREFERENCED_PARAMETER(rszData); }
+
   /**
   *  @brief Override to set mouse move event. This will be called every time
   *         the mouse move.
@@ -285,16 +302,6 @@ class SH_CORE_EXPORT BaseApp
   SPtr<ScreenEventHandle> m_eventQueue;
 
   /**
-  *  @brief Last mouse position.
-  */
-  Vector2i m_lastMousePos;
-
-  /**
-  *  @brief Current mouse position.
-  */
-  Vector2i m_mousePos;
-
-  /**
   *  @brief Screen Descriptor
   */
   ScreenDesc m_screenDesc;
@@ -320,6 +327,12 @@ FORCEINLINE void
 BaseApp::setBackgroundColor(const LinearColor& color)
 {
   m_backgroundColor = color;
+}
+
+FORCEINLINE ScreenDesc
+BaseApp::getScreenDescription() const
+{
+  return m_screenDesc;
 }
 
 FORCEINLINE SPtr<Screen> const

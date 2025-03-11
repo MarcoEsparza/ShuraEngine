@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/11
+*  @date    2025/03/11
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -303,11 +303,27 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                        const void* pData,
                        const uint32 dataSize);
 
+  /**
+  *  @brief Update a given Texture2D with given data.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param uint8* pData
+  *  @param uint32 width
+  *  @param uint32 bpp
+  */
   void
   updateTexture2D(SPtr<Texture2D>& pTexture,
                   uint8* pData,
                   uint32 width,
                   uint32 bpp);
+
+  /**
+  *  @brief Update the screen size.
+  *
+  *  @param SPtr<Screen>& pScreen
+  */
+  void
+  updateScreenSize(const SPtr<Screen>& pScreen);
 
   /********************
   *  Setters
@@ -729,11 +745,27 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                                const void* pData,
                                const uint32 dataSize) = 0;
 
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param uint8* pData
+  *  @param uint32 width
+  *  @param uint32 bpp
+  */
   virtual void
   internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
                           uint8* pData,
                           uint32 width,
                           uint32 bpp) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Screen>& pScreen
+  */
+  virtual void
+  internalUpdateScreenSize(const SPtr<Screen>& pScreen) = 0;
 
   /********************
   *  Setters

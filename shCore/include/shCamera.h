@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/30
+*  @date    2025/03/11
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -392,27 +392,27 @@ class SH_CORE_EXPORT Camera
   /**
   *  @brief Perspective near.
   */
-  float m_near;
+  float m_near = 0.0f;
 
   /**
   *  @brief Perspective far.
   */
-  float m_far;
+  float m_far = 0.0f;
 
   /**
   *  @brief Half field of view.
   */
-  float m_halfFOV;
+  float m_halfFOV = 0.0f;
 
   /**
   *  @brief Screen width.
   */
-  float m_screenWidth;
+  float m_screenWidth = 0.0f;
 
   /**
   *  @brief Screen height.
   */
-  float m_screenHeight;
+  float m_screenHeight = 0.0f;
 
   /**
   *  @brief Is camera dirty?
@@ -427,7 +427,7 @@ class SH_CORE_EXPORT Camera
   /**
   *  @brief Camera frustum.
   */
-  Frustum m_frustum;
+  Frustum m_frustum = {};
 };
 
 /*****************************************************************************/

@@ -32,6 +32,9 @@ namespace shEngineSDK {
 bool
 ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle);
 
+void
+ImGui_ImplShura_Resize(const SPtr<Screen>& screenHandle);
+
 /**
 *  @brief Render call ImGui implementation for Shura Engine.
 * 
@@ -59,16 +62,16 @@ void
 ImGui_ImplShura_NewFrame();
 
 void
-addKeyEvent(const KEY::E key, const bool bPressed);
+ImGui_ImplShura_AddKeyEvent(const KEY::E key, const bool bPressed);
 
 void
-addMousePosEvent(const Vector2& mousePos);
+ImGui_ImplShura_AddMousePosEvent(const Vector2& mousePos);
 
 void
-addMouseButtonEvent(const bool bClicked);
+ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked);
 
 void
-addMouseWheelEvent(const float wheel,
+ImGui_ImplShura_AddMouseWheelEvent(const float wheel,
                    const float hWheel);
 
 /**

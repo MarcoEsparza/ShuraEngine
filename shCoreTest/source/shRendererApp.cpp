@@ -149,8 +149,8 @@ RendererApp::onCreate()
   pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
 
   AOBuffer aoBuffer;
-  aoBuffer.viewport.x = static_cast<float>(m_desc.width);
-  aoBuffer.viewport.y = static_cast<float>(m_desc.height);
+  aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
+  aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
   aoBuffer.samplerRad = 1.0f;
   aoBuffer.scale = 1.0f;
   aoBuffer.bias = 1.0f;
@@ -165,8 +165,6 @@ RendererApp::onCreate()
   auto pVBlurShader = renderMan.getPass("VBlurShader");
   pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
   pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
-
-  m_mainTarget.push_back(graphMan.getMainRenderTargetView());
 }
 
 void
@@ -177,7 +175,7 @@ RendererApp::onUpdate()
   ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
 
-  addMouseWheelEvent(m_hdelta, m_delta);
+  ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
   m_delta = 0.0f;
   m_hdelta = 0.0f;
 
@@ -198,8 +196,8 @@ RendererApp::onUpdate()
   }
 
   AOBuffer aoBuffer;
-  aoBuffer.viewport.x = static_cast<float>(m_desc.width);
-  aoBuffer.viewport.y = static_cast<float>(m_desc.height);
+  aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
+  aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
   aoBuffer.samplerRad = m_aoSamplerRad;
   aoBuffer.scale = m_aoScale;
   aoBuffer.bias = m_aoBias;
@@ -336,6 +334,55 @@ RendererApp::onRender()
 }
 
 void
+RendererApp::onResize(const ResizeData& rszData)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  float width = static_cast<float>(rszData.width);
+  float height = static_cast<float>(rszData.height);
+
+  for (auto& target : m_mainTarget) {
+    target.reset();
+  }
+  for (auto& target : m_targets) {
+    target.reset();
+  }
+  for (auto& target : m_aoTarget) {
+    target.reset();
+  }
+  for (auto& target : m_hbTarget) {
+    target.reset();
+  }
+  for (auto& target : m_vbTarget) {
+    target.reset();
+  }
+
+  m_mainTarget.clear();
+  m_targets.clear();
+  m_aoTarget.clear();
+  m_hbTarget.clear();
+  m_vbTarget.clear();
+
+  setRenderTargets();
+
+  m_camera.setPerspectiveData(m_camera.getHalfFOV(),
+                              width,
+                              height,
+                              m_camera.getNear(),
+                              m_camera.getFar());
+
+  updateCamera();
+
+  Vector4 viewport(width,
+                   height,
+                   m_camera.getFar(),
+                   m_camera.getNear());
+  graphMan.updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
+
+  ImGui_ImplShura_Resize(getScreen());
+}
+
+void
 RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
@@ -380,7 +427,7 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
     m_bRotRight = true;
   }
 
-  addKeyEvent(key, true);
+  ImGui_ImplShura_AddKeyEvent(key, true);
 }
 
 void
@@ -432,7 +479,7 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
     g_renderMan().recompileShaders();
   }
 
-  addKeyEvent(key, false);
+  ImGui_ImplShura_AddKeyEvent(key, false);
 }
 
 void
@@ -451,7 +498,7 @@ RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
     m_bRightClick = true;
   }
 
-  addMouseButtonEvent(true);
+  ImGui_ImplShura_AddMouseButtonEvent(true);
 }
 
 void
@@ -470,7 +517,7 @@ RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
     m_bRightClick = false;
   }
 
-  addMouseButtonEvent(false);
+  ImGui_ImplShura_AddMouseButtonEvent(false);
 }
 
 void
@@ -480,7 +527,7 @@ RendererApp::onMouseMove(const MouseMoveData& mouse)
   m_currentMousePos.x = static_cast<float>(mouse.x);
   m_currentMousePos.y = static_cast<float>(mouse.y);
 
-  addMousePosEvent(m_currentMousePos);
+  ImGui_ImplShura_AddMousePosEvent(m_currentMousePos);
 }
 
 void
@@ -651,51 +698,7 @@ RendererApp::initGraphicAssets()
   renderMan.setPass(pDeferredShader, "DeferredShader");
 
   // Create and set render targets for deferred rendering
-  auto depthTarget = graphMan.createTexture2D(m_desc.width,
-                              m_desc.height,
-                              TEXTURE_FORMAT::kR32G32B32A32_float,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  auto normalTarget = graphMan.createTexture2D(m_desc.width,
-                               m_desc.height,
-                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                               USAGE::kDefault,
-                               BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  auto colorTarget = graphMan.createTexture2D(m_desc.width,
-                              m_desc.height,
-                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  m_targets.push_back(depthTarget);
-  m_targets.push_back(normalTarget);
-  m_targets.push_back(colorTarget);
-
-  auto aoTarget = graphMan.createTexture2D(m_desc.width,
-                           m_desc.height,
-                           TEXTURE_FORMAT::kR16_FLOAT,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  m_aoTarget.push_back(aoTarget);
-
-  auto hbTarget = graphMan.createTexture2D(m_desc.width,
-                           m_desc.height,
-                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  m_hbTarget.push_back(hbTarget);
-
-  auto vbTarget = graphMan.createTexture2D(m_desc.width,
-                           m_desc.height,
-                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  m_vbTarget.push_back(vbTarget);
+  setRenderTargets();
 }
 
 void
@@ -704,14 +707,14 @@ RendererApp::initCamera()
   // Init camera and its constant buffer
   m_pVP = g_graphicsMan().createConstantBuffer(sizeof(VP));
 
-  VP vp;
+  VP vp = {};
 
   m_camera = Camera(Vector3(0.0f, 0.0f, -3.0f),
                     Vector3(0.0f, 0.0f, 0.0f),
                     Vector3::UP,
                     30.0f * Math::DEG2RAD,
-                    static_cast<float>(m_desc.width),
-                    static_cast<float>(m_desc.height),
+                    static_cast<float>(getScreenDescription().width),
+                    static_cast<float>(getScreenDescription().height),
                     0.1f,
                     100.0f);
 
@@ -733,7 +736,7 @@ RendererApp::initCamera()
                                        sizeof(Vector4));
 
   // Init buffer for inverse view and projection
-  InvVP invVP;
+  InvVP invVP = {};
 
   m_pInvVP = g_graphicsMan().createConstantBuffer(sizeof(InvVP));
 
@@ -748,8 +751,8 @@ RendererApp::initCamera()
                                        sizeof(InvVP));
 
   // Init buffer for viewport
-  Vector4 viewport(static_cast<float>(m_desc.width),
-                   static_cast<float>(m_desc.height),
+  Vector4 viewport(static_cast<float>(getScreenDescription().width),
+                   static_cast<float>(getScreenDescription().height),
                    m_camera.getFar(),
                    m_camera.getNear());
   m_pViewportBuffer = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
@@ -779,7 +782,7 @@ RendererApp::updateCamera()
   m_camera.update();
 
   // Update camera buffer
-  VP vp;
+  VP vp = {};
   vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();
   vp.proj.getTransposed();
@@ -794,7 +797,7 @@ RendererApp::updateCamera()
                                        sizeof(Vector4));
 
   // Update inverse view-projection buffer
-  InvVP invVP;
+  InvVP invVP = {};
   invVP.invVP = (vp.proj * vp.view).getInversed();
   invVP.invV = vp.view.getInversed();
   g_graphicsMan().updateConstantBuffer(m_pInvVP,
@@ -803,10 +806,67 @@ RendererApp::updateCamera()
 }
 
 void
+RendererApp::setRenderTargets()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  m_mainTarget.push_back(graphMan.getMainRenderTargetView());
+
+  auto depthTarget = graphMan.createTexture2D(getScreenDescription().width,
+                              getScreenDescription().height,
+                              TEXTURE_FORMAT::kR32G32B32A32_float,
+                              USAGE::kDefault,
+                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  auto normalTarget = graphMan.createTexture2D(getScreenDescription().width,
+                               getScreenDescription().height,
+                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                               USAGE::kDefault,
+                               BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  auto colorTarget = graphMan.createTexture2D(getScreenDescription().width,
+                              getScreenDescription().height,
+                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                              USAGE::kDefault,
+                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_targets.push_back(depthTarget);
+  m_targets.push_back(normalTarget);
+  m_targets.push_back(colorTarget);
+
+  auto aoTarget = graphMan.createTexture2D(getScreenDescription().width,
+                           getScreenDescription().height,
+                           TEXTURE_FORMAT::kR16_FLOAT,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_aoTarget.push_back(aoTarget);
+
+  auto hbTarget = graphMan.createTexture2D(getScreenDescription().width,
+                           getScreenDescription().height,
+                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_hbTarget.push_back(hbTarget);
+
+  auto vbTarget = graphMan.createTexture2D(getScreenDescription().width,
+                           getScreenDescription().height,
+                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+
+  m_vbTarget.push_back(vbTarget);
+}
+
+void
 RendererApp::setImgui()
 {
+  float width = static_cast<float>(getScreenDescription().width);
+  float height = static_cast<float>(getScreenDescription().height);
+
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(250.0f, static_cast<float>(m_desc.height)));
+  ImGui::SetNextWindowSize(ImVec2(250.0f, height));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Scenegraph",
                0,
@@ -817,8 +877,8 @@ RendererApp::setImgui()
   ImGui::Text(m_pModel->name.c_str());
   ImGui::End();
 
-  ImGui::SetNextWindowPos(ImVec2(1100.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(300.0f, static_cast<float>(m_desc.height)));
+  ImGui::SetNextWindowPos(ImVec2(width - 300.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(300.0f, height));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Renderer Settings",
                0,
@@ -867,7 +927,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.01f);
+    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.1f);
     ImGui::PopStyleColor(3);
     // Rotation Y
     ImGui::SameLine();
@@ -875,7 +935,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.01f);
+    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.1f);
     ImGui::PopStyleColor(3);
     // Rotation Z
     ImGui::SameLine();
@@ -883,7 +943,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.01f);
+    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.1f);
     ImGui::PopStyleColor(3);
 
     // Scale

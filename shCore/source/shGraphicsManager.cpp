@@ -180,6 +180,12 @@ GraphicsManager::updateTexture2D(SPtr<Texture2D>& pTexture,
 }
 
 void
+GraphicsManager::updateScreenSize(const SPtr<Screen>& pScreen)
+{
+  internalUpdateScreenSize(pScreen);
+}
+
+void
 GraphicsManager::setViewport(const Viewport& vp)
 {
   internalSetViewport(vp);

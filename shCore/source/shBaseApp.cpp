@@ -134,6 +134,20 @@ BaseApp::initManagers()
 void
 BaseApp::handleScreenEvents(const Event& wndEvent)
 {
+  // Resize event
+  if (wndEvent.type == EVENT_TYPE::kResize) {
+    const auto& rszData = wndEvent.data.resize;
+
+    m_mainScreen->setWidth(rszData.width);
+    m_mainScreen->setHeight(rszData.height);
+    m_screenDesc.width = rszData.width;
+    m_screenDesc.height = rszData.height;
+
+    g_graphicsMan().updateScreenSize(m_mainScreen);
+
+    onResize(rszData);
+  }
+
   // Keyboard events
   if (wndEvent.type == EVENT_TYPE::kKeyboard) {
     const auto& key = wndEvent.data.keyboard;

@@ -87,8 +87,7 @@ class RendererApp : public BaseApp
   RendererApp(const ScreenDesc& desc,
               const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
               const SampleDesc& sample = SampleDesc(1, 1))
-              : BaseApp(desc, dllGAPI, sample),
-                m_desc(desc) {}
+              : BaseApp(desc, dllGAPI, sample) {}
 
   /**
   *  @brief Default destructor.
@@ -118,6 +117,12 @@ class RendererApp : public BaseApp
   */
   void
   onRender() override;
+
+  /**
+  *  @brief Override to add functionality when this event pops.
+  */
+  virtual void
+  onResize(const ResizeData& rszData) override;
 
   /**
   *  @brief Override function to add functionallity when a key is pressed.
@@ -214,6 +219,9 @@ class RendererApp : public BaseApp
   void
   updateCamera();
 
+  void
+  setRenderTargets();
+
   /**
   *  @brief Sets the graphic interface.
   */
@@ -226,11 +234,6 @@ class RendererApp : public BaseApp
   */
   /***************************************************************************/
  private:
-  /**
-  *  @brief Screnn descriptor.
-  */
-  ScreenDesc m_desc;
-
   /**
   *  @brief Targets for first pass.
   */

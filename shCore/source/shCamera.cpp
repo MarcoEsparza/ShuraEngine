@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/29
+*  @date    2025/03/11
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -40,6 +40,12 @@ Camera::setPerspectiveData(const float halfFOV,
                           const float maxZ)
 {
   m_proj = ProjectionMatrix(halfFOV, width, height, minZ, maxZ);
+
+  m_halfFOV = halfFOV;
+  m_screenWidth = width;
+  m_screenHeight = height;
+  m_near = minZ;
+  m_far = maxZ;
 }
 
 void
@@ -51,6 +57,9 @@ Camera::setOrthographicProjData(const float left,
                                 const float farZ)
 {
   m_proj = OrthographicProjectionMatrix(left, right, bottom, top, nearZ, farZ);
+
+  m_near = nearZ;
+  m_far = farZ;
 }
 
 Vector3
