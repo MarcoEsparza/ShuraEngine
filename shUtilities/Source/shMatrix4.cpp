@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/03/11
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -572,11 +572,19 @@ Transform::setPosition(const Vector3& position)
 void
 Transform::setRotation(const Vector3& rotation)
 {
-  const Matrix4 xAxis = Matrix4::createRotationXMatrix(Radian(rotation.x));
+  /*const Matrix4 xAxis = Matrix4::createRotationXMatrix(Radian(rotation.x));
   const Matrix4 yAxis = Matrix4::createRotationYMatrix(Radian(rotation.y));
   const Matrix4 zAxis = Matrix4::createRotationZMatrix(Radian(rotation.z));
 
   *this *= zAxis;
+  *this *= yAxis;
+  *this *= xAxis;*/
+
+  const Matrix4 xAxis = MatrixRotationAxis(Vector3::RIGHT, rotation.x);
+  const Matrix4 yAxis = MatrixRotationAxis(Vector3::UP, rotation.y);
+  const Matrix4 zAxis = MatrixRotationAxis(Vector3::FORWARD, rotation.z);
+
+  *this = zAxis;
   *this *= yAxis;
   *this *= xAxis;
 }

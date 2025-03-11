@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/11
+*  @date    2025/03/10
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -25,6 +25,7 @@
 #include "shScriptManager.h"
 #include "shTime.h"
 #include "shSceneGraph.h"
+#include "shLogger.h"
 #include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
@@ -127,6 +128,7 @@ BaseApp::initManagers()
   ScriptManager::startUp();
   Time::startUp();
   SceneGraph::startUp();
+  Logger::startUp();
 }
 
 void
@@ -216,6 +218,7 @@ BaseApp::render()
 void
 BaseApp::destroyManagers()
 {
+  Logger::shutDown();
   SceneGraph::shutDown();
   ResourceManager::shutDown();
   ScriptManager::shutDown();

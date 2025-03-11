@@ -2,7 +2,7 @@
 /*
 *  @file    shGameObject.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/20
+*  @date    2025/03/11
 *  @brief   Game Object class.
 *
 *  Game Object class.
@@ -59,7 +59,11 @@ GameObject::getPosition() const
 Vector3
 GameObject::getRotation() const
 {
-  return transform.getRotation();
+  Vector3 rot = transform.getRotation();
+  rot.x = rot.x * Math::RAD2DEG;
+  rot.y = rot.y * Math::RAD2DEG;
+  rot.z = rot.z * Math::RAD2DEG;
+  return rot;
 }
 
 Vector3
@@ -81,7 +85,11 @@ GameObject::setPosition(const Vector3& position)
 void
 GameObject::setRotation(const Vector3& rotation)
 {
-  transform.setRotation(rotation);
+  Vector3 rot = rotation;
+  rot.x = rot.x * Math::DEG2RAD;
+  rot.y = rot.y * Math::DEG2RAD;
+  rot.z = rot.z * Math::DEG2RAD;
+  transform.setRotation(rot);
 
   for (auto& child : childs) {
     child->setRotation(child->getRotation() + rotation);

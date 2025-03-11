@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/03/11
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -587,6 +587,9 @@ class SH_UTILITY_EXPORT Transform : public Matrix4
   */
   Vector3
   getScale() const;
+
+  FORCEINLINE Transform&
+  operator=(const Matrix4& mat4);
 };
 
 /*************************************************************/
@@ -774,6 +777,32 @@ Matrix4::operator*=(const Matrix4& other)
   }
 
   *this = mat;
+
+  return *this;
+}
+
+FORCEINLINE Transform&
+Transform::operator=(const Matrix4& mat4)
+{
+  m[0][0] = mat4.m[0][0];
+  m[0][1] = mat4.m[0][1];
+  m[0][2] = mat4.m[0][2];
+  m[0][3] = mat4.m[0][3];
+
+  m[1][0] = mat4.m[1][0];
+  m[1][1] = mat4.m[1][1];
+  m[1][2] = mat4.m[1][2];
+  m[1][3] = mat4.m[1][3];
+  
+  m[2][0] = mat4.m[2][0];
+  m[2][1] = mat4.m[2][1];
+  m[2][2] = mat4.m[2][2];
+  m[2][3] = mat4.m[2][3];
+  
+  m[3][0] = mat4.m[3][0];
+  m[3][1] = mat4.m[3][1];
+  m[3][2] = mat4.m[3][2];
+  m[3][3] = mat4.m[3][3];
 
   return *this;
 }

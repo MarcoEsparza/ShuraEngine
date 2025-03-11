@@ -24,6 +24,7 @@
 #include "shTime.h"
 #include "shSceneGraph.h"
 #include "shMath.h"
+#include "shLogger.h"
 #include "imgui_impl_shura.h"
 
 #include "shPath.h"
@@ -39,6 +40,9 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+/**
+*  @brief Structure for ambient occlusion buffer.
+*/
 struct AOBuffer {
   Vector2 viewport;
   float samplerRad = 0.0f;
@@ -153,9 +157,9 @@ RendererApp::onCreate()
   aoBuffer.intensity = 1.0f;
 
   auto pAOShader = renderMan.getPass("AOShader");
-  auto aoCBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
-  graphMan.updateConstantBuffer(aoCBuffer, &aoBuffer, sizeof(AOBuffer));
-  pAOShader->addPSConstantBuffer(aoCBuffer);
+  m_pAOBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
+  graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
+  pAOShader->addPSConstantBuffer(m_pAOBuffer);
 
   auto pHBlurShader = renderMan.getPass("HBlurShader");
   auto pVBlurShader = renderMan.getPass("VBlurShader");
@@ -168,13 +172,12 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  ImGui_ImplShura_NewFrame(m_currentMousePos,
-                           m_bLeftClick,
-                           m_delta,
-                           m_hdelta,
-                           m_bKeyTest,
-                           m_key);
+  Logger& logger = g_logger();
+
+  ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
+
+  addMouseWheelEvent(m_hdelta, m_delta);
   m_delta = 0.0f;
   m_hdelta = 0.0f;
 
@@ -182,127 +185,7 @@ RendererApp::onUpdate()
   m_modelRot = m_pModel->getRotation();
   m_modelScale = m_pModel->getScale();
   
-  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(250.0f, static_cast<float>(m_desc.height)));
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
-  ImGui::Begin("Scenegraph",
-               0,
-               ImGuiWindowFlags_NoMove |
-               ImGuiWindowFlags_NoCollapse |
-               ImGuiWindowFlags_NoResize);
-  ImGui::PopStyleColor();
-  ImGui::Text(m_pModel->name.c_str());
-  ImGui::End();
-
-  ImGui::SetNextWindowPos(ImVec2(1100.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(300.0f, static_cast<float>(m_desc.height)));
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
-  ImGui::Begin("Renderer Settings",
-               0,
-               ImGuiWindowFlags_NoMove |
-               ImGuiWindowFlags_NoCollapse |
-               ImGuiWindowFlags_NoResize);
-  ImGui::PopStyleColor();
-
-  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
-  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
-  if (ImGui::CollapsingHeader("Model Transform")) {
-
-    // Position
-    ImGui::Text("Position:");
-    // Position X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Position Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Position Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
-    ImGui::PopStyleColor(3);
-
-    // Rotation
-    ImGui::Text("Rotation:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Rotation Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Rotation Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.01f);
-    ImGui::PopStyleColor(3);
-
-    // Scale
-    ImGui::Text("Rotation:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Rotation Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Rotation Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.01f);
-    ImGui::PopStyleColor(3);
-  }
-  ImGui::PopStyleColor(3);
-
-  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
-  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
-  if (ImGui::CollapsingHeader("Shaders Data")) {
-    if(ImGui::Button("Recompile Shaders")) {
-      g_renderMan().recompileShaders();
-    }
-  }
-  ImGui::PopStyleColor(3);
-
-  ImGui::End();
+  setImgui();
 
   if (m_modelPos != m_pModel->getPosition()) {
     m_pModel->setPosition(m_modelPos);
@@ -313,6 +196,16 @@ RendererApp::onUpdate()
   if (m_modelScale != m_pModel->getScale()) {
     m_pModel->setScale(m_modelScale);
   }
+
+  AOBuffer aoBuffer;
+  aoBuffer.viewport.x = static_cast<float>(m_desc.width);
+  aoBuffer.viewport.y = static_cast<float>(m_desc.height);
+  aoBuffer.samplerRad = m_aoSamplerRad;
+  aoBuffer.scale = m_aoScale;
+  aoBuffer.bias = m_aoBias;
+  aoBuffer.intensity = m_aoIntensity;
+
+  g_graphicsMan().updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
 
   if (m_bRightClick) {
     rotateCamera();
@@ -352,6 +245,7 @@ RendererApp::onUpdate()
   }
   if (m_bRotRight) {
     m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
+    logger.Log("Rotating to the right");
   }
   if (m_bRotUp) {
     m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
@@ -486,8 +380,7 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
     m_bRotRight = true;
   }
 
-  m_key = key;
-  m_bKeyTest = true;
+  addKeyEvent(key, true);
 }
 
 void
@@ -539,8 +432,7 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
     g_renderMan().recompileShaders();
   }
 
-  m_key = key;
-  m_bKeyTest = false;
+  addKeyEvent(key, false);
 }
 
 void
@@ -558,6 +450,8 @@ RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
   {
     m_bRightClick = true;
   }
+
+  addMouseButtonEvent(true);
 }
 
 void
@@ -575,6 +469,8 @@ RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
   {
     m_bRightClick = false;
   }
+
+  addMouseButtonEvent(false);
 }
 
 void
@@ -583,6 +479,8 @@ RendererApp::onMouseMove(const MouseMoveData& mouse)
   m_lastMousePos = m_currentMousePos;
   m_currentMousePos.x = static_cast<float>(mouse.x);
   m_currentMousePos.y = static_cast<float>(mouse.y);
+
+  addMousePosEvent(m_currentMousePos);
 }
 
 void
@@ -861,7 +759,7 @@ RendererApp::initCamera()
 void
 RendererApp::rotateCamera()
 {
-  const float speed = 0.005f;
+  const float speed = 0.05f;
 
   const float dx = (m_lastMousePos.x - m_currentMousePos.x) * speed;
   const float dy = (m_lastMousePos.y - m_currentMousePos.y) * speed;
@@ -902,5 +800,154 @@ RendererApp::updateCamera()
   g_graphicsMan().updateConstantBuffer(m_pInvVP,
                                        &invVP,
                                        sizeof(InvVP));
+}
+
+void
+RendererApp::setImgui()
+{
+  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(250.0f, static_cast<float>(m_desc.height)));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
+  ImGui::Begin("Scenegraph",
+               0,
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoCollapse |
+               ImGuiWindowFlags_NoResize);
+  ImGui::PopStyleColor();
+  ImGui::Text(m_pModel->name.c_str());
+  ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(1100.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(300.0f, static_cast<float>(m_desc.height)));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
+  ImGui::Begin("Renderer Settings",
+               0,
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoCollapse |
+               ImGuiWindowFlags_NoResize);
+  ImGui::PopStyleColor();
+
+  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
+  if (ImGui::CollapsingHeader("Model Transform")) {
+
+    // Position
+    ImGui::Text("Position:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    // Rotation
+    ImGui::Text("Rotation:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    // Scale
+    ImGui::Text("Scale:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(60.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
+    if (ImGui::Button("Reset")) {
+      m_modelPos = { 0.0f, 0.0f, 0.0f };
+      m_modelRot = { 0.0f, 0.0f, 0.0f };
+      m_modelScale = { 1.0f, 1.0f, 1.0f };
+    }
+    ImGui::PopStyleColor(3);
+  }
+  ImGui::PopStyleColor(3);
+
+  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
+  if (ImGui::CollapsingHeader("Shaders Data")) {
+    ImGui::DragFloat("AO sampler rad", &m_aoSamplerRad, 0.1f);
+    ImGui::DragFloat("AO scale", &m_aoScale, 0.1f);
+    ImGui::DragFloat("AO bias", &m_aoBias, 0.1f);
+    ImGui::DragFloat("AO intensity", &m_aoIntensity, 0.1f);
+
+    if (ImGui::Button("Recompile Shaders")) {
+      g_renderMan().recompileShaders();
+    }
+  }
+  ImGui::PopStyleColor(3);
+
+  ImGui::InputFloat("Light Intensity", &m_lIntensity);
+
+  static char buf[32] = "hello";
+  ImGui::InputText("TestingKeys", buf, 32);
+
+  ImGui::End();
 }
 }

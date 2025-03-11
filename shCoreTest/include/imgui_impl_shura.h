@@ -56,12 +56,20 @@ ImGui_ImplShura_InvalidateDeviceObjects();
 *  @brief Updates ImGui implementation for Shura Engine.
 */
 void
-ImGui_ImplShura_NewFrame(const Vector2& mousePos,
-                         const bool clicked,
-                         const float wheel,
-                         const float hWheel,
-                         const float btnPressed,
-                         const KEY::E key);
+ImGui_ImplShura_NewFrame();
+
+void
+addKeyEvent(const KEY::E key, const bool bPressed);
+
+void
+addMousePosEvent(const Vector2& mousePos);
+
+void
+addMouseButtonEvent(const bool bClicked);
+
+void
+addMouseWheelEvent(const float wheel,
+                   const float hWheel);
 
 /**
 *  @brief Shuts down ImGui implementation for Shura Engine.

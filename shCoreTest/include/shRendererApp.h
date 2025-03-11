@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/05
+*  @date    2025/03/10
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -95,6 +95,11 @@ class RendererApp : public BaseApp
   */
   ~RendererApp() = default;
 
+  /***************************************************************************/
+  /*
+  *  Event functions
+  */
+  /***************************************************************************/
  private:
   /**
   *  @brief Override function to add functionallity on app creation.
@@ -160,9 +165,17 @@ class RendererApp : public BaseApp
   void
   onMouseMove(const MouseMoveData& mouse) override;
 
+  /**
+  *  @brief Override to set mouse wheel event. This will be called every time
+  *         the mouse wheel is used.
+  */
   void
   onMouseWheel(const double delta, const ModifierState modifier) override;
 
+  /**
+  *  @brief Override to set mouse wheel event. This will be called every time
+  *         the mouse wheel is used.
+  */
   void
   onMouseHWheel(const double delta, const ModifierState modifier) override;
 
@@ -172,6 +185,11 @@ class RendererApp : public BaseApp
   void
   onDestroy() override;
 
+  /***************************************************************************/
+  /*
+  *  Functions
+  */
+  /***************************************************************************/
   /**
   *  @brief Initialize the graphic assets.
   */
@@ -196,25 +214,22 @@ class RendererApp : public BaseApp
   void
   updateCamera();
 
+  /**
+  *  @brief Sets the graphic interface.
+  */
+  void
+  setImgui();
+
+  /***************************************************************************/
+  /*
+  *  Variables
+  */
+  /***************************************************************************/
  private:
   /**
   *  @brief Screnn descriptor.
   */
   ScreenDesc m_desc;
-
-  /**
-  *  @brief First pass.
-  */
-  //UPtr<Pass> m_pBasicShader;
-
-  /**
-  *  @brief Second pass.
-  */
-  //UPtr<Pass> m_pDeferredShader;
-  
-  //UPtr<Pass> m_pAOShader;
-  //UPtr<Pass> m_pHBlurShader;
-  //UPtr<Pass> m_pVBlurShader;
 
   /**
   *  @brief Targets for first pass.
@@ -226,8 +241,19 @@ class RendererApp : public BaseApp
   */
   Vector<SPtr<Texture2D>> m_mainTarget;
   
+  /**
+  *  @brief Ambient occlusion render target.
+  */
   Vector<SPtr<Texture2D>> m_aoTarget;
+
+  /**
+  *  @brief Horizontal blur render target.
+  */
   Vector<SPtr<Texture2D>> m_hbTarget;
+
+  /**
+  *  @brief Vertical Blur render target.
+  */
   Vector<SPtr<Texture2D>> m_vbTarget;
 
   /**
@@ -264,6 +290,11 @@ class RendererApp : public BaseApp
   *  @brief Constant Buffer for viewport.
   */
   SPtr<ConstantBuffer> m_pViewportBuffer;
+
+  /**
+  *  @brief Constant buffer for ao data.
+  */
+  SPtr<ConstantBuffer> m_pAOBuffer;
 
   /**
   *  @brief App camera.
@@ -350,13 +381,50 @@ class RendererApp : public BaseApp
   */
   float m_hdelta = 0.0f;
 
-  KEY::E m_key;
-  bool m_bKeyTest;
-  bool m_testingBox = false;
+  /**
+  *  @brief Model position.
+  */
+  Vector3 m_modelPos = { 0.0f, 0.0f, 0.0f };
 
-  Vector3 m_modelPos;
-  Vector3 m_modelRot;
-  Vector3 m_modelScale;
+  /**
+  *  @brief Model rotation.
+  */
+  Vector3 m_modelRot = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Model scale.
+  */
+  Vector3 m_modelScale = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Ambient occlusion sampler rad.
+  */
+  float m_aoSamplerRad = 1.0f;
+
+  /**
+  *  @brief Ambient occlusion scale.
+  */
+  float m_aoScale = 1.0f;
+
+  /**
+  *  @brief Ambient occlusion bias.
+  */
+  float m_aoBias= 1.0f;
+
+  /**
+  *  @brief Ambient occlusion intensity.
+  */
+  float m_aoIntensity = 1.0f;
+
+  /**
+  *  @brief Float to test imgui.
+  */
+  float m_lIntensity = 0.0f;
+
+  /**
+  *  @brief String to test imgui.
+  */
+  String m_str;
 
   /**
   *  @brief Light structure.

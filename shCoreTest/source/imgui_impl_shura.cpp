@@ -372,81 +372,195 @@ ImGui_ImplShura_InvalidateDeviceObjects()
   bd->pFontTexture.reset();
 }
 
-static void
-updateMouseData(const Vector2& mousePos,
-                const bool clicked,
-                const float wheel,
-                const float hWheel)
-{
-  ImGuiIO& io = ImGui::GetIO();
-  io.AddMousePosEvent(mousePos.x, mousePos.y);
-  
-  if (clicked) {
-    io.AddMouseButtonEvent(0, true);
-  }
-  else {
-    io.AddMouseButtonEvent(0, false);
-  }
-  io.AddMouseWheelEvent(hWheel, wheel);
-}
-
 static ImGuiKey
 getImGuiKey(KEY::E key)
 {
+  ImGuiKey imKey = ImGuiKey_None;
+
   switch (key) {
   case KEY::kA:
   {
-    return ImGuiKey_A;
+    imKey = ImGuiKey_A;
     break;
   }
-  case KEY::kNum1:
+  case KEY::kB:
   {
-    return ImGuiKey_1;
+    imKey = ImGuiKey_B;
     break;
   }
-  case KEY::kNum2:
+  case KEY::kC:
   {
-    return ImGuiKey_2;
+    imKey = ImGuiKey_C;
     break;
   }
-  case KEY::kNum3:
+  case KEY::kD:
   {
-    return ImGuiKey_3;
+    imKey = ImGuiKey_D;
     break;
   }
-  case KEY::kNum4:
+  case KEY::kE:
   {
-    return ImGuiKey_4;
+    imKey = ImGuiKey_E;
     break;
   }
-  case KEY::kNum5:
+  case KEY::kF:
   {
-    return ImGuiKey_5;
+    imKey = ImGuiKey_F;
     break;
   }
-  case KEY::kNum6:
+  case KEY::kG:
   {
-    return ImGuiKey_6;
+    imKey = ImGuiKey_G;
     break;
   }
-  case KEY::kNum7:
+  case KEY::kH:
   {
-    return ImGuiKey_7;
+    imKey = ImGuiKey_H;
     break;
   }
-  case KEY::kNum8:
+  case KEY::kI:
   {
-    return ImGuiKey_8;
+    imKey = ImGuiKey_I;
     break;
   }
-  case KEY::kNum9:
+  case KEY::kJ:
   {
-    return ImGuiKey_9;
+    imKey = ImGuiKey_J;
+    break;
+  }
+  case KEY::kK:
+  {
+    imKey = ImGuiKey_K;
+    break;
+  }
+  case KEY::kL:
+  {
+    imKey = ImGuiKey_L;
+    break;
+  }
+  case KEY::kM:
+  {
+    imKey = ImGuiKey_M;
+    break;
+  }
+  case KEY::kN:
+  {
+    imKey = ImGuiKey_N;
+    break;
+  }
+  case KEY::kO:
+  {
+    imKey = ImGuiKey_O;
+    break;
+  }
+  case KEY::kP:
+  {
+    imKey = ImGuiKey_P;
+    break;
+  }
+  case KEY::kQ:
+  {
+    imKey = ImGuiKey_Q;
+    break;
+  }
+  case KEY::kR:
+  {
+    imKey = ImGuiKey_R;
+    break;
+  }
+  case KEY::kS:
+  {
+    imKey = ImGuiKey_S;
+    break;
+  }
+  case KEY::kT:
+  {
+    imKey = ImGuiKey_T;
+    break;
+  }
+  case KEY::kU:
+  {
+    imKey = ImGuiKey_U;
+    break;
+  }
+  case KEY::kV:
+  {
+    imKey = ImGuiKey_V;
+    break;
+  }
+  case KEY::kW:
+  {
+    imKey = ImGuiKey_W;
+    break;
+  }
+  case KEY::kX:
+  {
+    imKey = ImGuiKey_X;
+    break;
+  }
+  case KEY::kY:
+  {
+    imKey = ImGuiKey_Y;
+    break;
+  }
+  case KEY::kZ:
+  {
+    imKey = ImGuiKey_Z;
     break;
   }
   case KEY::kNum0:
   {
-    return ImGuiKey_0;
+    imKey = ImGuiKey_0;
+    break;
+  }
+  case KEY::kNum1:
+  {
+    imKey = ImGuiKey_1;
+    break;
+  }
+  case KEY::kNum2:
+  {
+    imKey = ImGuiKey_2;
+    break;
+  }
+  case KEY::kNum3:
+  {
+    imKey = ImGuiKey_3;
+    break;
+  }
+  case KEY::kNum4:
+  {
+    imKey = ImGuiKey_4;
+    break;
+  }
+  case KEY::kNum5:
+  {
+    imKey = ImGuiKey_5;
+    break;
+  }
+  case KEY::kNum6:
+  {
+    imKey = ImGuiKey_6;
+    break;
+  }
+  case KEY::kNum7:
+  {
+    imKey = ImGuiKey_7;
+    break;
+  }
+  case KEY::kNum8:
+  {
+    imKey = ImGuiKey_8;
+    break;
+  }
+  case KEY::kNum9:
+  {
+    imKey = ImGuiKey_9;
+    break;
+  }
+  case KEY::kBack:
+  {
+    imKey = ImGuiKey_Backspace;
     break;
   }
   case KEY::kKeysMax:
@@ -457,36 +571,49 @@ getImGuiKey(KEY::E key)
   default:
     break;
   }
-}
 
-static void
-addKeyboardEvents(KEY::E key, bool pressed)
-{
-  ImGuiIO& io = ImGui::GetIO();
-  io.AddKeyEvent(getImGuiKey(key), pressed);
+  return imKey;
 }
 
 void
-ImGui_ImplShura_NewFrame(const Vector2& mousePos,
-                         const bool clicked,
-                         const float wheel,
-                         const float hWheel,
-                         const float btnPressed,
-                         const KEY::E key)
+ImGui_ImplShura_NewFrame()
 {
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
   IM_ASSERT(bd != nullptr &&
             "Context or backend not initialized! Did you call ImGui_ImplDX11_Init()?");
 
-  updateMouseData(mousePos, clicked, wheel, hWheel);
-
-  /*if (btnPressed) {
-    addKeyboardEvents(key, btnPressed);
-  }*/
-
   if (!bd->pFontTexture) {
     ImGui_ImplShura_CreateDeviceObjects();
   }
+}
+
+void
+addKeyEvent(const KEY::E key, const bool bPressed)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  ImGuiKey imKey = getImGuiKey(key);
+  io.AddKeyEvent(imKey, bPressed);
+}
+
+void
+addMousePosEvent(const Vector2& mousePos)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.AddMousePosEvent(mousePos.x, mousePos.y);
+}
+
+void
+addMouseButtonEvent(const bool bClicked)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.AddMouseButtonEvent(0, bClicked);
+}
+
+void
+addMouseWheelEvent(const float wheel, const float hWheel)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.AddMouseWheelEvent(hWheel, wheel);
 }
 
 void

@@ -40,6 +40,9 @@
     <Filter Include="Include\RegisterUtilities">
       <UniqueIdentifier>{46f1ad5a-18d7-4d20-8b27-ea7af5d971b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Debug">
+      <UniqueIdentifier>{f41a1c14-d585-41e4-b0fe-ac8c892c74e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shBoxAAB.h">
@@ -129,6 +132,9 @@
     <ClInclude Include="include\shScriptVector3.h">
       <Filter>Include\RegisterUtilities</Filter>
     </ClInclude>
+    <ClInclude Include="include\shLogger.h">
+      <Filter>Include\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shBoxOBB.cpp">
@@ -193,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="source\shScriptManager.cpp">
       <Filter>Source\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shLogger.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
