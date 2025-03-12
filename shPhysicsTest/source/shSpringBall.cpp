@@ -69,8 +69,7 @@ SpringBall::simulateEuler(const Vector2& anchor)
   if (!m_bGrabbed) {
     Vector2 displacement = m_position - anchor;
 
-    const float dist = Math::sqrt(displacement.x * displacement.x +
-                                  displacement.y * displacement.y);
+    const float dist = displacement.mag();
 
     if (dist > m_limit) {
       Vector2 excess = displacement / dist * (dist - m_limit);
@@ -95,8 +94,7 @@ SpringBall::simulateVerlet(const Vector2& anchor)
 {
   if (!m_bGrabbed) {
     Vector2 displacement = m_position - anchor;
-    const float dist = Math::sqrt(displacement.x * displacement.x +
-                                  displacement.y * displacement.y);
+    const float dist = displacement.mag();
 
     if (dist > m_limit) {
       Vector2 excess = displacement / dist * (dist - m_limit);

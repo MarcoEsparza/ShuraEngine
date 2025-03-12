@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/05
+*  @date    2025/03/11
 *  @brief   Render module.
 *
 *  Render module.
@@ -29,6 +29,10 @@ using std::reinterpret_pointer_cast;
 namespace shEngineSDK {
 RenderManager::~RenderManager()
 {
+  for (auto& pass : m_passes) {
+    pass.second.reset();
+  }
+
   m_passes.clear();
 }
 

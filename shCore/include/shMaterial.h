@@ -2,7 +2,7 @@
 /*
 *  @file    shMaterial.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2025/03/11
 *  @brief   Material classes.
 *
 *  Material classes.
@@ -87,7 +87,14 @@ class SH_CORE_EXPORT PBRMaterial : public Material
   /**
   *  @brief Default destructor.
   */
-  ~PBRMaterial() = default;
+  virtual ~PBRMaterial()
+  {
+    baseColor.reset();
+    metallic.reset();
+    roughness.reset();
+    normal.reset();
+    ao.reset();
+  }
 
   /**
   *  @brief Base color texture.

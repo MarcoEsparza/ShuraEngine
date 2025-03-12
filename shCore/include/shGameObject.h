@@ -42,7 +42,7 @@ class SH_CORE_EXPORT GameObject
   /**
   *  @brief Default destructor.
   */
-  ~GameObject() = default;
+  ~GameObject();
 
   /*************************************************************/
   /*

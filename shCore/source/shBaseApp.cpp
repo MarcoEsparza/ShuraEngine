@@ -213,20 +213,17 @@ BaseApp::fixedUpdate()
 void
 BaseApp::render()
 {
-  g_graphicsMan().clearRenderTarget(g_graphicsMan().getMainRenderTargetView(),
-                                    m_backgroundColor);
-  g_graphicsMan().clearDepthStencil(g_graphicsMan().getMainDepthStencil());
+  GraphicsManager& graphicMan = g_graphicsMan();
+
+  graphicMan.clearRenderTarget(graphicMan.getMainRenderTargetView(),
+                               m_backgroundColor);
+  graphicMan.clearDepthStencil(graphicMan.getMainDepthStencil());
 
   // Call overridable render function
   onRender();
-
-  // Set main render target
-  //g_graphicsMan().setRenderTargets(g_graphicsMan().getMainRenderTargetView(),
-  //                                 g_graphicsMan().getMainDepthStencil(),
-  //                                 1);
   
   // Present backbuffer
-  g_graphicsMan().present();
+  graphicMan.present();
 }
 
 void

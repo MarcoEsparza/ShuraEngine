@@ -26,6 +26,19 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+GameObject::~GameObject()
+{
+  for (auto& component : components) {
+    component.reset();
+  }
+
+  components.clear();
+
+  for (auto& child : childs) {
+    child->~GameObject();
+  }
+}
+
 void
 GameObject::addComponent(const SPtr<Component>& comp)
 {
@@ -59,11 +72,7 @@ GameObject::getPosition() const
 Vector3
 GameObject::getRotation() const
 {
-  Vector3 rot = transform.getRotation();
-  rot.x = rot.x * Math::RAD2DEG;
-  rot.y = rot.y * Math::RAD2DEG;
-  rot.z = rot.z * Math::RAD2DEG;
-  return rot;
+  return transform.getRotation();
 }
 
 Vector3
@@ -85,11 +94,7 @@ GameObject::setPosition(const Vector3& position)
 void
 GameObject::setRotation(const Vector3& rotation)
 {
-  Vector3 rot = rotation;
-  rot.x = rot.x * Math::DEG2RAD;
-  rot.y = rot.y * Math::DEG2RAD;
-  rot.z = rot.z * Math::DEG2RAD;
-  transform.setRotation(rot);
+  transform.setRotation(rotation);
 
   for (auto& child : childs) {
     child->setRotation(child->getRotation() + rotation);

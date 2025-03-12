@@ -41,7 +41,7 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   /**
   *  @brief Default destructor.
   */
-  virtual ~SceneGraph() = default;
+  virtual ~SceneGraph();
 
   /*************************************************************/
   /*

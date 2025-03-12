@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/10
+*  @date    2025/03/11
 *  @brief   App for render testing.
 *
 *  App for render testing.

@@ -156,7 +156,7 @@ public:
   /**
   *  @brief Default destructor.
   */
-  virtual ~StaticMeshUnionComponent() = default;
+  virtual ~StaticMeshUnionComponent();
 
   /**
   *  @brief Sets the mesh data.

@@ -46,7 +46,7 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief Default destructor.
   */
-  ~DX11GraphicsManager() = default;
+  virtual ~DX11GraphicsManager();
 
   /***************************************************************************/
   /*

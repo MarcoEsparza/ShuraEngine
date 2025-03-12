@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/05
+*  @date    2025/03/11
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -44,12 +44,12 @@ namespace shEngineSDK {
 *  @brief Structure for ambient occlusion buffer.
 */
 struct AOBuffer {
-  Vector2 viewport;
+  Vector2 viewport = { 0.0f, 0.0f };
   float samplerRad = 0.0f;
   float scale = 0.0f;
   float bias = 0.0f;
   float intensity = 0.0f;
-  Vector2 unused;
+  Vector2 unused = { 0.0f, 0.0f };
 };
 
 void
@@ -170,8 +170,6 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  Logger& logger = g_logger();
-
   ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
 
@@ -180,7 +178,7 @@ RendererApp::onUpdate()
   m_hdelta = 0.0f;
 
   m_modelPos = m_pModel->getPosition();
-  m_modelRot = m_pModel->getRotation();
+  m_modelRot = m_pModel->getRotation() * Math::RAD2DEG;
   m_modelScale = m_pModel->getScale();
   
   setImgui();
@@ -189,11 +187,15 @@ RendererApp::onUpdate()
     m_pModel->setPosition(m_modelPos);
   }
   if (m_modelRot != m_pModel->getRotation()) {
-    m_pModel->setRotation(m_modelRot);
+    m_pModel->setRotation(m_modelRot * Math::DEG2RAD);
   }
   if (m_modelScale != m_pModel->getScale()) {
     m_pModel->setScale(m_modelScale);
   }
+
+  g_graphicsMan().updateConstantBuffer(m_pModelTransform,
+                                       &m_pModel->transform.getTransform(),
+                                       sizeof(Transform));
 
   AOBuffer aoBuffer;
   aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
@@ -209,52 +211,31 @@ RendererApp::onUpdate()
     rotateCamera();
   }
 
-  const float speed = 0.01f;
+  const float camSpeed = 0.01f;
 
   if (m_bFoward) {
-    m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * speed);
+    m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
   }
   
   if (m_bLeft) {
-    m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * speed);
+    m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * camSpeed);
   }
 
   if (m_bBack) {
-    m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * speed);
+    m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * camSpeed);
   }
   
   if (m_bRight) {
-    m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * speed);
+    m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * camSpeed);
   }
 
   if (m_bUp) {
-    m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * speed);
+    m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * camSpeed);
   }
 
   if (m_bDown) {
-    m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * speed);
+    m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * camSpeed);
   }
-
-  const float rotSpeed = 15.0f;
-  const float rotAngle = rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
-  if (m_bRotLeft) {
-    m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), -rotAngle);
-    
-  }
-  if (m_bRotRight) {
-    m_pModel->rotate(Vector3(0.0f, 1.0f, 0.0f), rotAngle);
-    logger.Log("Rotating to the right");
-  }
-  if (m_bRotUp) {
-    m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), rotAngle);
-  }
-  if (m_bRotDown) {
-    m_pModel->rotate(Vector3(1.0f, 0.0f, 0.0f), -rotAngle);
-  }
-  
-  g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                       &m_pModel->transform.getTransform(),
-                                       sizeof(Transform));
   
   updateCamera();
 }
@@ -328,6 +309,21 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(m_vbTarget[0], 3);
   
   graphMan.draw(3, 0);
+
+  graphMan.setShaderResourceView(nullptr, 0);
+  graphMan.setShaderResourceView(nullptr, 1);
+  graphMan.setShaderResourceView(nullptr, 2);
+  graphMan.setShaderResourceView(nullptr, 3);
+
+  graphMan.vsSetConstantBuffers(nullptr, 0);
+  graphMan.vsSetConstantBuffers(nullptr, 1);
+  graphMan.vsSetConstantBuffers(nullptr, 2);
+  graphMan.vsSetConstantBuffers(nullptr, 3);
+
+  graphMan.psSetConstantBuffers(nullptr, 0);
+  graphMan.psSetConstantBuffers(nullptr, 1);
+  graphMan.psSetConstantBuffers(nullptr, 2);
+  graphMan.psSetConstantBuffers(nullptr, 3);
 
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
@@ -556,6 +552,21 @@ RendererApp::onDestroy()
   for (auto& pTex : m_mainTarget) {
     pTex.reset();
   }
+  for (auto& pTex : m_aoTarget) {
+    pTex.reset();
+  }
+  for (auto& pTex : m_hbTarget) {
+    pTex.reset();
+  }
+  for (auto& pTex : m_vbTarget) {
+    pTex.reset();
+  }
+
+  m_targets.clear();
+  m_mainTarget.clear();
+  m_aoTarget.clear();
+  m_hbTarget.clear();
+  m_vbTarget.clear();
 
   m_pVP.reset();
   m_pInvVP.reset();
@@ -563,6 +574,10 @@ RendererApp::onDestroy()
   m_pCameraPosition.reset();
   m_pLightBuffer.reset();
   m_pViewportBuffer.reset();
+  m_pAOBuffer.reset();
+
+  m_pModel->~GameObject();
+  m_pModel.reset();
 }
 
 void

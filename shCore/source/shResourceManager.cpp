@@ -302,6 +302,10 @@ ReadMissingBoneTracks(const aiAnimation* aiAnim,
 
 ResourceManager::~ResourceManager()
 {
+  for (auto& resource : m_loadedResources) {
+    resource.second.reset();
+  }
+
   m_loadedResources.clear();
 }
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shSceneGraph.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/03/11
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
@@ -24,6 +24,15 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+SceneGraph::~SceneGraph()
+{
+  for (auto& object : m_gameObjects) {
+    object.reset();
+  }
+
+  m_gameObjects.clear();
+}
+
 SPtr<GameObject>
 SceneGraph::createEmptyObject(const String& objectName)
 {

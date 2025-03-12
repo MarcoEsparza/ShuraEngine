@@ -100,6 +100,16 @@ compileShaderFromFile(const String& fileName,
   return true;
 }
 
+DX11GraphicsManager::~DX11GraphicsManager()
+{
+  m_pRenderTargetView.reset();
+  m_pDepthStencil.reset();
+  m_pBackbuffer.reset();
+  m_pSwapChain.reset();
+  m_pDeviceContext.reset();
+  m_pDevice.reset();
+}
+
 void
 DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                                   const bool bAntiliasing,
@@ -958,6 +968,17 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
+  if (pCBuffer == nullptr) {
+    ID3D11Buffer* pBuff = nullptr;
+
+    m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
+                                                             numBuffers,
+                                                             &pBuff);
+
+    SafeRelease(pBuff);
+    return;
+  }
+
   auto pConstantBuffer = reinterpret_pointer_cast<DX11ConstantBuffer>(pCBuffer);
 
   m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
@@ -970,6 +991,17 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
+  if (pCBuffer == nullptr) {
+    ID3D11Buffer* pBuff = nullptr;
+
+    m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,
+                                                             numBuffers,
+                                                             &pBuff);
+
+    SafeRelease(pBuff);
+    return;
+  }
+
   auto pConstantBuffer = reinterpret_pointer_cast<DX11ConstantBuffer>(pCBuffer);
 
   m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,

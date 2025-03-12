@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Texture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/06
+*  @date    2025/03/11
 *  @brief   DirectX11 Texture and Texture2D class wrappers.
 *
 *  DirectX11 Texture and Texture2D class wrappers.
@@ -111,6 +111,7 @@ FORCEINLINE DX11Texture2D::~DX11Texture2D()
 {
   SafeRelease(m_pShaderRV);
   SafeRelease(m_pDepthSV);
+  SafeRelease(m_pRenderTV);
   SafeRelease(m_pTexture2D);
 }
 }
