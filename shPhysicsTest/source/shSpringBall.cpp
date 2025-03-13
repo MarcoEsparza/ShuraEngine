@@ -92,28 +92,52 @@ SpringBall::simulateEuler(const Vector2& anchor)
 void
 SpringBall::simulateVerlet(const Vector2& anchor)
 {
-  if (!m_bGrabbed) {
-    Vector2 displacement = m_position - anchor;
-    const float dist = displacement.mag();
+  const Vector2 tempPos = m_position;
+  Vector2 displacement = m_position - anchor;
+  const float dist = displacement.mag();
 
-    if (dist > m_limit) {
-      Vector2 excess = displacement / dist * (dist - m_limit);
-      Vector2 elasticForce = excess * -m_elasticity;
-      m_accel += elasticForce;
-    }
+  /*if (dist > m_limit) {
+    Vector2 excess = displacement / dist * (dist - m_limit);
+    Vector2 elasticForce = excess * -m_elasticity;
+    m_accel += elasticForce;
+  }*/
 
-    const Vector2 springForce = displacement * -m_springC;
-    m_accel += springForce;
-    m_accel.y += m_gravity;
-    m_velocity = m_position - m_previousPosition;
+  bool clamp = false;
 
-    m_previousPosition = m_position;
-    m_position += m_velocity + m_accel * m_drag;
-
-    m_accel = { 0.0f, 0.0f };
-
-    updateCBuffer();
+  if (dist > m_maxLenght) {
+    displacement = displacement.getNormalized() * m_maxLenght;
+    clamp = true;
   }
+  else if (dist < m_minLenght) {
+    displacement = displacement.getNormalized() * m_minLenght;
+    clamp = true;
+  }
+  if (clamp) {
+    m_position = anchor + displacement;
+    //Vector2 excess = displacement / dist * (dist - m_maxLenght);
+    //Vector2 elasticForce = excess * -m_elasticity;
+    //m_accel += elasticForce;
+    m_velocity.x = -m_velocity.x;
+    m_velocity.y = -m_velocity.y;
+  }
+
+  displacement = displacement - displacement.getNormalized() * m_iniLenght;
+
+  const Vector2 springForce = displacement * -m_springC;
+  const Vector2 gravityForce = { 0.0f, m_gravity * m_mass };
+  const Vector2 sumForces = springForce + gravityForce;
+  m_accel += (sumForces / m_mass);
+  m_velocity = m_position - m_previousPosition;
+
+  m_previousPosition = tempPos;
+
+  if (!m_bGrabbed) {
+    m_position += m_velocity + (m_accel * g_time().FIXED_DELTA_TIME);
+  }
+
+  m_accel = { 0.0f, 0.0f };
+
+  updateCBuffer();
 }
 
 void

@@ -525,7 +525,7 @@ PhysicsApp::initSpringBall()
                                            -50.0f,                // Gravity
                                            250.0f,                // Limit
                                            0.001f,                // Elasticity
-                                           0.002);                // Drag
+                                           0.001);                // Drag
   }
   else if(m_integration == INTEGRATION::kEuler) {
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
@@ -534,7 +534,7 @@ PhysicsApp::initSpringBall()
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
                                            0.5f,                  // SpringConstant
-                                           -500.0f,                // Gravity
+                                           -50.0f,                // Gravity
                                            250.0f,                // Limit
                                            0.2f,                // Elasticity
                                            0.2);                // Drag

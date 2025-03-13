@@ -166,5 +166,11 @@ class SpringBall
   float m_elasticity = 0.0f;
 
   float m_drag = 0.0f;
+
+  float m_mass = 1.0f;
+
+  float m_iniLenght = 50.0f;
+  float m_maxLenght = 200.0f;
+  float m_minLenght = 5.0f;
 };
 }
