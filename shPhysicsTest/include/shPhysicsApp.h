@@ -335,6 +335,14 @@ class PhysicsApp : public BaseApp
   SPtr<Sprite> m_pSbSprite;
   SPtr<SpringBall> m_springBall;
   Vector2 m_pivotPos;
-  bool m_bPivotGrabbed;
+  bool m_bPivotGrabbed = false;
+
+  float m_springC = 0.0f;
+  float m_dragC = 0.0f;
+  float m_mass = 0.0f;
+  float m_gravity = 0.0f;
+  float m_iniLenght = 0.0f;
+  float m_maxLenght = 0.0f;
+  float m_minLenght = 0.0f;
 };
 }

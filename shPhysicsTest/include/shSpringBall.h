@@ -62,7 +62,9 @@ class SpringBall
              const float radius,
              const float springC,
              const float gravity,
-             const float limit,
+             const float iniLenght,
+             const float maxLenght,
+             const float minLenght,
              const float elasticity,
              const float drag);
 
@@ -161,7 +163,7 @@ class SpringBall
   /**
   *  @brief Limit distance to the pivot.
   */
-  float m_limit = 0.0f;
+  //float m_limit = 0.0f;
 
   float m_elasticity = 0.0f;
 
@@ -169,8 +171,8 @@ class SpringBall
 
   float m_mass = 1.0f;
 
-  float m_iniLenght = 50.0f;
-  float m_maxLenght = 200.0f;
-  float m_minLenght = 5.0f;
+  float m_iniLenght = 0.0f;
+  float m_maxLenght = 0.0f;
+  float m_minLenght = 0.0f;
 };
 }

@@ -29,7 +29,9 @@ SpringBall::SpringBall(const SPtr<Sprite>& spr,
                        const float radius,
                        const float springC,
                        const float gravity,
-                       const float limit,
+                       const float iniLenght,
+                       const float maxLenght,
+                       const float minLenght,
                        const float elasticity,
                        const float drag)
 {
@@ -42,7 +44,9 @@ SpringBall::SpringBall(const SPtr<Sprite>& spr,
   m_radius = radius;
   m_springC = springC;
   m_gravity = gravity;
-  m_limit = limit;
+  m_iniLenght = iniLenght;
+  m_maxLenght = maxLenght;
+  m_minLenght = minLenght;
   m_elasticity = elasticity;
   m_drag = drag;
 
@@ -71,11 +75,11 @@ SpringBall::simulateEuler(const Vector2& anchor)
 
     const float dist = displacement.mag();
 
-    if (dist > m_limit) {
+    /*if (dist > m_limit) {
       Vector2 excess = displacement / dist * (dist - m_limit);
       Vector2 elasticForce = excess * -m_elasticity;
       m_accel += elasticForce;
-    }
+    }*/
 
     const Vector2 springForce = displacement * -m_springC;
     m_accel += springForce;
@@ -114,11 +118,6 @@ SpringBall::simulateVerlet(const Vector2& anchor)
   }
   if (clamp) {
     m_position = anchor + displacement;
-    //Vector2 excess = displacement / dist * (dist - m_maxLenght);
-    //Vector2 elasticForce = excess * -m_elasticity;
-    //m_accel += elasticForce;
-    m_velocity.x = -m_velocity.x;
-    m_velocity.y = -m_velocity.y;
   }
 
   displacement = displacement - displacement.getNormalized() * m_iniLenght;
@@ -126,13 +125,13 @@ SpringBall::simulateVerlet(const Vector2& anchor)
   const Vector2 springForce = displacement * -m_springC;
   const Vector2 gravityForce = { 0.0f, m_gravity * m_mass };
   const Vector2 sumForces = springForce + gravityForce;
-  m_accel += (sumForces / m_mass);
+  m_accel += (sumForces / m_mass) * -m_drag;
   m_velocity = m_position - m_previousPosition;
 
   m_previousPosition = tempPos;
 
   if (!m_bGrabbed) {
-    m_position += m_velocity + (m_accel * g_time().FIXED_DELTA_TIME);
+    m_position += m_velocity + m_accel;
   }
 
   m_accel = { 0.0f, 0.0f };

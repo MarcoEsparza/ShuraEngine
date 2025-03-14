@@ -117,6 +117,14 @@ PhysicsApp::onUpdate()
                items,
                static_cast<int32>(m_intList.size()));
 
+  ImGui::DragFloat("Spring Constant", &m_springC, 0.001f);
+  ImGui::DragFloat("Drag Constant", &m_dragC, 0.001f);
+  ImGui::DragFloat("Mass", &m_mass, 0.1f);
+  ImGui::DragFloat("Gravity", &m_gravity, 1.0f);
+  ImGui::DragFloat("Ini Lenght", &m_iniLenght, 1.0f);
+  ImGui::DragFloat("Max Lenght", &m_maxLenght, 1.0f);
+  ImGui::DragFloat("Min Lenght", &m_minLenght, 1.0f);
+
   ImGui::End();
 
   if (m_intIndex != static_cast<int32>(m_integration)) {
@@ -132,6 +140,14 @@ PhysicsApp::onUpdate()
     //m_activeBalls.clear();
     initSpringBall();
   }
+
+  m_springBall->m_springC = m_springC;
+  m_springBall->m_drag = m_dragC;
+  m_springBall->m_mass = m_mass;
+  m_springBall->m_gravity = m_gravity;
+  m_springBall->m_iniLenght = m_iniLenght;
+  m_springBall->m_maxLenght = m_maxLenght;
+  m_springBall->m_minLenght = m_minLenght;
 
   //Vector2 direction(0.0f, 0.0f);
   //const float rotAngle = m_rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
@@ -516,16 +532,26 @@ PhysicsApp::initSpringBall()
   }
 
   if(m_integration == INTEGRATION::kVerlet) {
+    m_springC = 0.1f;
+    m_dragC = 0.002;
+    m_mass = 1.0f;
+    m_gravity = -50.0f;
+    m_iniLenght = 100.0f;
+    m_maxLenght = 250.0f;
+    m_minLenght = 50.0f;
+
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
                                            Vector2(0.0f, 0.0f),   // Position
                                            Vector2(0.0f, 0.0f),   // Velocity
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
-                                           0.1f,                  // SpringConstant
-                                           -50.0f,                // Gravity
-                                           250.0f,                // Limit
+                                           m_springC,                  // SpringConstant
+                                           m_gravity,                // Gravity
+                                           m_iniLenght,                // Ini
+                                           m_maxLenght,                // Max
+                                           m_minLenght,                // Min
                                            0.001f,                // Elasticity
-                                           0.001);                // Drag
+                                           m_dragC);                // Drag
   }
   else if(m_integration == INTEGRATION::kEuler) {
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
@@ -533,11 +559,13 @@ PhysicsApp::initSpringBall()
                                            Vector2(0.0f, 0.0f),   // Velocity
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
-                                           0.5f,                  // SpringConstant
-                                           -50.0f,                // Gravity
-                                           250.0f,                // Limit
-                                           0.2f,                // Elasticity
-                                           0.2);                // Drag
+                                           m_springC,                  // SpringConstant
+                                           m_gravity,                // Gravity
+                                           m_iniLenght,                // Ini
+                                           m_maxLenght,                // Max
+                                           m_minLenght,                // Min
+                                           0.001f,                // Elasticity
+                                           m_dragC);                // Drag
   }
 }
 
