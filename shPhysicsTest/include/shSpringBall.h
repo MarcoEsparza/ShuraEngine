@@ -65,7 +65,6 @@ class SpringBall
              const float iniLenght,
              const float maxLenght,
              const float minLenght,
-             const float elasticity,
              const float drag);
 
   /**

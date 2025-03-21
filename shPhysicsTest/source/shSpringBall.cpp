@@ -32,7 +32,6 @@ SpringBall::SpringBall(const SPtr<Sprite>& spr,
                        const float iniLenght,
                        const float maxLenght,
                        const float minLenght,
-                       const float elasticity,
                        const float drag)
 {
   GraphicsManager& graphMan = g_graphicsMan();
@@ -47,7 +46,6 @@ SpringBall::SpringBall(const SPtr<Sprite>& spr,
   m_iniLenght = iniLenght;
   m_maxLenght = maxLenght;
   m_minLenght = minLenght;
-  m_elasticity = elasticity;
   m_drag = drag;
 
   m_previousPosition = m_position;
@@ -100,12 +98,6 @@ SpringBall::simulateVerlet(const Vector2& anchor)
   Vector2 displacement = m_position - anchor;
   const float dist = displacement.mag();
 
-  /*if (dist > m_limit) {
-    Vector2 excess = displacement / dist * (dist - m_limit);
-    Vector2 elasticForce = excess * -m_elasticity;
-    m_accel += elasticForce;
-  }*/
-
   bool clamp = false;
 
   if (dist > m_maxLenght) {
@@ -125,8 +117,8 @@ SpringBall::simulateVerlet(const Vector2& anchor)
   const Vector2 springForce = displacement * -m_springC;
   const Vector2 gravityForce = { 0.0f, m_gravity * m_mass };
   const Vector2 sumForces = springForce + gravityForce;
-  m_accel += (sumForces / m_mass) * -m_drag;
-  m_velocity = m_position - m_previousPosition;
+  m_accel += (sumForces / m_mass);
+  m_velocity = (m_position - m_previousPosition) * m_drag;
 
   m_previousPosition = tempPos;
 

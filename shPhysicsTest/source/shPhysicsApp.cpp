@@ -117,10 +117,10 @@ PhysicsApp::onUpdate()
                items,
                static_cast<int32>(m_intList.size()));
 
-  ImGui::DragFloat("Spring Constant", &m_springC, 0.001f);
-  ImGui::DragFloat("Drag Constant", &m_dragC, 0.001f);
+  ImGui::DragFloat("Spring Constant", &m_springC, 0.01f);
+  ImGui::DragFloat("Drag Constant", &m_dragC, 0.01f);
   ImGui::DragFloat("Mass", &m_mass, 0.1f);
-  ImGui::DragFloat("Gravity", &m_gravity, 1.0f);
+  ImGui::DragFloat("Gravity", &m_gravity, 0.1f);
   ImGui::DragFloat("Ini Lenght", &m_iniLenght, 1.0f);
   ImGui::DragFloat("Max Lenght", &m_maxLenght, 1.0f);
   ImGui::DragFloat("Min Lenght", &m_minLenght, 1.0f);
@@ -533,12 +533,12 @@ PhysicsApp::initSpringBall()
 
   if(m_integration == INTEGRATION::kVerlet) {
     m_springC = 0.1f;
-    m_dragC = 0.002;
-    m_mass = 1.0f;
-    m_gravity = -50.0f;
-    m_iniLenght = 100.0f;
-    m_maxLenght = 250.0f;
-    m_minLenght = 50.0f;
+    m_dragC = 0.5;
+    m_mass = 1.5f;
+    m_gravity = -2.0f;
+    m_iniLenght = 80.0f;
+    m_maxLenght = 150.0f;
+    m_minLenght = 25.0f;
 
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
                                            Vector2(0.0f, 0.0f),   // Position
@@ -550,7 +550,6 @@ PhysicsApp::initSpringBall()
                                            m_iniLenght,                // Ini
                                            m_maxLenght,                // Max
                                            m_minLenght,                // Min
-                                           0.001f,                // Elasticity
                                            m_dragC);                // Drag
   }
   else if(m_integration == INTEGRATION::kEuler) {
@@ -564,7 +563,6 @@ PhysicsApp::initSpringBall()
                                            m_iniLenght,                // Ini
                                            m_maxLenght,                // Max
                                            m_minLenght,                // Min
-                                           0.001f,                // Elasticity
                                            m_dragC);                // Drag
   }
 }
