@@ -126,8 +126,8 @@ RendererApp::onCreate()
   // Set light buffer
   Vector<Vector4> lights;
   lights.resize(12);
-  lights[0] = Vector4(0.0f, 2.0f, 0.0f, 1.0f);
-
+  m_lightPos = { 0.0f, 2.0f, 0.0f, 1.0f };
+  lights[0] = m_lightPos;
 
   //m_light.position = Vector3(5.0f, 5.0f, 5.0f);
   //m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
@@ -148,9 +148,12 @@ RendererApp::onCreate()
   pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
   pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
 
+  float screenW = static_cast<float>(getScreenDescription().width);
+  float screenH = static_cast<float>(getScreenDescription().height);
+
   AOBuffer aoBuffer;
-  aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
-  aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
+  aoBuffer.viewport.x = screenW;
+  aoBuffer.viewport.y = screenH;
   aoBuffer.samplerRad = 1.0f;
   aoBuffer.scale = 1.0f;
   aoBuffer.bias = 1.0f;
@@ -165,11 +168,34 @@ RendererApp::onCreate()
   auto pVBlurShader = renderMan.getPass("VBlurShader");
   pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
   pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
+
+  m_lightCam = Camera(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
+                      Vector3::ZERO,
+                      Vector3::UP,
+                      screenW,
+                      screenH,
+                      0.1f,
+                      100.0f);
+
+  VP lcam = {};
+  lcam.proj = m_lightCam.getProjection();
+  lcam.view = m_lightCam.getView();
+  lcam.proj.getTransposed();
+  lcam.view.getTransposed();
+
+  m_pLCBuffer = graphMan.createConstantBuffer(sizeof(VP));
+  graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
+
+  auto pSMapShader = renderMan.getPass("SMapShader");
+  pSMapShader->addVSConstantBuffer(m_pLCBuffer);
+  pSMapShader->addVSConstantBuffer(m_pModelTransform);
 }
 
 void
 RendererApp::onUpdate()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
 
@@ -181,6 +207,10 @@ RendererApp::onUpdate()
   m_modelRot = m_pModel->getRotation() * Math::RAD2DEG;
   m_modelScale = m_pModel->getScale();
   
+  Vector<Vector4> lights;
+  lights.resize(12);
+  lights[0] = m_lightPos;
+
   setImgui();
 
   if (m_modelPos != m_pModel->getPosition()) {
@@ -193,9 +223,26 @@ RendererApp::onUpdate()
     m_pModel->setScale(m_modelScale);
   }
 
-  g_graphicsMan().updateConstantBuffer(m_pModelTransform,
-                                       &m_pModel->transform.getTransform(),
-                                       sizeof(Transform));
+  graphMan.updateConstantBuffer(m_pModelTransform,
+                                &m_pModel->transform.getTransform(),
+                                sizeof(Transform));
+
+  if (lights[0] != m_lightPos) {
+    lights[0] = m_lightPos;
+    graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
+
+    m_lightCam.setViewData(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
+                           Vector3::ZERO,
+                           Vector3::UP);
+
+    VP lcam = {};
+    lcam.proj = m_lightCam.getProjection();
+    lcam.view = m_lightCam.getView();
+    lcam.proj.getTransposed();
+    lcam.view.getTransposed();
+
+    graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
+  }
 
   AOBuffer aoBuffer;
   aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
@@ -205,7 +252,7 @@ RendererApp::onUpdate()
   aoBuffer.bias = m_aoBias;
   aoBuffer.intensity = m_aoIntensity;
 
-  g_graphicsMan().updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
+  graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
 
   if (m_bRightClick) {
     rotateCamera();
@@ -247,66 +294,70 @@ RendererApp::onRender()
   RenderManager& renderMan = g_renderMan();
 
   graphMan.setPrimitiveTopology();
+  auto pDepthSV = graphMan.getMainDepthStencil();
 
-  // Gbuffer pass
-  for (auto& target : m_targets) {
-    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
-  }
+  // Shadow Mapping
+  graphMan.clearRenderTarget(m_pSMapTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  renderMan.makePass("SMapShader");
 
-  graphMan.setRenderTargets(m_targets, graphMan.getMainDepthStencil());
-  renderMan.makePass("BasicShader");
+  graphMan.setRenderTargets({ m_pSMapTarget }, pDepthSV);
 
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
-  renderMan.drawStaticMeshUnionInScene(smucList);
+  renderMan.drawSMUInScene(smucList);
+
+  // Gbuffer pass
+  graphMan.clearRenderTarget(m_pDepthTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.clearRenderTarget(m_pNormalTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.clearRenderTarget(m_pColorTarget, LinearColor(0.0f, 0.0f, 0.0f));
+
+  graphMan.setRenderTargets({m_pDepthTarget, m_pNormalTarget, m_pColorTarget }, pDepthSV);
+  renderMan.makePass("BasicShader");
+
+  //auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
+  renderMan.drawSMUInScene(smucList);
 
   graphMan.setShaderResourceView(nullptr, 2);
   graphMan.setShaderResourceView(nullptr, 3);
   graphMan.setShaderResourceView(nullptr, 4);
 
   // Ambient Occlusion pass
-  for (auto& target : m_aoTarget) {
-    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
-  }
-  graphMan.setRenderTargets(m_aoTarget, graphMan.getMainDepthStencil());
+  graphMan.clearRenderTarget(m_pAoTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.setRenderTargets({ m_pAoTarget }, pDepthSV);
   renderMan.makePass("AOShader");
 
-  graphMan.setShaderResourceView(m_targets[0], 0);
-  graphMan.setShaderResourceView(m_targets[1], 1);
+  graphMan.setShaderResourceView(m_pDepthTarget, 0);
+  graphMan.setShaderResourceView(m_pNormalTarget, 1);
 
   graphMan.draw(3, 0);
 
   graphMan.setShaderResourceView(nullptr, 1);
 
   // Horizontal Blur pass
-  for (auto& target : m_hbTarget) {
-    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
-  }
-  graphMan.setRenderTargets(m_hbTarget, graphMan.getMainDepthStencil());
+  graphMan.clearRenderTarget(m_pHbTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.setRenderTargets({ m_pHbTarget }, pDepthSV);
   renderMan.makePass("HBlurShader");
 
-  graphMan.setShaderResourceView(m_aoTarget[0], 0);
+  graphMan.setShaderResourceView(m_pAoTarget, 0);
 
   graphMan.draw(3, 0);
 
   // Vetical Blur pass
-  for (auto& target : m_vbTarget) {
-    graphMan.clearRenderTarget(target, LinearColor(0.0f, 0.0f, 0.0f));
-  }
-  graphMan.setRenderTargets(m_vbTarget, graphMan.getMainDepthStencil());
+  graphMan.clearRenderTarget(m_pVbTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.setRenderTargets({ m_pVbTarget }, pDepthSV);
   renderMan.makePass("VBlurShader");
 
-  graphMan.setShaderResourceView(m_hbTarget[0], 0);
+  graphMan.setShaderResourceView({ m_pHbTarget }, 0);
 
   graphMan.draw(3, 0);
 
   // Deferred pass
-  graphMan.setRenderTargets(m_mainTarget, graphMan.getMainDepthStencil());
+  graphMan.setRenderTargets({ m_mainTarget }, pDepthSV);
   renderMan.makePass("DeferredShader");
 
-  graphMan.setShaderResourceView(m_targets[0], 0);
-  graphMan.setShaderResourceView(m_targets[1], 1);
-  graphMan.setShaderResourceView(m_targets[2], 2);
-  graphMan.setShaderResourceView(m_vbTarget[0], 3);
+  graphMan.setShaderResourceView(m_pDepthTarget, 0);
+  graphMan.setShaderResourceView(m_pNormalTarget, 1);
+  graphMan.setShaderResourceView(m_pColorTarget, 2);
+  graphMan.setShaderResourceView(m_pVbTarget, 3);
   
   graphMan.draw(3, 0);
 
@@ -337,27 +388,14 @@ RendererApp::onResize(const ResizeData& rszData)
   float width = static_cast<float>(rszData.width);
   float height = static_cast<float>(rszData.height);
 
-  for (auto& target : m_mainTarget) {
-    target.reset();
-  }
-  for (auto& target : m_targets) {
-    target.reset();
-  }
-  for (auto& target : m_aoTarget) {
-    target.reset();
-  }
-  for (auto& target : m_hbTarget) {
-    target.reset();
-  }
-  for (auto& target : m_vbTarget) {
-    target.reset();
-  }
-
-  m_mainTarget.clear();
-  m_targets.clear();
-  m_aoTarget.clear();
-  m_hbTarget.clear();
-  m_vbTarget.clear();
+  m_pDepthTarget.reset();
+  m_pNormalTarget.reset();
+  m_pColorTarget.reset();
+  m_mainTarget.reset();
+  m_pAoTarget.reset();
+  m_pHbTarget.reset();
+  m_pVbTarget.reset();
+  m_pSMapTarget.reset();
 
   setRenderTargets();
 
@@ -546,28 +584,6 @@ RendererApp::onDestroy()
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
 
-  for (auto& pTex : m_targets) {
-    pTex.reset();
-  }
-  for (auto& pTex : m_mainTarget) {
-    pTex.reset();
-  }
-  for (auto& pTex : m_aoTarget) {
-    pTex.reset();
-  }
-  for (auto& pTex : m_hbTarget) {
-    pTex.reset();
-  }
-  for (auto& pTex : m_vbTarget) {
-    pTex.reset();
-  }
-
-  m_targets.clear();
-  m_mainTarget.clear();
-  m_aoTarget.clear();
-  m_hbTarget.clear();
-  m_vbTarget.clear();
-
   m_pVP.reset();
   m_pInvVP.reset();
   m_pModelTransform.reset();
@@ -632,6 +648,14 @@ RendererApp::initGraphicAssets()
                               "vs_5_0",
                               "ps_5_0");
   pVBlurShader->compileShader();
+
+  auto pSMapShader = make_shared<Pass>();
+  pSMapShader->setShaderInfo("resources/shaders/SMapShader.hlsl",
+                             "main",
+                             "mainPS",
+                             "vs_5_0",
+                             "ps_5_0");
+  pSMapShader->compileShader();
 
   // Set pass states
   RasterizerDesc rasterDesc = {};
@@ -706,11 +730,19 @@ RendererApp::initGraphicAssets()
   pVBlurShader->setSamplerState(pSamplerLinear);
   pVBlurShader->setDepthStencilState(planeDepthSDesc);
 
+  // Shadow Map
+  pSMapShader->generateInputLayout();
+  pSMapShader->setSamplerState(pSamplerLinear);
+  pSMapShader->setRasterizerState(rasterDesc);
+  pSMapShader->setBlendState(blendDesc);
+  pSMapShader->setDepthStencilState(depthSDesc);
+
   renderMan.setPass(pBasicShader, "BasicShader");
   renderMan.setPass(pAOShader, "AOShader");
   renderMan.setPass(pHBlurShader, "HBlurShader");
   renderMan.setPass(pVBlurShader, "VBlurShader");
   renderMan.setPass(pDeferredShader, "DeferredShader");
+  renderMan.setPass(pSMapShader, "SMapShader");
 
   // Create and set render targets for deferred rendering
   setRenderTargets();
@@ -825,53 +857,59 @@ RendererApp::setRenderTargets()
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  m_mainTarget.push_back(graphMan.getMainRenderTargetView());
+  m_mainTarget = graphMan.getMainRenderTargetView();
 
-  auto depthTarget = graphMan.createTexture2D(getScreenDescription().width,
+  m_pDepthTarget = graphMan.createTexture2D(getScreenDescription().width,
                               getScreenDescription().height,
                               TEXTURE_FORMAT::kR32G32B32A32_float,
                               USAGE::kDefault,
                               BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  auto normalTarget = graphMan.createTexture2D(getScreenDescription().width,
+  m_pNormalTarget = graphMan.createTexture2D(getScreenDescription().width,
                                getScreenDescription().height,
                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                USAGE::kDefault,
                                BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  auto colorTarget = graphMan.createTexture2D(getScreenDescription().width,
+  m_pColorTarget = graphMan.createTexture2D(getScreenDescription().width,
                               getScreenDescription().height,
                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
                               USAGE::kDefault,
                               BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  m_targets.push_back(depthTarget);
-  m_targets.push_back(normalTarget);
-  m_targets.push_back(colorTarget);
+  //m_targets.push_back(depthTarget);
+  //m_targets.push_back(normalTarget);
+  //m_targets.push_back(colorTarget);
 
-  auto aoTarget = graphMan.createTexture2D(getScreenDescription().width,
+  m_pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
                            getScreenDescription().height,
                            TEXTURE_FORMAT::kR16_FLOAT,
                            USAGE::kDefault,
                            BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  m_aoTarget.push_back(aoTarget);
+  //m_aoTarget.push_back(aoTarget);
 
-  auto hbTarget = graphMan.createTexture2D(getScreenDescription().width,
+  m_pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
                            getScreenDescription().height,
                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
                            USAGE::kDefault,
                            BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  m_hbTarget.push_back(hbTarget);
+  //m_hbTarget.push_back(hbTarget);
 
-  auto vbTarget = graphMan.createTexture2D(getScreenDescription().width,
+  m_pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
                            getScreenDescription().height,
                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
                            USAGE::kDefault,
                            BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 
-  m_vbTarget.push_back(vbTarget);
+  //m_vbTarget.push_back(vbTarget);
+
+  m_pSMapTarget = graphMan.createTexture2D(getScreenDescription().width,
+                           getScreenDescription().height,
+                           TEXTURE_FORMAT::kR32G32B32A32_float,
+                           USAGE::kDefault,
+                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
 }
 
 void
@@ -1015,6 +1053,33 @@ RendererApp::setImgui()
     if (ImGui::Button("Recompile Shaders")) {
       g_renderMan().recompileShaders();
     }
+
+    // Light Position
+    ImGui::Text("Light Pos:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##LPosX", &m_lightPos.x, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##LPosY", &m_lightPos.y, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 0.1f);
+    ImGui::PopStyleColor(3);
   }
   ImGui::PopStyleColor(3);
 

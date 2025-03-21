@@ -237,27 +237,31 @@ class RendererApp : public BaseApp
   /**
   *  @brief Targets for first pass.
   */
-  Vector<SPtr<Texture2D>> m_targets;
+  SPtr<Texture2D> m_pDepthTarget;
+  SPtr<Texture2D> m_pNormalTarget;
+  SPtr<Texture2D> m_pColorTarget;
 
   /**
   *  @brief Main render target.
   */
-  Vector<SPtr<Texture2D>> m_mainTarget;
+  SPtr<Texture2D> m_mainTarget;
   
   /**
   *  @brief Ambient occlusion render target.
   */
-  Vector<SPtr<Texture2D>> m_aoTarget;
+  SPtr<Texture2D> m_pAoTarget;
 
   /**
   *  @brief Horizontal blur render target.
   */
-  Vector<SPtr<Texture2D>> m_hbTarget;
+  SPtr<Texture2D> m_pHbTarget;
 
   /**
   *  @brief Vertical Blur render target.
   */
-  Vector<SPtr<Texture2D>> m_vbTarget;
+  SPtr<Texture2D> m_pVbTarget;
+
+  SPtr<Texture2D> m_pSMapTarget;
 
   /**
   *  @brief Model game object.
@@ -299,10 +303,16 @@ class RendererApp : public BaseApp
   */
   SPtr<ConstantBuffer> m_pAOBuffer;
 
+
+  SPtr<ConstantBuffer> m_pLCBuffer;
+
   /**
   *  @brief App camera.
   */
   Camera m_camera;
+
+
+  Camera m_lightCam;
 
   /**
   *  @brief Is left mouse button clicked?
@@ -428,6 +438,8 @@ class RendererApp : public BaseApp
   *  @brief String to test imgui.
   */
   String m_str;
+
+  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
 
   /**
   *  @brief Light structure.

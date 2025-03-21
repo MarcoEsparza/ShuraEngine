@@ -916,6 +916,14 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
   Vector<ID3D11RenderTargetView*> pRTVs;
 
   for (auto& pRenderTarget : pRenderTVs) {
+    /*if (pRenderTarget == nullptr) {
+      m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(1,
+                                                             nullptr,
+                                                             nullptr);
+
+      return;
+    }*/
+
     auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pRenderTarget);
   
     pRTVs.push_back(pRTV->m_pRenderTV);

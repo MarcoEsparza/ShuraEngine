@@ -2,7 +2,7 @@
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/03/17
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
@@ -181,6 +181,28 @@ class SH_UTILITY_EXPORT Vector4
   FORCEINLINE Vector4&
   operator-=(const Vector4& other);
 
+  /**
+  *  @brief Operator to compere if two Vector4 are equal.
+  *
+  *  @param lValue-Vector4.
+  *  @param rValue-Vector4.
+  * 
+  *  @return Vector4 This.
+  */
+  FORCEINLINE bool
+  operator==(const Vector4& other);
+
+  /**
+  *  @brief Operator to compere if two Vector4 are different.
+  *
+  *  @param lValue-Vector4.
+  *  @param rValue-Vector4.
+  * 
+  *  @return Vector4 This.
+  */
+  FORCEINLINE bool
+  operator!=(const Vector4& other);
+
   /*************************************************************/
   /*
   *  Variables
@@ -261,5 +283,23 @@ Vector4::operator-=(const Vector4& other)
   w -= other.w;
 
   return *this;
+}
+
+FORCEINLINE bool
+Vector4::operator==(const Vector4& other)
+{
+  return ((x == other.x) ||
+          (y == other.y) ||
+          (z == other.z) ||
+          (w == other.w));
+}
+
+FORCEINLINE bool
+Vector4::operator!=(const Vector4& other)
+{
+  return ((x != other.x) ||
+          (y != other.y) ||
+          (z != other.z) ||
+          (w != other.w));
 }
 }

@@ -93,7 +93,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @param Vector<SPtr<StaticMeshUnionComponent>>& meshList
   */
   void
-  drawStaticMeshUnionInScene(const Vector<SPtr<StaticMeshUnionComponent>>& meshList);
+  drawSMUInScene(const Vector<SPtr<StaticMeshUnionComponent>>& meshList);
 
   /**
   *  @brief Sets the resource view from PBRMaterial.

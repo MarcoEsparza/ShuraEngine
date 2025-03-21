@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/03/15
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -60,6 +60,7 @@ Camera::setOrthographicProjData(const float left,
 
   m_near = nearZ;
   m_far = farZ;
+  m_bIsOrtho = true;
 }
 
 Vector3

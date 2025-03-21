@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/03/15
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -37,7 +37,7 @@ class SH_CORE_EXPORT Camera
   Camera() = default;
 
   /**
-  *  @brief Perpective camera constructor.
+  *  @brief Perspective camera constructor.
   * 
   *  @param const Vector3& camPos
   *  @param const Vector3& targetPos
@@ -66,7 +66,7 @@ class SH_CORE_EXPORT Camera
            m_far(maxZ) {}
 
   /**
-  *  @brief Perpective camera constructor.
+  *  @brief Orthographic camera constructor.
   *
   *  @param const Vector3& camPos
   *  @param const Vector3& targetPos

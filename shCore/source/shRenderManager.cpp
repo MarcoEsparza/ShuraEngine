@@ -76,8 +76,7 @@ void RenderManager::recompileShaders()
 }
 
 void
-RenderManager::drawStaticMeshUnionInScene(const Vector<SPtr<StaticMeshUnionComponent>>&
-                                          meshList)
+RenderManager::drawSMUInScene(const Vector<SPtr<StaticMeshUnionComponent>>& meshList)
 {
   for (auto& meshUnion : meshList) {
     g_graphicsMan().setVertexBuffers(meshUnion->getVertexBuffer());
@@ -102,11 +101,25 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<PBRMaterial>& pMat)
     return;
   }
 
-  g_graphicsMan().setShaderResourceView(pMat->baseColor);
-  g_graphicsMan().setShaderResourceView(pMat->normal, 1);
-  g_graphicsMan().setShaderResourceView(pMat->metallic, 2);
-  g_graphicsMan().setShaderResourceView(pMat->roughness, 3);
-  g_graphicsMan().setShaderResourceView(pMat->ao, 4);
+  if (pMat->baseColor) {
+    g_graphicsMan().setShaderResourceView(pMat->baseColor);
+  }
+
+  if (pMat->normal) {
+    g_graphicsMan().setShaderResourceView(pMat->normal, 1);
+  }
+
+  if (pMat->metallic) {
+    g_graphicsMan().setShaderResourceView(pMat->metallic, 2);
+  }
+
+  if (pMat->roughness) {
+    g_graphicsMan().setShaderResourceView(pMat->roughness, 3);
+  }
+
+  if (pMat->ao) {
+    g_graphicsMan().setShaderResourceView(pMat->ao, 4);
+  }
 }
 
 RenderManager& g_renderMan()
