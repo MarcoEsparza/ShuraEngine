@@ -532,13 +532,23 @@ PhysicsApp::initSpringBall()
   }
 
   if(m_integration == INTEGRATION::kVerlet) {
-    m_springC = 0.1f;
-    m_dragC = 0.5;
-    m_mass = 1.5f;
-    m_gravity = -2.0f;
+    m_springC = 0.11f;
+    m_dragC = 0.840;
+    m_mass = 2.5f;
+    m_gravity = -2.7f;
     m_iniLenght = 80.0f;
-    m_maxLenght = 150.0f;
-    m_minLenght = 25.0f;
+    m_maxLenght = 180.0f;
+    m_minLenght = 50.0f;
+
+    /**
+    * Spring C = 0.110
+    * Drag C = 0.840
+    * Mass = 2.5
+    * Gravity = -2.7
+    * Ini lenght = 80
+    * Max = 180
+    * Min = 50
+    */
 
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
                                            Vector2(0.0f, 0.0f),   // Position
