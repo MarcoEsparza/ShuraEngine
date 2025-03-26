@@ -22,6 +22,7 @@
 #include "shGraphicsManager.h"
 #include "shRenderManager.h"
 #include "shResourceManager.h"
+#include "shAudioManager.h"
 #include "shScriptManager.h"
 #include "shTime.h"
 #include "shSceneGraph.h"
@@ -125,6 +126,7 @@ BaseApp::initManagers()
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
   RenderManager::startUp();
   ResourceManager::startUp();
+  AudioManager::startUp();
   ScriptManager::startUp();
   Time::startUp();
   SceneGraph::startUp();
@@ -232,6 +234,7 @@ BaseApp::destroyManagers()
   Logger::shutDown();
   SceneGraph::shutDown();
   ResourceManager::shutDown();
+  AudioManager::shutDown();
   ScriptManager::shutDown();
   Time::shutDown();
   RenderManager::shutDown();

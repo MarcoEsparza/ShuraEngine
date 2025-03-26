@@ -47,6 +47,7 @@ class SceneGraph;
 class PBRMaterial;
 class GameObject;
 class Texture2D;
+class Sound;
 
 /**
 *  @brief Structure for view-projection.
@@ -440,6 +441,8 @@ class RendererApp : public BaseApp
   String m_str;
 
   Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+  SPtr<Sound> m_testSound;
 
   /**
   *  @brief Light structure.

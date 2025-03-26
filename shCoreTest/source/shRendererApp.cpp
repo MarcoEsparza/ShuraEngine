@@ -21,6 +21,7 @@
 #include "shGraphicsManager.h"
 #include "shRenderManager.h"
 #include "shResourceManager.h"
+#include "shAudioManager.h"
 #include "shTime.h"
 #include "shSceneGraph.h"
 #include "shMath.h"
@@ -58,9 +59,11 @@ RendererApp::onCreate()
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
   ResourceManager& resourceMan = g_resourceMan();
+  AudioManager& audioMan = AudioManager::instance();
 
   initGraphicAssets();
   initCamera();
+  audioMan.initSystem();
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -194,6 +197,9 @@ RendererApp::onCreate()
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer);
   pSMapShader->addVSConstantBuffer(m_pModelTransform);
+
+  Path audioPath("resources/cat.wav");
+  m_testSound = audioMan.createSound(audioPath);
 }
 
 void
@@ -587,6 +593,9 @@ RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
 void
 RendererApp::onDestroy()
 {
+  AudioManager& audioMan = AudioManager::instance();
+  audioMan.close();
+
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
 
@@ -1093,6 +1102,11 @@ RendererApp::setImgui()
 
   static char buf[32] = "hello";
   ImGui::InputText("TestingKeys", buf, 32);
+
+  if (ImGui::Button("Play Sound")) {
+    AudioManager& audioMan = AudioManager::instance();
+    audioMan.playSound(m_testSound);
+  }
 
   ImGui::End();
 }

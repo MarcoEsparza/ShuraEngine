@@ -91,6 +91,12 @@
     <Filter Include="Source Files\GameObject">
       <UniqueIdentifier>{996cbf49-57ab-4a7c-90c1-cd8223301621}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\AudioManager">
+      <UniqueIdentifier>{870315f6-8860-4d7e-9520-8b820c0f1afc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AudioManager">
+      <UniqueIdentifier>{f8b2dabd-fedc-4dc9-be86-043fb52481f5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -210,6 +216,12 @@
     <ClInclude Include="include\shAsset.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\shAudioManager.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSound.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -262,6 +274,12 @@
     </ClCompile>
     <ClCompile Include="source\shAsset.cpp">
       <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shAudioManager.cpp">
+      <Filter>Source Files\AudioManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shSound.cpp">
+      <Filter>Source Files\AudioManager</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
