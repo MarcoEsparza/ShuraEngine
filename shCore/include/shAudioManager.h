@@ -26,7 +26,7 @@
 namespace shEngineSDK {
 class Sound;
 
-class AudioManager : public Module<AudioManager>
+class SH_CORE_EXPORT AudioManager : public Module<AudioManager>
 {
  public:
   AudioManager() = default;

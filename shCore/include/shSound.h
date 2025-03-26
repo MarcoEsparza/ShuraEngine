@@ -21,7 +21,7 @@
 #include <fmod.hpp>
 
 namespace shEngineSDK {
-class Sound
+class SH_CORE_EXPORT Sound
 {
  public:
   Sound() = default;
@@ -29,5 +29,7 @@ class Sound
 
  public:
   FMOD::Sound* m_sound = nullptr;
+
+  bool bIsPlaying = false;
 };
 }

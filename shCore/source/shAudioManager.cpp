@@ -46,6 +46,8 @@ AudioManager::update()
 void
 AudioManager::close()
 {
+  m_channel->stop();
+  m_channel = nullptr;
   m_system->release();
   //m_system = nullptr;
 }
@@ -56,7 +58,7 @@ AudioManager::createSound(Path& filePath)
   auto pSound = make_shared<Sound>();
 
   FMOD_RESULT res = FMOD_OK;
-  res = m_system->createSound(filePath.c_str(), FMOD_DEFAULT, nullptr, &pSound->m_sound);
+  res = m_system->createSound("resources/cat.wav", FMOD_DEFAULT, nullptr, &pSound->m_sound);
   if (res != FMOD_OK) {
     SH_ASSERT("Error on sound creation");
   }
@@ -72,5 +74,6 @@ AudioManager::playSound(const SPtr<Sound>& pSound)
   if (res != FMOD_OK) {
     SH_ASSERT("Error on sound play");
   }
+  pSound->bIsPlaying = true;
 }
 }

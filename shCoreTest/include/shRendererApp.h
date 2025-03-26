@@ -444,6 +444,8 @@ class RendererApp : public BaseApp
 
   SPtr<Sound> m_testSound;
 
+  bool bIsSoundPlaying = false;
+
   /**
   *  @brief Light structure.
   */

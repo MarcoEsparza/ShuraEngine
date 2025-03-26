@@ -206,6 +206,7 @@ void
 RendererApp::onUpdate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  AudioManager& audioMan = AudioManager::instance();
 
   ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
@@ -296,6 +297,12 @@ RendererApp::onUpdate()
   }
   
   updateCamera();
+
+  if (bIsSoundPlaying) {
+    audioMan.playSound(m_testSound);
+    bIsSoundPlaying = false;
+  }
+  audioMan.update();
 }
 
 void
@@ -1104,8 +1111,7 @@ RendererApp::setImgui()
   ImGui::InputText("TestingKeys", buf, 32);
 
   if (ImGui::Button("Play Sound")) {
-    AudioManager& audioMan = AudioManager::instance();
-    audioMan.playSound(m_testSound);
+    bIsSoundPlaying = true;
   }
 
   ImGui::End();
