@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="include\shAnimationResource.h" />
     <ClInclude Include="include\shAnimatorComponent.h" />
+    <ClInclude Include="include\shAsset.h" />
     <ClInclude Include="include\shBaseApp.h" />
     <ClInclude Include="include\shBlendState.h" />
     <ClInclude Include="include\shComponent.h" />
@@ -60,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shAnimatorComponent.cpp" />
+    <ClCompile Include="source\shAsset.cpp" />
     <ClCompile Include="source\shBaseApp.cpp" />
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />

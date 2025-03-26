@@ -207,6 +207,9 @@
     <ClInclude Include="include\shLight.h">
       <Filter>Header Files\Light</Filter>
     </ClInclude>
+    <ClInclude Include="include\shAsset.h">
+      <Filter>Header Files\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -256,6 +259,9 @@
     </ClCompile>
     <ClCompile Include="source\shGameObject.cpp">
       <Filter>Source Files\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shAsset.cpp">
+      <Filter>Source Files\Resource</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

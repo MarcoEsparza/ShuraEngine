@@ -57,6 +57,7 @@ RendererApp::onCreate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
+  ResourceManager& resourceMan = g_resourceMan();
 
   initGraphicAssets();
   initCamera();
@@ -73,27 +74,31 @@ RendererApp::onCreate()
 
   Path text1("resources/base_albedo.png");
   auto baseColor = reinterpret_pointer_cast<ImageResource>(
-                   g_resourceMan().loadResourceFromFile(text1)); 
+                   resourceMan.loadResourceFromFile(text1));
   Path text2("resources/base_normal.png");
   auto normal = reinterpret_pointer_cast<ImageResource>(
-                g_resourceMan().loadResourceFromFile(text2));
+                resourceMan.loadResourceFromFile(text2));
 
   Path text3("resources/base_metallic.png");
   auto metallic = reinterpret_pointer_cast<ImageResource>(
-                  g_resourceMan().loadResourceFromFile(text3));
+                  resourceMan.loadResourceFromFile(text3));
 
   Path text4("resources/base_roughness.png");
   auto roughness = reinterpret_pointer_cast<ImageResource>(
-                   g_resourceMan().loadResourceFromFile(text4));
+                   resourceMan.loadResourceFromFile(text4));
 
   Path text5("resources/base_AO.png");
   auto ao = reinterpret_pointer_cast<ImageResource>(
-            g_resourceMan().loadResourceFromFile(text5));
+            resourceMan.loadResourceFromFile(text5));
 
   // Load model and set the gameobject
   Path modelPath("resources/DrakeFire.fbx");
   auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
-                  g_resourceMan().loadResourceFromFile(modelPath));
+                  resourceMan.loadResourceFromFile(modelPath));
+
+  Path sponzaPath("resources/Models/Sponza.fbx");
+  auto sponzaModelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
+                        resourceMan.loadResourceFromFile(sponzaPath));
 
   auto modelMat = reinterpret_pointer_cast<PBRMaterial>(modelRes->materials[0]);
   modelMat->baseColor = baseColor->texture;
@@ -156,7 +161,7 @@ RendererApp::onCreate()
   aoBuffer.viewport.y = screenH;
   aoBuffer.samplerRad = 1.0f;
   aoBuffer.scale = 1.0f;
-  aoBuffer.bias = 1.0f;
+  aoBuffer.bias = 0.01f;
   aoBuffer.intensity = 1.0f;
 
   auto pAOShader = renderMan.getPass("AOShader");
@@ -309,6 +314,7 @@ RendererApp::onRender()
   graphMan.clearRenderTarget(m_pDepthTarget, LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.clearRenderTarget(m_pNormalTarget, LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.clearRenderTarget(m_pColorTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.clearDepthStencil(pDepthSV);
 
   graphMan.setRenderTargets({m_pDepthTarget, m_pNormalTarget, m_pColorTarget }, pDepthSV);
   renderMan.makePass("BasicShader");

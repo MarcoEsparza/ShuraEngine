@@ -47,21 +47,6 @@ class SkeletalMeshResource;
 class SkeletonResource;
 class AnimationResource;
 
-// TODO : Finish this for cache creation.
-struct SH_CORE_EXPORT ResourceInfoHeader
-{
-  RESOURCE_TYPE::E type;
-};
-
-// TODO : Finish this for cache creation.
-struct SH_CORE_EXPORT ModelCacheHeader
-{
-  int32 numMeshes;
-  int32 numVertices;
-  int32 numIndices;
-  int32 numPaths;
-};
-
 /**
 *  @brief Resource Manager module for loading all desired resources from files.
 */
@@ -117,6 +102,12 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   SPtr<Resource>
   isResourceLoaded(const Path& fileName);
+
+  bool
+  isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes);
+
+  bool
+  isCacheForResource(const Path& filePath, SPtr<Resource>& pRes);
 
   /*************************************************************/
   /*

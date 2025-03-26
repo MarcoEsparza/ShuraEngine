@@ -2,7 +2,7 @@
 /*
 *  @file    shStdHeaders.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/16
+*  @date    2025/03/25
 *  @brief   Header for the STD libraries
 *
 *  This file includes the most common and required STL objects.
@@ -137,6 +137,16 @@ using std::make_unique;
 *  @brief Byte wrapper to use along the engine.
 */
 using Byte = std::byte;
+
+/**
+*  @breif File stream for Shura Engine.
+*/
+using sh_fstream = std::fstream;
+
+/**
+*  @breif This will change later to a wrapper.
+*/
+using std::ios;
 
 /**
 *  @brief

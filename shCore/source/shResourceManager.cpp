@@ -314,6 +314,16 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
 {
   SPtr<Resource> resource;
 
+  // Check if resource is already on memory
+  if (isResourceOnMemory(filePath, resource)) {
+    return resource;
+  }
+
+  // Check if there is a cache for resource
+  if (isCacheForResource(filePath, resource)) {
+    return resource;
+  }
+
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
     resource = loadTextureFromFile(filePath.toString());
   }
@@ -355,6 +365,26 @@ ResourceManager::isResourceLoaded(const Path& fileName)
   }
 
   return nullptr;
+}
+
+bool
+ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
+{
+  auto resObj = m_loadedResources.find(filePath.toString());
+
+  if (resObj != m_loadedResources.end()) {
+    pRes = (*resObj).second;
+    return true;
+  }
+
+  pRes = nullptr;
+  return false;
+}
+
+bool
+ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
+{
+  return false;
 }
 
 SPtr<Resource>
