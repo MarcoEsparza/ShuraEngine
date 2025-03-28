@@ -46,7 +46,7 @@ class FMODChannelGroup : public ChannelGroup
   /**
   *  @brief FMOD ChannelGroup.
   */
-  FMOD::ChannelGroup* m_channelGroup;
+  FMOD::ChannelGroup* m_channelGroup = nullptr;
 };
 
 /*****************************************************************************/

@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/03/27
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -62,6 +62,8 @@ RendererApp::onCreate()
   RenderManager& renderMan = g_renderMan();
   ResourceManager& resourceMan = g_resourceMan();
   AudioManager& audioMan = AudioManager::instance();
+
+  m_shadowTexSize = 2048.0f;
 
   initGraphicAssets();
   initCamera();
@@ -181,10 +183,10 @@ RendererApp::onCreate()
   m_lightCam = Camera(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
                       Vector3::ZERO,
                       Vector3::UP,
-                      screenW,
-                      screenH,
+                      2000,
+                      2000,
                       1.0f,
-                      1000.0f);
+                      2000.0f);
 
   VP lcam = {};
   lcam.proj = m_lightCam.getProjection();
@@ -202,6 +204,8 @@ RendererApp::onCreate()
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
   m_testSound->m_channel = CHANNEL_TYPE::kUI;
+
+  pDeferredShader->addPSConstantBuffer(m_pLCBuffer);
 }
 
 void
@@ -317,15 +321,43 @@ RendererApp::onRender()
   auto pDepthSV = graphMan.getMainDepthStencil();
 
   // Shadow Mapping
-  graphMan.clearRenderTarget(m_pSMapTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  Viewport shadowVP = {};
+  shadowVP.width = m_shadowTexSize;
+  shadowVP.height = m_shadowTexSize;
+  shadowVP.minDepth = 0.0f;
+  shadowVP.maxDepth = 1.0f;
+  shadowVP.topLeftX = 0.0f;
+  shadowVP.topLeftY = 0.0f;
+
+  graphMan.setViewport(shadowVP);
+   
+  //graphMan.clearRenderTarget(m_pSMapTarget, LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.clearDepthStencil(m_pSMapTarget);
   renderMan.makePass("SMapShader");
 
-  graphMan.setRenderTargets({ m_pSMapTarget }, pDepthSV);
+  Vector<SPtr<Texture2D>> vShadow;
+  graphMan.setRenderTargets(vShadow, m_pSMapTarget);
 
   auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
   renderMan.drawSMUInScene(smucList);
 
+  graphMan.setShaderResourceView(nullptr, 0);
+  graphMan.setShaderResourceView(nullptr, 1);
+  graphMan.setShaderResourceView(nullptr, 2);
+  graphMan.setShaderResourceView(nullptr, 3);
+  graphMan.setShaderResourceView(nullptr, 4);
+
   // Gbuffer pass
+  Viewport normalVP = {};
+  normalVP.width = getScreenDescription().width;
+  normalVP.height = getScreenDescription().height;
+  normalVP.minDepth = 0.0f;
+  normalVP.maxDepth = 1.0f;
+  normalVP.topLeftX = 0.0f;
+  normalVP.topLeftY = 0.0f;
+
+  graphMan.setViewport(normalVP);
+
   graphMan.clearRenderTarget(m_pDepthTarget, LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.clearRenderTarget(m_pNormalTarget, LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.clearRenderTarget(m_pColorTarget, LinearColor(0.0f, 0.0f, 0.0f));
@@ -379,6 +411,7 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(m_pNormalTarget, 1);
   graphMan.setShaderResourceView(m_pColorTarget, 2);
   graphMan.setShaderResourceView(m_pVbTarget, 3);
+  graphMan.setShaderResourceView(m_pSMapTarget, 4);
   
   graphMan.draw(3, 0);
 
@@ -919,18 +952,20 @@ RendererApp::setRenderTargets()
   //m_hbTarget.push_back(hbTarget);
 
   m_pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                           getScreenDescription().height,
-                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+                                         getScreenDescription().height,
+                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                         USAGE::kDefault,
+                                         BIND_FLAGS::kRenderTarget |
+                                         BIND_FLAGS::kShaderResource);
 
   //m_vbTarget.push_back(vbTarget);
 
-  m_pSMapTarget = graphMan.createTexture2D(getScreenDescription().width,
-                           getScreenDescription().height,
-                           TEXTURE_FORMAT::kR32G32B32A32_float,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+  m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
+                                           static_cast<uint32>(m_shadowTexSize),
+                                           TEXTURE_FORMAT::kR32_Typeless,
+                                           USAGE::kDefault,
+                                           BIND_FLAGS::kDepthStencil |
+                                           BIND_FLAGS::kShaderResource);
 }
 
 void

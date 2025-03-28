@@ -2,7 +2,7 @@
 /*
 *  @file    shFMODAudioManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/27
+*  @date    2025/03/28
 *  @brief   Audio FMOD plugin.
 *
 *  Audio FMOD plugin.
@@ -118,7 +118,7 @@ class FMODAudioManager : public AudioManager
   /**
   *  @brief FMOD System.
   */
-  FMOD::System* m_system;
+  FMOD::System* m_system = nullptr;
 
   /**
   *  @brief Map for channel groups.

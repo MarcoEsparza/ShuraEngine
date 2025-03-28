@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/07
+*  @date    2025/03/28
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -679,7 +679,14 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   {
     D3D11_SHADER_RESOURCE_VIEW_DESC shaderRVDesc;
     memset(&shaderRVDesc, 0, sizeof(shaderRVDesc));
-    shaderRVDesc.Format = textureDesc.Format;
+    if (textureDesc.Format == DXGI_FORMAT_R32_TYPELESS ||
+        textureDesc.Format == DXGI_FORMAT_D32_FLOAT) {
+      textureDesc.Format = DXGI_FORMAT_R32_FLOAT;
+      shaderRVDesc.Format = textureDesc.Format;
+    }
+    else {
+      shaderRVDesc.Format = textureDesc.Format;
+    }
     shaderRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     shaderRVDesc.Texture2D.MipLevels = textureDesc.MipLevels;
     shaderRVDesc.Texture2D.MostDetailedMip = 0;
@@ -692,7 +699,14 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   {
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
     memset(&descDSV, 0, sizeof(descDSV));
-    descDSV.Format = textureDesc.Format;
+    if (textureDesc.Format == DXGI_FORMAT_R32_TYPELESS ||
+        textureDesc.Format == DXGI_FORMAT_R32_FLOAT) {
+      textureDesc.Format = DXGI_FORMAT_D32_FLOAT;
+      descDSV.Format = textureDesc.Format;
+    }
+    else {
+      descDSV.Format = textureDesc.Format;
+    }
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
     throwIfFailed(m_pDevice->m_pDevice->CreateDepthStencilView(pTexture->m_pTexture2D,
@@ -940,27 +954,23 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
 {
   auto pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
   Vector<ID3D11RenderTargetView*> pRTVs;
+  uint32 count = 0;
 
   for (auto& pRenderTarget : pRenderTVs) {
-    /*if (pRenderTarget == nullptr) {
-      m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(1,
-                                                             nullptr,
-                                                             nullptr);
-
-      return;
-    }*/
-
     auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pRenderTarget);
   
     pRTVs.push_back(pRTV->m_pRenderTV);
+
+    ++count;
   }
+
+  for (uint32 i = count; i < 8; ++i) {
+    pRTVs.push_back(nullptr);
+  }
+
   m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(static_cast<UINT>(pRTVs.size()),
                                                          pRTVs.data(),
                                                          pDepthStencil->m_pDepthSV);
-
-  /*for (auto& d3d11RTV : pRTVs) {
-    SafeRelease(d3d11RTV);
-  }*/
 }
 
 void

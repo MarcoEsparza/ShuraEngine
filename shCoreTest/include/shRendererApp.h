@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/03/28
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -444,7 +444,9 @@ class RendererApp : public BaseApp
 
   SPtr<Sound> m_testSound;
 
-  bool bIsSoundPlaying = false;  
+  bool bIsSoundPlaying = false;
+
+  float m_shadowTexSize = 0;
 
   /**
   *  @brief Light structure.

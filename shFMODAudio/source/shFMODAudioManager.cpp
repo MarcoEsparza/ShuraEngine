@@ -2,7 +2,7 @@
 /*
 *  @file    shFMODAudioManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/27
+*  @date    2025/03/28
 *  @brief   Audio FMOD plugin.
 *
 *  Audio FMOD plugin.
@@ -22,7 +22,6 @@
 #include "shFMODChannelGroup.h"
 
 #define MAX_CHANNELS            512
-//#define CHANNELS_PER_GROUP      10
 
 using std::reinterpret_pointer_cast;
 
@@ -30,7 +29,6 @@ namespace shEngineSDK {
 void
 FMODAudioManager::onStartUp()
 {
-  m_system = nullptr;
   FMOD_RESULT result = FMOD::System_Create(&m_system);
   if (result != FMOD_OK) {
     SH_ASSERT("FMOD error at system creation");
@@ -57,11 +55,6 @@ FMODAudioManager::onStartUp()
   pMasterChG->m_channelGroup->addGroup(pMusicChG->m_channelGroup);
   pMasterChG->m_channelGroup->addGroup(pVoiceChG->m_channelGroup);
   pMasterChG->m_channelGroup->addGroup(pUIChG->m_channelGroup);
-
-  pSFXChG->m_channels.resize(CHANNELS_PER_GROUP);
-  pMusicChG->m_channels.resize(CHANNELS_PER_GROUP);
-  pVoiceChG->m_channels.resize(CHANNELS_PER_GROUP);
-  pUIChG->m_channels.resize(CHANNELS_PER_GROUP);
 
   fillChannelGroup(pSFXChG);
   fillChannelGroup(pMusicChG);
