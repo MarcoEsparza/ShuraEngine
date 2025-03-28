@@ -1,11 +1,11 @@
 /*****************************************************************************/
 /*
-*  @file    shSound.h
+*  @file    shFMODChannel.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/03/27
-*  @brief   Engine sound base class.
+*  @brief   Audio FMOD plugin channel.
 *
-*  Engine sound base class.
+*  Audio FMOD plugin channel.
 *
 *  @bug     No bug known.
 */
@@ -17,25 +17,25 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shAudioTypes.h"
+#include "shPrerequisitesFMODAudio.h"
+#include "shChannel.h"
 
 namespace shEngineSDK {
 /**
-*  @breif Engine sound base class.
+*  @brief Audio FMOD plugin channel.
 */
-class Sound
+class FMODChannel : public Channel
 {
  public:
   /**
-  *  @breif Default constructor.
+  *  @brief Default constructor.
   */
-  Sound() = default;
+  FMODChannel() = default;
 
   /**
-  *  @breif Default destructor.
+  *  @brief Default destructor.
   */
-  virtual ~Sound() = default;
+  FORCEINLINE virtual ~FMODChannel();
 
   /***************************************************************************/
   /*
@@ -44,18 +44,19 @@ class Sound
   /***************************************************************************/
  public:
   /**
-  *  @breif Is sound playing.
+  *  @brief FMOD Channel.
   */
-  bool m_bIsPlaying = false;
-
-  /**
-  *  @breif Is sound on loop.
-  */
-  bool m_bLoop = false;
-
-  /**
-  *  @breif Is sound on loop.
-  */
-  CHANNEL_TYPE::E m_channel = CHANNEL_TYPE::kMaster;
+  FMOD::Channel* m_channel = nullptr;
 };
+
+/*****************************************************************************/
+/*
+*  Implementations
+*/
+/*****************************************************************************/
+
+FMODChannel::~FMODChannel()
+{
+  m_channel->stop();
+}
 }

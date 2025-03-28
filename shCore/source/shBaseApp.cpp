@@ -121,16 +121,28 @@ BaseApp::loadGraphicAPI()
 }
 
 void
+BaseApp::loadAudioAPI()
+{
+  DynamicLibrary myDLL("shFMODAudiod");
+  auto dllSymbol = reinterpret_cast<void(*)()>(myDLL.getSymbol("loadPlugin"));
+  if (!dllSymbol) {
+    SH_ASSERT(dllSymbol && "Could not load function");
+  }
+  dllSymbol();
+}
+
+void
 BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
   RenderManager::startUp();
   ResourceManager::startUp();
-  AudioManager::startUp();
   ScriptManager::startUp();
   Time::startUp();
   SceneGraph::startUp();
   Logger::startUp();
+
+  loadAudioAPI();
 }
 
 void
@@ -234,10 +246,10 @@ BaseApp::destroyManagers()
   Logger::shutDown();
   SceneGraph::shutDown();
   ResourceManager::shutDown();
-  AudioManager::shutDown();
   ScriptManager::shutDown();
   Time::shutDown();
   RenderManager::shutDown();
+  AudioManager::shutDown();
   GraphicsManager::shutDown();
 }
 }

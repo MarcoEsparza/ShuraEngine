@@ -242,6 +242,9 @@ class SH_CORE_EXPORT BaseApp
   void
   loadGraphicAPI();
 
+  void
+  loadAudioAPI();
+
   /**
   *  @brief Initialize all managers singletons.
   */

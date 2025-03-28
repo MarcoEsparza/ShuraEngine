@@ -28,6 +28,31 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+class ShaderInclude : public ID3DInclude
+{
+ public:
+  HRESULT __stdcall Open(D3D_INCLUDE_TYPE, LPCSTR pFileName,
+    LPCVOID, LPCVOID* ppData, UINT* pBytes) override {
+    std::ifstream file(pFileName, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) return E_FAIL;
+
+    size_t size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    char* buffer = new char[size];
+    file.read(buffer, size);
+
+    *ppData = buffer;
+    *pBytes = static_cast<UINT>(size);
+    return S_OK;
+  }
+
+  HRESULT __stdcall Close(LPCVOID pData) override {
+    delete[] static_cast<const char*>(pData);
+    return S_OK;
+  }
+};
+
 FORCEINLINE void
 throwIfFailed(HRESULT hr) {
   if (FAILED(hr)) {
@@ -55,11 +80,12 @@ compileShaderFromFile(const String& fileName,
   auto end = (String::const_iterator)fileName.end();
   WString wFileName(beg, end);
 
+  static ShaderInclude shaderInclude;
   ID3DBlob* pErrorBlob = nullptr;
 
   hrVS = D3DCompileFromFile(wFileName.c_str(),
                             nullptr,
-                            nullptr,
+                            &shaderInclude,
                             vsEntryPoint.c_str() ,
                             vsShaderModel.c_str(),
                             shaderFlags,
@@ -80,7 +106,7 @@ compileShaderFromFile(const String& fileName,
 
   hrPS = D3DCompileFromFile(wFileName.c_str(),
                             nullptr,
-                            nullptr,
+                            &shaderInclude,
                             psEntryPoint.c_str(),
                             psShaderModel.c_str(),
                             shaderFlags,

@@ -38,6 +38,8 @@
 #include "shRadian.h"
 #include "shVector4.h"
 
+#include "shSound.h"
+
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
@@ -63,7 +65,6 @@ RendererApp::onCreate()
 
   initGraphicAssets();
   initCamera();
-  audioMan.initSystem();
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -182,8 +183,8 @@ RendererApp::onCreate()
                       Vector3::UP,
                       screenW,
                       screenH,
-                      0.1f,
-                      100.0f);
+                      1.0f,
+                      1000.0f);
 
   VP lcam = {};
   lcam.proj = m_lightCam.getProjection();
@@ -200,6 +201,7 @@ RendererApp::onCreate()
 
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
+  m_testSound->m_channel = CHANNEL_TYPE::kUI;
 }
 
 void
@@ -600,9 +602,6 @@ RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
 void
 RendererApp::onDestroy()
 {
-  AudioManager& audioMan = AudioManager::instance();
-  audioMan.close();
-
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
 

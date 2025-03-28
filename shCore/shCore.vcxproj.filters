@@ -222,6 +222,15 @@
     <ClInclude Include="include\shSound.h">
       <Filter>Header Files\AudioManager</Filter>
     </ClInclude>
+    <ClInclude Include="include\shChannel.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shChannelGroup.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shAudioTypes.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -276,9 +285,6 @@
       <Filter>Source Files\Resource</Filter>
     </ClCompile>
     <ClCompile Include="source\shAudioManager.cpp">
-      <Filter>Source Files\AudioManager</Filter>
-    </ClCompile>
-    <ClCompile Include="source\shSound.cpp">
       <Filter>Source Files\AudioManager</Filter>
     </ClCompile>
   </ItemGroup>

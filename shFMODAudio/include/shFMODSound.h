@@ -1,11 +1,11 @@
 /*****************************************************************************/
 /*
-*  @file    shSound.h
+*  @file    shFMODSound.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/03/27
-*  @brief   Engine sound base class.
+*  @brief   Sound class implementation for FMOD.
 *
-*  Engine sound base class.
+*  Sound class implementation for FMOD.
 *
 *  @bug     No bug known.
 */
@@ -17,25 +17,25 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shAudioTypes.h"
+#include "shPrerequisitesFMODAudio.h"
+#include "shSound.h"
 
 namespace shEngineSDK {
 /**
-*  @breif Engine sound base class.
+*  @brief Sound class implementation for FMOD.
 */
-class Sound
+class FMODSound : public Sound
 {
  public:
   /**
-  *  @breif Default constructor.
+  *  @brief Default constructor.
   */
-  Sound() = default;
+  FMODSound() = default;
 
   /**
-  *  @breif Default destructor.
+  *  @brief Default destructor.
   */
-  virtual ~Sound() = default;
+  FORCEINLINE virtual ~FMODSound();
 
   /***************************************************************************/
   /*
@@ -44,18 +44,19 @@ class Sound
   /***************************************************************************/
  public:
   /**
-  *  @breif Is sound playing.
+  *  @brief FMOD sound.
   */
-  bool m_bIsPlaying = false;
-
-  /**
-  *  @breif Is sound on loop.
-  */
-  bool m_bLoop = false;
-
-  /**
-  *  @breif Is sound on loop.
-  */
-  CHANNEL_TYPE::E m_channel = CHANNEL_TYPE::kMaster;
+  FMOD::Sound* m_sound = nullptr;
 };
+
+/*****************************************************************************/
+/*
+*  Implementations
+*/
+/*****************************************************************************/
+
+FORCEINLINE FMODSound::~FMODSound()
+{
+  safeRelease(m_sound);
+}
 }

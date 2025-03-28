@@ -1,11 +1,11 @@
 /*****************************************************************************/
 /*
-*  @file    shSound.h
+*  @file    shChannel.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/03/27
-*  @brief   Engine sound base class.
+*  @brief   Audio channel base class.
 *
-*  Engine sound base class.
+*  Audio channel base class.
 *
 *  @bug     No bug known.
 */
@@ -18,24 +18,23 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shAudioTypes.h"
 
 namespace shEngineSDK {
 /**
-*  @breif Engine sound base class.
+*  @brief Audio channel base class.
 */
-class Sound
+class Channel
 {
  public:
   /**
   *  @breif Default constructor.
   */
-  Sound() = default;
+  Channel() = default;
 
   /**
   *  @breif Default destructor.
   */
-  virtual ~Sound() = default;
+  virtual ~Channel() = default;
 
   /***************************************************************************/
   /*
@@ -44,18 +43,8 @@ class Sound
   /***************************************************************************/
  public:
   /**
-  *  @breif Is sound playing.
+  *  @breif Channel index in group.
   */
-  bool m_bIsPlaying = false;
-
-  /**
-  *  @breif Is sound on loop.
-  */
-  bool m_bLoop = false;
-
-  /**
-  *  @breif Is sound on loop.
-  */
-  CHANNEL_TYPE::E m_channel = CHANNEL_TYPE::kMaster;
+  uint32 index = 0;
 };
 }
