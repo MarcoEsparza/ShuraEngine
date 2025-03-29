@@ -70,10 +70,11 @@ class SH_CORE_EXPORT Asset
   bool
   saveResourceToAsset(const SPtr<Resource>& pRes);
 
-  void
-  saveSMUnionAsset(const SPtr<Resource>& pRes);
-
   bool
   loadResourceFromAsset(Path filePath);
+
+ private:
+  void
+  saveSMUnionAsset(const SPtr<Resource>& pRes);
 };
 }
