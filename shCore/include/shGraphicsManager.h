@@ -238,6 +238,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   SPtr<Texture2D>
   createTextureFromFile(const String& fileName);
 
+  SPtr<Texture2D>
+  createTextureFromDDS(const String& fileName);
+
   /**
   *  @brief Creates a Texture2D.
   *
@@ -324,6 +327,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   void
   updateScreenSize(const SPtr<Screen>& pScreen);
+
+  void
+  saveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath);
 
   /********************
   *  Setters
@@ -681,6 +687,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                                 const int32 height,
                                 const int32 bpp) = 0;
 
+  virtual SPtr<Texture2D>
+  internalCreateTextureFromDDS(const String& fileName) = 0;
+
   /**
   *  @brief Calls the selected API overrided function.
   * 
@@ -766,6 +775,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   internalUpdateScreenSize(const SPtr<Screen>& pScreen) = 0;
+
+  virtual void
+  internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath) = 0;
 
   /********************
   *  Setters

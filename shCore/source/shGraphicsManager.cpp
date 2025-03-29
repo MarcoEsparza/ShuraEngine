@@ -132,6 +132,12 @@ GraphicsManager::createTextureFromFile(const String& fileName)
 }
 
 SPtr<Texture2D>
+GraphicsManager::createTextureFromDDS(const String& fileName)
+{
+  return internalCreateTextureFromDDS(fileName);
+}
+
+SPtr<Texture2D>
 GraphicsManager::createTexture2D(const uint32 width,
                                  const uint32 height,
                                  const uint32 format,
@@ -183,6 +189,13 @@ void
 GraphicsManager::updateScreenSize(const SPtr<Screen>& pScreen)
 {
   internalUpdateScreenSize(pScreen);
+}
+
+void
+GraphicsManager::saveTextureToDDS(const SPtr<Texture2D>& pTexture,
+                                  const String& filePath)
+{
+  internalSaveTextureToDDS(pTexture, filePath);
 }
 
 void

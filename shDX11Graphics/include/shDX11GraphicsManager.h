@@ -223,6 +223,9 @@ class DX11GraphicsManager : public GraphicsManager
                                 const int32 height,
                                 const int32 bpp) override;
 
+  SPtr<Texture2D>
+  internalCreateTextureFromDDS(const String& fileName) override;
+
   /**
   *  @brief Creates a Texture2D.
   * 
@@ -309,6 +312,9 @@ class DX11GraphicsManager : public GraphicsManager
   */
   virtual void
   internalUpdateScreenSize(const SPtr<Screen>& pScreen) override;
+
+  void
+  internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath) override;
 
   /********************
   *  Setters

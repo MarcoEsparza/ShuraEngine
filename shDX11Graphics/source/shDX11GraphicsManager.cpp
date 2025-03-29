@@ -24,6 +24,10 @@
 #include <Windows.h>
 
 #include <d3dcompiler.h>
+#include <DirectXTex.h>
+#include <DDSTextureLoader11.h>
+
+using namespace DirectX;
 
 using std::reinterpret_pointer_cast;
 
@@ -649,6 +653,32 @@ DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
 }
 
 SPtr<Texture2D>
+DX11GraphicsManager::internalCreateTextureFromDDS(const String& fileName)
+{
+  auto pTexture = make_shared<DX11Texture2D>();
+
+  SystemPath path = fileName;
+  ScratchImage image;
+
+  throwIfFailed(LoadFromDDSFile(path.wstring().c_str(),
+                                DDS_FLAGS_NONE,
+                                nullptr,
+                                image));
+
+  throwIfFailed(CreateTexture(m_pDevice->m_pDevice,
+                              image.GetImages(),
+                              image.GetImageCount(),
+                              image.GetMetadata(),
+                              reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D)));
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+                                                               nullptr,
+                                                               &pTexture->m_pShaderRV));
+
+  return pTexture;
+}
+
+SPtr<Texture2D>
 DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
                                              const uint32 height,
                                              const uint32 format,
@@ -933,6 +963,28 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
   SafeRelease(dxgiFactory);
   SafeRelease(dxgiAdapter);
   SafeRelease(dxgiDevice);
+}
+
+void
+DX11GraphicsManager::internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture,
+                                              const String& filePath)
+{
+  auto pResTex = reinterpret_pointer_cast<DX11Texture2D>(pTexture);
+
+  ScratchImage image;
+
+  throwIfFailed(CaptureTexture(m_pDevice->m_pDevice,
+                               m_pDeviceContext->m_pDeviceContext,
+                               pResTex->m_pTexture2D,
+                               image));
+
+  SystemPath sFileName = filePath;
+
+  throwIfFailed(SaveToDDSFile(image.GetImages(),
+                              image.GetImageCount(),
+                              image.GetMetadata(),
+                              DDS_FLAGS_NONE,
+                              sFileName.wstring().c_str()));
 }
 
 void

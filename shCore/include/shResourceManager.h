@@ -123,6 +123,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadTextureFromFile(const String& fileName);
 
+  SPtr<Resource>
+  loadTextureFromDDS(const String& filename);
+
   /*************************************************************/
   /*
   *  Model loading

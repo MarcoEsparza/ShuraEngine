@@ -384,19 +384,54 @@ ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
 bool
 ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
 {
+  if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
+    SystemPath path = filePath.toString();
+    path.replace_extension(".dds");
+    SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
+
+    if (std::filesystem::exists(fullPath)) {
+      pRes = loadTextureFromDDS(fullPath.string());
+      return true;
+    }
+  }
+
   return false;
 }
 
 SPtr<Resource>
 ResourceManager::loadTextureFromFile(const String& fileName)
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   auto pImage = make_shared<ImageResource>();
 
-  pImage->texture = GraphicsManager::instance().createTextureFromFile(fileName);
+  pImage->texture = graphMan.createTextureFromFile(fileName);
 
   SystemPath file = fileName;
   pImage->setName(file.filename().string());
 
+  m_loadedResources[pImage->getName()] = pImage;
+
+  SystemPath path = file.filename();
+  path.replace_extension(".dds");
+  String saveTex = "resources/assets/textures/" + path.string();
+
+  graphMan.saveTextureToDDS(pImage->texture, saveTex);
+
+  return pImage;
+}
+
+SPtr<Resource>
+ResourceManager::loadTextureFromDDS(const String& filename)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  auto pImage = make_shared<ImageResource>();
+
+  pImage->texture = graphMan.createTextureFromDDS(filename);
+
+  SystemPath file = filename;
+  pImage->setName(file.filename().string());
   m_loadedResources[pImage->getName()] = pImage;
 
   return pImage;
@@ -621,7 +656,7 @@ ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
   
   auto meshMaterial = make_shared<PBRMaterial>();
 
-  auto imgRes = m_loadedResources["White.png"];
+  auto imgRes = m_loadedResources["White.dds"];
   auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
   meshMaterial->baseColor = img->texture;
   meshMaterial->name = mat->GetName().C_Str();
