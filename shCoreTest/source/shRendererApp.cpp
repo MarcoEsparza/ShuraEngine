@@ -78,61 +78,8 @@ RendererApp::onCreate()
   Path whitePNG("resources/White.png");
   g_resourceMan().loadResourceFromFile(whitePNG);
 
-  Path text1("resources/base_albedo.png");
-  auto baseColor = reinterpret_pointer_cast<ImageResource>(
-                   resourceMan.loadResourceFromFile(text1));
-  Path text2("resources/base_normal.png");
-  auto normal = reinterpret_pointer_cast<ImageResource>(
-                resourceMan.loadResourceFromFile(text2));
-
-  Path text3("resources/base_metallic.png");
-  auto metallic = reinterpret_pointer_cast<ImageResource>(
-                  resourceMan.loadResourceFromFile(text3));
-
-  Path text4("resources/base_roughness.png");
-  auto roughness = reinterpret_pointer_cast<ImageResource>(
-                   resourceMan.loadResourceFromFile(text4));
-
-  Path text5("resources/base_AO.png");
-  auto ao = reinterpret_pointer_cast<ImageResource>(
-            resourceMan.loadResourceFromFile(text5));
-
-  // Load model and set the gameobject
-  Path modelPath("resources/DrakeFire.fbx");
-  auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
-                  resourceMan.loadResourceFromFile(modelPath));
-
-  Path sponzaPath("resources/Models/Sponza.fbx");
-  auto sponzaModelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
-                        resourceMan.loadResourceFromFile(sponzaPath));
-
-  auto modelMat = reinterpret_pointer_cast<PBRMaterial>(modelRes->materials[0]);
-  modelMat->baseColor = baseColor->texture;
-  modelMat->normal = normal->texture;
-  modelMat->metallic = metallic->texture;
-  modelMat->roughness = roughness->texture;
-  modelMat->ao = ao->texture;
-
-  m_pModel = make_shared<GameObject>();
-  m_pModel->name = "DrakeFire";
-  auto modelMC = make_shared<StaticMeshUnionComponent>();
-
-  modelMC->setMeshData(modelRes);
-  m_pModel->addComponent(modelMC);
-
-  m_pModel->transform.getTransform().m[3][3] = 1.0f;
-
-  m_pModel->setPosition(Vector3::ZERO);
-  m_pModel->setScale(Vector3::ONE);
-  m_pModel->setRotation(Vector3::ZERO);
-
-  g_sceneGraph().addObject(m_pModel);
-
-  m_pModelTransform = graphMan.createConstantBuffer(sizeof(Transform));
-
-  graphMan.updateConstantBuffer(m_pModelTransform,
-                                &m_pModel->transform.getTransform(),
-                                sizeof(Transform));
+  loadPistol();
+  loadSponza();
 
   // Set light buffer
   Vector<Vector4> lights;
@@ -180,13 +127,18 @@ RendererApp::onCreate()
   pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
   pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
 
+  m_lightTarget = Vector3::ZERO;
+  m_lcamSize = 2048.0f;
+  m_lcamNear = 1.0f;
+  m_lcamFar = 2000.0f;
+
   m_lightCam = Camera(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
-                      Vector3::ZERO,
+                      m_lightTarget,
                       Vector3::UP,
-                      2000,
-                      2000,
-                      1.0f,
-                      2000.0f);
+                      m_lcamSize,
+                      m_lcamSize,
+                      m_lcamNear,
+                      m_lcamFar);
 
   VP lcam = {};
   lcam.proj = m_lightCam.getProjection();
@@ -197,6 +149,10 @@ RendererApp::onCreate()
   m_pLCBuffer = graphMan.createConstantBuffer(sizeof(VP));
   graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
 
+  Vector4 lightS = { m_lightCam.getWidth(), 0.0f,0.0f,0.f };
+  m_pLSizeBuffer = graphMan.createConstantBuffer(sizeof(Vector4));
+  graphMan.updateConstantBuffer(m_pLSizeBuffer, &lightS, sizeof(Vector4));
+
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer);
   pSMapShader->addVSConstantBuffer(m_pModelTransform);
@@ -206,12 +162,14 @@ RendererApp::onCreate()
   m_testSound->m_channel = CHANNEL_TYPE::kUI;
 
   pDeferredShader->addPSConstantBuffer(m_pLCBuffer);
+  pDeferredShader->addPSConstantBuffer(m_pLSizeBuffer);
 }
 
 void
 RendererApp::onUpdate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  ResourceManager& resMan = g_resourceMan();
   AudioManager& audioMan = AudioManager::instance();
 
   ImGui_ImplShura_NewFrame();
@@ -224,6 +182,10 @@ RendererApp::onUpdate()
   m_modelPos = m_pModel->getPosition();
   m_modelRot = m_pModel->getRotation() * Math::RAD2DEG;
   m_modelScale = m_pModel->getScale();
+
+  m_sponzaPos = m_pSponza->getPosition();
+  m_sponzaRot = m_pSponza->getRotation() * Math::RAD2DEG;
+  m_sponzaScale = m_pSponza->getScale();
   
   Vector<Vector4> lights;
   lights.resize(12);
@@ -241,17 +203,46 @@ RendererApp::onUpdate()
     m_pModel->setScale(m_modelScale);
   }
 
+  if (m_sponzaPos != m_pSponza->getPosition()) {
+    m_pSponza->setPosition(m_sponzaPos);
+  }
+  if (m_sponzaRot != m_pSponza->getRotation()) {
+    m_pSponza->setRotation(m_sponzaRot * Math::DEG2RAD);
+  }
+  if (m_sponzaScale != m_pSponza->getScale()) {
+    m_pSponza->setScale(m_sponzaScale);
+  }
+
   graphMan.updateConstantBuffer(m_pModelTransform,
                                 &m_pModel->transform.getTransform(),
                                 sizeof(Transform));
 
-  if (lights[0] != m_lightPos) {
+  graphMan.updateConstantBuffer(m_pSponzaTransform,
+                                &m_pSponza->transform.getTransform(),
+                                sizeof(Transform));
+
+  Vector3 lightTarget = m_lightCam.getTarget();
+  float lcamNear = m_lightCam.getNear();
+  float lcamFar = m_lightCam.getFar();
+  float lcamSize = m_lightCam.getWidth();
+
+  if (lights[0] != m_lightPos ||
+      lightTarget != m_lightTarget ||
+      lcamNear != m_lcamNear ||
+      lcamFar != m_lcamFar ||
+      lcamSize != m_lcamSize) {
     lights[0] = m_lightPos;
     graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
-    m_lightCam.setViewData(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
-                           Vector3::ZERO,
-                           Vector3::UP);
+    /*m_lightCam.setViewData(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
+                           m_lightTarget,
+                           Vector3::UP);*/
+    m_lightCam.setPosition(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z));
+    m_lightCam.setTarget(m_lightTarget);
+    m_lightCam.setNear(m_lcamNear);
+    m_lightCam.setFar(m_lcamFar);
+    m_lightCam.setWidth(m_lcamSize);
+    m_lightCam.setHeight(m_lcamSize);
 
     VP lcam = {};
     lcam.proj = m_lightCam.getProjection();
@@ -259,7 +250,10 @@ RendererApp::onUpdate()
     lcam.proj.getTransposed();
     lcam.view.getTransposed();
 
+    Vector4 camSize = { m_lcamSize, 0.0f, 0.0f, 0.0f };
+
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
+    graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
   }
 
   AOBuffer aoBuffer;
@@ -276,7 +270,7 @@ RendererApp::onUpdate()
     rotateCamera();
   }
 
-  const float camSpeed = 0.01f;
+  const float camSpeed = 0.5f;
 
   if (m_bFoward) {
     m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
@@ -322,24 +316,37 @@ RendererApp::onRender()
 
   // Shadow Mapping
   Viewport shadowVP = {};
-  shadowVP.width = m_shadowTexSize;
-  shadowVP.height = m_shadowTexSize;
+  shadowVP.width = m_lcamSize;
+  shadowVP.height = m_lcamSize;
   shadowVP.minDepth = 0.0f;
   shadowVP.maxDepth = 1.0f;
   shadowVP.topLeftX = 0.0f;
   shadowVP.topLeftY = 0.0f;
 
   graphMan.setViewport(shadowVP);
-   
-  //graphMan.clearRenderTarget(m_pSMapTarget, LinearColor(0.0f, 0.0f, 0.0f));
+
   graphMan.clearDepthStencil(m_pSMapTarget);
   renderMan.makePass("SMapShader");
 
   Vector<SPtr<Texture2D>> vShadow;
   graphMan.setRenderTargets(vShadow, m_pSMapTarget);
 
-  auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
-  renderMan.drawSMUInScene(smucList);
+  SPtr<StaticMeshUnionComponent> pistol;
+  SPtr<StaticMeshUnionComponent> sponza;
+  for (auto& component : m_pModel->components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
+      pistol = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
+    }
+  }
+  for (auto& component : m_pSponza->components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
+      sponza = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
+    }
+  }
+
+  renderMan.drawSMUInScene({ pistol });
+  graphMan.vsSetConstantBuffers(m_pSponzaTransform, 1);
+  renderMan.drawSMUInScene({ sponza });
 
   graphMan.setShaderResourceView(nullptr, 0);
   graphMan.setShaderResourceView(nullptr, 1);
@@ -366,8 +373,9 @@ RendererApp::onRender()
   graphMan.setRenderTargets({m_pDepthTarget, m_pNormalTarget, m_pColorTarget }, pDepthSV);
   renderMan.makePass("BasicShader");
 
-  //auto& smucList = g_sceneGraph().getStaticMeshUnionComponentInScene();
-  renderMan.drawSMUInScene(smucList);
+  renderMan.drawSMUInScene({ pistol });
+  graphMan.vsSetConstantBuffers(m_pSponzaTransform, 1);
+  renderMan.drawSMUInScene({ sponza });
 
   graphMan.setShaderResourceView(nullptr, 2);
   graphMan.setShaderResourceView(nullptr, 3);
@@ -817,7 +825,7 @@ RendererApp::initCamera()
                     static_cast<float>(getScreenDescription().width),
                     static_cast<float>(getScreenDescription().height),
                     0.1f,
-                    100.0f);
+                    2000.0f);
 
   vp.proj = m_camera.getProjection();
   vp.view = m_camera.getView();
@@ -863,7 +871,7 @@ RendererApp::initCamera()
 void
 RendererApp::rotateCamera()
 {
-  const float speed = 0.05f;
+  const float speed = 0.5f;
 
   const float dx = (m_lastMousePos.x - m_currentMousePos.x) * speed;
   const float dy = (m_lastMousePos.y - m_currentMousePos.y) * speed;
@@ -880,7 +888,10 @@ RendererApp::rotateCamera()
 void
 RendererApp::updateCamera()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   m_camera.update();
+  m_lightCam.update();
 
   // Update camera buffer
   VP vp = {};
@@ -889,21 +900,17 @@ RendererApp::updateCamera()
   vp.proj.getTransposed();
   vp.view.getTransposed();
 
-  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
+  graphMan.updateConstantBuffer(m_pVP, &vp, sizeof(vp));
 
   // Update camera position buffer
   Vector4 foward(m_camera.getPosition(), 0.0f);
-  g_graphicsMan().updateConstantBuffer(m_pCameraPosition,
-                                       &foward,
-                                       sizeof(Vector4));
+  graphMan.updateConstantBuffer(m_pCameraPosition, &foward, sizeof(Vector4));
 
   // Update inverse view-projection buffer
   InvVP invVP = {};
   invVP.invVP = (vp.proj * vp.view).getInversed();
   invVP.invV = vp.view.getInversed();
-  g_graphicsMan().updateConstantBuffer(m_pInvVP,
-                                       &invVP,
-                                       sizeof(InvVP));
+  graphMan.updateConstantBuffer(m_pInvVP, &invVP, sizeof(InvVP));
 }
 
 void
@@ -914,40 +921,39 @@ RendererApp::setRenderTargets()
   m_mainTarget = graphMan.getMainRenderTargetView();
 
   m_pDepthTarget = graphMan.createTexture2D(getScreenDescription().width,
-                              getScreenDescription().height,
-                              TEXTURE_FORMAT::kR32G32B32A32_float,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+                                            getScreenDescription().height,
+                                            TEXTURE_FORMAT::kR32G32B32A32_float,
+                                            USAGE::kDefault,
+                                            BIND_FLAGS::kRenderTarget |
+                                            BIND_FLAGS::kShaderResource);
 
   m_pNormalTarget = graphMan.createTexture2D(getScreenDescription().width,
-                               getScreenDescription().height,
-                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                               USAGE::kDefault,
-                               BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+                                             getScreenDescription().height,
+                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                             USAGE::kDefault,
+                                             BIND_FLAGS::kRenderTarget |
+                                             BIND_FLAGS::kShaderResource);
 
   m_pColorTarget = graphMan.createTexture2D(getScreenDescription().width,
-                              getScreenDescription().height,
-                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  //m_targets.push_back(depthTarget);
-  //m_targets.push_back(normalTarget);
-  //m_targets.push_back(colorTarget);
+                                            getScreenDescription().height,
+                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                            USAGE::kDefault,
+                                            BIND_FLAGS::kRenderTarget |
+                                            BIND_FLAGS::kShaderResource);
 
   m_pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
-                           getScreenDescription().height,
-                           TEXTURE_FORMAT::kR16_FLOAT,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
-
-  //m_aoTarget.push_back(aoTarget);
+                                         getScreenDescription().height,
+                                         TEXTURE_FORMAT::kR16_FLOAT,
+                                         USAGE::kDefault,
+                                         BIND_FLAGS::kRenderTarget |
+                                         BIND_FLAGS::kShaderResource);
 
   m_pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                           getScreenDescription().height,
-                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                           USAGE::kDefault,
-                           BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource);
+                                         getScreenDescription().height,
+                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                         USAGE::kDefault,
+                                         BIND_FLAGS::kRenderTarget |
+                                         BIND_FLAGS::kShaderResource);
 
   //m_hbTarget.push_back(hbTarget);
 
@@ -986,8 +992,8 @@ RendererApp::setImgui()
   ImGui::Text(m_pModel->name.c_str());
   ImGui::End();
 
-  ImGui::SetNextWindowPos(ImVec2(width - 300.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(300.0f, height));
+  ImGui::SetNextWindowPos(ImVec2(width - 400.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(400.0f, height));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Renderer Settings",
                0,
@@ -1094,6 +1100,100 @@ RendererApp::setImgui()
       m_modelScale = { 1.0f, 1.0f, 1.0f };
     }
     ImGui::PopStyleColor(3);
+
+    // Position
+    ImGui::Text("Position:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##sPosX", &m_sponzaPos.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##sPosY", &m_sponzaPos.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##sPosZ", &m_sponzaPos.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    // Rotation
+    ImGui::Text("Rotation:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##sRotX", &m_sponzaRot.x, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##sRotY", &m_sponzaRot.y, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##sRotZ", &m_sponzaRot.z, 0.1f);
+    ImGui::PopStyleColor(3);
+
+    // Scale
+    ImGui::Text("Scale:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##sSclX", &m_sponzaScale.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##sSclY", &m_sponzaScale.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##sSclZ", &m_sponzaScale.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(60.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
+    if (ImGui::Button("Reset##SponzaReset")) {
+      m_sponzaPos = { 0.0f, 0.0f, 0.0f };
+      m_sponzaRot = { 0.0f, 0.0f, 0.0f };
+      m_sponzaScale = { 1.0f, 1.0f, 1.0f };
+    }
+    ImGui::PopStyleColor(3);
   }
   ImGui::PopStyleColor(3);
 
@@ -1109,7 +1209,10 @@ RendererApp::setImgui()
     if (ImGui::Button("Recompile Shaders")) {
       g_renderMan().recompileShaders();
     }
+  }
+  ImGui::PopStyleColor(3);
 
+  if (ImGui::CollapsingHeader("Light settings")) {
     // Light Position
     ImGui::Text("Light Pos:");
     // Position X
@@ -1118,7 +1221,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##LPosX", &m_lightPos.x, 0.1f);
+    ImGui::DragFloat("x##LPosX", &m_lightPos.x, 1.0f);
     ImGui::PopStyleColor(3);
     // Position Y
     ImGui::SameLine();
@@ -1126,7 +1229,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##LPosY", &m_lightPos.y, 0.1f);
+    ImGui::DragFloat("y##LPosY", &m_lightPos.y, 1.0f);
     ImGui::PopStyleColor(3);
     // Position Z
     ImGui::SameLine();
@@ -1134,10 +1237,43 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 0.1f);
+    ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 1.0f);
     ImGui::PopStyleColor(3);
+
+    // Light Target
+    ImGui::Text("Light Target:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##LTarX", &m_lightTarget.x, 1.0f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##LTarY", &m_lightTarget.y, 1.0f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##LTarZ", &m_lightTarget.z, 1.0f);
+    ImGui::PopStyleColor(3);
+
+    ImGui::Spacing();
+    ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 1.0f);
+    ImGui::Spacing();
+    ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
+    ImGui::Spacing();
+    ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
   }
-  ImGui::PopStyleColor(3);
 
   ImGui::InputFloat("Light Intensity", &m_lIntensity);
 
@@ -1149,5 +1285,193 @@ RendererApp::setImgui()
   }
 
   ImGui::End();
+}
+
+void
+RendererApp::loadPistol()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  ResourceManager& resourceMan = g_resourceMan();
+  SceneGraph& sceneG = g_sceneGraph();
+
+  auto modelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
+                  resourceMan.loadResourceFromFile(Path("resources/DrakeFire.fbx")));
+
+  /*auto baseColor = reinterpret_pointer_cast<ImageResource>(
+                   resourceMan.loadResourceFromFile(Path("resources/base_albedo.png")));
+  auto normal = reinterpret_pointer_cast<ImageResource>(
+                resourceMan.loadResourceFromFile(Path("resources/base_normal.png")));
+  auto metallic = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(Path("resources/base_metallic.png")));*/
+  auto roughness = reinterpret_pointer_cast<ImageResource>(
+                   resourceMan.loadResourceFromFile(Path("resources/base_roughness.png")));
+  auto ao = reinterpret_pointer_cast<ImageResource>(
+            resourceMan.loadResourceFromFile(Path("resources/base_AO.png")));
+
+  /*modelRes->materials[0]->baseColor = baseColor->texture;
+  modelRes->materials[0]->baseColorPath = baseColor->getPath().toString();
+  modelRes->materials[0]->normal = normal->texture;
+  modelRes->materials[0]->normalPath = normal->getPath().toString();
+  modelRes->materials[0]->metallic = metallic->texture;
+  modelRes->materials[0]->metallicPath = metallic->getPath().toString();*/
+  modelRes->materials[0]->roughness = roughness->texture;
+  modelRes->materials[0]->roughnessPath = roughness->getPath().toString();
+  modelRes->materials[0]->ao = ao->texture;
+  modelRes->materials[0]->aoPath = ao->getPath().toString();
+
+  m_pModel = make_shared<GameObject>();
+  m_pModel->name = "DrakeFire";
+  auto modelMC = make_shared<StaticMeshUnionComponent>();
+
+  modelMC->setMeshData(modelRes);
+  m_pModel->addComponent(modelMC);
+
+  m_pModel->transform.getTransform().m[3][3] = 1.0f;
+
+  m_pModel->setPosition(Vector3::ZERO);
+  m_pModel->setScale(Vector3::ONE);
+  m_pModel->setRotation(Vector3::ZERO);
+
+  sceneG.addObject(m_pModel);
+
+  m_pModelTransform = graphMan.createConstantBuffer(sizeof(Transform));
+
+  graphMan.updateConstantBuffer(m_pModelTransform,
+                                &m_pModel->transform.getTransform(),
+                                sizeof(Transform));
+
+  //resourceMan.saveResourceToAsset(modelRes);
+}
+
+void
+RendererApp::loadSponza()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  ResourceManager& resourceMan = g_resourceMan();
+  SceneGraph& sceneG = g_sceneGraph();
+
+  auto sponzaModelRes = reinterpret_pointer_cast<StaticMeshUnionResource>(
+                        resourceMan.loadResourceFromFile(
+                        Path("resources/Models/Sponza.fbx")));
+
+  auto bgNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/Background_Normal.png")));
+  auto chainNormal = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/ChainTexture_Normal.png")));
+  auto lionNormal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Lion_Normal.png")));
+  auto archNormal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Arch_normal.png")));
+  auto bricksNormal = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Bricks_a_Normal.png")));
+  auto ceilingNormal = reinterpret_pointer_cast<ImageResource>(
+                       resourceMan.loadResourceFromFile(
+                       Path("resources/textures/Sponza_Ceiling_normal.png")));
+  auto caNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/Sponza_Column_a_normal.png")));
+  auto cbNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/Sponza_Column_b_normal.png")));
+  auto ccNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/Sponza_Column_c_normal.png")));
+  auto cblueNormal = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Curtain_Blue_normal.png")));
+  auto cgreenNormal = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Curtain_Green_normal.png")));
+  auto credNormal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Curtain_Red_normal.png")));
+  auto detailsNormal = reinterpret_pointer_cast<ImageResource>(
+                       resourceMan.loadResourceFromFile(
+                       Path("resources/textures/Sponza_Details_normal.png")));
+  auto fblueNormal = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Fabric_Blue_normal.png")));
+  /*auto fgreenNormal = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Fabric_Green_normal.png")));
+  auto fredNormal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Fabric_Red_normal.png")));*/
+  auto fpNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/Sponza_FlagPole_normal.png")));
+  auto floorNormal = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Floor_normal.png")));
+  auto roofNormal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Roof_normal.png")));
+  auto thornNormal = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Thorn_normal.png")));
+  auto vaseNormal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Vase_normal.png")));
+  auto vhNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/VaseHanging_normal.png")));
+  auto vpNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/VasePlant_normal.png")));
+  auto vrNormal = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/VaseRound_normal.png")));
+
+  sponzaModelRes->materials[0]->normal = thornNormal->texture;
+  sponzaModelRes->materials[1]->normal = thornNormal->texture;
+  sponzaModelRes->materials[2]->normal = vrNormal->texture;
+  sponzaModelRes->materials[3]->normal = thornNormal->texture;
+  sponzaModelRes->materials[4]->normal = bricksNormal->texture;
+  sponzaModelRes->materials[5]->normal = archNormal->texture;
+  sponzaModelRes->materials[6]->normal = ceilingNormal->texture;
+  sponzaModelRes->materials[7]->normal = caNormal->texture;
+  sponzaModelRes->materials[8]->normal = floorNormal->texture;
+  sponzaModelRes->materials[9]->normal = ccNormal->texture;
+  sponzaModelRes->materials[10]->normal = detailsNormal->texture;
+  sponzaModelRes->materials[11]->normal = cbNormal->texture;
+  sponzaModelRes->materials[12]->normal = thornNormal->texture;
+  sponzaModelRes->materials[13]->normal = fpNormal->texture;
+  sponzaModelRes->materials[14]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[15]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[16]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[17]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[18]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[19]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[20]->normal = chainNormal->texture;
+  sponzaModelRes->materials[21]->normal = vhNormal->texture;
+  sponzaModelRes->materials[22]->normal = vaseNormal->texture;
+  sponzaModelRes->materials[23]->normal = thornNormal->texture;
+  sponzaModelRes->materials[24]->normal = roofNormal->texture;
+
+  m_pSponza = make_shared<GameObject>();
+  m_pSponza->name = "Sponza";
+  auto modelMC = make_shared<StaticMeshUnionComponent>();
+
+  modelMC->setMeshData(sponzaModelRes);
+  m_pSponza->addComponent(modelMC);
+
+  m_pSponza->transform.getTransform().m[3][3] = 1.0f;
+
+  m_pSponza->setPosition(Vector3::ZERO);
+  m_pSponza->setScale(Vector3::ONE);
+  m_pSponza->setRotation(Vector3::ZERO);
+
+  sceneG.addObject(m_pSponza);
+
+  m_pSponzaTransform = graphMan.createConstantBuffer(sizeof(Transform));
+
+  graphMan.updateConstantBuffer(m_pSponzaTransform,
+                                &m_pSponza->transform.getTransform(),
+                                sizeof(Transform));
 }
 }

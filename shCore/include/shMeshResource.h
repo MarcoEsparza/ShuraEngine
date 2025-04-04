@@ -65,6 +65,8 @@ class SH_CORE_EXPORT StaticMeshResource : public Resource
   */
   uint32 numIndex = 0;
 
+  uint32 matIndex = 0;
+
   /**
   *  @brief Material info.
   */

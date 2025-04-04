@@ -27,7 +27,7 @@ namespace shEngineSDK {
 */
 /*****************************************************************************/
 class StaticMeshUnionComponent;
-class PBRMaterial;
+class Material;
 class Pass;
 
 /**
@@ -101,7 +101,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @param SPtr<PBRMaterial>& pMat
   */
   void
-  setResourceViewFromPBRMaterial(const SPtr<PBRMaterial>& pMat);
+  setResourceViewFromPBRMaterial(const SPtr<Material>& pMat);
 
  private:
   /**

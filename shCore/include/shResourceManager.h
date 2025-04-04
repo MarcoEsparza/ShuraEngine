@@ -33,6 +33,7 @@
 struct aiScene;
 struct aiNode;
 struct aiMesh;
+struct aiMaterial;
 
 namespace shEngineSDK {
  /*************************************************************/
@@ -40,7 +41,9 @@ namespace shEngineSDK {
 *  Internal forward declarations
 */
 /*************************************************************/
+
 struct Bone;
+class Material;
 class StaticMeshResource;
 class StaticMeshUnionResource;
 class SkeletalMeshResource;
@@ -85,6 +88,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   SPtr<Resource>
   getResource(const String& resourceName);
+
+  void
+  saveResourceToAsset(const SPtr<Resource> pRes);
 
  private:
   /**
@@ -139,6 +145,12 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   SPtr<Resource>
   loadModelFromFile(const String& fileName);
+
+  SPtr<Material>
+  createMaterialFromFile(const aiMaterial* pMat);
+
+  SPtr<Resource>
+  loadModelFromCache(const String& fileName);
 
   /*************************************************************/
   /*

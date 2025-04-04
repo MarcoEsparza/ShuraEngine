@@ -759,6 +759,46 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   return pTexture;
 }
 
+SPtr<Texture2D>
+DX11GraphicsManager::internalCreateErrorTexture()
+{
+  auto pTexture = make_shared<DX11Texture2D>();
+  uint32 errorSize = 128;
+  Vector<uint32> pixels;
+  pixels.resize(errorSize * errorSize);
+
+  for (uint32 y = 0; y < errorSize; ++y) {
+    for (uint32 x = 0; x < errorSize; ++x) {
+      bool isPink = ((x / 16) % 2) == ((y / 16) % 2);
+      pixels[y * errorSize + x] = isPink ? 0xFFFF00FF : 0xFF000000;
+    }
+  }
+
+  D3D11_TEXTURE2D_DESC desc = {};
+  desc.Width = errorSize;
+  desc.Height = errorSize;
+  desc.MipLevels = 1;
+  desc.ArraySize = 1;
+  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.SampleDesc.Count = 1;
+  desc.Usage = D3D11_USAGE_IMMUTABLE;
+  desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+  D3D11_SUBRESOURCE_DATA initData = {};
+  initData.pSysMem = pixels.data();
+  initData.SysMemPitch = errorSize * sizeof(uint32);
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateTexture2D(&desc,
+                                                      &initData,
+                                                      &pTexture->m_pTexture2D));
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+                                                               nullptr,
+                                                               &pTexture->m_pShaderRV));
+
+  return pTexture;
+}
+
 SPtr<BlendState>
 DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
                                               const LinearColor& blendFactor)
@@ -919,11 +959,17 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
   dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
                          reinterpret_cast<void**>(&dxgiFactory));
   
-  m_pSwapChain.reset();
+  m_pSwapChain->m_pSwapChain->ResizeBuffers(2,
+                                            pScreen->getWidth(),
+                                            pScreen->getHeight(),
+                                            DXGI_FORMAT_R8G8B8A8_UNORM,
+                                            DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+
+  /*m_pSwapChain.reset();
   m_pSwapChain = make_shared<DX11SwapChain>();
   throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice->m_pDevice,
                                              &scDesc,
-                                             &m_pSwapChain->m_pSwapChain));
+                                             &m_pSwapChain->m_pSwapChain));*/
 
   //Get Backbuffer Interface
   //Create a render target view

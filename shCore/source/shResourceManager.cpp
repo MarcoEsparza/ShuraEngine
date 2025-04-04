@@ -407,6 +407,13 @@ ResourceManager::getResource(const String& resourceName)
   return isResourceLoaded(resourceName);
 }
 
+void
+ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes)
+{
+  Asset resAsset;
+  resAsset.saveResourceToAsset(pRes);
+}
+
 SPtr<Resource>
 ResourceManager::isResourceLoaded(const String& fileName)
 {
@@ -492,6 +499,9 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   graphMan.saveTextureToDDS(pImage->texture, saveTex);
 
+  Path texPath(saveTex);
+  pImage->setPath(texPath);
+
   return pImage;
 }
 
@@ -507,6 +517,8 @@ ResourceManager::loadTextureFromDDS(const String& filename)
   SystemPath file = filename;
   pImage->setName(file.filename().string());
   m_loadedResources[pImage->getName()] = pImage;
+  Path texPath(filename);
+  pImage->setPath(texPath);
 
   return pImage;
 }
@@ -537,6 +549,131 @@ ResourceManager::loadModelFromFile(const String& fileName)
       return createStaticMeshUnion(fileName, pScene->mRootNode, pScene);
     }
   }
+}
+
+SPtr<Material>
+ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  auto pMeshMat = make_shared<Material>();
+
+  uint32 diffCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
+  uint32 normCount = pMat->GetTextureCount(aiTextureType_NORMALS);
+  uint32 metalCount = pMat->GetTextureCount(aiTextureType_METALNESS);
+  uint32 roughCount = pMat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
+  uint32 aoCount = pMat->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
+
+  if (diffCount == 0) {
+    // Create error texture
+    pMeshMat->m_properties.bHasDiffuseMap = true;
+    pMeshMat->baseColor = graphMan.createErrorTexturre();
+  }
+  else {
+    pMeshMat->m_properties.bHasDiffuseMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->baseColor = pImage->texture;
+  }
+
+  if (normCount == 0) {
+    pMeshMat->m_properties.bHasNormalMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasNormalMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_NORMALS, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->normal = pImage->texture;
+  }
+
+  if (metalCount == 0) {
+    pMeshMat->m_properties.bHasMetalnessMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasMetalnessMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_METALNESS, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->metallic = pImage->texture;
+  }
+
+  if (roughCount == 0) {
+    pMeshMat->m_properties.bHasRoughnessMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasRoughnessMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->roughness = pImage->texture;
+  }
+
+  if (aoCount == 0) {
+    pMeshMat->m_properties.bHasAmbientOcclusionMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasAmbientOcclusionMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->ao = pImage->texture;
+  }
+  
+  pMeshMat->m_type = MATERIAL_TYPE::kPBR;
+  pMeshMat->name = pMat->GetName().C_Str();
+
+  return pMeshMat;
+}
+
+SPtr<Resource>
+ResourceManager::loadModelFromCache(const String& fileName)
+{
+  Asset model;
+  auto pRes = model.loadResourceFromAsset(Path(fileName));
+
+  if (pRes->getType() == RESOURCE_TYPE::kMeshUnion) {
+    auto pSMURes = reinterpret_pointer_cast<StaticMeshUnionResource>(pRes);
+
+    for (uint32 i = 0; i < pSMURes->materials.size(); ++i) {
+      /*auto pBCImage = reinterpret_pointer_cast<ImageResource>(
+                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
+      pSMURes->materials[i]->baseColor = pBCImage->texture;
+
+      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
+                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
+      pSMURes->materials[i]->baseColor = pBCImage->texture;
+
+      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
+                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
+      pSMURes->materials[i]->baseColor = pBCImage->texture;
+
+      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
+                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
+      pSMURes->materials[i]->baseColor = pBCImage->texture;
+
+      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
+                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
+      pSMURes->materials[i]->baseColor = pBCImage->texture;*/
+    }
+  }
+
+  return pRes;
 }
 
 SPtr<Resource>
@@ -577,7 +714,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 
   auto* mat = scene->mMaterials[mesh->mMaterialIndex];
 
-  auto meshMaterial = make_shared<PBRMaterial>();
+  auto meshMaterial = make_shared<Material>();
 
   auto& imgRes = m_loadedResources["White.png"];
   auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
@@ -604,10 +741,6 @@ ResourceManager::createStaticMeshUnion(const String& fileName,
     
     m_loadedResources[meshUnion->getName()] = meshUnion;
   }
-
-  Asset smuAsset;
-
-  //smuAsset.saveResourceToAsset(meshUnion);
 
   return meshUnion;
 }
@@ -639,11 +772,12 @@ ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
 
   auto* mat = scene->mMaterials[mesh->mMaterialIndex];
   
-  auto meshMaterial = make_shared<PBRMaterial>();
+  auto meshMaterial = createMaterialFromFile(mat);
+  //auto meshMaterial = make_shared<Material>();
 
-  auto& imgRes = m_loadedResources["White.dds"];
-  auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
-  meshMaterial->baseColor = img->texture;
+  //auto& imgRes = m_loadedResources["White.dds"];
+  //auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
+  //meshMaterial->baseColor = img->texture;
   meshMaterial->name = mat->GetName().C_Str();
   currentMesh->material = meshMaterial;
   
@@ -737,7 +871,7 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   currentMeshInfo.materialIndex = mesh->mMaterialIndex;
 
   if (skeletalMesh->materials[currentMeshInfo.materialIndex] == nullptr) {
-    auto meshMat = make_shared<PBRMaterial>();
+    auto meshMat = make_shared<Material>();
     auto& imgRes = m_loadedResources["White.png"];
     auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
     meshMat->baseColor = img->texture;

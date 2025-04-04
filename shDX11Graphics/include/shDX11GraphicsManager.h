@@ -244,6 +244,9 @@ class DX11GraphicsManager : public GraphicsManager
                           const uint32 usage,
                           const uint32 bindFlags) override;
 
+  SPtr<Texture2D>
+  internalCreateErrorTexture() override;
+
   /**
   *  @brief Creates a blend state.
   *

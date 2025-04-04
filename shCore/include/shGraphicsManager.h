@@ -259,6 +259,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 usage = USAGE::kDefault,
                   const uint32 bindFlags = BIND_FLAGS::kShaderResource);
 
+  SPtr<Texture2D>
+  createErrorTexturre();
+
   /**
   *  @brief Creates a blend state.
   *
@@ -707,6 +710,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                           const uint32 format,
                           const uint32 usage,
                           const uint32 bindFlags) = 0;
+
+  virtual SPtr<Texture2D>
+  internalCreateErrorTexture() = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

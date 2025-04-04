@@ -229,6 +229,12 @@ class RendererApp : public BaseApp
   void
   setImgui();
 
+  void
+  loadPistol();
+
+  void
+  loadSponza();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -268,6 +274,7 @@ class RendererApp : public BaseApp
   *  @brief Model game object.
   */
   SPtr<GameObject> m_pModel;
+  SPtr<GameObject> m_pSponza;
 
   /**
   *  @brief Constant Buffer for view-projection.
@@ -283,6 +290,7 @@ class RendererApp : public BaseApp
   *  @brief Constant Buffer for model transform.
   */
   SPtr<ConstantBuffer> m_pModelTransform;
+  SPtr<ConstantBuffer> m_pSponzaTransform;
 
   /**
   *  @brief Constant Buffer for camera position.
@@ -306,6 +314,7 @@ class RendererApp : public BaseApp
 
 
   SPtr<ConstantBuffer> m_pLCBuffer;
+  SPtr<ConstantBuffer> m_pLSizeBuffer;
 
   /**
   *  @brief App camera.
@@ -411,6 +420,21 @@ class RendererApp : public BaseApp
   Vector3 m_modelScale = { 0.0f, 0.0f, 0.0f };
 
   /**
+  *  @brief Model position.
+  */
+  Vector3 m_sponzaPos = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Model rotation.
+  */
+  Vector3 m_sponzaRot = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Model scale.
+  */
+  Vector3 m_sponzaScale = { 0.0f, 0.0f, 0.0f };
+
+  /**
   *  @brief Ambient occlusion sampler rad.
   */
   float m_aoSamplerRad = 1.0f;
@@ -441,6 +465,11 @@ class RendererApp : public BaseApp
   String m_str;
 
   Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
+  Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
+
+  float m_lcamNear = 0.0f;
+  float m_lcamFar = 0.0f;
+  float m_lcamSize = 0.0f;
 
   SPtr<Sound> m_testSound;
 

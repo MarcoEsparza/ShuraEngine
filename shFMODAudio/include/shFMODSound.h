@@ -35,7 +35,7 @@ class FMODSound : public Sound
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE virtual ~FMODSound();
+  FORCEINLINE ~FMODSound();
 
   /***************************************************************************/
   /*
@@ -57,6 +57,10 @@ class FMODSound : public Sound
 
 FORCEINLINE FMODSound::~FMODSound()
 {
-  safeRelease(m_sound);
+  if (m_sound != nullptr) {
+    //m_sound->release();
+    //delete m_sound;
+    m_sound = nullptr;
+  }
 }
 }

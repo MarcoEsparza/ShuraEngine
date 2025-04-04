@@ -147,6 +147,11 @@ GraphicsManager::createTexture2D(const uint32 width,
   return internalCreateTexture2D(width, height, format, usage, bindFlags);
 }
 
+SPtr<Texture2D> GraphicsManager::createErrorTexturre()
+{
+  return internalCreateErrorTexture();
+}
+
 SPtr<BlendState>
 GraphicsManager::createBlendState(const BlendDesc& blendDesc, const LinearColor& blendFactor)
 {

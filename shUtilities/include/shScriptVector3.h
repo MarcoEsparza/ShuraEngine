@@ -26,13 +26,26 @@ FORCEINLINE static void
 registerVector3(ScriptState* state)
 {
   state->new_usertype<Vector3>(
-  //Typename
+  // Typename
   "Vector3",
+
+  // Constructors
   sol::constructors<
   Vector3(),
   Vector3(float _x, float _y, float _z),
   Vector3(const Vector3 & other),
-  >()
+  >(),
+
+  // Members
+  "x", &Vector3::x,
+  "y", &Vector3::y,
+  "z", &Vector3::z,
+
+  // Methods
+  "dot", &Vector3::dot,
+
+  // Operators
+  sol::meta_function::multiplication, &Vector3::operator*
   );
 }
 }

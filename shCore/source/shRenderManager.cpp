@@ -85,7 +85,7 @@ RenderManager::drawSMUInScene(const Vector<SPtr<StaticMeshUnionComponent>>& mesh
     uint32 indexCount = 0;
     uint32 vertexCount = 0;
     for (auto& mesh : meshUnion->getMeshResource()->meshes) {
-      auto mat = reinterpret_pointer_cast<PBRMaterial>(mesh->material);
+      auto mat = reinterpret_pointer_cast<Material>(mesh->material);
       setResourceViewFromPBRMaterial(mat);
       g_graphicsMan().drawIndexed(mesh->numIndex, indexCount, vertexCount);
       indexCount += mesh->numIndex;
@@ -95,7 +95,7 @@ RenderManager::drawSMUInScene(const Vector<SPtr<StaticMeshUnionComponent>>& mesh
 }
 
 void
-RenderManager::setResourceViewFromPBRMaterial(const SPtr<PBRMaterial>& pMat)
+RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
 {
   if (pMat->m_type != MATERIAL_TYPE::kPBR) {
     return;

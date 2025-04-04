@@ -33,7 +33,7 @@ struct SH_CORE_EXPORT StaticMeshAssetHeader
 {
   uint32 numVertices = 0;
   uint32 numIndices = 0;
-  MATERIAL_TYPE::E type = MATERIAL_TYPE::kPBR;
+  uint32 matIndex = 0;
 };
 
 struct SH_CORE_EXPORT SkeletalMeshAssetHeader
@@ -50,6 +50,7 @@ struct SH_CORE_EXPORT SMUnionAssetHeader
 struct SH_CORE_EXPORT MaterialAssetHeader
 {
   MATERIAL_TYPE::E type;
+  MaterialProperties properties;
 };
 
 struct SH_CORE_EXPORT PBRMaterialAsset
@@ -70,11 +71,14 @@ class SH_CORE_EXPORT Asset
   bool
   saveResourceToAsset(const SPtr<Resource>& pRes);
 
-  bool
+  SPtr<Resource>
   loadResourceFromAsset(Path filePath);
 
  private:
   void
   saveSMUnionAsset(const SPtr<Resource>& pRes);
+
+  /*void
+  loadSMUnionAsset(const )*/
 };
 }
