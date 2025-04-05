@@ -370,7 +370,7 @@ RendererApp::onRender()
   graphMan.clearRenderTarget(m_pColorTarget, LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.clearDepthStencil(pDepthSV);
 
-  graphMan.setRenderTargets({m_pDepthTarget, m_pNormalTarget, m_pColorTarget }, pDepthSV);
+  graphMan.setRenderTargets({m_pDepthTarget, m_pNormalTarget, m_pColorTarget, }, pDepthSV);
   renderMan.makePass("BasicShader");
 
   renderMan.drawSMUInScene({ pistol });
@@ -427,6 +427,7 @@ RendererApp::onRender()
   graphMan.setShaderResourceView(nullptr, 1);
   graphMan.setShaderResourceView(nullptr, 2);
   graphMan.setShaderResourceView(nullptr, 3);
+  graphMan.setShaderResourceView(nullptr, 4);
 
   graphMan.vsSetConstantBuffers(nullptr, 0);
   graphMan.vsSetConstantBuffers(nullptr, 1);
@@ -1354,6 +1355,7 @@ RendererApp::loadSponza()
                         resourceMan.loadResourceFromFile(
                         Path("resources/Models/Sponza.fbx")));
 
+  // Normal textures
   auto bgNormal = reinterpret_pointer_cast<ImageResource>(
                   resourceMan.loadResourceFromFile(
                   Path("resources/textures/Background_Normal.png")));
@@ -1381,27 +1383,15 @@ RendererApp::loadSponza()
   auto ccNormal = reinterpret_pointer_cast<ImageResource>(
                   resourceMan.loadResourceFromFile(
                   Path("resources/textures/Sponza_Column_c_normal.png")));
-  auto cblueNormal = reinterpret_pointer_cast<ImageResource>(
-                     resourceMan.loadResourceFromFile(
-                     Path("resources/textures/Sponza_Curtain_Blue_normal.png")));
-  auto cgreenNormal = reinterpret_pointer_cast<ImageResource>(
-                      resourceMan.loadResourceFromFile(
-                      Path("resources/textures/Sponza_Curtain_Green_normal.png")));
-  auto credNormal = reinterpret_pointer_cast<ImageResource>(
-                    resourceMan.loadResourceFromFile(
-                    Path("resources/textures/Sponza_Curtain_Red_normal.png")));
+  auto curtainNormal = reinterpret_pointer_cast<ImageResource>(
+                       resourceMan.loadResourceFromFile(
+                       Path("resources/textures/Sponza_Curtain_Blue_normal.png")));
   auto detailsNormal = reinterpret_pointer_cast<ImageResource>(
                        resourceMan.loadResourceFromFile(
                        Path("resources/textures/Sponza_Details_normal.png")));
-  auto fblueNormal = reinterpret_pointer_cast<ImageResource>(
-                     resourceMan.loadResourceFromFile(
-                     Path("resources/textures/Sponza_Fabric_Blue_normal.png")));
-  /*auto fgreenNormal = reinterpret_pointer_cast<ImageResource>(
+  auto fabricNormal = reinterpret_pointer_cast<ImageResource>(
                       resourceMan.loadResourceFromFile(
-                      Path("resources/textures/Sponza_Fabric_Green_normal.png")));
-  auto fredNormal = reinterpret_pointer_cast<ImageResource>(
-                    resourceMan.loadResourceFromFile(
-                    Path("resources/textures/Sponza_Fabric_Red_normal.png")));*/
+                      Path("resources/textures/Sponza_Fabric_Blue_normal.png")));
   auto fpNormal = reinterpret_pointer_cast<ImageResource>(
                   resourceMan.loadResourceFromFile(
                   Path("resources/textures/Sponza_FlagPole_normal.png")));
@@ -1427,10 +1417,92 @@ RendererApp::loadSponza()
                   resourceMan.loadResourceFromFile(
                   Path("resources/textures/VaseRound_normal.png")));
 
+  // Roughness textures
+  auto bgRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/Background_Roughness.png")));
+  auto chainRough = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/ChainTexture_Roughness.png")));
+  auto lionRough = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Lion_Roughness.png")));
+  auto archRough = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Arch_roughness.png")));
+  auto bricksRough = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Bricks_a_Roughness.png")));
+  auto ceilingRough = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Ceiling_roughness.png")));
+  auto caRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/Sponza_Column_a_roughness.png")));
+  auto cbRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/Sponza_Column_b_roughness.png")));
+  auto ccRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/Sponza_Column_c_roughness.png")));
+  auto curtainRough = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Curtain_roughness.png")));
+  auto detailsRough = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Details_roughness.png")));
+  auto fabricRough = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Fabric_roughness.png")));
+  auto fpRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/Sponza_FlagPole_roughness.png")));
+  auto floorRough = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Floor_roughness.png")));
+  auto roofRough = reinterpret_pointer_cast<ImageResource>(
+                   resourceMan.loadResourceFromFile(
+                   Path("resources/textures/Sponza_Roof_roughness.png")));
+  auto thornRough = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/Sponza_Thorn_roughness.png")));
+  auto vaseRough = reinterpret_pointer_cast<ImageResource>(
+                   resourceMan.loadResourceFromFile(
+                   Path("resources/textures/Vase_roughness.png")));
+  auto vhRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/VaseHanging_roughness.png")));
+  auto vpRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/VasePlant_roughness.png")));
+  auto vrRough = reinterpret_pointer_cast<ImageResource>(
+                 resourceMan.loadResourceFromFile(
+                 Path("resources/textures/VaseRound_roughness.png")));
+
+  // Metallic textures
+  auto metalFull = reinterpret_pointer_cast<ImageResource>(
+                   resourceMan.loadResourceFromFile(
+                   Path("resources/textures/Metallic_metallic.png")));
+  auto metalNone = reinterpret_pointer_cast<ImageResource>(
+                   resourceMan.loadResourceFromFile(
+                   Path("resources/textures/Dielectric_metallic.png")));
+  auto chainMetal = reinterpret_pointer_cast<ImageResource>(
+                    resourceMan.loadResourceFromFile(
+                    Path("resources/textures/ChainTexture_Metallic.png")));
+  auto curtainMetal = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Curtain_metallic.png")));
+  auto detailsMetal = reinterpret_pointer_cast<ImageResource>(
+                      resourceMan.loadResourceFromFile(
+                      Path("resources/textures/Sponza_Details_metallic.png")));
+  auto fabricMetal = reinterpret_pointer_cast<ImageResource>(
+                     resourceMan.loadResourceFromFile(
+                     Path("resources/textures/Sponza_Fabric_metallic.png")));
+
   sponzaModelRes->materials[0]->normal = thornNormal->texture;
-  sponzaModelRes->materials[1]->normal = thornNormal->texture;
+  sponzaModelRes->materials[1]->normal = vpNormal->texture;
   sponzaModelRes->materials[2]->normal = vrNormal->texture;
-  sponzaModelRes->materials[3]->normal = thornNormal->texture;
+  sponzaModelRes->materials[3]->normal = bgNormal->texture;
   sponzaModelRes->materials[4]->normal = bricksNormal->texture;
   sponzaModelRes->materials[5]->normal = archNormal->texture;
   sponzaModelRes->materials[6]->normal = ceilingNormal->texture;
@@ -1441,17 +1513,69 @@ RendererApp::loadSponza()
   sponzaModelRes->materials[11]->normal = cbNormal->texture;
   sponzaModelRes->materials[12]->normal = thornNormal->texture;
   sponzaModelRes->materials[13]->normal = fpNormal->texture;
-  sponzaModelRes->materials[14]->normal = fblueNormal->texture;
-  sponzaModelRes->materials[15]->normal = fblueNormal->texture;
-  sponzaModelRes->materials[16]->normal = fblueNormal->texture;
-  sponzaModelRes->materials[17]->normal = fblueNormal->texture;
-  sponzaModelRes->materials[18]->normal = fblueNormal->texture;
-  sponzaModelRes->materials[19]->normal = fblueNormal->texture;
+  sponzaModelRes->materials[14]->normal = fabricNormal->texture;
+  sponzaModelRes->materials[15]->normal = fabricNormal->texture;
+  sponzaModelRes->materials[16]->normal = fabricNormal->texture;
+  sponzaModelRes->materials[17]->normal = curtainNormal->texture;
+  sponzaModelRes->materials[18]->normal = curtainNormal->texture;
+  sponzaModelRes->materials[19]->normal = curtainNormal->texture;
   sponzaModelRes->materials[20]->normal = chainNormal->texture;
   sponzaModelRes->materials[21]->normal = vhNormal->texture;
   sponzaModelRes->materials[22]->normal = vaseNormal->texture;
-  sponzaModelRes->materials[23]->normal = thornNormal->texture;
+  sponzaModelRes->materials[23]->normal = lionNormal->texture;
   sponzaModelRes->materials[24]->normal = roofNormal->texture;
+
+  sponzaModelRes->materials[0]->roughness = thornRough->texture;
+  sponzaModelRes->materials[1]->roughness = vpRough->texture;
+  sponzaModelRes->materials[2]->roughness = vrRough->texture;
+  sponzaModelRes->materials[3]->roughness = bgRough->texture;
+  sponzaModelRes->materials[4]->roughness = bricksRough->texture;
+  sponzaModelRes->materials[5]->roughness = archRough->texture;
+  sponzaModelRes->materials[6]->roughness = ceilingRough->texture;
+  sponzaModelRes->materials[7]->roughness = caRough->texture;
+  sponzaModelRes->materials[8]->roughness = floorRough->texture;
+  sponzaModelRes->materials[9]->roughness = ccRough->texture;
+  sponzaModelRes->materials[10]->roughness = detailsRough->texture;
+  sponzaModelRes->materials[11]->roughness = cbRough->texture;
+  sponzaModelRes->materials[12]->roughness = thornRough->texture;
+  sponzaModelRes->materials[13]->roughness = fpRough->texture;
+  sponzaModelRes->materials[14]->roughness = fabricRough->texture;
+  sponzaModelRes->materials[15]->roughness = fabricRough->texture;
+  sponzaModelRes->materials[16]->roughness = fabricRough->texture;
+  sponzaModelRes->materials[17]->roughness = curtainRough->texture;
+  sponzaModelRes->materials[18]->roughness = curtainRough->texture;
+  sponzaModelRes->materials[19]->roughness = curtainRough->texture;
+  sponzaModelRes->materials[20]->roughness = chainRough->texture;
+  sponzaModelRes->materials[21]->roughness = vhRough->texture;
+  sponzaModelRes->materials[22]->roughness = vaseRough->texture;
+  sponzaModelRes->materials[23]->roughness = lionRough->texture;
+  sponzaModelRes->materials[24]->roughness = roofRough->texture;
+
+  sponzaModelRes->materials[0]->metallic = metalNone->texture;
+  sponzaModelRes->materials[1]->metallic = metalNone->texture;
+  sponzaModelRes->materials[2]->metallic = metalNone->texture;
+  sponzaModelRes->materials[3]->metallic = metalNone->texture;
+  sponzaModelRes->materials[4]->metallic = metalNone->texture;
+  sponzaModelRes->materials[5]->metallic = metalNone->texture;
+  sponzaModelRes->materials[6]->metallic = metalNone->texture;
+  sponzaModelRes->materials[7]->metallic = metalNone->texture;
+  sponzaModelRes->materials[8]->metallic = metalNone->texture;
+  sponzaModelRes->materials[9]->metallic = metalNone->texture;
+  sponzaModelRes->materials[10]->metallic = detailsMetal->texture;
+  sponzaModelRes->materials[11]->metallic = metalNone->texture;
+  sponzaModelRes->materials[12]->metallic = metalNone->texture;
+  sponzaModelRes->materials[13]->metallic = metalFull->texture;
+  sponzaModelRes->materials[14]->metallic = fabricMetal->texture;
+  sponzaModelRes->materials[15]->metallic = fabricMetal->texture;
+  sponzaModelRes->materials[16]->metallic = fabricMetal->texture;
+  sponzaModelRes->materials[17]->metallic = curtainMetal->texture;
+  sponzaModelRes->materials[18]->metallic = curtainMetal->texture;
+  sponzaModelRes->materials[19]->metallic = curtainMetal->texture;
+  sponzaModelRes->materials[20]->metallic = chainMetal->texture;
+  sponzaModelRes->materials[21]->metallic = metalNone->texture;
+  sponzaModelRes->materials[22]->metallic = metalNone->texture;
+  sponzaModelRes->materials[23]->metallic = metalNone->texture;
+  sponzaModelRes->materials[24]->metallic = metalNone->texture;
 
   m_pSponza = make_shared<GameObject>();
   m_pSponza->name = "Sponza";
