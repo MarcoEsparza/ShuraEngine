@@ -52,6 +52,9 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   */
   ~StaticMeshComponent() = default;
 
+  void
+  setMeshData(const SPtr<StaticMeshResource>& pMeshRes);
+
   /***************************************************************************/
   /*
   *  Variables

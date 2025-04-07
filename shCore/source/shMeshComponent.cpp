@@ -35,8 +35,20 @@ StaticMeshUnionComponent::~StaticMeshUnionComponent()
 }
 
 void
+StaticMeshComponent::setMeshData(const SPtr<StaticMeshResource>& pMeshRes)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  meshData = pMeshRes;
+  m_vertexBuffer = graphMan.createVertexBuffer(meshData->vertices);
+  m_indexBuffer = graphMan.createIndexBuffer(meshData->indices);
+}
+
+void
 SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResource)
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   meshData = meshResource;
   Vector<VertexData> skeletalVertex;
   Vector<uint32> skeletalIndex;
@@ -49,13 +61,15 @@ SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResourc
     skeletalIndex.push_back(index);
   }
 
-  m_vertexBuffer = GraphicsManager::instance().createVertexBuffer(skeletalVertex);
-  m_indexBuffer = GraphicsManager::instance().createIndexBuffer(skeletalIndex);
+  m_vertexBuffer = graphMan.createVertexBuffer(skeletalVertex);
+  m_indexBuffer = graphMan.createIndexBuffer(skeletalIndex);
 }
 
 void
 StaticMeshUnionComponent::setMeshData(const SPtr<StaticMeshUnionResource>& pSMUResource)
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   m_meshesData = pSMUResource;
   Vector<VertexData> vertices;
   Vector<uint32> indices;
@@ -70,7 +84,7 @@ StaticMeshUnionComponent::setMeshData(const SPtr<StaticMeshUnionResource>& pSMUR
     }
   }
 
-  m_vertexBuffer = g_graphicsMan().createVertexBuffer(vertices);
-  m_indexBuffer = g_graphicsMan().createIndexBuffer(indices);
+  m_vertexBuffer = graphMan.createVertexBuffer(vertices);
+  m_indexBuffer = graphMan.createIndexBuffer(indices);
 }
 }

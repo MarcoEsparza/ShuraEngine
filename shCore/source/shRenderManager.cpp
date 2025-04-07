@@ -207,6 +207,7 @@ RenderManager::renderScene()
   graphMan.setViewport(shadowVP);
 
   graphMan.clearDepthStencil(m_targets["ShadowMap"]);
+  graphMan.setRenderTargets({ nullptr }, m_targets["ShadowMap"]);
   makePass("SMapShader");
 
   auto& pistolGO = scene.getGameObjectList()[0];
@@ -223,15 +224,15 @@ RenderManager::renderScene()
       sponzaMesh = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
     }
   }
-
-  Transform& modelT = pistolGO->transform.getTransform();
-  graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
   graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+
+  Transform modelT = pistolGO->transform.getTransform();
+  graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
   drawSMUInScene({ pistolMesh });
 
   modelT = sponzaGO->transform.getTransform();
   graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-  graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+  //graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
   drawSMUInScene({ sponzaMesh });
 
   cleanShaderObjects();
@@ -315,15 +316,10 @@ RenderManager::renderScene()
   cleanShaderObjects();
 
   /*************************************/
-  /*              Sky Box              */
-  /*************************************/
-  // TODO
-
-  /*************************************/
-  /*              Deferred             */
+  /*             Lightning             */
   /*************************************/
   graphMan.setRenderTargets({ m_targets["MainTarget"] }, pDepthSV);
-  makePass("DeferredShader");
+  makePass("LightningShader");
 
   graphMan.setShaderResourceView(m_targets["DepthMap"], 0);
   graphMan.setShaderResourceView(m_targets["NormalMap"], 1);
@@ -335,6 +331,37 @@ RenderManager::renderScene()
   graphMan.draw(3, 0);
 
   cleanShaderObjects();
+
+  /*************************************/
+  /*              Sky Box              */
+  /*************************************/
+  auto& skyBoxGO = scene.getGameObjectList()[2];
+  graphMan.clearRenderTarget(m_targets["SkyBoxMap"], LinearColor(0.0f, 0.0f, 0.0f));
+  graphMan.setRenderTargets({ m_targets["SkyBoxMap"] }, nullptr);
+  makePass("SkyBoxShader");
+
+  for (auto& component : skyBoxGO->components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+      auto pMesh = reinterpret_pointer_cast<StaticMeshComponent>(component);
+      graphMan.setVertexBuffers(pMesh->m_vertexBuffer);
+      graphMan.setIndexBuffers(pMesh->m_indexBuffer);
+
+      auto& pMat = pMesh->meshData->material;
+      graphMan.setShaderResourceView(pMat->baseColor, 0);
+
+      graphMan.drawIndexed(pMesh->meshData->numIndex, 0, 0);
+    }
+  }
+
+  cleanShaderObjects();
+
+  graphMan.setRenderTargets({ m_targets["MainTarget"] }, pDepthSV);
+  makePass("FinalShader");
+
+  graphMan.setShaderResourceView(m_targets["NormalMap"], 0);
+  graphMan.setShaderResourceView(m_targets["SkyBoxMap"], 1);
+
+  graphMan.draw(3, 0);
 }
 
 void

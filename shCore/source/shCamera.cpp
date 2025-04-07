@@ -78,29 +78,34 @@ Camera::getFoward()
 void
 Camera::update()
 {
-  if (m_bIsDirty) {
-    m_view = ViewMatrix(m_position, m_target, m_up);
+  Vector3 dir = (m_target - m_position).getNormalized();
+  float DdU = Math::abs(dir.dot(m_up));
 
-    if (m_bIsOrtho) {
-      m_proj = OrthographicProjectionMatrix(-m_screenWidth * 0.5f,
-                                            m_screenWidth * 0.5f,
-                                            -m_screenHeight * 0.5f,
-                                            m_screenHeight * 0.5f,
-                                            m_near,
-                                            m_far);
-    }
-    else {
-      m_proj = ProjectionMatrix(m_halfFOV,
-                                m_screenWidth,
-                                m_screenHeight,
-                                m_near,
-                                m_far);
-    }
-
-    m_frustum.calculatePlanes(m_view, m_proj);
-
-    m_bIsDirty = false;
+  if (DdU >= 0.99f) {
+    m_up = Vector3::RIGHT;
   }
+
+  m_view = ViewMatrix(m_position, m_target, m_up);
+  
+  if (m_bIsOrtho) {
+    m_proj = OrthographicProjectionMatrix(-m_screenWidth * 0.5f,
+                                          m_screenWidth * 0.5f,
+                                          -m_screenHeight * 0.5f,
+                                          m_screenHeight * 0.5f,
+                                          m_near,
+                                          m_far);
+  }
+  else {
+    m_proj = ProjectionMatrix(m_halfFOV,
+                              m_screenWidth,
+                              m_screenHeight,
+                              m_near,
+                              m_far);
+  }
+  
+  m_frustum.calculatePlanes(m_view, m_proj);
+  
+  m_bIsDirty = false;
 }
 
 void

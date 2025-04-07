@@ -64,7 +64,7 @@ RendererApp::onCreate()
   AudioManager& audioMan = AudioManager::instance();
 
   m_shadowTexSize = 2048.0f;
-  m_lcamSize = 2048.0f;
+  m_lcamSize = 1000.0f;
 
   initGraphicAssets();
   initCamera();
@@ -81,7 +81,7 @@ RendererApp::onCreate()
 
   loadPistol();
   loadSponza();
-  //loadSkybox();
+  loadSkybox();
 
   // Set light buffer
   Vector<Vector4> lights;
@@ -101,12 +101,6 @@ RendererApp::onCreate()
   auto pBasicShader = renderMan.getPass("BasicShader");
   pBasicShader->addVSConstantBuffer(m_pVP);
   pBasicShader->addVSConstantBuffer(m_pModelTransform);
-
-  auto pDeferredShader = renderMan.getPass("DeferredShader");
-  pDeferredShader->addPSConstantBuffer(m_pInvVP);
-  pDeferredShader->addPSConstantBuffer(m_pCameraPosition);
-  pDeferredShader->addPSConstantBuffer(m_pLightBuffer);
-  pDeferredShader->addPSConstantBuffer(m_pViewportBuffer);
 
   float screenW = static_cast<float>(getScreenDescription().width);
   float screenH = static_cast<float>(getScreenDescription().height);
@@ -158,16 +152,27 @@ RendererApp::onCreate()
   // Set shadow pass constant buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer);
-  pSMapShader->addVSConstantBuffer(m_pModelTransform);
+  //pSMapShader->addVSConstantBuffer(m_pModelTransform);
 
   // Create audio
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
   m_testSound->m_channel = CHANNEL_TYPE::kUI;
 
-  // Light buffers
-  pDeferredShader->addPSConstantBuffer(m_pLCBuffer);
-  pDeferredShader->addPSConstantBuffer(m_pLSizeBuffer);
+  // 
+  auto pLightningShader = renderMan.getPass("LightningShader");
+  pLightningShader->addPSConstantBuffer(m_pInvVP);
+  pLightningShader->addPSConstantBuffer(m_pCameraPosition);
+  pLightningShader->addPSConstantBuffer(m_pLightBuffer);
+  pLightningShader->addPSConstantBuffer(m_pViewportBuffer);
+  pLightningShader->addPSConstantBuffer(m_pLCBuffer);
+  pLightningShader->addPSConstantBuffer(m_pLSizeBuffer);
+
+  auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
+  pSkyBoxShader->addVSConstantBuffer(m_pVP);
+
+  auto pFinalShader = renderMan.getPass("FinalShader");
+  pFinalShader->addPSConstantBuffer(m_pViewportBuffer);
 }
 
 void
@@ -260,13 +265,13 @@ RendererApp::onUpdate()
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
     graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
 
-    m_pSMapTarget.reset();
+    /*m_pSMapTarget.reset();
     m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_lcamSize),
                                              static_cast<uint32>(m_lcamSize),
                                              TEXTURE_FORMAT::kR32_Typeless,
                                              USAGE::kDefault,
                                              BIND_FLAGS::kDepthStencil |
-                                             BIND_FLAGS::kShaderResource);
+                                             BIND_FLAGS::kShaderResource);*/
   }
 
   AOBuffer aoBuffer;
@@ -283,7 +288,7 @@ RendererApp::onUpdate()
     rotateCamera();
   }
 
-  const float camSpeed = 2.5f;
+  const float camSpeed = 5.0f;
 
   if (m_bFoward) {
     m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
@@ -569,13 +574,13 @@ RendererApp::initGraphicAssets()
   pBasicShader->compileShader();
 
   // Deferred
-  auto pDeferredShader = make_shared<Pass>();
-  pDeferredShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
+  auto pLightningShader = make_shared<Pass>();
+  pLightningShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
                                  "main",
                                  "mainPS",
                                  "vs_5_0",
                                  "ps_5_0");
-  pDeferredShader->compileShader();
+  pLightningShader->compileShader();
 
   // AO
   auto pAOShader = make_shared<Pass>();
@@ -612,6 +617,22 @@ RendererApp::initGraphicAssets()
                              "ps_5_0");
   pSMapShader->compileShader();
 
+  auto pSkyBoxShader = make_shared<Pass>();
+  pSkyBoxShader->setShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+                               "main",
+                               "mainPS",
+                               "vs_5_0",
+                               "ps_5_0");
+  pSkyBoxShader->compileShader();
+
+  auto pFinalShader = make_shared<Pass>();
+  pFinalShader->setShaderInfo("resources/shaders/FinalShader.hlsl",
+                              "main",
+                              "mainPS",
+                              "vs_5_0",
+                              "ps_5_0");
+  pFinalShader->compileShader();
+
   // Set pass states
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -635,18 +656,6 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
-  /*BlendDesc blendDesc1 = {};
-  blendDesc1.alphaToCoverageEnable = false;
-  blendDesc1.independentBlendEnable = false;
-  blendDesc1.renderTarget[0].blendEnable = true;
-  blendDesc1.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
-  blendDesc1.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
-  blendDesc1.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc1.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc1.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
-  blendDesc1.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc1.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;*/
-
   DepthStencilDesc depthSDesc = {};
   depthSDesc.depthEnable = true;
   depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
@@ -663,6 +672,22 @@ RendererApp::initGraphicAssets()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
+  DepthStencilDesc skyBoxDepth = {};
+  skyBoxDepth.depthEnable = true;
+  skyBoxDepth.depthWriteMask = DEPTH_WRITE_MASK::kZero;
+  skyBoxDepth.depthFunc = COMPARISON_FUNC::kLessEqual;
+  skyBoxDepth.stencilEnable = false;
+  //skyBoxDepth.stencilReadMask = 0xFF;
+  //skyBoxDepth.stencilWriteMask = 0xFF;
+  //skyBoxDepth.frontFace.stencilFailOp = STENCIL_OP::kKeep;
+  //skyBoxDepth.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
+  //skyBoxDepth.frontFace.stencilPassOp = STENCIL_OP::kKeep;
+  //skyBoxDepth.frontFace.stencilFunc = COMPARISON_FUNC::kGreater;
+  //skyBoxDepth.backFace.stencilFailOp = STENCIL_OP::kKeep;
+  //skyBoxDepth.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
+  //skyBoxDepth.backFace.stencilPassOp = STENCIL_OP::kKeep;
+  //skyBoxDepth.backFace.stencilFunc = COMPARISON_FUNC::kGreater;
+
   DepthStencilDesc planeDepthSDesc = depthSDesc;
   planeDepthSDesc.depthEnable = false;
   planeDepthSDesc.stencilEnable = false;
@@ -677,11 +702,11 @@ RendererApp::initGraphicAssets()
   pBasicShader->setBlendState(blendDesc);
   pBasicShader->setDepthStencilState(depthSDesc);
 
-  // Deferred
-  pDeferredShader->generateInputLayout();
-  pDeferredShader->setSamplerState(pSamplerLinear);
-  //pDeferredShader->setBlendState(blendDesc1);
-  pDeferredShader->setDepthStencilState(planeDepthSDesc);
+  // Lightining
+  pLightningShader->generateInputLayout();
+  pLightningShader->setSamplerState(pSamplerLinear);
+  //pLightningShader->setBlendState(blendDesc1);
+  pLightningShader->setDepthStencilState(planeDepthSDesc);
 
   // AO
   pAOShader->generateInputLayout();
@@ -705,12 +730,26 @@ RendererApp::initGraphicAssets()
   pSMapShader->setBlendState(blendDesc);
   pSMapShader->setDepthStencilState(depthSDesc);
 
+  // SkyBox Map
+  pSkyBoxShader->generateInputLayout();
+  pSkyBoxShader->setSamplerState(pSamplerLinear);
+  pSkyBoxShader->setRasterizerState(rasterDesc);
+  pSkyBoxShader->setBlendState(blendDesc);
+  pSkyBoxShader->setDepthStencilState(skyBoxDepth);
+
+  // Add skybox
+  pFinalShader->generateInputLayout();
+  pFinalShader->setSamplerState(pSamplerLinear);
+  pFinalShader->setDepthStencilState(skyBoxDepth);
+
   renderMan.setPass(pBasicShader, "BasicShader");
   renderMan.setPass(pAOShader, "AOShader");
   renderMan.setPass(pHBlurShader, "HBlurShader");
   renderMan.setPass(pVBlurShader, "VBlurShader");
-  renderMan.setPass(pDeferredShader, "DeferredShader");
+  renderMan.setPass(pLightningShader, "LightningShader");
   renderMan.setPass(pSMapShader, "SMapShader");
+  renderMan.setPass(pSkyBoxShader, "SkyBoxShader");
+  renderMan.setPass(pFinalShader, "FinalShader");
 
   // Create and set render targets for deferred rendering
   setRenderTargets();
@@ -796,9 +835,6 @@ RendererApp::updateCamera()
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  m_camera.update();
-  m_lightCam.update();
-
   // Update camera buffer
   VP vp = {};
   vp.proj = m_camera.getProjection();
@@ -880,12 +916,19 @@ RendererApp::setRenderTargets()
 
   //m_vbTarget.push_back(vbTarget);
 
-  m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_lcamSize),
-                                           static_cast<uint32>(m_lcamSize),
+  m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
+                                           static_cast<uint32>(m_shadowTexSize),
                                            TEXTURE_FORMAT::kR32_Typeless,
                                            USAGE::kDefault,
                                            BIND_FLAGS::kDepthStencil |
                                            BIND_FLAGS::kShaderResource);
+
+  auto pSkyBoxTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                                getScreenDescription().height,
+                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                USAGE::kDefault,
+                                                BIND_FLAGS::kRenderTarget |
+                                                BIND_FLAGS::kShaderResource);
 
   renderMan.addRenderTarget(m_mainTarget, "MainTarget");
   renderMan.addRenderTarget(m_pDepthTarget, "DepthMap");
@@ -896,6 +939,7 @@ RendererApp::setRenderTargets()
   renderMan.addRenderTarget(m_pHbTarget, "HBlurMap");
   renderMan.addRenderTarget(m_pVbTarget, "VBlurMap");
   renderMan.addRenderTarget(m_pSMapTarget, "ShadowMap");
+  renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
 }
 
 void
@@ -993,7 +1037,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.01f);
+    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.1f);
     ImGui::PopStyleColor(3);
     // Rotation Y
     ImGui::SameLine();
@@ -1001,7 +1045,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.01f);
+    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.1f);
     ImGui::PopStyleColor(3);
     // Rotation Z
     ImGui::SameLine();
@@ -1009,7 +1053,7 @@ RendererApp::setImgui()
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
     ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.01f);
+    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.1f);
     ImGui::PopStyleColor(3);
 
     ImGui::Spacing();
@@ -1537,7 +1581,7 @@ RendererApp::loadSkybox()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resourceMan = g_resourceMan();
-  SceneGraph& sceneG = g_sceneGraph();
+  SceneGraph& scene = g_sceneGraph();
 
   auto skyboxTx = reinterpret_pointer_cast<ImageResource>(
                   resourceMan.loadResourceFromFile(
@@ -1571,7 +1615,27 @@ RendererApp::loadSkybox()
                              4, 5, 1,
                              1, 0, 4 };
 
-  auto pVB = graphMan.createVertexBuffer(vertices);
-  auto pIB = graphMan.createIndexBuffer(indices);
+  auto pSkyBoxMeshResource = make_shared<StaticMeshResource>();
+  pSkyBoxMeshResource->vertices.resize(vertices.size());
+  for (uint32 i = 0; i < vertices.size(); ++i) {
+    pSkyBoxMeshResource->vertices[i].position = vertices[i];
+  }
+  pSkyBoxMeshResource->indices = indices;
+  pSkyBoxMeshResource->numVertex = vertices.size();
+  pSkyBoxMeshResource->numIndex = indices.size();
+  pSkyBoxMeshResource->material = make_shared<Material>();
+  auto& pSkyBoxMat = pSkyBoxMeshResource->material;
+
+  pSkyBoxMat->m_properties.bHasDiffuseMap = true;
+  pSkyBoxMat->baseColor = skyboxTx->texture;
+
+  auto pSkyBoxMeshComponent = make_shared<StaticMeshComponent>();
+  pSkyBoxMeshComponent->setMeshData(pSkyBoxMeshResource);
+  
+  auto pSkyBox = make_shared<GameObject>();
+  pSkyBox->addComponent(pSkyBoxMeshComponent);
+  pSkyBox->name = "SkyBox";
+
+  scene.addObject(pSkyBox);
 }
 }

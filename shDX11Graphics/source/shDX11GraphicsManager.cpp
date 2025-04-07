@@ -1050,15 +1050,18 @@ void
 DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
                                               const SPtr<Texture2D>& pDepthSV)
 {
-  auto pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
   Vector<ID3D11RenderTargetView*> pRTVs;
   uint32 count = 0;
 
   for (auto& pRenderTarget : pRenderTVs) {
-    auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pRenderTarget);
-  
-    pRTVs.push_back(pRTV->m_pRenderTV);
+    if (pRenderTarget == nullptr) {
+      pRTVs.push_back(nullptr);
+    }
+    else {
+      auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pRenderTarget);
 
+      pRTVs.push_back(pRTV->m_pRenderTV);
+    }
     ++count;
   }
 
@@ -1066,9 +1069,15 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
     pRTVs.push_back(nullptr);
   }
 
+  ID3D11DepthStencilView* pDSV = nullptr;
+  if (pDepthSV) {
+    auto pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
+    pDSV = pDepthStencil->m_pDepthSV;
+  }
+
   m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(static_cast<UINT>(pRTVs.size()),
                                                          pRTVs.data(),
-                                                         pDepthStencil->m_pDepthSV);
+                                                         pDSV);
 }
 
 void
