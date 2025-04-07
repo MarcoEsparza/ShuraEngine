@@ -64,6 +64,7 @@ RendererApp::onCreate()
   AudioManager& audioMan = AudioManager::instance();
 
   m_shadowTexSize = 2048.0f;
+  m_lcamSize = 2048.0f;
 
   initGraphicAssets();
   initCamera();
@@ -80,11 +81,12 @@ RendererApp::onCreate()
 
   loadPistol();
   loadSponza();
+  //loadSkybox();
 
   // Set light buffer
   Vector<Vector4> lights;
   lights.resize(12);
-  m_lightPos = { 0.0f, 2.0f, 0.0f, 1.0f };
+  m_lightPos = { 0.0f, 500.0f, 0.0f, 1.0f };
   lights[0] = m_lightPos;
 
   //m_light.position = Vector3(5.0f, 5.0f, 5.0f);
@@ -112,10 +114,10 @@ RendererApp::onCreate()
   AOBuffer aoBuffer;
   aoBuffer.viewport.x = screenW;
   aoBuffer.viewport.y = screenH;
-  aoBuffer.samplerRad = 1.0f;
-  aoBuffer.scale = 1.0f;
-  aoBuffer.bias = 0.01f;
-  aoBuffer.intensity = 1.0f;
+  aoBuffer.samplerRad = m_aoSamplerRad = 1.0f;
+  aoBuffer.scale = m_aoScale = 1.0f;
+  aoBuffer.bias = m_aoBias = 0.01f;
+  aoBuffer.intensity = m_aoIntensity = 1.0f;
 
   auto pAOShader = renderMan.getPass("AOShader");
   m_pAOBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
@@ -127,8 +129,8 @@ RendererApp::onCreate()
   pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
   pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
 
+  // Light ortho camera
   m_lightTarget = Vector3::ZERO;
-  m_lcamSize = 2048.0f;
   m_lcamNear = 1.0f;
   m_lcamFar = 2000.0f;
 
@@ -153,14 +155,17 @@ RendererApp::onCreate()
   m_pLSizeBuffer = graphMan.createConstantBuffer(sizeof(Vector4));
   graphMan.updateConstantBuffer(m_pLSizeBuffer, &lightS, sizeof(Vector4));
 
+  // Set shadow pass constant buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer);
   pSMapShader->addVSConstantBuffer(m_pModelTransform);
 
+  // Create audio
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
   m_testSound->m_channel = CHANNEL_TYPE::kUI;
 
+  // Light buffers
   pDeferredShader->addPSConstantBuffer(m_pLCBuffer);
   pDeferredShader->addPSConstantBuffer(m_pLSizeBuffer);
 }
@@ -254,6 +259,14 @@ RendererApp::onUpdate()
 
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
     graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
+
+    m_pSMapTarget.reset();
+    m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_lcamSize),
+                                             static_cast<uint32>(m_lcamSize),
+                                             TEXTURE_FORMAT::kR32_Typeless,
+                                             USAGE::kDefault,
+                                             BIND_FLAGS::kDepthStencil |
+                                             BIND_FLAGS::kShaderResource);
   }
 
   AOBuffer aoBuffer;
@@ -270,7 +283,7 @@ RendererApp::onUpdate()
     rotateCamera();
   }
 
-  const float camSpeed = 0.5f;
+  const float camSpeed = 2.5f;
 
   if (m_bFoward) {
     m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
@@ -312,132 +325,11 @@ RendererApp::onRender()
   RenderManager& renderMan = g_renderMan();
 
   graphMan.setPrimitiveTopology();
-  auto pDepthSV = graphMan.getMainDepthStencil();
 
-  // Shadow Mapping
-  Viewport shadowVP = {};
-  shadowVP.width = m_lcamSize;
-  shadowVP.height = m_lcamSize;
-  shadowVP.minDepth = 0.0f;
-  shadowVP.maxDepth = 1.0f;
-  shadowVP.topLeftX = 0.0f;
-  shadowVP.topLeftY = 0.0f;
-
-  graphMan.setViewport(shadowVP);
-
-  graphMan.clearDepthStencil(m_pSMapTarget);
-  renderMan.makePass("SMapShader");
-
-  Vector<SPtr<Texture2D>> vShadow;
-  graphMan.setRenderTargets(vShadow, m_pSMapTarget);
-
-  SPtr<StaticMeshUnionComponent> pistol;
-  SPtr<StaticMeshUnionComponent> sponza;
-  for (auto& component : m_pModel->components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-      pistol = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-    }
-  }
-  for (auto& component : m_pSponza->components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-      sponza = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-    }
-  }
-
-  renderMan.drawSMUInScene({ pistol });
-  graphMan.vsSetConstantBuffers(m_pSponzaTransform, 1);
-  renderMan.drawSMUInScene({ sponza });
-
-  graphMan.setShaderResourceView(nullptr, 0);
-  graphMan.setShaderResourceView(nullptr, 1);
-  graphMan.setShaderResourceView(nullptr, 2);
-  graphMan.setShaderResourceView(nullptr, 3);
-  graphMan.setShaderResourceView(nullptr, 4);
-
-  // Gbuffer pass
-  Viewport normalVP = {};
-  normalVP.width = getScreenDescription().width;
-  normalVP.height = getScreenDescription().height;
-  normalVP.minDepth = 0.0f;
-  normalVP.maxDepth = 1.0f;
-  normalVP.topLeftX = 0.0f;
-  normalVP.topLeftY = 0.0f;
-
-  graphMan.setViewport(normalVP);
-
-  graphMan.clearRenderTarget(m_pDepthTarget, LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.clearRenderTarget(m_pNormalTarget, LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.clearRenderTarget(m_pColorTarget, LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.clearDepthStencil(pDepthSV);
-
-  graphMan.setRenderTargets({m_pDepthTarget, m_pNormalTarget, m_pColorTarget, }, pDepthSV);
-  renderMan.makePass("BasicShader");
-
-  renderMan.drawSMUInScene({ pistol });
-  graphMan.vsSetConstantBuffers(m_pSponzaTransform, 1);
-  renderMan.drawSMUInScene({ sponza });
-
-  graphMan.setShaderResourceView(nullptr, 2);
-  graphMan.setShaderResourceView(nullptr, 3);
-  graphMan.setShaderResourceView(nullptr, 4);
-
-  // Ambient Occlusion pass
-  graphMan.clearRenderTarget(m_pAoTarget, LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_pAoTarget }, pDepthSV);
-  renderMan.makePass("AOShader");
-
-  graphMan.setShaderResourceView(m_pDepthTarget, 0);
-  graphMan.setShaderResourceView(m_pNormalTarget, 1);
-
-  graphMan.draw(3, 0);
-
-  graphMan.setShaderResourceView(nullptr, 1);
-
-  // Horizontal Blur pass
-  graphMan.clearRenderTarget(m_pHbTarget, LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_pHbTarget }, pDepthSV);
-  renderMan.makePass("HBlurShader");
-
-  graphMan.setShaderResourceView(m_pAoTarget, 0);
-
-  graphMan.draw(3, 0);
-
-  // Vetical Blur pass
-  graphMan.clearRenderTarget(m_pVbTarget, LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_pVbTarget }, pDepthSV);
-  renderMan.makePass("VBlurShader");
-
-  graphMan.setShaderResourceView({ m_pHbTarget }, 0);
-
-  graphMan.draw(3, 0);
-
-  // Deferred pass
-  graphMan.setRenderTargets({ m_mainTarget }, pDepthSV);
-  renderMan.makePass("DeferredShader");
-
-  graphMan.setShaderResourceView(m_pDepthTarget, 0);
-  graphMan.setShaderResourceView(m_pNormalTarget, 1);
-  graphMan.setShaderResourceView(m_pColorTarget, 2);
-  graphMan.setShaderResourceView(m_pVbTarget, 3);
-  graphMan.setShaderResourceView(m_pSMapTarget, 4);
-  
-  graphMan.draw(3, 0);
-
-  graphMan.setShaderResourceView(nullptr, 0);
-  graphMan.setShaderResourceView(nullptr, 1);
-  graphMan.setShaderResourceView(nullptr, 2);
-  graphMan.setShaderResourceView(nullptr, 3);
-  graphMan.setShaderResourceView(nullptr, 4);
-
-  graphMan.vsSetConstantBuffers(nullptr, 0);
-  graphMan.vsSetConstantBuffers(nullptr, 1);
-  graphMan.vsSetConstantBuffers(nullptr, 2);
-  graphMan.vsSetConstantBuffers(nullptr, 3);
-
-  graphMan.psSetConstantBuffers(nullptr, 0);
-  graphMan.psSetConstantBuffers(nullptr, 1);
-  graphMan.psSetConstantBuffers(nullptr, 2);
-  graphMan.psSetConstantBuffers(nullptr, 3);
+  renderMan.setShadowMapSize(m_lcamSize);
+  renderMan.setScreenDimensions(Vector2(static_cast<float>(getScreenDescription().width),
+                                        static_cast<float>(getScreenDescription().height)));
+  renderMan.renderScene();
 
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
@@ -743,6 +635,18 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
+  /*BlendDesc blendDesc1 = {};
+  blendDesc1.alphaToCoverageEnable = false;
+  blendDesc1.independentBlendEnable = false;
+  blendDesc1.renderTarget[0].blendEnable = true;
+  blendDesc1.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
+  blendDesc1.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
+  blendDesc1.renderTarget[0].blendOp = BLEND_OP::kAdd;
+  blendDesc1.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+  blendDesc1.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
+  blendDesc1.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
+  blendDesc1.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;*/
+
   DepthStencilDesc depthSDesc = {};
   depthSDesc.depthEnable = true;
   depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
@@ -776,6 +680,7 @@ RendererApp::initGraphicAssets()
   // Deferred
   pDeferredShader->generateInputLayout();
   pDeferredShader->setSamplerState(pSamplerLinear);
+  //pDeferredShader->setBlendState(blendDesc1);
   pDeferredShader->setDepthStencilState(planeDepthSDesc);
 
   // AO
@@ -918,6 +823,7 @@ void
 RendererApp::setRenderTargets()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
 
   m_mainTarget = graphMan.getMainRenderTargetView();
 
@@ -941,6 +847,13 @@ RendererApp::setRenderTargets()
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
                                             BIND_FLAGS::kShaderResource);
+
+  m_pPropTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                           getScreenDescription().height,
+                                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                           USAGE::kDefault,
+                                           BIND_FLAGS::kRenderTarget |
+                                           BIND_FLAGS::kShaderResource);
 
   m_pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
                                          getScreenDescription().height,
@@ -967,12 +880,22 @@ RendererApp::setRenderTargets()
 
   //m_vbTarget.push_back(vbTarget);
 
-  m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
-                                           static_cast<uint32>(m_shadowTexSize),
+  m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_lcamSize),
+                                           static_cast<uint32>(m_lcamSize),
                                            TEXTURE_FORMAT::kR32_Typeless,
                                            USAGE::kDefault,
                                            BIND_FLAGS::kDepthStencil |
                                            BIND_FLAGS::kShaderResource);
+
+  renderMan.addRenderTarget(m_mainTarget, "MainTarget");
+  renderMan.addRenderTarget(m_pDepthTarget, "DepthMap");
+  renderMan.addRenderTarget(m_pNormalTarget, "NormalMap");
+  renderMan.addRenderTarget(m_pColorTarget, "ColorMap");
+  renderMan.addRenderTarget(m_pPropTarget, "PropMap");
+  renderMan.addRenderTarget(m_pAoTarget, "AOMap");
+  renderMan.addRenderTarget(m_pHbTarget, "HBlurMap");
+  renderMan.addRenderTarget(m_pVbTarget, "VBlurMap");
+  renderMan.addRenderTarget(m_pSMapTarget, "ShadowMap");
 }
 
 void
@@ -1320,6 +1243,8 @@ RendererApp::loadPistol()
   modelRes->materials[0]->ao = ao->texture;
   modelRes->materials[0]->aoPath = ao->getPath().toString();
 
+  modelRes->materials[0]->m_properties.bHasAlphaTest = false;
+
   m_pModel = make_shared<GameObject>();
   m_pModel->name = "DrakeFire";
   auto modelMC = make_shared<StaticMeshUnionComponent>();
@@ -1577,6 +1502,14 @@ RendererApp::loadSponza()
   sponzaModelRes->materials[23]->metallic = metalNone->texture;
   sponzaModelRes->materials[24]->metallic = metalNone->texture;
 
+  for (auto& mat : sponzaModelRes->materials) {
+    mat->m_properties.bHasAlphaTest = false;
+  }
+
+  sponzaModelRes->materials[0]->m_properties.bHasAlphaTest = true;
+  sponzaModelRes->materials[1]->m_properties.bHasAlphaTest = true;
+  sponzaModelRes->materials[20]->m_properties.bHasAlphaTest = true;
+
   m_pSponza = make_shared<GameObject>();
   m_pSponza->name = "Sponza";
   auto modelMC = make_shared<StaticMeshUnionComponent>();
@@ -1597,5 +1530,48 @@ RendererApp::loadSponza()
   graphMan.updateConstantBuffer(m_pSponzaTransform,
                                 &m_pSponza->transform.getTransform(),
                                 sizeof(Transform));
+}
+
+void
+RendererApp::loadSkybox()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  ResourceManager& resourceMan = g_resourceMan();
+  SceneGraph& sceneG = g_sceneGraph();
+
+  auto skyboxTx = reinterpret_pointer_cast<ImageResource>(
+                  resourceMan.loadResourceFromFile(
+                  Path("resources/textures/skybox1.png")));
+
+  Vector<Vector3> vertices = { {-1.0f, -1.0f, -1.0f},
+                               {1.0f, -1.0f, -1.0f},
+                               {1.0f, 1.0f, -1.0f},
+                               {-1.0f, 1.0f, -1.0f},
+                               {-1.0f, -1.0f, 1.0f},
+                               {1.0f, -1.0f, 1.0f},
+                               {1.0f, 1.0f, 1.0f},
+                               {-1.0f, 1.0f, 1.0f} };
+
+  Vector<uint32> indices = { // front
+                             0, 1, 2,
+                             2, 3, 0,
+                             // right
+                             1, 5, 6,
+                             6, 2, 1,
+                             // back
+                             7, 6, 5,
+                             5, 4, 7,
+                             // left
+                             4, 0, 3,
+                             3, 7, 4,
+                             // top
+                             3, 2, 6,
+                             6, 7, 3,
+                             // bottom
+                             4, 5, 1,
+                             1, 0, 4 };
+
+  auto pVB = graphMan.createVertexBuffer(vertices);
+  auto pIB = graphMan.createIndexBuffer(indices);
 }
 }

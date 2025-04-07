@@ -235,6 +235,9 @@ class RendererApp : public BaseApp
   void
   loadSponza();
 
+  void
+  loadSkybox();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -247,6 +250,7 @@ class RendererApp : public BaseApp
   SPtr<Texture2D> m_pDepthTarget;
   SPtr<Texture2D> m_pNormalTarget;
   SPtr<Texture2D> m_pColorTarget;
+  SPtr<Texture2D> m_pPropTarget; // Properties
 
   /**
   *  @brief Main render target.
