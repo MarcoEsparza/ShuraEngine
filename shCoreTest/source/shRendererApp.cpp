@@ -170,6 +170,9 @@ RendererApp::onCreate()
 
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
   pSkyBoxShader->addVSConstantBuffer(m_pVP);
+  pSkyBoxShader->addPSConstantBuffer(m_pVP);
+  pSkyBoxShader->addPSConstantBuffer(m_pInvVP);
+  pSkyBoxShader->addPSConstantBuffer(m_pViewportBuffer);
 
   auto pFinalShader = renderMan.getPass("FinalShader");
   pFinalShader->addPSConstantBuffer(m_pViewportBuffer);
@@ -348,14 +351,7 @@ RendererApp::onResize(const ResizeData& rszData)
   float width = static_cast<float>(rszData.width);
   float height = static_cast<float>(rszData.height);
 
-  m_pDepthTarget.reset();
-  m_pNormalTarget.reset();
-  m_pColorTarget.reset();
-  m_mainTarget.reset();
-  m_pAoTarget.reset();
-  m_pHbTarget.reset();
-  m_pVbTarget.reset();
-  m_pSMapTarget.reset();
+  //m_mainTarget.reset();
 
   setRenderTargets();
 
@@ -673,20 +669,20 @@ RendererApp::initGraphicAssets()
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
   DepthStencilDesc skyBoxDepth = {};
-  skyBoxDepth.depthEnable = true;
+  skyBoxDepth.depthEnable = false;
   skyBoxDepth.depthWriteMask = DEPTH_WRITE_MASK::kZero;
   skyBoxDepth.depthFunc = COMPARISON_FUNC::kLessEqual;
-  skyBoxDepth.stencilEnable = false;
-  //skyBoxDepth.stencilReadMask = 0xFF;
-  //skyBoxDepth.stencilWriteMask = 0xFF;
-  //skyBoxDepth.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  //skyBoxDepth.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  //skyBoxDepth.frontFace.stencilPassOp = STENCIL_OP::kKeep;
-  //skyBoxDepth.frontFace.stencilFunc = COMPARISON_FUNC::kGreater;
-  //skyBoxDepth.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  //skyBoxDepth.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  //skyBoxDepth.backFace.stencilPassOp = STENCIL_OP::kKeep;
-  //skyBoxDepth.backFace.stencilFunc = COMPARISON_FUNC::kGreater;
+  skyBoxDepth.stencilEnable = true;
+  skyBoxDepth.stencilReadMask = 0xFF;
+  skyBoxDepth.stencilWriteMask = 0xFF;
+  skyBoxDepth.frontFace.stencilFailOp = STENCIL_OP::kKeep;
+  skyBoxDepth.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
+  skyBoxDepth.frontFace.stencilPassOp = STENCIL_OP::kReplace;
+  skyBoxDepth.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
+  skyBoxDepth.backFace.stencilFailOp = STENCIL_OP::kKeep;
+  skyBoxDepth.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
+  skyBoxDepth.backFace.stencilPassOp = STENCIL_OP::kReplace;
+  skyBoxDepth.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
   DepthStencilDesc planeDepthSDesc = depthSDesc;
   planeDepthSDesc.depthEnable = false;
@@ -861,67 +857,63 @@ RendererApp::setRenderTargets()
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
 
-  m_mainTarget = graphMan.getMainRenderTargetView();
+  auto pMainTarget = graphMan.getMainRenderTargetView();
 
-  m_pDepthTarget = graphMan.createTexture2D(getScreenDescription().width,
+  auto pDepthTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                               getScreenDescription().height,
+                                               TEXTURE_FORMAT::kR32G32B32A32_float,
+                                               USAGE::kDefault,
+                                               BIND_FLAGS::kRenderTarget |
+                                               BIND_FLAGS::kShaderResource);
+
+  auto pNormalTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                                getScreenDescription().height,
+                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                USAGE::kDefault,
+                                                BIND_FLAGS::kRenderTarget |
+                                                BIND_FLAGS::kShaderResource);
+
+  auto pColorTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                               getScreenDescription().height,
+                                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                               USAGE::kDefault,
+                                               BIND_FLAGS::kRenderTarget |
+                                               BIND_FLAGS::kShaderResource);
+
+  auto pPropTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                              getScreenDescription().height,
+                                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                              USAGE::kDefault,
+                                              BIND_FLAGS::kRenderTarget |
+                                              BIND_FLAGS::kShaderResource);
+
+  auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
-                                            TEXTURE_FORMAT::kR32G32B32A32_float,
+                                            TEXTURE_FORMAT::kR16_FLOAT,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
                                             BIND_FLAGS::kShaderResource);
 
-  m_pNormalTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                             getScreenDescription().height,
-                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                             USAGE::kDefault,
-                                             BIND_FLAGS::kRenderTarget |
-                                             BIND_FLAGS::kShaderResource);
-
-  m_pColorTarget = graphMan.createTexture2D(getScreenDescription().width,
+  auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
                                             BIND_FLAGS::kShaderResource);
 
-  m_pPropTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                           getScreenDescription().height,
-                                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                           USAGE::kDefault,
-                                           BIND_FLAGS::kRenderTarget |
-                                           BIND_FLAGS::kShaderResource);
+  auto pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                            getScreenDescription().height,
+                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                            USAGE::kDefault,
+                                            BIND_FLAGS::kRenderTarget |
+                                            BIND_FLAGS::kShaderResource);
 
-  m_pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                         getScreenDescription().height,
-                                         TEXTURE_FORMAT::kR16_FLOAT,
-                                         USAGE::kDefault,
-                                         BIND_FLAGS::kRenderTarget |
-                                         BIND_FLAGS::kShaderResource);
-
-  m_pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                         getScreenDescription().height,
-                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                         USAGE::kDefault,
-                                         BIND_FLAGS::kRenderTarget |
-                                         BIND_FLAGS::kShaderResource);
-
-  //m_hbTarget.push_back(hbTarget);
-
-  m_pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                         getScreenDescription().height,
-                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                         USAGE::kDefault,
-                                         BIND_FLAGS::kRenderTarget |
-                                         BIND_FLAGS::kShaderResource);
-
-  //m_vbTarget.push_back(vbTarget);
-
-  m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
-                                           static_cast<uint32>(m_shadowTexSize),
-                                           TEXTURE_FORMAT::kR32_Typeless,
-                                           USAGE::kDefault,
-                                           BIND_FLAGS::kDepthStencil |
-                                           BIND_FLAGS::kShaderResource);
+  auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
+                                              static_cast<uint32>(m_shadowTexSize),
+                                              TEXTURE_FORMAT::kR32_Typeless,
+                                              USAGE::kDefault,
+                                              BIND_FLAGS::kDepthStencil |
+                                              BIND_FLAGS::kShaderResource);
 
   auto pSkyBoxTarget = graphMan.createTexture2D(getScreenDescription().width,
                                                 getScreenDescription().height,
@@ -930,15 +922,15 @@ RendererApp::setRenderTargets()
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  renderMan.addRenderTarget(m_mainTarget, "MainTarget");
-  renderMan.addRenderTarget(m_pDepthTarget, "DepthMap");
-  renderMan.addRenderTarget(m_pNormalTarget, "NormalMap");
-  renderMan.addRenderTarget(m_pColorTarget, "ColorMap");
-  renderMan.addRenderTarget(m_pPropTarget, "PropMap");
-  renderMan.addRenderTarget(m_pAoTarget, "AOMap");
-  renderMan.addRenderTarget(m_pHbTarget, "HBlurMap");
-  renderMan.addRenderTarget(m_pVbTarget, "VBlurMap");
-  renderMan.addRenderTarget(m_pSMapTarget, "ShadowMap");
+  renderMan.addRenderTarget(pMainTarget, "MainTarget");
+  renderMan.addRenderTarget(pDepthTarget, "DepthMap");
+  renderMan.addRenderTarget(pNormalTarget, "NormalMap");
+  renderMan.addRenderTarget(pColorTarget, "ColorMap");
+  renderMan.addRenderTarget(pPropTarget, "PropMap");
+  renderMan.addRenderTarget(pAoTarget, "AOMap");
+  renderMan.addRenderTarget(pHbTarget, "HBlurMap");
+  renderMan.addRenderTarget(pVbTarget, "VBlurMap");
+  renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
   renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
 }
 
@@ -1596,6 +1588,36 @@ RendererApp::loadSkybox()
                                {1.0f, 1.0f, 1.0f},
                                {-1.0f, 1.0f, 1.0f} };
 
+  /*Vector<Vector3> vertices = { {-1.0f, 1.0f, -1.0f},
+                              {1.0f, 1.0f, -1.0f},
+                              {1.0f, 1.0f, 1.0f},
+                              {-1.0f, 1.0f, 1.0f},
+
+                              {-1.0f, -1.0f, -1.0f},
+                              {1.0f, -1.0f, -1.0f},
+                              {1.0f, -1.0f, 1.0f},
+                              {-1.0f, -1.0f, 1.0f},
+
+                              {-1.0f, -1.0f, 1.0f},
+                              {-1.0f, -1.0f, -1.0f},
+                              {-1.0f, 1.0f, -1.0f},
+                              {-1.0f, 1.0f, 1.0f},
+
+                              {1.0f, -1.0f, 1.0f},
+                              {1.0f, -1.0f, -1.0f},
+                              {1.0f, 1.0f, -1.0f},
+                              {1.0f, 1.0f, 1.0f},
+
+                              {-1.0f, -1.0f, -1.0f},
+                              {1.0f, -1.0f, -1.0f},
+                              {1.0f, 1.0f, -1.0f},
+                              {-1.0f, 1.0f, -1.0f},
+
+                              {-1.0f, -1.0f, 1.0f},
+                              {1.0f, -1.0f, 1.0f},
+                              {1.0f, 1.0f, 1.0f},
+                              {-1.0f, 1.0f, 1.0f} };*/
+
   Vector<uint32> indices = { // front
                              0, 1, 2,
                              2, 3, 0,
@@ -1614,6 +1636,24 @@ RendererApp::loadSkybox()
                              // bottom
                              4, 5, 1,
                              1, 0, 4 };
+
+  /*Vector<uint32> indices = { 3,1,0,
+                             2,1,3,
+                             
+                             6,4,5,
+                             7,4,6,
+                             
+                             11,9,8,
+                             10,9,11,
+                             
+                             14,12,13,
+                             15,12,14,
+                             
+                             19,17,16,
+                             18,17,19,
+                             
+                             22,20,21,
+                             23,20,22 };*/
 
   auto pSkyBoxMeshResource = make_shared<StaticMeshResource>();
   pSkyBoxMeshResource->vertices.resize(vertices.size());

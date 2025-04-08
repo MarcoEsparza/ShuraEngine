@@ -17,6 +17,18 @@ cbuffer VP : register(b0)
   float4x4 matProj;
 }
 
+cbuffer InvVP : register(b1)
+{
+  float4x4 InvViewProj;
+  float4x4 InvView;
+}
+
+cbuffer Viewport : register(b2)
+{
+  float2 Dimensions;
+  float2 unused;
+}
+
 struct VS_INPUT
 {
   float3 Position : POSITION;
@@ -43,6 +55,9 @@ PS_INPUT main(VS_INPUT input)
   newViewMatrix[3] = float4(0.0f, 0.0f, 0.0f, 1.0f);
     
   float4 pos = float4(input.Position, 1.0f);
+  pos = mul(pos, newViewMatrix);
+  pos = float4(pos.xyz, 1.0f);
+    
   pos = mul(pos, matProj);
   pos.z = pos.w;
   output.Position = pos;
@@ -53,6 +68,15 @@ PS_INPUT main(VS_INPUT input)
 
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
+  //float2 ndc = input.Position.xy / Dimensions * 2.0f - 1.0f;
+  //ndc.y = -ndc.y;
+    
+  //float4 viewPos = mul(float4(ndc, 1.0f, 1.0f), InvView);
+  //viewPos.y /= viewPos.w;
+    
+  //float3 viewDir = normalize(viewPos.xyz);
+  //float uv = getSkyBoxUV(normalize(viewDir));
+
   float uv = getSkyBoxUV(normalize(input.Texcoord));
     
   float3 color = t_skybox.Sample(textureSampler, uv).xyz;

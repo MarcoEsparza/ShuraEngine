@@ -247,32 +247,32 @@ class RendererApp : public BaseApp
   /**
   *  @brief Targets for first pass.
   */
-  SPtr<Texture2D> m_pDepthTarget;
-  SPtr<Texture2D> m_pNormalTarget;
-  SPtr<Texture2D> m_pColorTarget;
-  SPtr<Texture2D> m_pPropTarget; // Properties
+  //SPtr<Texture2D> m_pDepthTarget;
+  //SPtr<Texture2D> m_pNormalTarget;
+  //SPtr<Texture2D> m_pColorTarget;
+  //SPtr<Texture2D> m_pPropTarget; // Properties
 
   /**
   *  @brief Main render target.
   */
-  SPtr<Texture2D> m_mainTarget;
+  //SPtr<Texture2D> m_mainTarget;
   
   /**
   *  @brief Ambient occlusion render target.
   */
-  SPtr<Texture2D> m_pAoTarget;
+  //SPtr<Texture2D> m_pAoTarget;
 
   /**
   *  @brief Horizontal blur render target.
   */
-  SPtr<Texture2D> m_pHbTarget;
+  //SPtr<Texture2D> m_pHbTarget;
 
   /**
   *  @brief Vertical Blur render target.
   */
-  SPtr<Texture2D> m_pVbTarget;
+  //SPtr<Texture2D> m_pVbTarget;
 
-  SPtr<Texture2D> m_pSMapTarget;
+  //SPtr<Texture2D> m_pSMapTarget;
 
   /**
   *  @brief Model game object.

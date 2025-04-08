@@ -42,11 +42,12 @@ PS_INPUT main(uint vertexID : SV_VertexID)
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
   float2 screenUV = input.Position.xy / Dimensions;
-    
-  float4 normal = getNormal(screenUV);
-  if(normal.w == 0.0f)
+   
+  float4 normal = t_normalMap.Sample(textureSampler, screenUV);
+  //float4 normal = getNormal(screenUV);
+  if(length(normal.xyz) > 0.01f)
   {
-    clip(-1);
+    discard;
   }
     
   float4 skyBoxColor = t_skybox.Sample(textureSampler, screenUV);

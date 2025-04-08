@@ -144,8 +144,8 @@ float3 cookTorrenceSpecular(float3 normal,
   float vDotH = saturate(dot(viewDirection, H));
     
   float alpha = roughness * roughness;
-  //float D = D_Beckmann(nDotH, alpha);
-  float D = D_BlinnPhong(nDotH, roughness);
+  float D = D_Beckmann(nDotH, alpha);
+  //float D = D_BlinnPhong(nDotH, roughness);
   //float G = geometrySmith(nDotV, nDotL, roughness);
   float G = geomSmith(nDotV, nDotL, roughness);
   float F = fresnelSchlick(F0, vDotH);
@@ -216,6 +216,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   float3 specular = cookTorrenceSpecular(normal, viewDirection, lightDir, roughness, F0);
   float3 finalColor = pow(((((albedo + specular) * NdL) + ambientLight) * ao.r), 1.0f / 2.2f);
+  //float3 finalColor = ((albedo + specular) * NdL) * ao.r;
     
   float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
   lightWorldPos.xyz /= lightWorldPos.w;
