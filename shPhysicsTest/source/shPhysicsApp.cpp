@@ -111,6 +111,13 @@ PhysicsApp::onUpdate()
     initSpringBall();
   }
 
+  if (m_ikIndex != static_cast<int32>(m_ikAlgorithm)) {
+    m_ikAlgorithm = static_cast<IK_ALGORITHM::E>(m_ikIndex);
+  }
+  if (m_mtIndex != static_cast<int32>(m_moveType)) {
+    m_moveType = static_cast<MOVEMENT_TYPE::E>(m_mtIndex);
+  }
+
   m_springBall->m_springC = m_springC;
   m_springBall->m_drag = m_dragC;
   m_springBall->m_mass = m_mass;
@@ -135,7 +142,72 @@ PhysicsApp::onUpdate()
       dragSpringBall();
     }
 
-    m_springBall->m_bGrabbed = false;
+    if (m_moveType == MOVEMENT_TYPE::kInverse) {
+      auto& pChild = m_ikBase->m_child;
+      auto& pChild1 = pChild->m_child;
+      if (containsMouse(m_ikBase->m_position, 20.0f)) {
+        m_selectedIndex = 0;
+      }
+      else if (containsMouse(pChild->m_position, 20.0f)) {
+        m_selectedIndex = 1;
+      }
+      else if (containsMouse(pChild1->m_position, 20.0f)) {
+        m_selectedIndex = 2;
+      }
+
+      Vector<Vector2> points;
+      points.push_back(m_ikBase->m_position);
+      points.push_back(pChild->m_position);
+      points.push_back(pChild1->m_position);
+
+      Vector<float> lenghts;
+      lenghts.push_back(m_ikBase->m_lenght);
+      lenghts.push_back(pChild->m_lenght);
+      lenghts.push_back(pChild1->m_lenght);
+
+      if (m_selectedIndex != -1) {
+        points[m_selectedIndex].x = m_mousePosition.x - (m_desc.width * 0.5f);
+        points[m_selectedIndex].y = -m_mousePosition.y + (m_desc.height * 0.5f);
+
+        if (m_selectedIndex < points.size() - 1) {
+          Vector<Vector2> subPoints(points.begin() + m_selectedIndex, points.end());
+          Vector<float> subLenghts(lenghts.begin() + m_selectedIndex, lenghts.end());
+
+          fabrik(subPoints, subLenghts, points.back());
+
+          for (uint32 i = 1; i < subPoints.size(); ++i) {
+            points[m_selectedIndex + i] = subPoints[i];
+          }
+        }
+      }
+
+      if (m_selectedIndex > 0) {
+        Vector<Vector2> subPoints(points.begin(), points.begin() + m_selectedIndex + 1);
+        Vector<float> subLenghts(lenghts.begin(), lenghts.begin() + m_selectedIndex);
+
+        std::reverse(subPoints.begin(), subPoints.end());
+        std::reverse(subLenghts.begin(), subLenghts.end());
+
+        fabrik(subPoints, subLenghts, points[0]);
+
+        std::reverse(subPoints.begin(), subPoints.end());
+        for (uint32 i = 0; i < m_selectedIndex; ++i) {
+          points[i] = subPoints[i];
+        }
+      }
+
+      m_ikBase->m_position = points[0];
+      pChild->m_position = points[1];
+      pChild1->m_position = points[2];
+      m_lastBallPos = pChild1->m_position;
+
+      m_ikBase->update();
+      pChild->update();
+      pChild1->update();
+
+      m_selectedIndex = -1;
+      m_springBall->m_bGrabbed = false;
+    }
   }
 
   if (m_integration == INTEGRATION::kEuler) {
@@ -460,6 +532,7 @@ PhysicsApp::manageImgui()
     if (ImGui::Button("Reset")) {
       initPivot();
       initSpringBall();
+      initKinematicArm();
     }
   }
 
@@ -606,25 +679,16 @@ PhysicsApp::initKinematicArm()
   float radius = 15.0f;
   //float lenght = 75.0f;
   Vector2 offset(75.0f, 75.0f);
-  Vector2 ball = m_pivotPos + offset;
-  Vector2 ball1 = ball + offset;
-  m_lastBallPos = ball1 + Vector2(75.0f, 0.0f);
+  offset.normalize();
+  Vector2 ball = m_pivotPos + (offset * 100.0f);
+  Vector2 ball1 = ball + (offset * 100.0f);
+  m_lastBallPos = ball1 + (offset * 100.0f);
 
   m_ikBase = make_shared<KinematicBall>(m_pSpriteBone, ball, radius);
   m_ikBase->setChild(KinematicBall(m_pSpriteBone, ball1, radius));
 
   auto& pChild1 = m_ikBase->m_child;
   pChild1->setChild(KinematicBall(m_pSpriteBone, m_lastBallPos, radius));
-}
-
-bool
-PhysicsApp::mouseOnObject(const Vector2& min, const Vector2& max)
-{
-  float screenOffset = -400.0f;
-  return (screenOffset + m_mousePosition.x > min.x) &&
-         (screenOffset + m_mousePosition.x < max.x) &&
-         (-screenOffset - m_mousePosition.y > min.y) &&
-         (-screenOffset - m_mousePosition.y < max.y);
 }
 
 bool
@@ -655,5 +719,50 @@ PhysicsApp::dragPivot()
                                               m_pivotPos.y,
                                               0.0f));
   g_graphicsMan().updateConstantBuffer(m_pBase, &m_baseTransform, sizeof(Matrix4));
+}
+
+void
+PhysicsApp::fabrik(Vector<Vector2>& points,
+                   const Vector<float>& lenghts,
+                   const Vector2& target,
+                   const float tolerance)
+{
+  uint32 numBones = static_cast<uint32>(points.size());
+  Vector2 rootPos = points[0];
+
+  float totalLenght = 0.0f;
+  for (float lenght : lenghts) {
+    totalLenght += lenght;
+  }
+
+  if ((target - rootPos).mag() > totalLenght) {
+    // Target is out of reach, so it moves on a straight line
+    for (uint32 i = 1; i < numBones; ++i) {
+      Vector2 dir = (target - points[i]).getNormalized();
+      points[i] = points[i - 1] + dir * lenghts[i - 1];
+    }
+    return;
+  }
+
+  for (uint32 iter = 0; iter < 10; ++iter) {
+    points[numBones - 1] = target;
+
+    // Foward reaching
+    for (int32 i = numBones - 2; i >= 0; --i) {
+      Vector2 dir = (points[i] - points[i + 1]).getNormalized();
+      points[i] = points[i + 1] + dir * lenghts[i];
+    }
+
+    // Backward reaching
+    points[0] = rootPos;
+    for (uint32 i = 1; i < numBones; ++i) {
+      Vector2 dir = (points[i] - points[i - 1]).getNormalized();
+      points[i] = points[i - 1] + dir * lenghts[i - 1];
+    }
+
+    if ((points[numBones - 1] - target).mag() < tolerance) {
+      break;
+    }
+  }
 }
 }

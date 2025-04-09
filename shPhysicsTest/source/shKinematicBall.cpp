@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    
+*  @file    shKinematicBall.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/03
-*  @brief   
+*  @date    2025/04/08
+*  @brief   Class for ik ball.
 *
-*  
+*  Class for ik ball.
 *
 *  @bug     No bug known.
 */
@@ -44,13 +44,6 @@ KinematicBall::foward(const Vector2& newPos)
     m_child->foward(newPos);
   }
   update();
-}
-
-void
-KinematicBall::inverseFabrik()
-{
-  //Vector2 dir = (m_position - newPos).getNormalized();
-  //m_position = newPos + dir * 75.0f;
 }
 
 void

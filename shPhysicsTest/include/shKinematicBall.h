@@ -1,11 +1,11 @@
 /*************************************************************/
 /*
-*  @file    
+*  @file    shKinematicBall.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/03
-*  @brief   
+*  @date    2025/04/08
+*  @brief   Class for ik ball.
 *
-*  
+*  Class for ik ball.
 *
 *  @bug     No bug known.
 */
@@ -34,27 +34,54 @@ class ConstantBuffer;
 
 class KinematicBall{
  public:
+  /**
+  *  @brief Default constructor.
+  * 
+  *  @param SPtr<Sprite>& sprite
+  *  @param Vector2& pos
+  *  @param float radius
+  */
   KinematicBall(const SPtr<Sprite>& sprite,
                 const Vector2& pos,
                 const float radius);
+
+  /**
+  *  @brief Default destructor.
+  */
   ~KinematicBall() = default;
 
+  /**
+  *  @brief foward movement.
+  * 
+  *  @param Vector2& newPos
+  */
   void
   foward(const Vector2& newPos);
 
-  void
-  inverseFabrik();
-
+  /**
+  *  @brief Updates the constant buffer.
+  */
   void
   update();
 
+  /**
+  *  @brief Render sprite.
+  */
   void
   drawSprite();
 
+  /**
+  *  @brief Adds a child to the node.
+  * 
+  *  @param KinematicBall& child
+  */
   void
   setChild(const KinematicBall& child);
 
  public:
+  /**
+  *  @brief Nodes child.
+  */
   SPtr<KinematicBall> m_child;
 
   /**
@@ -82,8 +109,14 @@ class KinematicBall{
   */
   float m_radius = 0.0f;
 
-  float m_lenght = 75.0f;
+  /**
+  *  @brief Lenght to parent.
+  */
+  float m_lenght = 100.0f;
 
+  /**
+  *  @brief Ball transform.
+  */
   Matrix4 m_transform;
 };
 }

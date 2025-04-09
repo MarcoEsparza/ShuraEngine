@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/06
+*  @date    2025/04/09
 *  @brief   App for physics simulation.
 *
 *  App for physics simulation.
@@ -189,6 +189,9 @@ class PhysicsApp : public BaseApp
   void
   initCamera();
 
+  /**
+  *  @brief Sets the graphic interface.
+  */
   void
   manageImgui();
 
@@ -198,26 +201,53 @@ class PhysicsApp : public BaseApp
   void
   spawnBall();
 
+  /**
+  *  @brief Initialize the pivot for the simulation.
+  */
   void
   initPivot();
 
+  /**
+  *  @brief Initialize the hookes law spring ball.
+  */
   void
   initSpringBall();
 
+  /**
+  *  @brief Initialize the ik simulation.
+  */
   void
   initKinematicArm();
 
-  bool
-  mouseOnObject(const Vector2& min, const Vector2& max);
-
+  /**
+  *  @brief Checks if the mouse is hovering an object.
+  * 
+  *  @param Vector2& point
+  *  @param float radius
+  */
   bool
   containsMouse(const Vector2& point, const float radius);
 
+  /**
+  *  @brief Move springball
+  */
   void
   dragSpringBall();
 
+  /**
+  *  @brief Move the pivot
+  */
   void
   dragPivot();
+
+  /**
+  *  @brief Fabrik algorithm.
+  */
+  void
+  fabrik(Vector<Vector2>& points,
+         const Vector<float>& lenghts,
+         const Vector2& target,
+         const float tolerance = 0.001f);
 
  private:
   /**
@@ -274,7 +304,16 @@ class PhysicsApp : public BaseApp
   *  @brief Ball sprite.
   */
   SPtr<Sprite> m_pSpriteBall;
+
+  /**
+  *  @brief Ball bone sprite.
+  */
   SPtr<Sprite> m_pSpriteBone;
+
+  /**
+  *  @brief Spring ball sprite.
+  */
+  SPtr<Sprite> m_pSbSprite;
 
   /**
   *  @brief App Camera.
@@ -331,30 +370,94 @@ class PhysicsApp : public BaseApp
   */
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
 
+  /**
+  *  @brief Which algorithm is using.
+  */
   IK_ALGORITHM::E m_ikAlgorithm = IK_ALGORITHM::kFabrik;
+
+  /**
+  *  @brief Which movement type is using.
+  */
   MOVEMENT_TYPE::E m_moveType = MOVEMENT_TYPE::kFoward;
 
   /**
   *  @brief Index for integration selection.
   */
   int32 m_intIndex = 0;
+
+  /**
+  *  @brief Index for algorithm selection.
+  */
   int32 m_ikIndex = 0;
+
+  /**
+  *  @brief Index for movement type selection.
+  */
   int32 m_mtIndex = 0;
 
-  SPtr<Sprite> m_pSbSprite;
+  /**
+  *  @brief Spring ball.
+  */
   SPtr<SpringBall> m_springBall;
-  Vector2 m_pivotPos = { 0.0f, 0.0f };
-  bool m_bPivotGrabbed = false;
-
+  
+  /**
+  *  @brief Spring constant for hookes law simulaiton.
+  */
   float m_springC = 0.0f;
+
+  /**
+  *  @brief Drag constant for hookes law simulaiton.
+  */
   float m_dragC = 0.0f;
+
+  /**
+  *  @brief Mass for hookes law simulaiton.
+  */
   float m_mass = 0.0f;
+
+  /**
+  *  @brief Gravity for hookes law simulaiton.
+  */
   float m_gravity = 0.0f;
+
+  /**
+  *  @brief Initial lenght for hookes law simulaiton.
+  */
   float m_iniLenght = 0.0f;
+
+  /**
+  *  @brief Maximum length for hookes law simulaiton.
+  */
   float m_maxLenght = 0.0f;
+
+  /**
+  *  @brief Minimum lenght for hookes law simulaiton.
+  */
   float m_minLenght = 0.0f;
 
+  /**
+  *  @brief Pivot position.
+  */
+  Vector2 m_pivotPos = { 0.0f, 0.0f };
+
+  /**
+  *  @brief Is pivot grabbed?
+  */
+  bool m_bPivotGrabbed = false;
+
+  /**
+  *  @brief IK Ball.
+  */
   SPtr<KinematicBall> m_ikBase;
+
+  /**
+  *  @brief Final bone position.
+  */
   Vector2 m_lastBallPos = { 0.0f, 0.0f };
+
+  /**
+  *  @brief Slected bone.
+  */
+  int32 m_selectedIndex = -1;
 };
 }
