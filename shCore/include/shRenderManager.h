@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/05
+*  @date    2025/04/08
 *  @brief   Render module.
 *
 *  Render module.
@@ -50,9 +50,18 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   virtual ~RenderManager();
 
+  /**
+  *  @brief Override event for module.
+  */
   void
   onStartUp() override;
 
+  /**
+  *  @brief Adds a render target to the render manager.
+  * 
+  *  @param SPtr<Texture2D>& pRTV
+  *  @param String& name
+  */
   void
   addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name);
 
@@ -113,24 +122,55 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   setResourceViewFromPBRMaterial(const SPtr<Material>& pMat);
 
+  /**
+  *  @brief Render the scene.
+  */
   void
   renderScene();
 
+  /**
+  *  @brief Clean the shader resource view slots.
+  *
+  *  @param uint32 numSRV = 128
+  */
   void
   cleanShaderResourceView(uint32 numSRV = 128);
 
+  /**
+  *  @brief Clean the vertex shader constant buffer slots.
+  *
+  *  @param uint32 numCB = 14
+  */
   void
   cleanVSConstantBuffers(uint32 numCB = 14);
 
+  /**
+  *  @brief Clean the pixel shader constant buffer slots.
+  *
+  *  @param uint32 numCB = 14
+  */
   void
   cleanPSConstantBuffers(uint32 numCB = 14);
 
+  /**
+  *  @brief Call the other clean functions.
+  */
   void
   cleanShaderObjects();
 
+  /**
+  *  @brief Set the shadow map texture size.
+  * 
+  *  @param float size
+  */
   void
   setShadowMapSize(const float size);
 
+  /**
+  *  @brief Set the screen dimension info for the render manager.
+  *
+  *  @param Vector2& screenD
+  */
   void
   setScreenDimensions(const Vector2& screenD);
 
@@ -145,11 +185,29 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   UMap<String, SPtr<Texture2D>> m_targets;
 
+  /**
+  *  @brief Blend state for basic geometry.
+  */
   SPtr<BlendState> m_pBasicBS;
+
+  /**
+  *  @brief Blend state for alpha testing.
+  */
   SPtr<BlendState> m_pAlphaTestBS;
+
+  /**
+  *  @brief Model transform.
+  */
   SPtr<ConstantBuffer> m_pModelTransform;
 
+  /**
+  *  @brief Shadow map texture size.
+  */
   float m_sMapSize = 0.0f;
+
+  /**
+  *  @brief Screen size.
+  */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
 };
 

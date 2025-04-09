@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/07
+*  @date    2025/04/08
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -223,6 +223,13 @@ class DX11GraphicsManager : public GraphicsManager
                                 const int32 height,
                                 const int32 bpp) override;
 
+  /**
+  *  @brief Creates a Texture2D from a dds file.
+  *
+  *  @param String& fileName
+  *
+  *  @return SPtr<Texture2D>
+  */
   SPtr<Texture2D>
   internalCreateTextureFromDDS(const String& fileName) override;
 
@@ -244,6 +251,11 @@ class DX11GraphicsManager : public GraphicsManager
                           const uint32 usage,
                           const uint32 bindFlags) override;
 
+  /**
+  *  @brief Creates an error Texture2D.
+  *
+  *  @return SPtr<Texture2D>
+  */
   SPtr<Texture2D>
   internalCreateErrorTexture() override;
 
@@ -316,6 +328,12 @@ class DX11GraphicsManager : public GraphicsManager
   virtual void
   internalUpdateScreenSize(const SPtr<Screen>& pScreen) override;
 
+  /**
+  *  @brief Saves a Texture2D to a dds file.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param String&  filePath
+  */
   void
   internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath) override;
 

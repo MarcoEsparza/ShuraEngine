@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/04/08
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -89,6 +89,13 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   getResource(const String& resourceName);
 
+  /**
+  *  @brief Saves the given resource to an asset for better loading.
+  *
+  *  @param SPtr<Resource> pRes
+  * 
+  *  TODO: This function is not completed yet.
+  */
   void
   saveResourceToAsset(const SPtr<Resource> pRes);
 
@@ -109,9 +116,21 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   isResourceLoaded(const Path& fileName);
 
+  /**
+  *  @brief Checks if the resource is already loaded on memory.
+  *
+  *  @param Path& fileName
+  *  @param SPtr<Resource>& pRes
+  */
   bool
   isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes);
 
+  /**
+  *  @brief Checks if there is a cache for resource.
+  *
+  *  @param Path& fileName
+  *  @param SPtr<Resource>& pRes
+  */
   bool
   isCacheForResource(const Path& filePath, SPtr<Resource>& pRes);
 
@@ -129,6 +148,11 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadTextureFromFile(const String& fileName);
 
+  /**
+  *  @brief Load a dds image and creates a texture.
+  *
+  *  @param String& fileName
+  */
   SPtr<Resource>
   loadTextureFromDDS(const String& filename);
 
@@ -146,9 +170,19 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadModelFromFile(const String& fileName);
 
+  /**
+  *  @brief Creates an engine material from an aiMaterial.
+  *
+  *  @param aiMaterial* pMat
+  */
   SPtr<Material>
   createMaterialFromFile(const aiMaterial* pMat);
 
+  /**
+  *  @brief Load a model from cache.
+  *
+  *  @param String& fileName
+  */
   SPtr<Resource>
   loadModelFromCache(const String& fileName);
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/28
+*  @date    2025/04/08
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -220,6 +220,15 @@ class RendererApp : public BaseApp
   void
   updateCamera();
 
+  /**
+  *  @brief Initialize light orthographic camera.
+  */
+  void
+  initLightCamera();
+
+  /**
+  *  @brief Set render targets information.
+  */
   void
   setRenderTargets();
 
@@ -229,12 +238,21 @@ class RendererApp : public BaseApp
   void
   setImgui();
 
+  /**
+  *  @brief Load pistol model, materials and game object.
+  */
   void
   loadPistol();
 
+  /**
+  *  @brief Load sponza model, materials and game object.
+  */
   void
   loadSponza();
 
+  /**
+  *  @brief Load skybox model, materials and game object.
+  */
   void
   loadSkybox();
 
@@ -245,39 +263,13 @@ class RendererApp : public BaseApp
   /***************************************************************************/
  private:
   /**
-  *  @brief Targets for first pass.
-  */
-  //SPtr<Texture2D> m_pDepthTarget;
-  //SPtr<Texture2D> m_pNormalTarget;
-  //SPtr<Texture2D> m_pColorTarget;
-  //SPtr<Texture2D> m_pPropTarget; // Properties
-
-  /**
-  *  @brief Main render target.
-  */
-  //SPtr<Texture2D> m_mainTarget;
-  
-  /**
-  *  @brief Ambient occlusion render target.
-  */
-  //SPtr<Texture2D> m_pAoTarget;
-
-  /**
-  *  @brief Horizontal blur render target.
-  */
-  //SPtr<Texture2D> m_pHbTarget;
-
-  /**
-  *  @brief Vertical Blur render target.
-  */
-  //SPtr<Texture2D> m_pVbTarget;
-
-  //SPtr<Texture2D> m_pSMapTarget;
-
-  /**
-  *  @brief Model game object.
+  *  @brief Pistol game object.
   */
   SPtr<GameObject> m_pModel;
+
+  /**
+  *  @brief Sponza game object.
+  */
   SPtr<GameObject> m_pSponza;
 
   /**
@@ -291,9 +283,13 @@ class RendererApp : public BaseApp
   SPtr<ConstantBuffer> m_pInvVP;
 
   /**
-  *  @brief Constant Buffer for model transform.
+  *  @brief Constant Buffer for pistol transform.
   */
   SPtr<ConstantBuffer> m_pModelTransform;
+
+  /**
+  *  @brief Constant Buffer for sponza transform.
+  */
   SPtr<ConstantBuffer> m_pSponzaTransform;
 
   /**
@@ -316,8 +312,14 @@ class RendererApp : public BaseApp
   */
   SPtr<ConstantBuffer> m_pAOBuffer;
 
-
+  /**
+  *  @brief Constant buffer for light camera.
+  */
   SPtr<ConstantBuffer> m_pLCBuffer;
+
+  /**
+  *  @brief Constant buffer for light size.
+  */
   SPtr<ConstantBuffer> m_pLSizeBuffer;
 
   /**
@@ -325,7 +327,9 @@ class RendererApp : public BaseApp
   */
   Camera m_camera;
 
-
+  /**
+  *  @brief Light orthographic camera.
+  */
   Camera m_lightCam;
 
   /**
@@ -409,32 +413,32 @@ class RendererApp : public BaseApp
   float m_hdelta = 0.0f;
 
   /**
-  *  @brief Model position.
+  *  @brief Pistol position.
   */
   Vector3 m_modelPos = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model rotation.
+  *  @brief Pistol rotation.
   */
   Vector3 m_modelRot = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model scale.
+  *  @brief Pistol scale.
   */
   Vector3 m_modelScale = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model position.
+  *  @brief Sponza position.
   */
   Vector3 m_sponzaPos = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model rotation.
+  *  @brief Sponza rotation.
   */
   Vector3 m_sponzaRot = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model scale.
+  *  @brief Sponza scale.
   */
   Vector3 m_sponzaScale = { 0.0f, 0.0f, 0.0f };
 
@@ -459,31 +463,43 @@ class RendererApp : public BaseApp
   float m_aoIntensity = 1.0f;
 
   /**
-  *  @brief Float to test imgui.
+  *  @brief Light position.
   */
-  float m_lIntensity = 0.0f;
+  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief String to test imgui.
+  *  @brief Light camera target.
   */
-  String m_str;
-
-  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
   Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
 
+  /**
+  *  @brief Light camera near.
+  */
   float m_lcamNear = 0.0f;
-  float m_lcamFar = 0.0f;
-  float m_lcamSize = 0.0f;
-
-  SPtr<Sound> m_testSound;
-
-  bool bIsSoundPlaying = false;
-
-  float m_shadowTexSize = 0;
 
   /**
-  *  @brief Light structure.
+  *  @brief Light camera far.
   */
-  //Light m_light = {};
+  float m_lcamFar = 0.0f;
+
+  /**
+  *  @brief Light camera size.
+  */
+  float m_lcamSize = 0.0f;
+
+  /**
+  *  @brief Testing audio.
+  */
+  SPtr<Sound> m_testSound;
+
+  /**
+  *  @brief Is audio playing?
+  */
+  bool bIsSoundPlaying = false;
+
+  /**
+  *  @brief Size of shadow texture.
+  */
+  float m_shadowTexSize = 0;
 };
 }

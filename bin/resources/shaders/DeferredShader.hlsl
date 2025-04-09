@@ -76,7 +76,7 @@ pcFiltering(float2 uv,
 
       if (depth - shadowBias > sampledDepth)
       {
-          shadow += 1.0f;
+        shadow += 1.0f;
       }
       ++sampleCount;
     }
@@ -121,7 +121,8 @@ float geometrySchlick(float nDotV, float roughness)
 {
   float r = roughness + 1.0f;
   float k = (r * r) / 8.0f;
-  return nDotV / (nDotV * (1.0f - k) + k);
+  float ik = 1.0f - k;
+  return nDotV / (nDotV * ik + k);
 }
 
 float geometrySmith(float nDotV, float nDotL, float roughness)
@@ -212,7 +213,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
     
   float3 F0 = lerp(0.04, albedo, metalness);
     
-  float3 ambientLight = 0.03f * albedo;
+  float3 ambientLight = 0.15f * albedo;
     
   float3 specular = cookTorrenceSpecular(normal, viewDirection, lightDir, roughness, F0);
   float3 finalColor = pow(((((albedo + specular) * NdL) + ambientLight) * ao.r), 1.0f / 2.2f);

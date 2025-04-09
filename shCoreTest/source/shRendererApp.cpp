@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/27
+*  @date    2025/04/08
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -60,54 +60,49 @@ RendererApp::onCreate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
-  ResourceManager& resourceMan = g_resourceMan();
   AudioManager& audioMan = AudioManager::instance();
 
   m_shadowTexSize = 2048.0f;
-  m_lcamSize = 1000.0f;
 
+  // Initialize graphics
   initGraphicAssets();
   initCamera();
 
+  // Imgui initialize
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGui_ImplShura_Init(getScreen());
-
   ImGui::StyleColorsDark();
 
   // Load images
   Path whitePNG("resources/White.png");
   g_resourceMan().loadResourceFromFile(whitePNG);
 
+  // Load resources
   loadPistol();
   loadSponza();
   loadSkybox();
+
+  // Initialize light orthographic camera
+  initLightCamera();
 
   // Set light buffer
   Vector<Vector4> lights;
   lights.resize(12);
   m_lightPos = { 0.0f, 500.0f, 0.0f, 1.0f };
   lights[0] = m_lightPos;
-
-  //m_light.position = Vector3(5.0f, 5.0f, 5.0f);
-  //m_light.color = LinearColor(1.0f, 1.0f, 1.0f);
-  //m_light.intensity = 1.0f;
-
   m_pLightBuffer = graphMan.createConstantBuffer(sizeof(lights));
-
   graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
-  // Set pass buffers
-  auto pBasicShader = renderMan.getPass("BasicShader");
+  // GBuffer constant buffers
+  auto pBasicShader = renderMan.getPass("GBufferShader");
   pBasicShader->addVSConstantBuffer(m_pVP);
   pBasicShader->addVSConstantBuffer(m_pModelTransform);
 
-  float screenW = static_cast<float>(getScreenDescription().width);
-  float screenH = static_cast<float>(getScreenDescription().height);
-
+  // Ambient occlusion buffers
   AOBuffer aoBuffer;
-  aoBuffer.viewport.x = screenW;
-  aoBuffer.viewport.y = screenH;
+  aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
+  aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
   aoBuffer.samplerRad = m_aoSamplerRad = 1.0f;
   aoBuffer.scale = m_aoScale = 1.0f;
   aoBuffer.bias = m_aoBias = 0.01f;
@@ -118,48 +113,17 @@ RendererApp::onCreate()
   graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
   pAOShader->addPSConstantBuffer(m_pAOBuffer);
 
+  // Blur buffers
   auto pHBlurShader = renderMan.getPass("HBlurShader");
   auto pVBlurShader = renderMan.getPass("VBlurShader");
   pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
   pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
 
-  // Light ortho camera
-  m_lightTarget = Vector3::ZERO;
-  m_lcamNear = 1.0f;
-  m_lcamFar = 2000.0f;
-
-  m_lightCam = Camera(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
-                      m_lightTarget,
-                      Vector3::UP,
-                      m_lcamSize,
-                      m_lcamSize,
-                      m_lcamNear,
-                      m_lcamFar);
-
-  VP lcam = {};
-  lcam.proj = m_lightCam.getProjection();
-  lcam.view = m_lightCam.getView();
-  lcam.proj.getTransposed();
-  lcam.view.getTransposed();
-
-  m_pLCBuffer = graphMan.createConstantBuffer(sizeof(VP));
-  graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
-
-  Vector4 lightS = { m_lightCam.getWidth(), 0.0f,0.0f,0.f };
-  m_pLSizeBuffer = graphMan.createConstantBuffer(sizeof(Vector4));
-  graphMan.updateConstantBuffer(m_pLSizeBuffer, &lightS, sizeof(Vector4));
-
-  // Set shadow pass constant buffers
+  // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer);
-  //pSMapShader->addVSConstantBuffer(m_pModelTransform);
 
-  // Create audio
-  Path audioPath("resources/cat.wav");
-  m_testSound = audioMan.createSound(audioPath);
-  m_testSound->m_channel = CHANNEL_TYPE::kUI;
-
-  // 
+  // Lightning shader buffers
   auto pLightningShader = renderMan.getPass("LightningShader");
   pLightningShader->addPSConstantBuffer(m_pInvVP);
   pLightningShader->addPSConstantBuffer(m_pCameraPosition);
@@ -168,26 +132,30 @@ RendererApp::onCreate()
   pLightningShader->addPSConstantBuffer(m_pLCBuffer);
   pLightningShader->addPSConstantBuffer(m_pLSizeBuffer);
 
+  // Skybox shader buffers
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
   pSkyBoxShader->addVSConstantBuffer(m_pVP);
-  pSkyBoxShader->addPSConstantBuffer(m_pVP);
-  pSkyBoxShader->addPSConstantBuffer(m_pInvVP);
-  pSkyBoxShader->addPSConstantBuffer(m_pViewportBuffer);
 
+  // Final shader buffers
   auto pFinalShader = renderMan.getPass("FinalShader");
   pFinalShader->addPSConstantBuffer(m_pViewportBuffer);
+
+  // Create audio
+  Path audioPath("resources/cat.wav");
+  m_testSound = audioMan.createSound(audioPath);
+  m_testSound->m_channel = CHANNEL_TYPE::kUI;
 }
 
 void
 RendererApp::onUpdate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  ResourceManager& resMan = g_resourceMan();
   AudioManager& audioMan = AudioManager::instance();
+  Time& time = g_time();
 
+  // Update imgui
   ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
-
   ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
   m_delta = 0.0f;
   m_hdelta = 0.0f;
@@ -206,6 +174,7 @@ RendererApp::onUpdate()
 
   setImgui();
 
+  // Update models transform
   if (m_modelPos != m_pModel->getPosition()) {
     m_pModel->setPosition(m_modelPos);
   }
@@ -234,6 +203,7 @@ RendererApp::onUpdate()
                                 &m_pSponza->transform.getTransform(),
                                 sizeof(Transform));
 
+  // Update light
   Vector3 lightTarget = m_lightCam.getTarget();
   float lcamNear = m_lightCam.getNear();
   float lcamFar = m_lightCam.getFar();
@@ -247,9 +217,6 @@ RendererApp::onUpdate()
     lights[0] = m_lightPos;
     graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
-    /*m_lightCam.setViewData(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
-                           m_lightTarget,
-                           Vector3::UP);*/
     m_lightCam.setPosition(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z));
     m_lightCam.setTarget(m_lightTarget);
     m_lightCam.setNear(m_lcamNear);
@@ -267,16 +234,9 @@ RendererApp::onUpdate()
 
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
     graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
-
-    /*m_pSMapTarget.reset();
-    m_pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_lcamSize),
-                                             static_cast<uint32>(m_lcamSize),
-                                             TEXTURE_FORMAT::kR32_Typeless,
-                                             USAGE::kDefault,
-                                             BIND_FLAGS::kDepthStencil |
-                                             BIND_FLAGS::kShaderResource);*/
   }
 
+  // Update ambient occlusion
   AOBuffer aoBuffer;
   aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
   aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
@@ -287,38 +247,34 @@ RendererApp::onUpdate()
 
   graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
 
+  // Update camera
   if (m_bRightClick) {
     rotateCamera();
   }
 
-  const float camSpeed = 5.0f;
-
+  const float camSpeed = 100.0f * time.getFrameDeltaTime();
   if (m_bFoward) {
     m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
   }
-  
   if (m_bLeft) {
     m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * camSpeed);
   }
-
   if (m_bBack) {
     m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * camSpeed);
   }
-  
   if (m_bRight) {
     m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * camSpeed);
   }
-
   if (m_bUp) {
     m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * camSpeed);
   }
-
   if (m_bDown) {
     m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * camSpeed);
   }
   
   updateCamera();
 
+  // Update audio
   if (bIsSoundPlaying) {
     audioMan.playSound(m_testSound);
     bIsSoundPlaying = false;
@@ -350,8 +306,6 @@ RendererApp::onResize(const ResizeData& rszData)
 
   float width = static_cast<float>(rszData.width);
   float height = static_cast<float>(rszData.height);
-
-  //m_mainTarget.reset();
 
   setRenderTargets();
 
@@ -605,6 +559,7 @@ RendererApp::initGraphicAssets()
                               "ps_5_0");
   pVBlurShader->compileShader();
 
+  // Shadow map
   auto pSMapShader = make_shared<Pass>();
   pSMapShader->setShaderInfo("resources/shaders/SMapShader.hlsl",
                              "main",
@@ -613,6 +568,7 @@ RendererApp::initGraphicAssets()
                              "ps_5_0");
   pSMapShader->compileShader();
 
+  // Skybox
   auto pSkyBoxShader = make_shared<Pass>();
   pSkyBoxShader->setShaderInfo("resources/shaders/SkyBoxShader.hlsl",
                                "main",
@@ -621,6 +577,7 @@ RendererApp::initGraphicAssets()
                                "ps_5_0");
   pSkyBoxShader->compileShader();
 
+  // Final shader
   auto pFinalShader = make_shared<Pass>();
   pFinalShader->setShaderInfo("resources/shaders/FinalShader.hlsl",
                               "main",
@@ -629,7 +586,7 @@ RendererApp::initGraphicAssets()
                               "ps_5_0");
   pFinalShader->compileShader();
 
-  // Set pass states
+  // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
   rasterDesc.cullMode = CULL_MODE::kNone;
@@ -642,6 +599,7 @@ RendererApp::initGraphicAssets()
   rasterDesc.multisampleEnable = false;
   rasterDesc.antialiasedLineEnable = false;
 
+  // Blend state
   BlendDesc blendDesc = {};
   blendDesc.renderTarget[0].blendEnable = true;
   blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
@@ -652,6 +610,7 @@ RendererApp::initGraphicAssets()
   blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
   blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
 
+  // Basic depth stencil state
   DepthStencilDesc depthSDesc = {};
   depthSDesc.depthEnable = true;
   depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
@@ -668,6 +627,7 @@ RendererApp::initGraphicAssets()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
+  // Depth stencil state for sky box
   DepthStencilDesc skyBoxDepth = {};
   skyBoxDepth.depthEnable = false;
   skyBoxDepth.depthWriteMask = DEPTH_WRITE_MASK::kZero;
@@ -684,14 +644,16 @@ RendererApp::initGraphicAssets()
   skyBoxDepth.backFace.stencilPassOp = STENCIL_OP::kReplace;
   skyBoxDepth.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
+  // Dpeth stencil state for planes
   DepthStencilDesc planeDepthSDesc = depthSDesc;
   planeDepthSDesc.depthEnable = false;
   planeDepthSDesc.stencilEnable = false;
 
+  // Basic sampler linear
   auto pSamplerLinear = graphMan.createSamplerState();
 
   // Fill pass info
-  // Basic
+  // GBuffer
   pBasicShader->generateInputLayout();
   pBasicShader->setSamplerState(pSamplerLinear);
   pBasicShader->setRasterizerState(rasterDesc);
@@ -701,7 +663,6 @@ RendererApp::initGraphicAssets()
   // Lightining
   pLightningShader->generateInputLayout();
   pLightningShader->setSamplerState(pSamplerLinear);
-  //pLightningShader->setBlendState(blendDesc1);
   pLightningShader->setDepthStencilState(planeDepthSDesc);
 
   // AO
@@ -738,7 +699,8 @@ RendererApp::initGraphicAssets()
   pFinalShader->setSamplerState(pSamplerLinear);
   pFinalShader->setDepthStencilState(skyBoxDepth);
 
-  renderMan.setPass(pBasicShader, "BasicShader");
+  // Save passes on render manager
+  renderMan.setPass(pBasicShader, "GBufferShader");
   renderMan.setPass(pAOShader, "AOShader");
   renderMan.setPass(pHBlurShader, "HBlurShader");
   renderMan.setPass(pVBlurShader, "VBlurShader");
@@ -852,6 +814,38 @@ RendererApp::updateCamera()
 }
 
 void
+RendererApp::initLightCamera()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  m_lightTarget = Vector3::ZERO;
+  m_lcamNear = 0.1f;
+  m_lcamFar = 1000.0f;
+  m_lcamSize = 1000.0f;
+
+  m_lightCam = Camera(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
+                      m_lightTarget,
+                      Vector3::UP,
+                      m_lcamSize,
+                      m_lcamSize,
+                      m_lcamNear,
+                      m_lcamFar);
+
+  VP lcam = {};
+  lcam.proj = m_lightCam.getProjection();
+  lcam.view = m_lightCam.getView();
+  lcam.proj.getTransposed();
+  lcam.view.getTransposed();
+
+  m_pLCBuffer = graphMan.createConstantBuffer(sizeof(VP));
+  graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
+
+  Vector4 lightS = { m_lightCam.getWidth(), 0.0f,0.0f,0.f };
+  m_pLSizeBuffer = graphMan.createConstantBuffer(sizeof(Vector4));
+  graphMan.updateConstantBuffer(m_pLSizeBuffer, &lightS, sizeof(Vector4));
+}
+
+void
 RendererApp::setRenderTargets()
 {
   GraphicsManager& graphMan = g_graphicsMan();
@@ -915,6 +909,13 @@ RendererApp::setRenderTargets()
                                               BIND_FLAGS::kDepthStencil |
                                               BIND_FLAGS::kShaderResource);
 
+  auto pShadowTempTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                                    getScreenDescription().height,
+                                                    TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                    USAGE::kDefault,
+                                                    BIND_FLAGS::kRenderTarget |
+                                                    BIND_FLAGS::kShaderResource);
+
   auto pSkyBoxTarget = graphMan.createTexture2D(getScreenDescription().width,
                                                 getScreenDescription().height,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
@@ -922,6 +923,7 @@ RendererApp::setRenderTargets()
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
+  // Save targets on render manager
   renderMan.addRenderTarget(pMainTarget, "MainTarget");
   renderMan.addRenderTarget(pDepthTarget, "DepthMap");
   renderMan.addRenderTarget(pNormalTarget, "NormalMap");
@@ -931,6 +933,7 @@ RendererApp::setRenderTargets()
   renderMan.addRenderTarget(pHbTarget, "HBlurMap");
   renderMan.addRenderTarget(pVbTarget, "VBlurMap");
   renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
+  renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
   renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
 }
 
@@ -1228,17 +1231,12 @@ RendererApp::setImgui()
     ImGui::PopStyleColor(3);
 
     ImGui::Spacing();
-    ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 1.0f);
+    ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 0.1f);
     ImGui::Spacing();
     ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
     ImGui::Spacing();
     ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
   }
-
-  ImGui::InputFloat("Light Intensity", &m_lIntensity);
-
-  static char buf[32] = "hello";
-  ImGui::InputText("TestingKeys", buf, 32);
 
   if (ImGui::Button("Play Sound")) {
     bIsSoundPlaying = true;
@@ -1288,11 +1286,8 @@ RendererApp::loadPistol()
   modelMC->setMeshData(modelRes);
   m_pModel->addComponent(modelMC);
 
-  m_pModel->transform.getTransform().m[3][3] = 1.0f;
-
-  m_pModel->setPosition(Vector3::ZERO);
-  m_pModel->setScale(Vector3::ONE);
-  m_pModel->setRotation(Vector3::ZERO);
+  m_pModel->transform.getTransform() = Matrix4::IDENTITY;
+  m_pModel->setScale(Vector3::ONE * 5.0f);
 
   sceneG.addObject(m_pModel);
 
@@ -1553,11 +1548,8 @@ RendererApp::loadSponza()
   modelMC->setMeshData(sponzaModelRes);
   m_pSponza->addComponent(modelMC);
 
-  m_pSponza->transform.getTransform().m[3][3] = 1.0f;
-
-  m_pSponza->setPosition(Vector3::ZERO);
-  m_pSponza->setScale(Vector3::ONE);
-  m_pSponza->setRotation(Vector3::ZERO);
+  m_pSponza->transform.getTransform() = Matrix4::IDENTITY;
+  m_pSponza->setScale(Vector3::ONE * 0.25f);
 
   sceneG.addObject(m_pSponza);
 
@@ -1571,7 +1563,6 @@ RendererApp::loadSponza()
 void
 RendererApp::loadSkybox()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resourceMan = g_resourceMan();
   SceneGraph& scene = g_sceneGraph();
 
@@ -1587,36 +1578,6 @@ RendererApp::loadSkybox()
                                {1.0f, -1.0f, 1.0f},
                                {1.0f, 1.0f, 1.0f},
                                {-1.0f, 1.0f, 1.0f} };
-
-  /*Vector<Vector3> vertices = { {-1.0f, 1.0f, -1.0f},
-                              {1.0f, 1.0f, -1.0f},
-                              {1.0f, 1.0f, 1.0f},
-                              {-1.0f, 1.0f, 1.0f},
-
-                              {-1.0f, -1.0f, -1.0f},
-                              {1.0f, -1.0f, -1.0f},
-                              {1.0f, -1.0f, 1.0f},
-                              {-1.0f, -1.0f, 1.0f},
-
-                              {-1.0f, -1.0f, 1.0f},
-                              {-1.0f, -1.0f, -1.0f},
-                              {-1.0f, 1.0f, -1.0f},
-                              {-1.0f, 1.0f, 1.0f},
-
-                              {1.0f, -1.0f, 1.0f},
-                              {1.0f, -1.0f, -1.0f},
-                              {1.0f, 1.0f, -1.0f},
-                              {1.0f, 1.0f, 1.0f},
-
-                              {-1.0f, -1.0f, -1.0f},
-                              {1.0f, -1.0f, -1.0f},
-                              {1.0f, 1.0f, -1.0f},
-                              {-1.0f, 1.0f, -1.0f},
-
-                              {-1.0f, -1.0f, 1.0f},
-                              {1.0f, -1.0f, 1.0f},
-                              {1.0f, 1.0f, 1.0f},
-                              {-1.0f, 1.0f, 1.0f} };*/
 
   Vector<uint32> indices = { // front
                              0, 1, 2,
@@ -1637,32 +1598,14 @@ RendererApp::loadSkybox()
                              4, 5, 1,
                              1, 0, 4 };
 
-  /*Vector<uint32> indices = { 3,1,0,
-                             2,1,3,
-                             
-                             6,4,5,
-                             7,4,6,
-                             
-                             11,9,8,
-                             10,9,11,
-                             
-                             14,12,13,
-                             15,12,14,
-                             
-                             19,17,16,
-                             18,17,19,
-                             
-                             22,20,21,
-                             23,20,22 };*/
-
   auto pSkyBoxMeshResource = make_shared<StaticMeshResource>();
   pSkyBoxMeshResource->vertices.resize(vertices.size());
   for (uint32 i = 0; i < vertices.size(); ++i) {
     pSkyBoxMeshResource->vertices[i].position = vertices[i];
   }
   pSkyBoxMeshResource->indices = indices;
-  pSkyBoxMeshResource->numVertex = vertices.size();
-  pSkyBoxMeshResource->numIndex = indices.size();
+  pSkyBoxMeshResource->numVertex = static_cast<uint32>(vertices.size());
+  pSkyBoxMeshResource->numIndex = static_cast<uint32>(indices.size());
   pSkyBoxMeshResource->material = make_shared<Material>();
   auto& pSkyBoxMat = pSkyBoxMeshResource->material;
 

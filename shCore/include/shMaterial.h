@@ -2,7 +2,7 @@
 /*
 *  @file    shMaterial.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/04/08
 *  @brief   Material classes.
 *
 *  Material classes.
@@ -30,6 +30,9 @@ enum E
 };
 }
 
+/**
+*  @brief Matrial properties structure.
+*/
 //MS_ALIGN(16)
 struct MaterialProperties
 {
@@ -81,6 +84,9 @@ class SH_CORE_EXPORT Material
   */
   MATERIAL_TYPE::E m_type = MATERIAL_TYPE::kPBR;
 
+  /**
+  *  @brief Material properties.
+  */
   MaterialProperties m_properties = {};
 
   /**
@@ -108,59 +114,29 @@ class SH_CORE_EXPORT Material
   */
   SPtr<Texture2D> ao;
 
+  /**
+  *  @brief Path of the base color texture.
+  */
   String baseColorPath;
+
+  /**
+  *  @brief Path of the normal texture.
+  */
   String normalPath;
+
+  /**
+  *  @brief Path of the metallic texture.
+  */
   String metallicPath;
+
+  /**
+  *  @brief Path of the roughness texture.
+  */
   String roughnessPath;
+
+  /**
+  *  @brief Path of the ao texture.
+  */
   String aoPath;
 };
-
-/**
-*  @brief PBR Material class.
-*/
-//class SH_CORE_EXPORT PBRMaterial : public Material
-//{
-// public:
-//  /**
-//  *  @brief Default constructor.
-//  */
-//  PBRMaterial() : Material(MATERIAL_TYPE::kPBR) {}
-//
-//  /**
-//  *  @brief Default destructor.
-//  */
-//  virtual ~PBRMaterial()
-//  {
-//    baseColor.reset();
-//    metallic.reset();
-//    roughness.reset();
-//    normal.reset();
-//    ao.reset();
-//  }
-//
-//  /**
-//  *  @brief Base color texture.
-//  */
-//  SPtr<Texture2D> baseColor;
-//
-//  /**
-//  *  @brief Metallic texture.
-//  */
-//  SPtr<Texture2D> metallic;
-//
-//  /**
-//  *  @brief Roughness texture.
-//  */
-//  SPtr<Texture2D> roughness;
-//
-//  /**
-//  *  @brief Normal texture.
-//  */
-//  SPtr<Texture2D> normal;
-//
-//  /**
-//  *  @brief Ambient occlusion texture.
-//  */
-//  SPtr<Texture2D> ao;
-//};
 }

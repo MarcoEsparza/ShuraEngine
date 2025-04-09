@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/04/08
 *  @brief   Render module.
 *
 *  Render module.
@@ -42,16 +42,6 @@ void
 RenderManager::onStartUp()
 {
   GraphicsManager& graphMan = g_graphicsMan();
-
-  /*BlendDesc blendDesc = {};
-  blendDesc.renderTarget[0].blendEnable = false;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;*/
 
   BlendDesc blendDesc = {};
   blendDesc.alphaToCoverageEnable = false;
@@ -207,8 +197,8 @@ RenderManager::renderScene()
   graphMan.setViewport(shadowVP);
 
   graphMan.clearDepthStencil(m_targets["ShadowMap"]);
-  graphMan.setRenderTargets({ nullptr }, m_targets["ShadowMap"]);
-  makePass("SMapShader");
+  graphMan.setRenderTargets({ m_targets["ShadowTemp"] }, m_targets["ShadowMap"]);
+  m_passes["SMapShader"]->setPass();
 
   auto& pistolGO = scene.getGameObjectList()[0];
   auto& sponzaGO = scene.getGameObjectList()[1];
@@ -261,7 +251,7 @@ RenderManager::renderScene()
                               m_targets["ColorMap"],
                               m_targets["PropMap"] },
                             pDepthSV);
-  makePass("BasicShader");
+  m_passes["GBufferShader"]->setPass();
 
   modelT = pistolGO->transform.getTransform();
   graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
@@ -280,7 +270,7 @@ RenderManager::renderScene()
   /*************************************/
   graphMan.clearRenderTarget(m_targets["AOMap"], LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.setRenderTargets({ m_targets["AOMap"] }, pDepthSV);
-  makePass("AOShader");
+  m_passes["AOShader"]->setPass();
 
   graphMan.setShaderResourceView(m_targets["DepthMap"], 0);
   graphMan.setShaderResourceView(m_targets["NormalMap"], 1);
@@ -294,7 +284,7 @@ RenderManager::renderScene()
   /*************************************/
   graphMan.clearRenderTarget(m_targets["HBlurMap"], LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.setRenderTargets({ m_targets["HBlurMap"] }, pDepthSV);
-  makePass("HBlurShader");
+  m_passes["HBlurShader"]->setPass();
 
   graphMan.setShaderResourceView(m_targets["AOMap"], 0);
 
@@ -307,7 +297,7 @@ RenderManager::renderScene()
   /*************************************/
   graphMan.clearRenderTarget(m_targets["VBlurMap"], LinearColor(0.0f, 0.0f, 0.0f));
   graphMan.setRenderTargets({ m_targets["VBlurMap"] }, pDepthSV);
-  makePass("VBlurShader");
+  m_passes["VBlurShader"]->setPass();
 
   graphMan.setShaderResourceView({ m_targets["HBlurMap"] }, 0);
 
@@ -319,7 +309,7 @@ RenderManager::renderScene()
   /*             Lightning             */
   /*************************************/
   graphMan.setRenderTargets({ m_targets["MainTarget"] }, pDepthSV);
-  makePass("LightningShader");
+  m_passes["LightningShader"]->setPass();
 
   graphMan.setShaderResourceView(m_targets["DepthMap"], 0);
   graphMan.setShaderResourceView(m_targets["NormalMap"], 1);
@@ -337,8 +327,8 @@ RenderManager::renderScene()
   /*************************************/
   auto& skyBoxGO = scene.getGameObjectList()[2];
   graphMan.clearRenderTarget(m_targets["SkyBoxMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_targets["SkyBoxMap"] }, nullptr);
-  makePass("SkyBoxShader");
+  graphMan.setRenderTargets({ m_targets["SkyBoxMap"] }, pDepthSV);
+  m_passes["SkyBoxShader"]->setPass();
 
   for (auto& component : skyBoxGO->components) {
     if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
@@ -356,7 +346,7 @@ RenderManager::renderScene()
   cleanShaderObjects();
 
   graphMan.setRenderTargets({ m_targets["MainTarget"] }, pDepthSV);
-  makePass("FinalShader");
+  m_passes["FinalShader"]->setPass();
 
   graphMan.setShaderResourceView(m_targets["NormalMap"], 0);
   graphMan.setShaderResourceView(m_targets["SkyBoxMap"], 1);

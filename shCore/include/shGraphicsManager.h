@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/04/08
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -238,6 +238,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   SPtr<Texture2D>
   createTextureFromFile(const String& fileName);
 
+  /**
+  *  @brief Creates a Texture2D from a dds file.
+  *
+  *  @param String& fileName
+  *
+  *  @return SPtr<Texture2D>
+  */
   SPtr<Texture2D>
   createTextureFromDDS(const String& fileName);
 
@@ -259,6 +266,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 usage = USAGE::kDefault,
                   const uint32 bindFlags = BIND_FLAGS::kShaderResource);
 
+  /**
+  *  @brief Creates an error Texture2D.
+  *
+  *  @return SPtr<Texture2D>
+  */
   SPtr<Texture2D>
   createErrorTexturre();
 
@@ -331,6 +343,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   void
   updateScreenSize(const SPtr<Screen>& pScreen);
 
+  /**
+  *  @brief Saves a Texture2D to a dds file.
+  * 
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param String&  filePath
+  */
   void
   saveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath);
 
@@ -690,6 +708,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                                 const int32 height,
                                 const int32 bpp) = 0;
 
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param String& fileName
+  *
+  *  @return SPtr<Texture2D>
+  */
   virtual SPtr<Texture2D>
   internalCreateTextureFromDDS(const String& fileName) = 0;
 
@@ -711,6 +736,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                           const uint32 usage,
                           const uint32 bindFlags) = 0;
 
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @return SPtr<Texture2D>
+  */
   virtual SPtr<Texture2D>
   internalCreateErrorTexture() = 0;
 
@@ -782,6 +812,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual void
   internalUpdateScreenSize(const SPtr<Screen>& pScreen) = 0;
 
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param String& filePath
+  */
   virtual void
   internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath) = 0;
 
