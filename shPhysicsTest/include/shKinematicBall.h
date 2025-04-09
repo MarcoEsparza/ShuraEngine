@@ -19,7 +19,7 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shPrerequisitesPhysics.h"
-#include "shPhysicsTetsUsage.h"
+#include "shPhysicsTestUsage.h"
 #include "shMatrix4.h"
 #include "shVector2.h"
 
@@ -34,11 +34,13 @@ class ConstantBuffer;
 
 class KinematicBall{
  public:
-  KinematicBall() = default;
+  KinematicBall(const SPtr<Sprite>& sprite,
+                const Vector2& pos,
+                const float radius);
   ~KinematicBall() = default;
 
   void
-  foward();
+  foward(const Vector2& newPos);
 
   void
   inverseFabrik();
@@ -46,8 +48,14 @@ class KinematicBall{
   void
   update();
 
+  void
+  drawSprite();
+
+  void
+  setChild(const KinematicBall& child);
+
  public:
-  SPtr<KinematicBall> child;
+  SPtr<KinematicBall> m_child;
 
   /**
   *  @brief Ball sprite.
@@ -73,5 +81,9 @@ class KinematicBall{
   *  @brief Ball radius.
   */
   float m_radius = 0.0f;
+
+  float m_lenght = 75.0f;
+
+  Matrix4 m_transform;
 };
 }

@@ -19,7 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shPrerequisitesPhysics.h"
-#include "shPhysicsTetsUsage.h"
+#include "shPhysicsTestUsage.h"
 #include "shGraphicTypes.h"
 #include "shVector2.h"
 #include "shMatrix4.h"

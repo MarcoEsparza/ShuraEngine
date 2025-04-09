@@ -26,6 +26,7 @@
 #include "shBoxAAB.h"
 #include "shBall.h"
 #include "shSpringBall.h"
+#include "shKinematicBall.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -188,6 +189,9 @@ class PhysicsApp : public BaseApp
   void
   initCamera();
 
+  void
+  manageImgui();
+
   /**
   *  @brief Spawns balls and adds them to the scene.
   */
@@ -195,10 +199,19 @@ class PhysicsApp : public BaseApp
   spawnBall();
 
   void
+  initPivot();
+
+  void
   initSpringBall();
+
+  void
+  initKinematicArm();
 
   bool
   mouseOnObject(const Vector2& min, const Vector2& max);
+
+  bool
+  containsMouse(const Vector2& point, const float radius);
 
   void
   dragSpringBall();
@@ -228,14 +241,9 @@ class PhysicsApp : public BaseApp
   SPtr<ConstantBuffer> m_pVP;
 
   /**
-  *  @brief Constant buffer for turret base.
+  *  @brief Constant buffer for pivot.
   */
   SPtr<ConstantBuffer> m_pBase;
-
-  /**
-  *  @brief Constant buffer for turret.
-  */
-  SPtr<ConstantBuffer> m_pTurret;
 
   /**
   *  @brief Turret base transform.
@@ -266,6 +274,7 @@ class PhysicsApp : public BaseApp
   *  @brief Ball sprite.
   */
   SPtr<Sprite> m_pSpriteBall;
+  SPtr<Sprite> m_pSpriteBone;
 
   /**
   *  @brief App Camera.
@@ -322,19 +331,19 @@ class PhysicsApp : public BaseApp
   */
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
 
+  IK_ALGORITHM::E m_ikAlgorithm = IK_ALGORITHM::kFabrik;
+  MOVEMENT_TYPE::E m_moveType = MOVEMENT_TYPE::kFoward;
+
   /**
   *  @brief Index for integration selection.
   */
   int32 m_intIndex = 0;
-
-  /**
-  *  @brief Strings to use integration on gui.
-  */
-  Vector<String> m_intList;
+  int32 m_ikIndex = 0;
+  int32 m_mtIndex = 0;
 
   SPtr<Sprite> m_pSbSprite;
   SPtr<SpringBall> m_springBall;
-  Vector2 m_pivotPos;
+  Vector2 m_pivotPos = { 0.0f, 0.0f };
   bool m_bPivotGrabbed = false;
 
   float m_springC = 0.0f;
@@ -344,5 +353,8 @@ class PhysicsApp : public BaseApp
   float m_iniLenght = 0.0f;
   float m_maxLenght = 0.0f;
   float m_minLenght = 0.0f;
+
+  SPtr<KinematicBall> m_ikBase;
+  Vector2 m_lastBallPos = { 0.0f, 0.0f };
 };
 }
