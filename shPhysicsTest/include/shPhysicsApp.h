@@ -249,6 +249,12 @@ class PhysicsApp : public BaseApp
          const Vector2& target,
          const float tolerance = 0.001f);
 
+  void
+  ccd(Vector<Vector2>& points,
+      const Vector2& target,
+      const uint32 maxIter = 20,
+      const float tolerance = 0.001f);
+
  private:
   /**
   *  @brief Screen descriptor.

@@ -2,7 +2,7 @@
 /*
 *  @file    shSpringBall.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/06
+*  @date    2025/03/09
 *  @brief   Spring ball for hookes law simulation.
 *
 *  Spring ball for hookes law simulation.
@@ -160,18 +160,33 @@ class SpringBall
   float m_gravity = 0.0f;
 
   /**
-  *  @brief Limit distance to the pivot.
+  *  @brief Elasticity for physics simulation.
   */
-  //float m_limit = 0.0f;
-
   float m_elasticity = 0.0f;
 
+  /**
+  *  @brief Drag for physics simulation.
+  */
   float m_drag = 0.0f;
 
+  /**
+  *  @brief Mass for physics simulation.
+  */
   float m_mass = 1.0f;
 
+  /**
+  *  @brief Inital lenght.
+  */
   float m_iniLenght = 0.0f;
+
+  /**
+  *  @brief Maximum lenght.
+  */
   float m_maxLenght = 0.0f;
+
+  /**
+  *  @brief Minimum lenght.
+  */
   float m_minLenght = 0.0f;
 };
 }

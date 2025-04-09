@@ -2,7 +2,7 @@
 /*
 *  @file    shSpringBall.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/06
+*  @date    2025/03/09
 *  @brief   Spring ball for hookes law simulation.
 *
 *  Spring ball for hookes law simulation.
@@ -68,26 +68,39 @@ void SpringBall::update(const Vector2& anchor, const INTEGRATION::E integration)
 void
 SpringBall::simulateEuler(const Vector2& anchor)
 {
+  Time& time = g_time();
+
   if (!m_bGrabbed) {
     Vector2 displacement = m_position - anchor;
 
     const float dist = displacement.mag();
 
-    /*if (dist > m_limit) {
-      Vector2 excess = displacement / dist * (dist - m_limit);
-      Vector2 elasticForce = excess * -m_elasticity;
-      m_accel += elasticForce;
-    }*/
+    bool clamp = false;
+    if (dist > m_maxLenght) {
+      displacement = displacement.getNormalized() * m_maxLenght;
+      clamp = true;
+    }
+    else if (dist < m_minLenght) {
+      displacement = displacement.getNormalized() * m_minLenght;
+      clamp = true;
+    }
+    if (clamp) {
+      m_position = anchor + displacement;
+      m_velocity.y = -m_velocity.y;
+    }
+
+    displacement = displacement - displacement.getNormalized() * m_iniLenght;
 
     const Vector2 springForce = displacement * -m_springC;
-    m_accel += springForce;
-    m_accel.y += m_gravity;
+    const Vector2 gravityForce = { 0.0f, m_gravity * m_mass };
+    const Vector2 sumForces = springForce + gravityForce;
+    m_accel = (sumForces / m_mass);
+    m_velocity += m_accel * time.getFrameDeltaTime();
+    m_velocity.x *= Math::pow(m_drag, time.getFrameDeltaTime());
+    m_velocity.y *= Math::pow(m_drag, time.getFrameDeltaTime());
+    m_position += m_velocity * time.getFrameDeltaTime();
 
-    m_velocity += m_accel * g_time().getFrameDeltaTime();
-    //m_velocity = m_velocity * m_drag;
-    m_position = m_velocity * g_time().getFrameDeltaTime();
-
-    m_accel = { 0.0f, 0.0f };
+    updateCBuffer();
   }
 }
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/06
+*  @date    2025/03/09
 *  @brief   App for physics simulation.
 *
 *  App for physics simulation.s
@@ -87,6 +87,7 @@ PhysicsApp::onCreate()
 void
 PhysicsApp::onUpdate()
 {
+  // Imgui
   ImGui_ImplShura_NewFrame(m_mousePosition,
                            m_bLeftClick,
                            m_delta,
@@ -94,9 +95,9 @@ PhysicsApp::onUpdate()
                            false,
                            KEY::kKeysMax);
   ImGui::NewFrame();
-
   manageImgui();
 
+  // Check if simulation types are changed
   if (m_intIndex != static_cast<int32>(m_integration)) {
     m_integration = static_cast<INTEGRATION::E>(m_intIndex);
 
@@ -110,7 +111,6 @@ PhysicsApp::onUpdate()
     //m_activeBalls.clear();
     initSpringBall();
   }
-
   if (m_ikIndex != static_cast<int32>(m_ikAlgorithm)) {
     m_ikAlgorithm = static_cast<IK_ALGORITHM::E>(m_ikIndex);
   }
@@ -118,6 +118,7 @@ PhysicsApp::onUpdate()
     m_moveType = static_cast<MOVEMENT_TYPE::E>(m_mtIndex);
   }
 
+  // Sets the new values
   m_springBall->m_springC = m_springC;
   m_springBall->m_drag = m_dragC;
   m_springBall->m_mass = m_mass;
@@ -127,6 +128,7 @@ PhysicsApp::onUpdate()
   m_springBall->m_minLenght = m_minLenght;
 
   if (m_bLeftClick) {
+    // Check if mouse can move pivot
     if (containsMouse(m_pivotPos, 50.0f)) {
       if (m_moveType == MOVEMENT_TYPE::kFoward) {
         Vector2 tempPos = m_pivotPos;
@@ -137,69 +139,89 @@ PhysicsApp::onUpdate()
         m_lastBallPos = pLastBall->m_position;
       }
     }
+    // Check if mouse can move springball
     else if (containsMouse(m_springBall->m_position, 50.0f)) {
       m_springBall->m_bGrabbed = true;
       dragSpringBall();
     }
 
+    // Do ik
     if (m_moveType == MOVEMENT_TYPE::kInverse) {
       auto& pChild = m_ikBase->m_child;
       auto& pChild1 = pChild->m_child;
       if (containsMouse(m_ikBase->m_position, 20.0f)) {
-        m_selectedIndex = 0;
-      }
-      else if (containsMouse(pChild->m_position, 20.0f)) {
         m_selectedIndex = 1;
       }
-      else if (containsMouse(pChild1->m_position, 20.0f)) {
+      else if (containsMouse(pChild->m_position, 20.0f)) {
         m_selectedIndex = 2;
+      }
+      else if (containsMouse(pChild1->m_position, 20.0f)) {
+        m_selectedIndex = 3;
       }
 
       Vector<Vector2> points;
+      points.push_back(m_pivotPos);
       points.push_back(m_ikBase->m_position);
       points.push_back(pChild->m_position);
       points.push_back(pChild1->m_position);
 
       Vector<float> lenghts;
       lenghts.push_back(m_ikBase->m_lenght);
+      lenghts.push_back(m_ikBase->m_lenght);
       lenghts.push_back(pChild->m_lenght);
       lenghts.push_back(pChild1->m_lenght);
 
-      if (m_selectedIndex != -1) {
-        points[m_selectedIndex].x = m_mousePosition.x - (m_desc.width * 0.5f);
-        points[m_selectedIndex].y = -m_mousePosition.y + (m_desc.height * 0.5f);
+      // Use fabrik
+      if (m_ikAlgorithm == IK_ALGORITHM::kFabrik) {
+        if (m_selectedIndex != -1) {
+          points[m_selectedIndex].x = m_mousePosition.x - (m_desc.width * 0.5f);
+          points[m_selectedIndex].y = -m_mousePosition.y + (m_desc.height * 0.5f);
 
-        if (m_selectedIndex < points.size() - 1) {
-          Vector<Vector2> subPoints(points.begin() + m_selectedIndex, points.end());
-          Vector<float> subLenghts(lenghts.begin() + m_selectedIndex, lenghts.end());
+          if (m_selectedIndex < points.size() - 1) {
+            Vector<Vector2> subPoints(points.begin() + m_selectedIndex, points.end());
+            Vector<float> subLenghts(lenghts.begin() + m_selectedIndex, lenghts.end());
 
-          fabrik(subPoints, subLenghts, points.back());
+            fabrik(subPoints, subLenghts, points.back());
 
-          for (uint32 i = 1; i < subPoints.size(); ++i) {
-            points[m_selectedIndex + i] = subPoints[i];
+            for (uint32 i = 1; i < subPoints.size(); ++i) {
+              points[m_selectedIndex + i] = subPoints[i];
+            }
+          }
+        }
+
+        if (m_selectedIndex > 0) {
+          Vector<Vector2> subPoints(points.begin(), points.begin() + m_selectedIndex);
+          Vector<float> subLenghts(lenghts.begin(), lenghts.begin() + m_selectedIndex);
+
+          std::reverse(subPoints.begin(), subPoints.end());
+          std::reverse(subLenghts.begin(), subLenghts.end());
+
+          fabrik(subPoints, subLenghts, points[0]);
+
+          std::reverse(subPoints.begin(), subPoints.end());
+          for (int32 i = 0; i < m_selectedIndex; ++i) {
+            points[i] = subPoints[i];
           }
         }
       }
-
-      if (m_selectedIndex > 0) {
-        Vector<Vector2> subPoints(points.begin(), points.begin() + m_selectedIndex + 1);
-        Vector<float> subLenghts(lenghts.begin(), lenghts.begin() + m_selectedIndex);
-
-        std::reverse(subPoints.begin(), subPoints.end());
-        std::reverse(subLenghts.begin(), subLenghts.end());
-
-        fabrik(subPoints, subLenghts, points[0]);
-
-        std::reverse(subPoints.begin(), subPoints.end());
-        for (uint32 i = 0; i < m_selectedIndex; ++i) {
-          points[i] = subPoints[i];
-        }
+      // Use CCD
+      else if (m_ikAlgorithm == IK_ALGORITHM::kCCD) {
+        Vector2 mousePosToWorld = m_mousePosition;
+        mousePosToWorld.x -= (m_desc.width * 0.5f);
+        mousePosToWorld.y = -mousePosToWorld.y + (m_desc.width * 0.5f);
+        ccd(points, mousePosToWorld);
       }
 
-      m_ikBase->m_position = points[0];
-      pChild->m_position = points[1];
-      pChild1->m_position = points[2];
+      m_pivotPos = points[0];
+      m_ikBase->m_position = points[1];
+      pChild->m_position = points[2];
+      pChild1->m_position = points[3];
       m_lastBallPos = pChild1->m_position;
+
+      m_baseTransform = TranslationMatrix(Vector3(m_pivotPos.x,
+                                          m_pivotPos.y,
+                                          0.0f));
+      g_graphicsMan().updateConstantBuffer(m_pBase, &m_baseTransform, sizeof(Matrix4));
 
       m_ikBase->update();
       pChild->update();
@@ -211,17 +233,8 @@ PhysicsApp::onUpdate()
   }
 
   if (m_integration == INTEGRATION::kEuler) {
-    /*for (auto& ball : m_activeBalls) {
-      if (ball) {
-        checkBallCollision(ball);
-
-        ball->update(m_integration);
-        if (ball->m_bDestroy) {
-          m_activeBalls.erase(m_activeBalls.begin());
-        }
-      }
-    }*/
     m_springBall->update(m_lastBallPos, m_integration);
+    m_springBall->m_bGrabbed = false;
   }
 }
 
@@ -229,17 +242,8 @@ void
 PhysicsApp::onFixedUpdate()
 {
   if (m_integration == INTEGRATION::kVerlet) {
-    /*for (auto& ball : m_activeBalls) {
-      if (ball) {
-        checkBallCollision(ball);
-    
-        ball->update(m_integration);
-        if (ball->m_bDestroy) {
-          m_activeBalls.erase(m_activeBalls.begin());
-        }
-      }
-    }*/
     m_springBall->update(m_lastBallPos, m_integration);
+    m_springBall->m_bGrabbed = false;
   }
 }
 
@@ -252,36 +256,25 @@ PhysicsApp::onRender()
   
   m_pPhysicsShader->setPass();
   graphMan.vsSetConstantBuffers(m_pVP);
-  graphMan.setPrimitiveTopology();
 
-  /*graphMan.vsSetConstantBuffers(m_pTurret, 1);
-  graphMan.setVertexBuffers(m_pSpriteCannon->m_pVB);
-  graphMan.setIndexBuffers(m_pSpriteCannon->m_pIB);
-  graphMan.setShaderResourceView(m_pSpriteCannon->m_pTexture);
-  graphMan.drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);*/
-
+  // Render base
   graphMan.vsSetConstantBuffers(m_pBase, 1);
   graphMan.setVertexBuffers(m_pSpriteBase->m_pVB);
   graphMan.setIndexBuffers(m_pSpriteBase->m_pIB);
   graphMan.setShaderResourceView(m_pSpriteBase->m_pTexture);
   graphMan.drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
 
+  // Render spring ball
   graphMan.vsSetConstantBuffers(m_springBall->m_ballBuffer, 1);
   graphMan.setVertexBuffers(m_springBall->m_sprite->m_pVB);
   graphMan.setIndexBuffers(m_springBall->m_sprite->m_pIB);
   graphMan.setShaderResourceView(m_springBall->m_sprite->m_pTexture);
   graphMan.drawIndexed(static_cast<uint32>(m_springBall->m_sprite->m_indices.size()), 0, 0);
 
-  /*for (auto& ball : m_activeBalls) {
-    graphMan.vsSetConstantBuffers(ball->m_buffer, 1);
-    graphMan.setVertexBuffers(ball->m_sprite->m_pVB);
-    graphMan.setIndexBuffers(ball->m_sprite->m_pIB);
-    graphMan.setShaderResourceView(ball->m_sprite->m_pTexture);
-    graphMan.drawIndexed(static_cast<uint32>(ball->m_sprite->m_indices.size()), 0, 0);
-  }*/
-
+  // Render ik nodes
   m_ikBase->drawSprite();
 
+  // Imgui
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
@@ -635,7 +628,7 @@ PhysicsApp::initSpringBall()
     */
 
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
-                                           m_lastBallPos + Vector2(0.0f, -100.0f),// Position
+                                           m_lastBallPos + Vector2(0.0f, -m_iniLenght), // Pos
                                            Vector2(0.0f, 0.0f),   // Velocity
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
@@ -647,16 +640,16 @@ PhysicsApp::initSpringBall()
                                            m_dragC);                // Drag
   }
   else if(m_integration == INTEGRATION::kEuler) {
-    m_springC = 0.2f;
-    m_dragC = 0.60f;
-    m_mass = 1.0f;
-    m_gravity = -9.8f;
-    m_iniLenght = 80.0f;
-    m_maxLenght = 180.0f;
+    m_springC = 0.4f;
+    m_dragC = 0.85f;
+    m_mass = 3.0f;
+    m_gravity = -60.0f;
+    m_iniLenght = 100.0f;
+    m_maxLenght = 200.0f;
     m_minLenght = 50.0f;
 
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
-                                           Vector2(0.0f, 0.0f),   // Position
+                                           m_lastBallPos + Vector2(0.0f, -m_iniLenght), // Pos
                                            Vector2(0.0f, 0.0f),   // Velocity
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
@@ -761,6 +754,49 @@ PhysicsApp::fabrik(Vector<Vector2>& points,
     }
 
     if ((points[numBones - 1] - target).mag() < tolerance) {
+      break;
+    }
+  }
+}
+
+void
+PhysicsApp::ccd(Vector<Vector2>& points,
+                const Vector2& target,
+                const uint32 maxIter,
+                const float tolerance)
+{
+  for (uint32 iter = 0; iter < maxIter; ++iter) {
+    for (int32 i = m_selectedIndex - 1; i >= 0; --i) {
+      Vector2 toEnd = points.back() - points[i];
+      Vector2 toTarget = target - points[i];
+
+      float lenght1 = toEnd.mag();
+      float lenght2 = toTarget.mag();
+
+      if (lenght1 == 0 || lenght2 == 0) {
+        continue;
+      }
+
+      float cosAngle = toEnd.dot(toTarget) / (lenght1 * lenght2);
+      cosAngle = Math::clamp(cosAngle, -1.0f, 1.0f);
+      float angle = Math::acos(Radian(cosAngle));
+
+      float cross = toEnd.cross(toTarget);
+      if (cross < 0) {
+        angle = -angle;
+      }
+
+      float sinA = Math::sin(Radian(angle));
+      float cosA = Math::cos(Radian(angle));
+
+      for (uint32 j = i + 1; j < points.size(); ++j) {
+        Vector2 rel = points[j] - points[i];
+        Vector2 rotated(cosA * rel.x - sinA * rel.y,
+                        sinA * rel.x + cosA * rel.y);
+        points[j] = points[i] + rotated;
+      }
+    }
+    if ((points.back() - target).mag() < tolerance) {
       break;
     }
   }
