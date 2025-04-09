@@ -120,22 +120,6 @@ PhysicsApp::onUpdate()
   m_springBall->m_minLenght = m_minLenght;
 
   if (m_bLeftClick) {
-    
-
-    Vector2 pivotBoxMin = m_pivotPos;
-    pivotBoxMin.x -= 25.0f;
-    pivotBoxMin.y -= 25.0f;
-    Vector2 pivotBoxMax = m_pivotPos;
-    pivotBoxMax.x += 25.0f;
-    pivotBoxMax.y += 25.0f;
-
-    Vector2 ballBoxMin = m_springBall->m_position;
-    ballBoxMin.x -= 25.0f;
-    ballBoxMin.y -= 25.0f;
-    Vector2 ballBoxMax = m_springBall->m_position;
-    ballBoxMax.x += 25.0f;
-    ballBoxMax.y += 25.0f;
-
     if (containsMouse(m_pivotPos, 50.0f)) {
       if (m_moveType == MOVEMENT_TYPE::kFoward) {
         Vector2 tempPos = m_pivotPos;
@@ -147,8 +131,8 @@ PhysicsApp::onUpdate()
       }
     }
     else if (containsMouse(m_springBall->m_position, 50.0f)) {
-      dragSpringBall();
       m_springBall->m_bGrabbed = true;
+      dragSpringBall();
     }
 
     m_springBall->m_bGrabbed = false;
