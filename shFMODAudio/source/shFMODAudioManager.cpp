@@ -2,7 +2,7 @@
 /*
 *  @file    shFMODAudioManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/28
+*  @date    2025/04/14
 *  @brief   Audio FMOD plugin.
 *
 *  Audio FMOD plugin.
@@ -23,8 +23,6 @@
 
 #define MAX_CHANNELS            512
 
-using std::reinterpret_pointer_cast;
-
 namespace shEngineSDK {
 void
 FMODAudioManager::onStartUp()
@@ -39,11 +37,11 @@ FMODAudioManager::onStartUp()
     SH_ASSERT("FMOD error at system initialization");
   }
 
-  auto pMasterChG = make_shared<FMODChannelGroup>();
-  auto pSFXChG = make_shared<FMODChannelGroup>();
-  auto pMusicChG = make_shared<FMODChannelGroup>();
-  auto pVoiceChG = make_shared<FMODChannelGroup>();
-  auto pUIChG = make_shared<FMODChannelGroup>();
+  auto pMasterChG = sh_makeShared<FMODChannelGroup>();
+  auto pSFXChG = sh_makeShared<FMODChannelGroup>();
+  auto pMusicChG = sh_makeShared<FMODChannelGroup>();
+  auto pVoiceChG = sh_makeShared<FMODChannelGroup>();
+  auto pUIChG = sh_makeShared<FMODChannelGroup>();
 
   m_system->createChannelGroup("Master", &pMasterChG->m_channelGroup);
   m_system->createChannelGroup("SFX", &pSFXChG->m_channelGroup);
@@ -76,7 +74,7 @@ FMODAudioManager::onShutDown()
 SPtr<Sound>
 FMODAudioManager::internalCreateSound(const Path& filePath)
 {
-  auto pSound = make_shared<FMODSound>();
+  auto pSound = sh_makeShared<FMODSound>();
 
   FMOD_RESULT res = FMOD_OK;
   res = m_system->createSound(filePath.toString().c_str(),
@@ -131,7 +129,7 @@ FMODAudioManager::fillChannelGroup(SPtr<FMODChannelGroup>& pFMODChG)
   pFMODChG->m_channels.resize(CHANNELS_PER_GROUP);
 
   for (uint8 i = 0; i < CHANNELS_PER_GROUP; ++i) {
-    pFMODChG->m_channels[i] = make_shared<FMODChannel>();
+    pFMODChG->m_channels[i] = sh_makeShared<FMODChannel>();
     pFMODChG->m_channels[i]->index = i;
   }
 }

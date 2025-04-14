@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/04/14
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -27,6 +27,7 @@
 #include "shMath.h"
 #include "shLogger.h"
 #include "imgui_impl_shura.h"
+#include "shStringID.h"
 
 #include "shPath.h"
 #include "shImageResource.h"
@@ -39,8 +40,6 @@
 #include "shVector4.h"
 
 #include "shSound.h"
-
-using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 /**
@@ -515,7 +514,7 @@ RendererApp::initGraphicAssets()
 
   // Init pass shaders
   // Basic
-  auto pBasicShader = make_shared<Pass>();
+  auto pBasicShader = sh_makeShared<Pass>();
   pBasicShader->setShaderInfo("resources/shaders/BasicShader.hlsl",
                               "main",
                               "mainPS",
@@ -524,7 +523,7 @@ RendererApp::initGraphicAssets()
   pBasicShader->compileShader();
 
   // Deferred
-  auto pLightningShader = make_shared<Pass>();
+  auto pLightningShader = sh_makeShared<Pass>();
   pLightningShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
                                  "main",
                                  "mainPS",
@@ -533,7 +532,7 @@ RendererApp::initGraphicAssets()
   pLightningShader->compileShader();
 
   // AO
-  auto pAOShader = make_shared<Pass>();
+  auto pAOShader = sh_makeShared<Pass>();
   pAOShader->setShaderInfo("resources/shaders/AOShader.hlsl",
                            "main",
                            "mainPS",
@@ -542,7 +541,7 @@ RendererApp::initGraphicAssets()
   pAOShader->compileShader();
 
   // HBlur
-  auto pHBlurShader = make_shared<Pass>();
+  auto pHBlurShader = sh_makeShared<Pass>();
   pHBlurShader->setShaderInfo("resources/shaders/HBlurShader.hlsl",
                               "main",
                               "mainPS",
@@ -551,7 +550,7 @@ RendererApp::initGraphicAssets()
   pHBlurShader->compileShader();
 
   // VBlur
-  auto pVBlurShader = make_shared<Pass>();
+  auto pVBlurShader = sh_makeShared<Pass>();
   pVBlurShader->setShaderInfo("resources/shaders/VBlurShader.hlsl",
                               "main",
                               "mainPS",
@@ -560,7 +559,7 @@ RendererApp::initGraphicAssets()
   pVBlurShader->compileShader();
 
   // Shadow map
-  auto pSMapShader = make_shared<Pass>();
+  auto pSMapShader = sh_makeShared<Pass>();
   pSMapShader->setShaderInfo("resources/shaders/SMapShader.hlsl",
                              "main",
                              "mainPS",
@@ -569,7 +568,7 @@ RendererApp::initGraphicAssets()
   pSMapShader->compileShader();
 
   // Skybox
-  auto pSkyBoxShader = make_shared<Pass>();
+  auto pSkyBoxShader = sh_makeShared<Pass>();
   pSkyBoxShader->setShaderInfo("resources/shaders/SkyBoxShader.hlsl",
                                "main",
                                "mainPS",
@@ -578,7 +577,7 @@ RendererApp::initGraphicAssets()
   pSkyBoxShader->compileShader();
 
   // Final shader
-  auto pFinalShader = make_shared<Pass>();
+  auto pFinalShader = sh_makeShared<Pass>();
   pFinalShader->setShaderInfo("resources/shaders/FinalShader.hlsl",
                               "main",
                               "mainPS",
@@ -1279,9 +1278,9 @@ RendererApp::loadPistol()
 
   modelRes->materials[0]->m_properties.bHasAlphaTest = false;
 
-  m_pModel = make_shared<GameObject>();
+  m_pModel = sh_makeShared<GameObject>();
   m_pModel->name = "DrakeFire";
-  auto modelMC = make_shared<StaticMeshUnionComponent>();
+  auto modelMC = sh_makeShared<StaticMeshUnionComponent>();
 
   modelMC->setMeshData(modelRes);
   m_pModel->addComponent(modelMC);
@@ -1541,9 +1540,9 @@ RendererApp::loadSponza()
   sponzaModelRes->materials[1]->m_properties.bHasAlphaTest = true;
   sponzaModelRes->materials[20]->m_properties.bHasAlphaTest = true;
 
-  m_pSponza = make_shared<GameObject>();
+  m_pSponza = sh_makeShared<GameObject>();
   m_pSponza->name = "Sponza";
-  auto modelMC = make_shared<StaticMeshUnionComponent>();
+  auto modelMC = sh_makeShared<StaticMeshUnionComponent>();
 
   modelMC->setMeshData(sponzaModelRes);
   m_pSponza->addComponent(modelMC);
@@ -1598,7 +1597,7 @@ RendererApp::loadSkybox()
                              4, 5, 1,
                              1, 0, 4 };
 
-  auto pSkyBoxMeshResource = make_shared<StaticMeshResource>();
+  auto pSkyBoxMeshResource = sh_makeShared<StaticMeshResource>();
   pSkyBoxMeshResource->vertices.resize(vertices.size());
   for (uint32 i = 0; i < vertices.size(); ++i) {
     pSkyBoxMeshResource->vertices[i].position = vertices[i];
@@ -1606,16 +1605,16 @@ RendererApp::loadSkybox()
   pSkyBoxMeshResource->indices = indices;
   pSkyBoxMeshResource->numVertex = static_cast<uint32>(vertices.size());
   pSkyBoxMeshResource->numIndex = static_cast<uint32>(indices.size());
-  pSkyBoxMeshResource->material = make_shared<Material>();
+  pSkyBoxMeshResource->material = sh_makeShared<Material>();
   auto& pSkyBoxMat = pSkyBoxMeshResource->material;
 
   pSkyBoxMat->m_properties.bHasDiffuseMap = true;
   pSkyBoxMat->baseColor = skyboxTx->texture;
 
-  auto pSkyBoxMeshComponent = make_shared<StaticMeshComponent>();
+  auto pSkyBoxMeshComponent = sh_makeShared<StaticMeshComponent>();
   pSkyBoxMeshComponent->setMeshData(pSkyBoxMeshResource);
   
-  auto pSkyBox = make_shared<GameObject>();
+  auto pSkyBox = sh_makeShared<GameObject>();
   pSkyBox->addComponent(pSkyBoxMeshComponent);
   pSkyBox->name = "SkyBox";
 

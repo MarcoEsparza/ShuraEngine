@@ -2,7 +2,7 @@
 /*
 *  @file    shSceneGraph.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/04/14
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
@@ -36,7 +36,7 @@ SceneGraph::~SceneGraph()
 SPtr<GameObject>
 SceneGraph::createEmptyObject(const String& objectName)
 {
-  auto newObject = make_shared<GameObject>();
+  auto newObject = sh_makeShared<GameObject>();
   newObject->name = objectName;
 
   addObject(newObject);

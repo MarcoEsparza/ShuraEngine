@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/28
+*  @date    2025/04/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -28,8 +28,6 @@
 #include <DDSTextureLoader11.h>
 
 using namespace DirectX;
-
-using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 class ShaderInclude : public ID3DInclude
@@ -184,8 +182,8 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-  m_pDevice = make_shared<DX11Device>();
-  m_pDeviceContext = make_shared<DX11DeviceContext>();
+  m_pDevice = sh_makeShared<DX11Device>();
+  m_pDeviceContext = sh_makeShared<DX11DeviceContext>();
 
   //Create a device and immediate device context
   throwIfFailed(D3D11CreateDevice(vecAdapters[0],
@@ -242,7 +240,7 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
                          reinterpret_cast<void**>(&dxgiFactory));
   
-  m_pSwapChain = make_shared<DX11SwapChain>();
+  m_pSwapChain = sh_makeShared<DX11SwapChain>();
 
   throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice->m_pDevice,
                                              &scDesc,
@@ -251,19 +249,19 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   //Get Backbuffer Interface
   //Create a render target view
 
-  m_pBackbuffer = make_shared<DX11Texture2D>();
+  m_pBackbuffer = sh_makeShared<DX11Texture2D>();
 
   throwIfFailed(m_pSwapChain->m_pSwapChain->GetBuffer(0,
                               __uuidof(ID3D11Texture2D),
                               reinterpret_cast<LPVOID*>(&m_pBackbuffer->m_pTexture2D)));
 
-  m_pRenderTargetView = make_shared<DX11Texture2D>();
+  m_pRenderTargetView = sh_makeShared<DX11Texture2D>();
 
   throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(m_pBackbuffer->m_pTexture2D,
                                       nullptr,
                                       &m_pRenderTargetView->m_pRenderTV));
 
-  m_pDepthStencil = make_shared<DX11Texture2D>();
+  m_pDepthStencil = sh_makeShared<DX11Texture2D>();
 
   m_pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
                                                             scDesc.BufferDesc.Width,
@@ -342,7 +340,7 @@ SPtr<InputLayout>
 DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
                                                const SPtr<ProgramShader>& pPShader)
 {
-  auto pInputLayout = make_shared<DX11InputLayout>();
+  auto pInputLayout = sh_makeShared<DX11InputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
 
   Vector<D3D11_INPUT_ELEMENT_DESC> dxInputDesc;
@@ -400,7 +398,7 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
 SPtr<InputLayout>
 DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader)
 {
-  auto pInputLayout = make_shared<DX11InputLayout>();
+  auto pInputLayout = sh_makeShared<DX11InputLayout>();
   auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
 
   ID3D11ShaderReflection* pReflector = nullptr;
@@ -498,7 +496,7 @@ DX11GraphicsManager::internalCreateProgramShader(const String& fileName,
                                                  const String& vsShaderModel,
                                                  const String& psShaderModel)
 {
-  auto pProgramShader = make_shared<DX11ProgramShader>();
+  auto pProgramShader = sh_makeShared<DX11ProgramShader>();
 
   if (!compileShaderFromFile(fileName,
                              vsEntryPoint,
@@ -582,7 +580,7 @@ DX11GraphicsManager::internalCreateConstantBuffer(const uint32 bufferSize,
                                                   const uint32 usage,
                                                   const void* pData)
 {
-  auto pCBuffer = make_shared<DX11ConstantBuffer>();
+  auto pCBuffer = sh_makeShared<DX11ConstantBuffer>();
 
   D3D11_BUFFER_DESC desc;
   memset(&desc, 0, sizeof(desc));
@@ -610,7 +608,7 @@ DX11GraphicsManager::internalCreateConstantBuffer(const uint32 bufferSize,
 SPtr<SamplerState>
 DX11GraphicsManager::internalCreateSamplerState(const uint32 filter, const uint32 textAddress)
 {
-  auto pSampleLinear = make_shared<DX11SamplerState>();
+  auto pSampleLinear = sh_makeShared<DX11SamplerState>();
 
   D3D11_SAMPLER_DESC sampDesc;
   memset(&sampDesc, 0, sizeof(sampDesc));
@@ -655,7 +653,7 @@ DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
 SPtr<Texture2D>
 DX11GraphicsManager::internalCreateTextureFromDDS(const String& fileName)
 {
-  auto pTexture = make_shared<DX11Texture2D>();
+  auto pTexture = sh_makeShared<DX11Texture2D>();
 
   SystemPath path = fileName;
   ScratchImage image;
@@ -762,7 +760,7 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
 SPtr<Texture2D>
 DX11GraphicsManager::internalCreateErrorTexture()
 {
-  auto pTexture = make_shared<DX11Texture2D>();
+  auto pTexture = sh_makeShared<DX11Texture2D>();
   uint32 errorSize = 128;
   Vector<uint32> pixels;
   pixels.resize(errorSize * errorSize);
@@ -803,7 +801,7 @@ SPtr<BlendState>
 DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
                                               const LinearColor& blendFactor)
 {
-  auto pBlendState = make_shared<DX11BlendState>();
+  auto pBlendState = sh_makeShared<DX11BlendState>();
 
   D3D11_BLEND_DESC d3d11BlendDesc = {};
   d3d11BlendDesc.RenderTarget[0].BlendEnable = blendDesc.renderTarget[0].blendEnable;
@@ -832,7 +830,7 @@ DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
 SPtr<RasterizerState>
 DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc)
 {
-  auto pRasterizerState = make_shared<DX11RasterizerState>();
+  auto pRasterizerState = sh_makeShared<DX11RasterizerState>();
 
   D3D11_RASTERIZER_DESC rasterDesc = {};
   rasterDesc.FillMode = static_cast<D3D11_FILL_MODE>(rasterizerDesc.fillMode);
@@ -854,7 +852,7 @@ DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasteri
 SPtr<DepthStencilState>
 DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc)
 {
-  auto pDepthSS = make_shared<DX11DepthStencilState>();
+  auto pDepthSS = sh_makeShared<DX11DepthStencilState>();
 
   D3D11_DEPTH_STENCIL_DESC d3d11DepthDesc = {};
   d3d11DepthDesc.DepthEnable = depthSDesc.depthEnable;
@@ -975,19 +973,19 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
   //Create a render target view
 
   m_pBackbuffer.reset();
-  m_pBackbuffer = make_shared<DX11Texture2D>();
+  m_pBackbuffer = sh_makeShared<DX11Texture2D>();
   throwIfFailed(m_pSwapChain->m_pSwapChain->GetBuffer(0,
                               __uuidof(ID3D11Texture2D),
                               reinterpret_cast<LPVOID*>(&m_pBackbuffer->m_pTexture2D)));
 
   m_pRenderTargetView.reset();
-  m_pRenderTargetView = make_shared<DX11Texture2D>();
+  m_pRenderTargetView = sh_makeShared<DX11Texture2D>();
   throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(m_pBackbuffer->m_pTexture2D,
                                       nullptr,
                                       &m_pRenderTargetView->m_pRenderTV));
 
   m_pDepthStencil.reset();
-  m_pDepthStencil = make_shared<DX11Texture2D>();
+  m_pDepthStencil = sh_makeShared<DX11Texture2D>();
   m_pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
                                                             pScreen->getWidth(),
                                                             pScreen->getHeight(),

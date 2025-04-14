@@ -2,7 +2,7 @@
 /*
 *  @file    shAsset.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/25
+*  @date    2025/04/14
 *  @brief   Asset class for cache generation.
 *
 *  Asset class for cache generation.
@@ -21,8 +21,6 @@
 #include "shMaterial.h"
 #include "shImageResource.h"
 
-//#include <fstream>
-using std::reinterpret_pointer_cast;
 using std::getline;
 
 namespace shEngineSDK {
@@ -115,7 +113,7 @@ Asset::loadResourceFromAsset(Path filePath)
   file.read(reinterpret_cast<char*>(&rih), sizeof(ResourceInfoHeader));
 
   if (rih.type == RESOURCE_TYPE::kMeshUnion) {
-    auto pSMURes = make_shared<StaticMeshUnionResource>();
+    auto pSMURes = sh_makeShared<StaticMeshUnionResource>();
 
     SMUnionAssetHeader smuAH = {};
     file.read(reinterpret_cast<char*>(&smuAH), sizeof(SMUnionAssetHeader));
@@ -124,7 +122,7 @@ Asset::loadResourceFromAsset(Path filePath)
       StaticMeshAssetHeader smaH = {};
       file.read(reinterpret_cast<char*>(&smaH), sizeof(StaticMeshAssetHeader));
 
-      auto pSMesh = make_shared<StaticMeshResource>();
+      auto pSMesh = sh_makeShared<StaticMeshResource>();
       pSMesh->numVertex = smaH.numVertices;
       pSMesh->numIndex = smaH.numIndices;
       pSMesh->matIndex = smaH.matIndex;
@@ -150,7 +148,7 @@ Asset::loadResourceFromAsset(Path filePath)
       MaterialAssetHeader mah = {};
       file.read(reinterpret_cast<char*>(&mah), sizeof(MaterialAssetHeader));
 
-      auto pMat = make_shared<Material>();
+      auto pMat = sh_makeShared<Material>();
       pMat->m_type = mah.type;
       pMat->m_properties = mah.properties;
       

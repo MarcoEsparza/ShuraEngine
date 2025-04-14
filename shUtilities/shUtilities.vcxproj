@@ -43,6 +43,7 @@
     <ClInclude Include="include\shScriptVector3.h" />
     <ClInclude Include="Include\shSphere.h" />
     <ClInclude Include="Include\shStdHeaders.h" />
+    <ClInclude Include="include\shStringID.h" />
     <ClInclude Include="include\shTime.h" />
     <ClInclude Include="include\shTimer.h" />
     <ClInclude Include="Include\shVector2.h" />

@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/10
+*  @date    2025/04/14
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -82,8 +82,8 @@ BaseApp::run()
 void
 BaseApp::createWindow()
 {
-  m_mainScreen = make_shared<Screen>();
-  m_eventQueue = make_shared<ScreenEventHandle>();
+  m_mainScreen = sh_makeShared<Screen>();
+  m_eventQueue = sh_makeShared<ScreenEventHandle>();
 
   if (!m_mainScreen->init(m_screenDesc, m_eventQueue)) {
     return;

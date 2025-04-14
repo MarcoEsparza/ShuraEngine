@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/04/14
 *  @brief   Render module.
 *
 *  Render module.
@@ -25,8 +25,6 @@
 #include "shMaterial.h"
 #include "shPass.h"
 #include "shMatrix4.h"
-
-using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 RenderManager::~RenderManager()
@@ -80,7 +78,7 @@ RenderManager::addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name)
 void
 RenderManager::createPass(const String& passName)
 {
-  auto pPass = make_shared<Pass>();
+  auto pPass = sh_makeShared<Pass>();
   m_passes[passName] = pPass;
 }
 

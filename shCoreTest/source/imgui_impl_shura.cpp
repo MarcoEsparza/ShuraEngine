@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/20
+*  @date    2025/04/14
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -292,7 +292,7 @@ ImGui_ImplShura_CreateDeviceObjects()
   }
 
   // Set pass
-  bd->pImGuiShuraProgram = make_unique<Pass>();
+  bd->pImGuiShuraProgram = sh_makeUnique<Pass>();
 
   bd->pImGuiShuraProgram->setShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
                                         "main",

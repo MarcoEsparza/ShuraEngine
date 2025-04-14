@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/04/14
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -37,8 +37,6 @@
 using std::fstream;
 using std::ios;
 using std::getline;
-
-using std::reinterpret_pointer_cast;
 
 /**
 *  @brief Custom flags for assimp importer
@@ -484,7 +482,7 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  auto pImage = make_shared<ImageResource>();
+  auto pImage = sh_makeShared<ImageResource>();
 
   pImage->texture = graphMan.createTextureFromFile(fileName);
 
@@ -510,7 +508,7 @@ ResourceManager::loadTextureFromDDS(const String& filename)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  auto pImage = make_shared<ImageResource>();
+  auto pImage = sh_makeShared<ImageResource>();
 
   pImage->texture = graphMan.createTextureFromDDS(filename);
 
@@ -555,7 +553,7 @@ SPtr<Material>
 ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  auto pMeshMat = make_shared<Material>();
+  auto pMeshMat = sh_makeShared<Material>();
 
   uint32 diffCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
   uint32 normCount = pMat->GetTextureCount(aiTextureType_NORMALS);
@@ -681,7 +679,7 @@ ResourceManager::createStaticMesh(const String&,
                                   const aiNode* node,
                                   const aiScene* scene)
 {
-  auto currentMesh = make_shared<StaticMeshResource>();
+  auto currentMesh = sh_makeShared<StaticMeshResource>();
 
   proccessStaticMeshNode(node, scene, currentMesh);
 
@@ -714,7 +712,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 
   auto* mat = scene->mMaterials[mesh->mMaterialIndex];
 
-  auto meshMaterial = make_shared<Material>();
+  auto meshMaterial = sh_makeShared<Material>();
 
   auto& imgRes = m_loadedResources["White.png"];
   auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
@@ -731,7 +729,7 @@ ResourceManager::createStaticMeshUnion(const String& fileName,
                                        const aiNode* node,
                                        const aiScene* scene)
 {
-  auto meshUnion = make_shared<StaticMeshUnionResource>();
+  auto meshUnion = sh_makeShared<StaticMeshUnionResource>();
 
   proccessStaticMeshUnionNode(node, scene, meshUnion);
 
@@ -765,7 +763,7 @@ ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
                                          const aiScene* scene,
                                          SPtr<StaticMeshUnionResource> meshUnion)
 {
-  auto currentMesh = make_shared<StaticMeshResource>();
+  auto currentMesh = sh_makeShared<StaticMeshResource>();
   currentMesh->vertices = getVertexDataFromMesh(mesh);
   currentMesh->numVertex = mesh->mNumVertices;
   currentMesh->indices = getIndicesFromMesh(mesh, currentMesh->numIndex);
@@ -809,8 +807,8 @@ ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
 SPtr<Resource>
 ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName)
 {
-  auto skeletalMesh = make_shared<SkeletalMeshResource>();
-  auto skeleton = make_shared<SkeletonResource>();
+  auto skeletalMesh = sh_makeShared<SkeletalMeshResource>();
+  auto skeleton = sh_makeShared<SkeletonResource>();
 
   skeletalMesh->materials.resize(scene->mNumMaterials);
 
@@ -825,7 +823,7 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   m_loadedResources[skeleton->getName()] = skeleton;
 
   if (scene->HasAnimations()) {
-    auto animation = make_shared<AnimationResource>();
+    auto animation = sh_makeShared<AnimationResource>();
     proccessAnimation(scene, animation, skeleton, 0);
     animation->setName(file.filename().string() + "Animation");
     m_loadedResources[animation->getName()] = animation;
@@ -871,7 +869,7 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   currentMeshInfo.materialIndex = mesh->mMaterialIndex;
 
   if (skeletalMesh->materials[currentMeshInfo.materialIndex] == nullptr) {
-    auto meshMat = make_shared<Material>();
+    auto meshMat = sh_makeShared<Material>();
     auto& imgRes = m_loadedResources["White.png"];
     auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
     meshMat->baseColor = img->texture;

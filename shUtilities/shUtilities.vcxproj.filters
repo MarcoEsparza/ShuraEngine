@@ -135,6 +135,9 @@
     <ClInclude Include="include\shLogger.h">
       <Filter>Include\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="include\shStringID.h">
+      <Filter>Include\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shBoxOBB.cpp">
@@ -201,7 +204,7 @@
       <Filter>Source\Script</Filter>
     </ClCompile>
     <ClCompile Include="source\shLogger.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\Util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
