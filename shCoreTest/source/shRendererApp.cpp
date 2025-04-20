@@ -95,8 +95,8 @@ RendererApp::onCreate()
 
   // GBuffer constant buffers
   auto pBasicShader = renderMan.getPass("GBufferShader");
-  pBasicShader->addVSConstantBuffer(m_pVP);
-  pBasicShader->addVSConstantBuffer(m_pModelTransform);
+  pBasicShader->addVSConstantBuffer(m_pVP, 0);
+  pBasicShader->addVSConstantBuffer(m_pModelTransform, 1);
 
   // Ambient occlusion buffers
   AOBuffer aoBuffer;
@@ -110,34 +110,34 @@ RendererApp::onCreate()
   auto pAOShader = renderMan.getPass("AOShader");
   m_pAOBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
   graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
-  pAOShader->addPSConstantBuffer(m_pAOBuffer);
+  pAOShader->addPSConstantBuffer(m_pAOBuffer, 0);
 
   // Blur buffers
   auto pHBlurShader = renderMan.getPass("HBlurShader");
   auto pVBlurShader = renderMan.getPass("VBlurShader");
-  pHBlurShader->addPSConstantBuffer(m_pViewportBuffer);
-  pVBlurShader->addPSConstantBuffer(m_pViewportBuffer);
+  pHBlurShader->addPSConstantBuffer(m_pViewportBuffer, 0);
+  pVBlurShader->addPSConstantBuffer(m_pViewportBuffer, 0);
 
   // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
-  pSMapShader->addVSConstantBuffer(m_pLCBuffer);
+  pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
 
   // Lightning shader buffers
   auto pLightningShader = renderMan.getPass("LightningShader");
-  pLightningShader->addPSConstantBuffer(m_pInvVP);
-  pLightningShader->addPSConstantBuffer(m_pCameraPosition);
-  pLightningShader->addPSConstantBuffer(m_pLightBuffer);
-  pLightningShader->addPSConstantBuffer(m_pViewportBuffer);
-  pLightningShader->addPSConstantBuffer(m_pLCBuffer);
-  pLightningShader->addPSConstantBuffer(m_pLSizeBuffer);
+  pLightningShader->addPSConstantBuffer(m_pInvVP, 0);
+  pLightningShader->addPSConstantBuffer(m_pCameraPosition, 1);
+  pLightningShader->addPSConstantBuffer(m_pLightBuffer, 2);
+  pLightningShader->addPSConstantBuffer(m_pViewportBuffer, 3);
+  pLightningShader->addPSConstantBuffer(m_pLCBuffer, 4);
+  pLightningShader->addPSConstantBuffer(m_pLSizeBuffer, 5);
 
   // Skybox shader buffers
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
-  pSkyBoxShader->addVSConstantBuffer(m_pVP);
+  pSkyBoxShader->addVSConstantBuffer(m_pVP, 0);
 
   // Final shader buffers
   auto pFinalShader = renderMan.getPass("FinalShader");
-  pFinalShader->addPSConstantBuffer(m_pViewportBuffer);
+  pFinalShader->addPSConstantBuffer(m_pViewportBuffer, 0);
 
   // Create audio
   Path audioPath("resources/cat.wav");
@@ -513,77 +513,77 @@ RendererApp::initGraphicAssets()
   RenderManager& renderMan = g_renderMan();
 
   // Init pass shaders
-  // Basic
-  auto pBasicShader = sh_makeShared<Pass>();
-  pBasicShader->setShaderInfo("resources/shaders/BasicShader.hlsl",
-                              "main",
-                              "mainPS",
-                              "vs_5_0",
-                              "ps_5_0");
-  pBasicShader->compileShader();
+  // GBuffer
+  auto pGbufferShader = sh_makeShared<Pass>();
+  pGbufferShader->setVShaderInfo("resources/shaders/GBufferShader.hlsl",
+                                 "main",
+                                 "vs_5_0");
+  pGbufferShader->setPShaderInfo("resources/shaders/GBufferShader.hlsl",
+                                 "mainPS",
+                                 "ps_5_0");
+  pGbufferShader->compileShader();
 
   // Deferred
   auto pLightningShader = sh_makeShared<Pass>();
-  pLightningShader->setShaderInfo("resources/shaders/DeferredShader.hlsl",
-                                 "main",
-                                 "mainPS",
-                                 "vs_5_0",
-                                 "ps_5_0");
+  pLightningShader->setPShaderInfo("resources/shaders/LightningShader.hlsl",
+                                   "mainPS",
+                                   "ps_5_0");
   pLightningShader->compileShader();
 
   // AO
   auto pAOShader = sh_makeShared<Pass>();
-  pAOShader->setShaderInfo("resources/shaders/AOShader.hlsl",
-                           "main",
-                           "mainPS",
-                           "vs_5_0",
-                           "ps_5_0");
+  pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
+                            "mainPS",
+                            "ps_5_0");
   pAOShader->compileShader();
 
   // HBlur
   auto pHBlurShader = sh_makeShared<Pass>();
-  pHBlurShader->setShaderInfo("resources/shaders/HBlurShader.hlsl",
-                              "main",
-                              "mainPS",
-                              "vs_5_0",
-                              "ps_5_0");
+  pHBlurShader->setPShaderInfo("resources/shaders/HBlurShader.hlsl",
+                               "mainPS",
+                               "ps_5_0");
   pHBlurShader->compileShader();
 
   // VBlur
   auto pVBlurShader = sh_makeShared<Pass>();
-  pVBlurShader->setShaderInfo("resources/shaders/VBlurShader.hlsl",
-                              "main",
-                              "mainPS",
-                              "vs_5_0",
-                              "ps_5_0");
+  pVBlurShader->setPShaderInfo("resources/shaders/VBlurShader.hlsl",
+                               "mainPS",
+                               "ps_5_0");
   pVBlurShader->compileShader();
 
   // Shadow map
   auto pSMapShader = sh_makeShared<Pass>();
-  pSMapShader->setShaderInfo("resources/shaders/SMapShader.hlsl",
-                             "main",
-                             "mainPS",
-                             "vs_5_0",
-                             "ps_5_0");
+  pSMapShader->setVShaderInfo("resources/shaders/SMapShader.hlsl",
+                              "main",
+                              "vs_5_0");
+  pSMapShader->setPShaderInfo("resources/shaders/SMapShader.hlsl",
+                              "mainPS",
+                              "ps_5_0");
   pSMapShader->compileShader();
 
   // Skybox
   auto pSkyBoxShader = sh_makeShared<Pass>();
-  pSkyBoxShader->setShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                               "main",
-                               "mainPS",
-                               "vs_5_0",
-                               "ps_5_0");
+  pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+                                "main",
+                                "vs_5_0");
+  pSkyBoxShader->setPShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+                                "mainPS",
+                                "ps_5_0");
   pSkyBoxShader->compileShader();
 
   // Final shader
   auto pFinalShader = sh_makeShared<Pass>();
-  pFinalShader->setShaderInfo("resources/shaders/FinalShader.hlsl",
-                              "main",
-                              "mainPS",
-                              "vs_5_0",
-                              "ps_5_0");
+  pFinalShader->setPShaderInfo("resources/shaders/FinalShader.hlsl",
+                               "mainPS",
+                               "ps_5_0");
   pFinalShader->compileShader();
+
+  // Plane Vertex shader
+  auto pPlaneVS = sh_makeShared<Pass>();
+  pPlaneVS->setVShaderInfo("resources/shaders/PlaneVertexShader.hlsl",
+                           "main",
+                           "vs_5_0");
+  pPlaneVS->compileShader();
 
   // Raster state
   RasterizerDesc rasterDesc = {};
@@ -648,65 +648,68 @@ RendererApp::initGraphicAssets()
   planeDepthSDesc.depthEnable = false;
   planeDepthSDesc.stencilEnable = false;
 
-  // Basic sampler linear
+  // States creation
   auto pSamplerLinear = graphMan.createSamplerState();
+  auto pRasterState = graphMan.createRasterizerState(rasterDesc);
+  auto pBlendState = graphMan.createBlendState(blendDesc);
+  auto pDepthStencil = graphMan.createDepthStencilState(depthSDesc);
 
   // Fill pass info
   // GBuffer
-  pBasicShader->generateInputLayout();
-  pBasicShader->setSamplerState(pSamplerLinear);
-  pBasicShader->setRasterizerState(rasterDesc);
-  pBasicShader->setBlendState(blendDesc);
-  pBasicShader->setDepthStencilState(depthSDesc);
+  pGbufferShader->generateInputLayout();
+  pGbufferShader->setSamplerState(pSamplerLinear);
+  pGbufferShader->setRasterizerState(pRasterState);
+  pGbufferShader->setBlendState(pBlendState);
+  pGbufferShader->setDepthStencilState(pDepthStencil);
 
   // Lightining
   pLightningShader->generateInputLayout();
   pLightningShader->setSamplerState(pSamplerLinear);
-  pLightningShader->setDepthStencilState(planeDepthSDesc);
 
   // AO
   pAOShader->generateInputLayout();
   pAOShader->setSamplerState(pSamplerLinear);
-  pAOShader->setDepthStencilState(planeDepthSDesc);
 
   // HBlur
   pHBlurShader->generateInputLayout();
   pHBlurShader->setSamplerState(pSamplerLinear);
-  pHBlurShader->setDepthStencilState(planeDepthSDesc);
 
   // VBlur
   pVBlurShader->generateInputLayout();
   pVBlurShader->setSamplerState(pSamplerLinear);
-  pVBlurShader->setDepthStencilState(planeDepthSDesc);
 
   // Shadow Map
   pSMapShader->generateInputLayout();
   pSMapShader->setSamplerState(pSamplerLinear);
-  pSMapShader->setRasterizerState(rasterDesc);
-  pSMapShader->setBlendState(blendDesc);
-  pSMapShader->setDepthStencilState(depthSDesc);
+  pSMapShader->setRasterizerState(pRasterState);
+  pSMapShader->setBlendState(pBlendState);
+  pSMapShader->setDepthStencilState(pDepthStencil);
 
   // SkyBox Map
   pSkyBoxShader->generateInputLayout();
   pSkyBoxShader->setSamplerState(pSamplerLinear);
-  pSkyBoxShader->setRasterizerState(rasterDesc);
-  pSkyBoxShader->setBlendState(blendDesc);
-  pSkyBoxShader->setDepthStencilState(skyBoxDepth);
+  pSkyBoxShader->setRasterizerState(pRasterState);
+  pSkyBoxShader->setBlendState(pBlendState);
+  pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
 
   // Add skybox
   pFinalShader->generateInputLayout();
   pFinalShader->setSamplerState(pSamplerLinear);
-  pFinalShader->setDepthStencilState(skyBoxDepth);
+
+  // Plane vs
+  pPlaneVS->generateInputLayout();
+  pPlaneVS->setDepthStencilStateFromDesc(planeDepthSDesc);
 
   // Save passes on render manager
-  renderMan.setPass(pBasicShader, "GBufferShader");
-  renderMan.setPass(pAOShader, "AOShader");
-  renderMan.setPass(pHBlurShader, "HBlurShader");
-  renderMan.setPass(pVBlurShader, "VBlurShader");
-  renderMan.setPass(pLightningShader, "LightningShader");
-  renderMan.setPass(pSMapShader, "SMapShader");
-  renderMan.setPass(pSkyBoxShader, "SkyBoxShader");
-  renderMan.setPass(pFinalShader, "FinalShader");
+  renderMan.addPass(pGbufferShader, "GBufferShader");
+  renderMan.addPass(pAOShader, "AOShader");
+  renderMan.addPass(pHBlurShader, "HBlurShader");
+  renderMan.addPass(pVBlurShader, "VBlurShader");
+  renderMan.addPass(pLightningShader, "LightningShader");
+  renderMan.addPass(pSMapShader, "SMapShader");
+  renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
+  renderMan.addPass(pFinalShader, "FinalShader");
+  renderMan.addPass(pPlaneVS, "PlaneShader");
 
   // Create and set render targets for deferred rendering
   setRenderTargets();
@@ -908,8 +911,8 @@ RendererApp::setRenderTargets()
                                               BIND_FLAGS::kDepthStencil |
                                               BIND_FLAGS::kShaderResource);
 
-  auto pShadowTempTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                                    getScreenDescription().height,
+  auto pShadowTempTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
+                                                    static_cast<uint32>(m_shadowTexSize),
                                                     TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                     USAGE::kDefault,
                                                     BIND_FLAGS::kRenderTarget |

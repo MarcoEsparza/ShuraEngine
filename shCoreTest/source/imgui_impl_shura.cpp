@@ -293,12 +293,12 @@ ImGui_ImplShura_CreateDeviceObjects()
 
   // Set pass
   bd->pImGuiShuraProgram = sh_makeUnique<Pass>();
-
-  bd->pImGuiShuraProgram->setShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
-                                        "main",
-                                        "mainPS",
-                                        "vs_5_0",
-                                        "ps_5_0");
+  bd->pImGuiShuraProgram->setVShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
+                                         "main",
+                                         "vs_5_0");
+  bd->pImGuiShuraProgram->setPShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
+                                         "mainPS",
+                                         "ps_5_0");
   bd->pImGuiShuraProgram->compileShader();
 
   Vector<InputDesc> ilDesc;
@@ -316,11 +316,11 @@ ImGui_ImplShura_CreateDeviceObjects()
   ilDesc[2].type = INPUT_LAYOUT_TYPES::kColor;
   ilDesc[2].size = 4;
 
-  auto pIL = graphMan.createInputLayout(ilDesc, bd->pImGuiShuraProgram->getShader());
+  auto pIL = graphMan.createInputLayout(ilDesc, bd->pImGuiShuraProgram->getVertexShader());
   bd->pImGuiShuraProgram->setInputLayout(pIL);
 
   bd->pProjBuffer = graphMan.createConstantBuffer(sizeof(Matrix4));
-  bd->pImGuiShuraProgram->addVSConstantBuffer(bd->pProjBuffer);
+  bd->pImGuiShuraProgram->addVSConstantBuffer(bd->pProjBuffer, 0);
 
   // Set states
   RasterizerDesc rasterDesc = {};
@@ -363,9 +363,9 @@ ImGui_ImplShura_CreateDeviceObjects()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
-  bd->pImGuiShuraProgram->setRasterizerState(rasterDesc);
-  bd->pImGuiShuraProgram->setBlendState(blendDesc);
-  bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
+  bd->pImGuiShuraProgram->setRasterizerStateFromDesc(rasterDesc);
+  bd->pImGuiShuraProgram->setBlendStateFromDesc(blendDesc);
+  bd->pImGuiShuraProgram->setDepthStencilStateFromDesc(depthSDesc);
 
   // Create texture and sampler state
   ImGui_ImplShura_CreateFontsTexture();

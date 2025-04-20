@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/19
+*  @date    2025/04/14
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -27,7 +27,10 @@ namespace shEngineSDK {
 */
 /*****************************************************************************/
 
-class ProgramShader;
+class VertexShader;
+class PixelShader;
+class GeometryShader;
+class ComputeShader;
 class InputLayout;
 class RasterizerState;
 class BlendState;
@@ -49,7 +52,7 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Default destructor.
   */
-  ~Pass();
+  virtual ~Pass() = default;
 
   /***************************************************************************/
   /*
@@ -63,7 +66,7 @@ class SH_CORE_EXPORT Pass
   *  @param SPtr<InputLayout>& pInputLayout
   */
   FORCEINLINE void
-  setInputLayout(SPtr<InputLayout>& pInputLayout);
+  setInputLayout(const SPtr<InputLayout>& pInputLayout);
 
   /**
   *  @brief Sets the sampler state.
@@ -71,58 +74,152 @@ class SH_CORE_EXPORT Pass
   *  @param SPtr<SamplerState>& pSamplerLinear
   */
   FORCEINLINE void
-  setSamplerState(SPtr<SamplerState>& pSamplerLinear);
+  setSamplerState(const SPtr<SamplerState>& pSamplerLinear);
 
   /**
-  *  @brief Sets the info for the shader compile.
+  *  @brief Sets the rasterizer state.
   *
-  *  @param String& shaderPath
-  *  @param String& vsEntry
-  *  @param String& psEntry
-  *  @param String& vsModel
-  *  @param String& psModel
+  *  @param SPtr<RasterizerState>& pRaster
   */
-  void
-  setShaderInfo(const String& shaderPath,
-                const String& vsEntry,
-                const String& psEntry,
-                const String& vsModel,
-                const String& psModel);
-
-  /**
-  *  @brief Sets the raster state.
-  *
-  *  @param RasterizerDesc& rasterDesc
-  */
-  void
-  setRasterizerState(const RasterizerDesc& rasterDesc);
+  FORCEINLINE void
+  setRasterizerState(const SPtr<RasterizerState>& pRaster);
 
   /**
   *  @brief Sets the blend state.
   *
-  *  @param BlendDesc& blendDesc
+  *  @param SPtr<BlendState>& pBlend
   */
-  void
-  setBlendState(const BlendDesc& blendDesc);
+  FORCEINLINE void
+  setBlendState(const SPtr<BlendState>& pBlend);
 
   /**
   *  @brief Sets the depth stencil state.
   *
+  *  @param SPtr<DepthStencilState>& pDepthS
+  */
+  FORCEINLINE void
+  setDepthStencilState(const SPtr<DepthStencilState>& pDepthS);
+
+  /**
+  *  @brief Sets the info for the vertex shader compile.
+  *
+  *  @param String& shaderPath
+  *  @param String& entry
+  *  @param String& model
+  *  @param Vector<ShaderMacro>& macros = {}
+  */
+  void
+  setVShaderInfo(const String& shaderPath,
+                 const String& entry,
+                 const String& model,
+                 const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Sets the info for the pixel shader compile.
+  *
+  *  @param String& shaderPath
+  *  @param String& entry
+  *  @param String& model
+  *  @param Vector<ShaderMacro>& macros = {}
+  */
+  void
+  setPShaderInfo(const String& shaderPath,
+                 const String& entry,
+                 const String& model,
+                 const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Sets the info for the geometry shader compile.
+  *
+  *  @param String& shaderPath
+  *  @param String& entry
+  *  @param String& model
+  *  @param Vector<ShaderMacro>& macros = {}
+  */
+  void
+  setGShaderInfo(const String& shaderPath,
+                 const String& entry,
+                 const String& model,
+                 const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Sets the info for the compute shader compile.
+  *
+  *  @param String& shaderPath
+  *  @param String& entry
+  *  @param String& model
+  *  @param Vector<ShaderMacro>& macros = {}
+  */
+  void
+  setCShaderInfo(const String& shaderPath,
+                 const String& entry,
+                 const String& model,
+                 const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Sets the raster state from a descriptor.
+  *
+  *  @param RasterizerDesc& rasterDesc
+  */
+  void
+  setRasterizerStateFromDesc(const RasterizerDesc& rasterDesc);
+
+  /**
+  *  @brief Sets the blend state from a descriptor.
+  *
+  *  @param BlendDesc& blendDesc
+  */
+  void
+  setBlendStateFromDesc(const BlendDesc& blendDesc);
+
+  /**
+  *  @brief Sets the depth stencil state from a descriptor.
+  *
   *  @param DepthStencilDesc& dsDesc
   */
   void
-  setDepthStencilState(const DepthStencilDesc& dsDesc);
+  setDepthStencilStateFromDesc(const DepthStencilDesc& dsDesc);
 
-  FORCEINLINE SPtr<ProgramShader>
-  getShader() const;
+  /**
+  *  @brief Gets the Vertex shader.
+  *
+  *  @return SPtr<VertexShader>
+  */
+  FORCEINLINE SPtr<VertexShader>
+  getVertexShader() const;
+
+  /**
+  *  @brief Gets the Pixel shader.
+  *
+  *  @return SPtr<PixelShader>
+  */
+  FORCEINLINE SPtr<PixelShader>
+  getPixelShader() const;
+
+  /**
+  *  @brief Gets the Geometry shader.
+  *
+  *  @return SPtr<GeometryShader>
+  */
+  FORCEINLINE SPtr<GeometryShader>
+  getGeometryShader() const;
+
+  /**
+  *  @brief Gets the Compute shader.
+  *
+  *  @return SPtr<ComputeShader>
+  */
+  FORCEINLINE SPtr<ComputeShader>
+  getComputeShader() const;
 
   /**
   *  @brief Add a constant buffer to the Vertex Shader Constant Buffer container.
   *
   *  @param SPtr<ConstantBuffer>& buffer
+  *  @param uint32 slot
   */
   void
-  addVSConstantBuffer(const SPtr<ConstantBuffer>& buffer);
+  addVSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot);
 
   /**
   *  @brief Add a constant buffer to the Pixel Shader Constant Buffer container.
@@ -130,7 +227,23 @@ class SH_CORE_EXPORT Pass
   *  @param SPtr<ConstantBuffer>& buffer
   */
   void
-  addPSConstantBuffer(const SPtr<ConstantBuffer>& buffer);
+  addPSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot);
+
+  /**
+  *  @brief Add a constant buffer to the Pixel Shader Constant Buffer container.
+  *
+  *  @param SPtr<ConstantBuffer>& buffer
+  */
+  void
+  addGSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot);
+
+  /**
+  *  @brief Add a constant buffer to the Pixel Shader Constant Buffer container.
+  *
+  *  @param SPtr<ConstantBuffer>& buffer
+  */
+  void
+  addCSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot);
 
   /**
   *  @brief Compiles the shader.
@@ -159,9 +272,24 @@ class SH_CORE_EXPORT Pass
   /***************************************************************************/
  private:
   /**
-  *  @brief Shader.
+  *  @brief Vertex Shader pointer.
   */
-  SPtr<ProgramShader> m_pShader;
+  SPtr<VertexShader> m_pVShader;
+
+  /**
+  *  @brief Pixel Shader pointer.
+  */
+  SPtr<PixelShader> m_pPShader;
+
+  /**
+  *  @brief Geometry Shader pointer.
+  */
+  SPtr<GeometryShader> m_pGShader;
+
+  /**
+  *  @brief Compute Shader pointer.
+  */
+  SPtr<ComputeShader> m_pCShader;
 
   /**
   *  @brief Input layout.
@@ -191,17 +319,42 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Vertex Shader Constant Buffer container.
   */
-  Vector<SPtr<ConstantBuffer>> m_vsCBuffers;
+  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_vsCBuffers;
 
   /**
   *  @brief Pixel Shader Constant Buffer container.
   */
-  Vector<SPtr<ConstantBuffer>> m_psCBuffers;
+  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_psCBuffers;
 
   /**
-  *  @brief Path of the shader file.
+  *  @brief Geometry Shader Constant Buffer container.
   */
-  String m_shaderPath;
+  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_gsCBuffers;
+
+  /**
+  *  @brief Compute Shader Constant Buffer container.
+  */
+  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_csCBuffers;
+
+  /**
+  *  @brief Path of the vertex shader file.
+  */
+  String m_vsPath = "";
+
+  /**
+  *  @brief Path of the pixel shader file.
+  */
+  String m_psPath = "";
+
+  /**
+  *  @brief Path of the geometry shader file.
+  */
+  String m_gsPath = "";
+
+  /**
+  *  @brief Path of the compute shader file.
+  */
+  String m_csPath = "";
 
   /**
   *  @brief Vertex Shader entry point.
@@ -214,29 +367,54 @@ class SH_CORE_EXPORT Pass
   String m_psEntryPoint;
 
   /**
+  *  @brief Geometry Shader entry point.
+  */
+  String m_gsEntryPoint;
+
+  /**
+  *  @brief Compute Shader entry point.
+  */
+  String m_csEntryPoint;
+
+  /**
   *  @brief Vertex Shader model.
   */
-  String m_vsShaderModel;
+  String m_vsModel;
 
   /**
   *  @brief Pixel Shader model.
   */
-  String m_psShaderModel;
+  String m_psModel;
 
   /**
-  *  @brief Descriptor for rasterizer state.
+  *  @brief Geometry Shader model.
   */
-  RasterizerDesc m_rasterDesc = {};
+  String m_gsModel;
 
   /**
-  *  @brief Descriptor for blend state.
+  *  @brief Compute Shader model.
   */
-  BlendDesc m_blendDesc = {};
+  String m_csModel;
 
   /**
-  *  @brief Descriptor for depth stencil state.
+  *  @brief Vertex Shader macros.
   */
-  DepthStencilDesc m_dsDesc = {};
+  Vector<ShaderMacro> m_vsMacros;
+
+  /**
+  *  @brief Pixel Shader macros.
+  */
+  Vector<ShaderMacro> m_psMacros;
+
+  /**
+  *  @brief Geometry Shader macros.
+  */
+  Vector<ShaderMacro> m_gsMacros;
+
+  /**
+  *  @brief Compute Shader macros.
+  */
+  Vector<ShaderMacro> m_csMacros;
 };
 
 /*****************************************************************************/
@@ -246,7 +424,7 @@ class SH_CORE_EXPORT Pass
 /*****************************************************************************/
 
 FORCEINLINE void
-Pass::setInputLayout(SPtr<InputLayout>& pInputLayout)
+Pass::setInputLayout(const SPtr<InputLayout>& pInputLayout)
 {
   if (pInputLayout) {
     m_pInputLayout = pInputLayout;
@@ -254,16 +432,52 @@ Pass::setInputLayout(SPtr<InputLayout>& pInputLayout)
 }
 
 FORCEINLINE void
-Pass::setSamplerState(SPtr<SamplerState>& pSamplerLinear)
+Pass::setSamplerState(const SPtr<SamplerState>& pSamplerLinear)
 {
   if (pSamplerLinear) {
     m_pSamplerState = pSamplerLinear;
   }
 }
 
-FORCEINLINE SPtr<ProgramShader>
-Pass::getShader() const
+FORCEINLINE void
+Pass::setRasterizerState(const SPtr<RasterizerState>& pRaster)
 {
-  return m_pShader;
+  m_pRasterState = pRaster;
+}
+
+FORCEINLINE void
+Pass::setBlendState(const SPtr<BlendState>& pBlend)
+{
+  m_pBlendState = pBlend;
+}
+
+FORCEINLINE void
+Pass::setDepthStencilState(const SPtr<DepthStencilState>& pDepthS)
+{
+  m_pDsState = pDepthS;
+}
+
+FORCEINLINE SPtr<VertexShader>
+Pass::getVertexShader() const
+{
+  return m_pVShader;
+}
+
+FORCEINLINE SPtr<PixelShader>
+Pass::getPixelShader() const
+{
+  return m_pPShader;
+}
+
+FORCEINLINE SPtr<GeometryShader>
+Pass::getGeometryShader() const
+{
+  return m_pGShader;
+}
+
+FORCEINLINE SPtr<ComputeShader>
+Pass::getComputeShader() const
+{
+  return m_pCShader;
 }
 }

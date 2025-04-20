@@ -17,6 +17,7 @@
 */
 /*****************************************************************************/
 #include "shDX11GraphicsManager.h"
+#include "shLogger.h"
 #include "shScreen.h"
 #include "shLinearColor.h"
 
@@ -55,24 +56,23 @@ class ShaderInclude : public ID3DInclude
   }
 };
 
-FORCEINLINE void
+static void
 throwIfFailed(HRESULT hr) {
   if (FAILED(hr)) {
     SH_ASSERT(false && "Something went horribly wrong!!!");
   }
 }
 
-bool
+static bool
 compileShaderFromFile(const String& fileName,
-                      const String& vsEntryPoint,
-                      const String& psEntryPoint,
-                      const String& vsShaderModel,
-                      const String& psShaderModel,
-                      ID3DBlob** pVertexBlob,
-                      ID3DBlob** pPixelBlob)
+                      const String& entryPoint,
+                      const String& shaderModel,
+                      ID3DBlob** pBlob,
+                      const Vector<ShaderMacro>& macros)
 {
-  HRESULT hrVS = S_OK;
-  HRESULT hrPS = S_OK;
+  //Logger& log = Logger::instance();
+
+  HRESULT hr = S_OK;
   int32 shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if SH_DEBUG_MODE
   shaderFlags |= D3DCOMPILE_DEBUG;
@@ -85,19 +85,41 @@ compileShaderFromFile(const String& fileName,
   static ShaderInclude shaderInclude;
   ID3DBlob* pErrorBlob = nullptr;
 
-  hrVS = D3DCompileFromFile(wFileName.c_str(),
-                            nullptr,
+  Vector<D3D_SHADER_MACRO> d3dMacros;
+
+  if (!macros.empty()) {
+    for (auto& currentMacro : macros) {
+      D3D_SHADER_MACRO d3dM = {};
+      d3dM.Name = currentMacro.name.c_str();
+      d3dM.Definition = currentMacro.definition.c_str();
+    }
+
+    hr = D3DCompileFromFile(wFileName.c_str(),
+                            d3dMacros.data(),
                             &shaderInclude,
-                            vsEntryPoint.c_str() ,
-                            vsShaderModel.c_str(),
+                            entryPoint.c_str() ,
+                            shaderModel.c_str(),
                             shaderFlags,
                             0,
-                            pVertexBlob,
+                            pBlob,
                             &pErrorBlob);
+  }
+  else {
+    hr = D3DCompileFromFile(wFileName.c_str(),
+                            nullptr,
+                            &shaderInclude,
+                            entryPoint.c_str() ,
+                            shaderModel.c_str(),
+                            shaderFlags,
+                            0,
+                            pBlob,
+                            &pErrorBlob);
+  }
 
-  if (FAILED(hrVS)) {
+  if (FAILED(hr)) {
     if (nullptr != pErrorBlob) {
       String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
+      //log.Log(errStr);
       SafeRelease(pErrorBlob);
     }
 
@@ -105,28 +127,74 @@ compileShaderFromFile(const String& fileName,
   }
 
   SafeRelease(pErrorBlob);
-
-  hrPS = D3DCompileFromFile(wFileName.c_str(),
-                            nullptr,
-                            &shaderInclude,
-                            psEntryPoint.c_str(),
-                            psShaderModel.c_str(),
-                            shaderFlags,
-                            0,
-                            pPixelBlob,
-                            &pErrorBlob);
-
-  if (FAILED(hrPS)) {
-    if (nullptr != pErrorBlob) {
-      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
-      SafeRelease(pErrorBlob);
-    }
-
-    return false;
-  }
-
   return true;
 }
+
+//bool
+//compileShaderFromFile(const String& fileName,
+//                      const String& vsEntryPoint,
+//                      const String& psEntryPoint,
+//                      const String& vsShaderModel,
+//                      const String& psShaderModel,
+//                      ID3DBlob** pVertexBlob,
+//                      ID3DBlob** pPixelBlob)
+//{
+//  HRESULT hrVS = S_OK;
+//  HRESULT hrPS = S_OK;
+//  int32 shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+//#if SH_DEBUG_MODE
+//  shaderFlags |= D3DCOMPILE_DEBUG;
+//#endif
+//
+//  auto beg = (String::const_iterator)fileName.begin();
+//  auto end = (String::const_iterator)fileName.end();
+//  WString wFileName(beg, end);
+//
+//  static ShaderInclude shaderInclude;
+//  ID3DBlob* pErrorBlob = nullptr;
+//
+//  hrVS = D3DCompileFromFile(wFileName.c_str(),
+//                            nullptr,
+//                            &shaderInclude,
+//                            vsEntryPoint.c_str() ,
+//                            vsShaderModel.c_str(),
+//                            shaderFlags,
+//                            0,
+//                            pVertexBlob,
+//                            &pErrorBlob);
+//
+//  if (FAILED(hrVS)) {
+//    if (nullptr != pErrorBlob) {
+//      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
+//      SafeRelease(pErrorBlob);
+//    }
+//
+//    return false;
+//  }
+//
+//  SafeRelease(pErrorBlob);
+//
+//  hrPS = D3DCompileFromFile(wFileName.c_str(),
+//                            nullptr,
+//                            &shaderInclude,
+//                            psEntryPoint.c_str(),
+//                            psShaderModel.c_str(),
+//                            shaderFlags,
+//                            0,
+//                            pPixelBlob,
+//                            &pErrorBlob);
+//
+//  if (FAILED(hrPS)) {
+//    if (nullptr != pErrorBlob) {
+//      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
+//      SafeRelease(pErrorBlob);
+//    }
+//
+//    return false;
+//  }
+//
+//  return true;
+//}
 
 DX11GraphicsManager::~DX11GraphicsManager()
 {
@@ -263,7 +331,7 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
 
   m_pDepthStencil = sh_makeShared<DX11Texture2D>();
 
-  m_pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
+  m_pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
                                                             scDesc.BufferDesc.Width,
                                                             scDesc.BufferDesc.Height,
                                                             DXGI_FORMAT_D24_UNORM_S8_UINT,
@@ -296,7 +364,7 @@ void
 DX11GraphicsManager::internalClearRenderTarget(const SPtr<Texture2D>& pTarget,
                                                const LinearColor& color)
 {
-  auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pTarget);
+  auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pTarget);
   
   FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
@@ -310,7 +378,7 @@ DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
                                                float depth,
                                                uint8 stencil)
 {
-  auto pDTV = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
+  auto pDTV = sh_reinterpretPCast<DX11Texture2D>(pDepthSV);
   
   m_pDeviceContext->m_pDeviceContext->ClearDepthStencilView(pDTV->m_pDepthSV,
                                                             flags,
@@ -338,10 +406,10 @@ DX11GraphicsManager::internalGetMainDepthStencil() const
 
 SPtr<InputLayout>
 DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
-                                               const SPtr<ProgramShader>& pPShader)
+                                               const SPtr<VertexShader>& pPShader)
 {
   auto pInputLayout = sh_makeShared<DX11InputLayout>();
-  auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
+  auto pVertexShader = sh_reinterpretPCast<DX11VertexShader>(pPShader);
 
   Vector<D3D11_INPUT_ELEMENT_DESC> dxInputDesc;
   dxInputDesc.resize(desc.size());
@@ -388,22 +456,22 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
 
   throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&dxInputDesc[0],
                                       static_cast<UINT>(dxInputDesc.size()),
-                                      pProgramShader->m_pVertexBlob->GetBufferPointer(),
-                                      pProgramShader->m_pVertexBlob->GetBufferSize(),
+                                      pVertexShader->m_pBlob->GetBufferPointer(),
+                                      pVertexShader->m_pBlob->GetBufferSize(),
                                       &pInputLayout->m_pLayout));
 
   return pInputLayout;
 }
 
 SPtr<InputLayout>
-DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader)
+DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<VertexShader>& pPShader)
 {
   auto pInputLayout = sh_makeShared<DX11InputLayout>();
-  auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
+  auto pVertexShader = sh_reinterpretPCast<DX11VertexShader>(pPShader);
 
   ID3D11ShaderReflection* pReflector = nullptr;
-  throwIfFailed((D3DReflect(pProgramShader->m_pVertexBlob->GetBufferPointer(),
-                            pProgramShader->m_pVertexBlob->GetBufferSize(),
+  throwIfFailed((D3DReflect(pVertexShader->m_pBlob->GetBufferPointer(),
+                            pVertexShader->m_pBlob->GetBufferSize(),
                             __uuidof(ID3D11ShaderReflection),
                             reinterpret_cast<void**>(&pReflector))));
 
@@ -480,8 +548,8 @@ DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShade
 
   throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&ilDesc[0],
                                       static_cast<UINT>(ilDesc.size()),
-                                      pProgramShader->m_pVertexBlob->GetBufferPointer(),
-                                      pProgramShader->m_pVertexBlob->GetBufferSize(),
+                                      pVertexShader->m_pBlob->GetBufferPointer(),
+                                      pVertexShader->m_pBlob->GetBufferSize(),
                                       &pInputLayout->m_pLayout));
 
   SafeRelease(pReflector);
@@ -489,38 +557,104 @@ DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<ProgramShade
   return pInputLayout;
 }
 
-SPtr<ProgramShader>
-DX11GraphicsManager::internalCreateProgramShader(const String& fileName,
-                                                 const String& vsEntryPoint,
-                                                 const String& psEntryPoint,
-                                                 const String& vsShaderModel,
-                                                 const String& psShaderModel)
+SPtr<VertexShader>
+DX11GraphicsManager::internalCreateVertexShader(const String& fileName,
+                                                const String& entryPoint,
+                                                const String& shaderModel,
+                                                const Vector<ShaderMacro>& macros)
 {
-  auto pProgramShader = sh_makeShared<DX11ProgramShader>();
+  auto pVertexShader = sh_makeShared<DX11VertexShader>();
 
   if (!compileShaderFromFile(fileName,
-                             vsEntryPoint,
-                             psEntryPoint,
-                             vsShaderModel,
-                             psShaderModel,
-                             &pProgramShader->m_pVertexBlob,
-                             &pProgramShader->m_pPixelBlob)) {
+                             entryPoint,
+                             shaderModel,
+                             &pVertexShader->m_pBlob,
+                             macros)) {
     return nullptr;
   }
 
   throwIfFailed(m_pDevice->m_pDevice->CreateVertexShader(
-                pProgramShader->m_pVertexBlob->GetBufferPointer(),
-                pProgramShader->m_pVertexBlob->GetBufferSize(),
-                nullptr,
-                &pProgramShader->m_pVertexShader));
+                                      pVertexShader->m_pBlob->GetBufferPointer(),
+                                      pVertexShader->m_pBlob->GetBufferSize(),
+                                      nullptr,
+                                      &pVertexShader->m_pVertexShader));
+
+  return pVertexShader;
+}
+
+SPtr<PixelShader>
+DX11GraphicsManager::internalCreatePixelShader(const String& fileName,
+                                               const String& entryPoint,
+                                               const String& shaderModel,
+                                               const Vector<ShaderMacro>& macros)
+{
+  auto pPixelShader = sh_makeShared<DX11PixelShader>();
+
+  if (!compileShaderFromFile(fileName,
+                             entryPoint,
+                             shaderModel,
+                             &pPixelShader->m_pBlob,
+                             macros)) {
+    return nullptr;
+  }
 
   throwIfFailed(m_pDevice->m_pDevice->CreatePixelShader(
-                pProgramShader->m_pPixelBlob->GetBufferPointer(),
-                pProgramShader->m_pPixelBlob->GetBufferSize(),
-                nullptr,
-                &pProgramShader->m_pPixelShader));
+                                      pPixelShader->m_pBlob->GetBufferPointer(),
+                                      pPixelShader->m_pBlob->GetBufferSize(),
+                                      nullptr,
+                                      &pPixelShader->m_pPixelShader));
 
-  return pProgramShader;
+  return pPixelShader;
+}
+
+SPtr<GeometryShader>
+DX11GraphicsManager::internalCreateGeometryShader(const String& fileName,
+                                                  const String& entryPoint,
+                                                  const String& shaderModel,
+                                                  const Vector<ShaderMacro>& macros)
+{
+  auto pGeometryShader = sh_makeShared<DX11GeometryShader>();
+
+  if (!compileShaderFromFile(fileName,
+                             entryPoint,
+                             shaderModel,
+                             &pGeometryShader->m_pBlob,
+                             macros)) {
+    return nullptr;
+  }
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateGeometryShader(
+                                      pGeometryShader->m_pBlob->GetBufferPointer(),
+                                      pGeometryShader->m_pBlob->GetBufferSize(),
+                                      nullptr,
+                                      &pGeometryShader->m_pGeometryShader));
+
+  return pGeometryShader;
+}
+
+SPtr<ComputeShader>
+DX11GraphicsManager::internalCreateComputeShader(const String& fileName,
+                                                 const String& entryPoint,
+                                                 const String& shaderModel,
+                                                 const Vector<ShaderMacro>& macros)
+{
+  auto pComputeShader = sh_makeShared<DX11ComputeShader>();
+
+  if (!compileShaderFromFile(fileName,
+                             entryPoint,
+                             shaderModel,
+                             &pComputeShader->m_pBlob,
+                             macros)) {
+    return nullptr;
+  }
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateComputeShader(
+                                      pComputeShader->m_pBlob->GetBufferPointer(),
+                                      pComputeShader->m_pBlob->GetBufferSize(),
+                                      nullptr,
+                                      &pComputeShader->m_pComputeShader));
+
+  return pComputeShader;
 }
 
 SPtr<VertexBuffer>
@@ -634,7 +768,7 @@ DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
 {
   int32 pitch = width * bpp;
 
-  auto pTexture = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
+  auto pTexture = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
                                                           width,
                                                           height,
                                                           DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -890,7 +1024,7 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pC
                                                   const void* pData,
                                                   const uint32 dataSize)
 {
-  auto pConstantBuffer = reinterpret_pointer_cast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
 
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pConstantBuffer->m_pBuffer,
                                                         0,
@@ -906,7 +1040,7 @@ DX11GraphicsManager::internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
                                              uint32 width,
                                              uint32 bpp)
 {
-  auto pTex2D = reinterpret_pointer_cast<DX11Texture2D>(pTexture);
+  auto pTex2D = sh_reinterpretPCast<DX11Texture2D>(pTexture);
   int32 pitch = width * bpp;
 
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTex2D->m_pTexture2D,
@@ -986,7 +1120,7 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
 
   m_pDepthStencil.reset();
   m_pDepthStencil = sh_makeShared<DX11Texture2D>();
-  m_pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(internalCreateTexture2D(
+  m_pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
                                                             pScreen->getWidth(),
                                                             pScreen->getHeight(),
                                                             DXGI_FORMAT_D24_UNORM_S8_UINT,
@@ -1013,7 +1147,7 @@ void
 DX11GraphicsManager::internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture,
                                               const String& filePath)
 {
-  auto pResTex = reinterpret_pointer_cast<DX11Texture2D>(pTexture);
+  auto pResTex = sh_reinterpretPCast<DX11Texture2D>(pTexture);
 
   ScratchImage image;
 
@@ -1056,7 +1190,7 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
       pRTVs.push_back(nullptr);
     }
     else {
-      auto pRTV = reinterpret_pointer_cast<DX11Texture2D>(pRenderTarget);
+      auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pRenderTarget);
 
       pRTVs.push_back(pRTV->m_pRenderTV);
     }
@@ -1069,7 +1203,7 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
 
   ID3D11DepthStencilView* pDSV = nullptr;
   if (pDepthSV) {
-    auto pDepthStencil = reinterpret_pointer_cast<DX11Texture2D>(pDepthSV);
+    auto pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(pDepthSV);
     pDSV = pDepthStencil->m_pDepthSV;
   }
 
@@ -1081,7 +1215,7 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
 void
 DX11GraphicsManager::internalSetInputLayout(const SPtr<InputLayout>& pInput)
 {
-  auto pInputLayout = reinterpret_pointer_cast<DX11InputLayout>(pInput);
+  auto pInputLayout = sh_reinterpretPCast<DX11InputLayout>(pInput);
 
   m_pDeviceContext->m_pDeviceContext->IASetInputLayout(pInputLayout->m_pLayout);
 }
@@ -1092,7 +1226,7 @@ DX11GraphicsManager::internalSetVertexBuffers(const SPtr<VertexBuffer>& pVBuffer
                                               const uint32 numBuffers,
                                               const uint32 offset)
 {
-  auto pVertexBuffer = reinterpret_pointer_cast<DX11VertexBuffer>(pVBuffer);
+  auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer);
 
   m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
                                                          numBuffers,
@@ -1105,7 +1239,7 @@ void
 DX11GraphicsManager::internalSetIndexBuffers(const SPtr<IndexBuffer>& pIBuffer,
                                              const uint32 offset)
 {
-  auto pIndexBuffer = reinterpret_pointer_cast<DX11IndexBuffer>(pIBuffer);
+  auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer);
 
   m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
                                       static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
@@ -1128,7 +1262,7 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
     return;
   }
 
-  auto pConstantBuffer = reinterpret_pointer_cast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
 
   m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
                                                            numBuffers,
@@ -1151,9 +1285,55 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
     return;
   }
 
-  auto pConstantBuffer = reinterpret_pointer_cast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
 
   m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,
+                                                           numBuffers,
+                                                           &pConstantBuffer->m_pBuffer);
+}
+
+void
+DX11GraphicsManager::internalGSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                                                  const uint32 startSlot,
+                                                  const uint32 numBuffers)
+{
+  if (pCBuffer == nullptr) {
+    ID3D11Buffer* pBuff = nullptr;
+
+    m_pDeviceContext->m_pDeviceContext->GSSetConstantBuffers(startSlot,
+                                                             numBuffers,
+                                                             &pBuff);
+
+    SafeRelease(pBuff);
+    return;
+  }
+
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+
+  m_pDeviceContext->m_pDeviceContext->GSSetConstantBuffers(startSlot,
+                                                           numBuffers,
+                                                           &pConstantBuffer->m_pBuffer);
+}
+
+void
+DX11GraphicsManager::internalCSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                                                  const uint32 startSlot,
+                                                  const uint32 numBuffers)
+{
+  if (pCBuffer == nullptr) {
+    ID3D11Buffer* pBuff = nullptr;
+
+    m_pDeviceContext->m_pDeviceContext->CSSetConstantBuffers(startSlot,
+                                                             numBuffers,
+                                                             &pBuff);
+
+    SafeRelease(pBuff);
+    return;
+  }
+
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+
+  m_pDeviceContext->m_pDeviceContext->CSSetConstantBuffers(startSlot,
                                                            numBuffers,
                                                            &pConstantBuffer->m_pBuffer);
 }
@@ -1166,21 +1346,55 @@ DX11GraphicsManager::internalSetPrimitiveTopology(uint32 primitive)
 }
 
 void
-DX11GraphicsManager::internalSetProgramShader(const SPtr<ProgramShader>& pPShader,
+DX11GraphicsManager::internalSetVertexShader(const SPtr<VertexShader>& pVShader,
+                                             const void* ppClassInstances,
+                                             const uint32 numClassInstances)
+{
+  auto pVS = sh_reinterpretPCast<DX11VertexShader>(pVShader);
+
+  m_pDeviceContext->m_pDeviceContext->VSSetShader(
+                    pVS->m_pVertexShader,
+                    reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
+                    numClassInstances);
+}
+
+void
+DX11GraphicsManager::internalSetPixelShader(const SPtr<PixelShader>& pPShader,
+                                            const void* ppClassInstances,
+                                            const uint32 numClassInstances)
+{
+  auto pPS = sh_reinterpretPCast<DX11PixelShader>(pPShader);
+
+  m_pDeviceContext->m_pDeviceContext->PSSetShader(
+                    pPS->m_pPixelShader,
+                    reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
+                    numClassInstances);
+}
+
+void
+DX11GraphicsManager::internalSetGeometryShader(const SPtr<GeometryShader>& pGShader,
+                                               const void* ppClassInstances,
+                                               const uint32 numClassInstances)
+{
+  auto pGS = sh_reinterpretPCast<DX11GeometryShader>(pGShader);
+
+  m_pDeviceContext->m_pDeviceContext->GSSetShader(
+                    pGS->m_pGeometryShader,
+                    reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
+                    numClassInstances);
+}
+
+void
+DX11GraphicsManager::internalSetComputeShader(const SPtr<ComputeShader>& pCShader,
                                               const void* ppClassInstances,
                                               const uint32 numClassInstances)
 {
-  auto pProgramShader = reinterpret_pointer_cast<DX11ProgramShader>(pPShader);
+  auto pCS = sh_reinterpretPCast<DX11ComputeShader>(pCShader);
 
-  m_pDeviceContext->m_pDeviceContext->VSSetShader(
-    pProgramShader->m_pVertexShader,
-    reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
-    numClassInstances);
-
-  m_pDeviceContext->m_pDeviceContext->PSSetShader(
-    pProgramShader->m_pPixelShader,
-    reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
-    numClassInstances);
+  m_pDeviceContext->m_pDeviceContext->CSSetShader(
+                    pCS->m_pComputeShader,
+                    reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
+                    numClassInstances);
 }
 
 void
@@ -1196,7 +1410,7 @@ DX11GraphicsManager::internalSetShaderResourceView(const SPtr<Texture2D>& pShade
     return;
   }
 
-  auto pShaderTexture = reinterpret_pointer_cast<DX11Texture2D>(pShaderRV);
+  auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV);
 
   m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
                                                            numViews,
@@ -1208,7 +1422,7 @@ DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerL
                                              const uint32 startSlot,
                                              const uint32 numSamplers)
 {
-  auto pSampler = reinterpret_pointer_cast<DX11SamplerState>(pSamplerLinear);
+  auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear);
 
   m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
                                                     numSamplers,
@@ -1218,7 +1432,7 @@ DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerL
 void
 DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState)
 {
-  auto pBS = reinterpret_pointer_cast<DX11BlendState>(pBlendState);
+  auto pBS = sh_reinterpretPCast<DX11BlendState>(pBlendState);
 
   FLOAT bf[4] = { pBS->m_blendFactor.r,
                   pBS->m_blendFactor.g,
@@ -1231,7 +1445,7 @@ DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState)
 void
 DX11GraphicsManager::internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
 {
-  auto pRS = reinterpret_pointer_cast<DX11RasterizerState>(pRasterizerState);
+  auto pRS = sh_reinterpretPCast<DX11RasterizerState>(pRasterizerState);
 
   m_pDeviceContext->m_pDeviceContext->RSSetState(pRS->m_pRasterS);
 }
@@ -1240,7 +1454,7 @@ void
 DX11GraphicsManager::internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
                                                   const uint8 stencilRef)
 {
-  auto pDepthSS = reinterpret_pointer_cast<DX11DepthStencilState>(pDepthSState);
+  auto pDepthSS = sh_reinterpretPCast<DX11DepthStencilState>(pDepthSState);
 
   m_pDeviceContext->m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS,
                                                              stencilRef);

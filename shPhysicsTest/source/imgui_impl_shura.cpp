@@ -350,9 +350,9 @@ ImGui_ImplShura_CreateDeviceObjects()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
-  bd->pImGuiShuraProgram->setRasterizerState(rasterDesc);
-  bd->pImGuiShuraProgram->setBlendState(blendDesc);
-  bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
+  bd->pImGuiShuraProgram->setRasterizerStateFromDesc(rasterDesc);
+  bd->pImGuiShuraProgram->setBlendStateFromDesc(blendDesc);
+  bd->pImGuiShuraProgram->setDepthStencilStateFromDesc(depthSDesc);
 
   // Create texture and sampler state
   ImGui_ImplShura_CreateFontsTexture();

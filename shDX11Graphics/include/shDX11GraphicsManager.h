@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/04/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -131,7 +131,7 @@ class DX11GraphicsManager : public GraphicsManager
   */
   virtual SPtr<InputLayout>
   internalCreateInputLayout(const Vector<InputDesc>& desc,
-                            const SPtr<ProgramShader>& pVShader) override;
+                            const SPtr<VertexShader>& pVShader) override;
 
   /**
   *  @brief Creates Input Layout from VertexShader.
@@ -141,23 +141,71 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader) override;
+  internalCreateInputLayoutFromShader(const SPtr<VertexShader>& pPShader) override;
 
   /**
-  *  @brief Creates a Vertex Shader.
-  * 
-  *  @param const String& fileName
-  *  @param const String& entryPoint
-  *  @param const String& shaderModel
-  * 
+  *  @brief Creates a DX11 Vertex Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
   *  @return SPtr<VertexShader>
   */
-  virtual SPtr<ProgramShader>
-  internalCreateProgramShader(const String& fileName,
-                              const String& vsEntryPoint,
-                              const String& psEntryPoint,
-                              const String& vsShaderModel,
-                              const String& psShaderModel) override;
+  virtual SPtr<VertexShader>
+  internalCreateVertexShader(const String& fileName,
+                             const String& entryPoint,
+                             const String& shaderModel,
+                             const Vector<ShaderMacro>& macros) override;
+
+  /**
+  *  @brief Creates a DX11 Pixel Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<PixelShader>
+  */
+  virtual SPtr<PixelShader>
+  internalCreatePixelShader(const String& fileName,
+                             const String& entryPoint,
+                             const String& shaderModel,
+                             const Vector<ShaderMacro>& macros) override;
+
+  /**
+  *  @brief Creates a DX11 Geometry Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<GeometryShader>
+  */
+  virtual SPtr<GeometryShader>
+  internalCreateGeometryShader(const String& fileName,
+                             const String& entryPoint,
+                             const String& shaderModel,
+                             const Vector<ShaderMacro>& macros) override;
+
+  /**
+  *  @brief Creates a DX11 Compute Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<ComputeShader>
+  */
+  virtual SPtr<ComputeShader>
+  internalCreateComputeShader(const String& fileName,
+                             const String& entryPoint,
+                             const String& shaderModel,
+                             const Vector<ShaderMacro>& macros) override;
 
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
@@ -393,7 +441,7 @@ class DX11GraphicsManager : public GraphicsManager
                           const uint32 offset) override;
 
   /**
-  *  @brief Sets a Constant Buffer for  the vertex shader with given start slot
+  *  @brief Sets a Constant Buffer for the vertex shader with given start slot
   *         and number of buffers.
   * 
   *  @param SPtr<ConstantBuffer> pCBuffer
@@ -406,8 +454,8 @@ class DX11GraphicsManager : public GraphicsManager
                                const uint32 numBuffers) override;
 
   /**
-  *  @brief Sets a Constant Buffer for  the pixel shader with given start slot
-            and number of buffers.
+  *  @brief Sets a Constant Buffer for the pixel shader with given start slot
+  *         and number of buffers.
   * 
   *  @param SPtr<ConstantBuffer> pCBuffer
   *  @param uint32 startSlot = 0
@@ -415,6 +463,32 @@ class DX11GraphicsManager : public GraphicsManager
   */
   void
   internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                               const uint32 startSlot,
+                               const uint32 numBuffers) override;
+
+  /**
+  *  @brief Sets a Constant Buffer for the geometry shader with given start slot
+  *         and number of buffers.
+  * 
+  *  @param SPtr<ConstantBuffer> pCBuffer
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numBuffers = 1
+  */
+  void
+  internalGSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                               const uint32 startSlot,
+                               const uint32 numBuffers) override;
+
+  /**
+  *  @brief Sets a Constant Buffer for the compute shader with given start slot
+  *         and number of buffers.
+  * 
+  *  @param SPtr<ConstantBuffer> pCBuffer
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numBuffers = 1
+  */
+  void
+  internalCSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
                                const uint32 startSlot,
                                const uint32 numBuffers) override;
 
@@ -433,10 +507,58 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param void* ppClassInstances = nullptr
   *  @param uint32 numClassInstances = 0
   */
-  virtual void
+  /*virtual void
   internalSetProgramShader(const SPtr<ProgramShader>& pPShader,
                            const void* ppClassInstances,
+                           const uint32 numClassInstances) override;*/
+
+  /**
+  *  @brief Sets the Vertex Shader.
+  * 
+  *  @param SPtr<VertexShader>& pVShader
+  *  @param void* ppClassInstances
+  *  @param uint32 numClassInstances
+  */
+  virtual void
+  internalSetVertexShader(const SPtr<VertexShader>& pVShader,
+                           const void* ppClassInstances,
                            const uint32 numClassInstances) override;
+
+  /**
+  *  @brief Sets the Pixel Shader.
+  *
+  *  @param SPtr<PixelShader>& pPShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  virtual void
+  internalSetPixelShader(const SPtr<PixelShader>& pPShader,
+                         const void* ppClassInstances = nullptr,
+                         const uint32 numClassInstances = 0) override;
+
+  /**
+  *  @brief Sets the Geometry Shader.
+  *
+  *  @param SPtr<GeometryShader>& pGShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  virtual void
+  internalSetGeometryShader(const SPtr<GeometryShader>& pGShader,
+                            const void* ppClassInstances = nullptr,
+                            const uint32 numClassInstances = 0) override;
+
+  /**
+  *  @brief Sets the Compute Shader.
+  *
+  *  @param SPtr<ComputeShader>& pCShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  virtual void
+  internalSetComputeShader(const SPtr<ComputeShader>& pCShader,
+                           const void* ppClassInstances = nullptr,
+                           const uint32 numClassInstances = 0) override;
 
   /**
   *  @brief Sets a shader resource.

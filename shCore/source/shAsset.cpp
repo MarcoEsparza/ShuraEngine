@@ -46,8 +46,8 @@ Asset::saveSMUnionAsset(const SPtr<Resource>& pRes)
   resIH.name = pSMURes->getName();
 
   SMUnionAssetHeader smuAH = {};
-  smuAH.numMeshes = pSMURes->meshes.size();
-  smuAH.numMat = pSMURes->materials.size();
+  smuAH.numMeshes = static_cast<uint32>(pSMURes->meshes.size());
+  smuAH.numMat = static_cast<uint32>(pSMURes->materials.size());
 
   Path pathName(pSMURes->getName());
   pathName.replaceExtension(".sha");
@@ -65,11 +65,13 @@ Asset::saveSMUnionAsset(const SPtr<Resource>& pRes)
     smaH.matIndex = pSMURes->meshes[i]->matIndex;
 
     Vector<char> vertexInfo;
-    uint32 verticesSize = sizeof(VertexData) * pSMURes->meshes[i]->vertices.size();
+    uint32 verticesSize = static_cast<uint32>(sizeof(VertexData) *
+                                              pSMURes->meshes[i]->vertices.size());
     memcpy(vertexInfo.data(), pSMURes->meshes[i]->vertices.data(), verticesSize);
 
     Vector<char> indexInfo;
-    uint32 indicesSize = sizeof(VertexData) * pSMURes->meshes[i]->indices.size();
+    uint32 indicesSize = static_cast<uint32>(sizeof(VertexData) *
+                         pSMURes->meshes[i]->indices.size());
     memcpy(indexInfo.data(), pSMURes->meshes[i]->indices.data(), indicesSize);
 
     file.write(reinterpret_cast<char*>(&smaH), sizeof(StaticMeshAssetHeader));

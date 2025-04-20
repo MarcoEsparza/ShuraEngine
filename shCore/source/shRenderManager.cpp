@@ -25,6 +25,7 @@
 #include "shMaterial.h"
 #include "shPass.h"
 #include "shMatrix4.h"
+#include "shStringID.h"
 
 namespace shEngineSDK {
 RenderManager::~RenderManager()
@@ -72,39 +73,80 @@ RenderManager::onStartUp()
 void
 RenderManager::addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name)
 {
-  m_targets[name] = pRTV;
+  StringID strID(name);
+  m_targets[strID.getID()] = pRTV;
 }
 
-void
-RenderManager::createPass(const String& passName)
+SPtr<Texture2D>
+RenderManager::getRenderTargetByName(const String& name)
 {
-  auto pPass = sh_makeShared<Pass>();
-  m_passes[passName] = pPass;
-}
+  StringID strID(name);
+  auto pRTV = m_targets.find(strID.getID());
 
-SPtr<Pass>
-RenderManager::getPass(const String& passName)
-{
-  auto pPass = m_passes.find(passName);
-
-  if (pPass != m_passes.end()) {
-      return (*pPass).second;
+  if (pRTV != m_targets.end()) {
+    return (*pRTV).second;
   }
 
   return nullptr;
 }
 
 void
-RenderManager::setPass(const SPtr<Pass>& pPass, const String& passName)
+RenderManager::clearRenderTargetByName(const String& name, const LinearColor& color)
 {
-  m_passes[passName] = pPass;
+  GraphicsManager& graphMan = g_graphicsMan();
+  auto pRTV = getRenderTargetByName(name);
+
+  graphMan.clearRenderTarget(pRTV, color);
 }
 
 void
-RenderManager::makePass(const String& passName)
+RenderManager::setRenderTargetsByName(const Vector<String>& names,
+                                      const SPtr<Texture2D>& pDepthS)
 {
-  auto& pPass = m_passes[passName];
-  pPass->setPass();
+  GraphicsManager& graphMan = g_graphicsMan();
+  Vector<SPtr<Texture2D>> pRTVs;
+
+  for (auto& name : names) {
+    auto pTarget = getRenderTargetByName(name);
+    pRTVs.push_back(pTarget);
+  }
+
+  graphMan.setRenderTargets(pRTVs, pDepthS);
+}
+
+void
+RenderManager::createPass(const String& passName)
+{
+  auto pPass = sh_makeShared<Pass>();
+  StringID strID(passName);
+  m_passes[strID.getID()] = pPass;
+}
+
+SPtr<Pass>
+RenderManager::getPass(const String& passName)
+{
+  StringID strID(passName);
+  auto pPass = m_passes.find(strID.getID());
+
+  if (pPass != m_passes.end()) {
+    return (*pPass).second;
+  }
+
+  return nullptr;
+}
+
+void
+RenderManager::addPass(const SPtr<Pass>& pPass, const String& passName)
+{
+  StringID strID(passName);
+  m_passes[strID.getID()] = pPass;
+}
+
+void
+RenderManager::setPassByName(const String& passName)
+{
+  StringID strID(passName);
+  m_passes[strID.getID()]->setPass();
 }
 
 void RenderManager::recompileShaders()
@@ -180,10 +222,20 @@ RenderManager::renderScene()
 
   auto pDepthSV = graphMan.getMainDepthStencil();
 
+  // Get render targets
+  auto pShadowMap = getRenderTargetByName("ShadowMap");
+  auto pDepthMap = getRenderTargetByName("DepthMap");
+  auto pNormalMap = getRenderTargetByName("NormalMap");
+  auto pColorMap = getRenderTargetByName("ColorMap");
+  auto pPropMap = getRenderTargetByName("PropMap");
+  auto pAOMap = getRenderTargetByName("AOMap");
+  auto pHBlurMap = getRenderTargetByName("HBlurMap");
+  auto pVBlurMap = getRenderTargetByName("VBlurMap");
+  auto pSkyBoxMap = getRenderTargetByName("SkyBoxMap");
+
   /*************************************/
   /*          Shadow Mapping           */
   /*************************************/
-  // Shadow Mapping
   Viewport shadowVP = {};
   shadowVP.width = m_sMapSize;
   shadowVP.height = m_sMapSize;
@@ -194,9 +246,9 @@ RenderManager::renderScene()
 
   graphMan.setViewport(shadowVP);
 
-  graphMan.clearDepthStencil(m_targets["ShadowMap"]);
-  graphMan.setRenderTargets({ m_targets["ShadowTemp"] }, m_targets["ShadowMap"]);
-  m_passes["SMapShader"]->setPass();
+  graphMan.clearDepthStencil(pShadowMap);
+  setRenderTargetsByName({ "ShadowTemp" }, pShadowMap);
+  setPassByName("SMapShader");
 
   auto& pistolGO = scene.getGameObjectList()[0];
   auto& sponzaGO = scene.getGameObjectList()[1];
@@ -220,7 +272,6 @@ RenderManager::renderScene()
 
   modelT = sponzaGO->transform.getTransform();
   graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-  //graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
   drawSMUInScene({ sponzaMesh });
 
   cleanShaderObjects();
@@ -238,18 +289,14 @@ RenderManager::renderScene()
 
   graphMan.setViewport(normalVP);
 
-  graphMan.clearRenderTarget(m_targets["DepthMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.clearRenderTarget(m_targets["NormalMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.clearRenderTarget(m_targets["ColorMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.clearRenderTarget(m_targets["PropMap"], LinearColor(0.0f, 0.0f, 0.0f));
+  clearRenderTargetByName("DepthMap");
+  clearRenderTargetByName("NormalMap");
+  clearRenderTargetByName("ColorMap");
+  clearRenderTargetByName("PropMap");
   graphMan.clearDepthStencil(pDepthSV);
 
-  graphMan.setRenderTargets({ m_targets["DepthMap"],
-                              m_targets["NormalMap"],
-                              m_targets["ColorMap"],
-                              m_targets["PropMap"] },
-                            pDepthSV);
-  m_passes["GBufferShader"]->setPass();
+  setRenderTargetsByName({ "DepthMap", "NormalMap", "ColorMap", "PropMap" }, pDepthSV);
+  setPassByName("GBufferShader");
 
   modelT = pistolGO->transform.getTransform();
   graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
@@ -266,12 +313,13 @@ RenderManager::renderScene()
   /*************************************/
   /*         Ambient Occlusion         */
   /*************************************/
-  graphMan.clearRenderTarget(m_targets["AOMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_targets["AOMap"] }, pDepthSV);
-  m_passes["AOShader"]->setPass();
+  clearRenderTargetByName("AOMap");
+  setRenderTargetsByName({ "AOMap" }, pDepthSV);
+  setPassByName("PlaneShader");
+  setPassByName("AOShader");
 
-  graphMan.setShaderResourceView(m_targets["DepthMap"], 0);
-  graphMan.setShaderResourceView(m_targets["NormalMap"], 1);
+  graphMan.setShaderResourceView(pDepthMap, 0);
+  graphMan.setShaderResourceView(pNormalMap, 1);
 
   graphMan.draw(3, 0);
 
@@ -280,11 +328,12 @@ RenderManager::renderScene()
   /*************************************/
   /*          Horizontal Blur          */
   /*************************************/
-  graphMan.clearRenderTarget(m_targets["HBlurMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_targets["HBlurMap"] }, pDepthSV);
-  m_passes["HBlurShader"]->setPass();
+  clearRenderTargetByName("HBlurMap");
+  setRenderTargetsByName({ "HBlurMap" }, pDepthSV);
+  setPassByName("PlaneShader");
+  setPassByName("HBlurShader");
 
-  graphMan.setShaderResourceView(m_targets["AOMap"], 0);
+  graphMan.setShaderResourceView(pAOMap, 0);
 
   graphMan.draw(3, 0);
 
@@ -293,11 +342,12 @@ RenderManager::renderScene()
   /*************************************/
   /*            Vetical Blur           */
   /*************************************/
-  graphMan.clearRenderTarget(m_targets["VBlurMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_targets["VBlurMap"] }, pDepthSV);
-  m_passes["VBlurShader"]->setPass();
+  clearRenderTargetByName("VBlurMap");
+  setRenderTargetsByName({ "VBlurMap" }, pDepthSV);
+  setPassByName("PlaneShader");
+  setPassByName("VBlurShader");
 
-  graphMan.setShaderResourceView({ m_targets["HBlurMap"] }, 0);
+  graphMan.setShaderResourceView({ pHBlurMap }, 0);
 
   graphMan.draw(3, 0);
 
@@ -306,15 +356,16 @@ RenderManager::renderScene()
   /*************************************/
   /*             Lightning             */
   /*************************************/
-  graphMan.setRenderTargets({ m_targets["MainTarget"] }, pDepthSV);
-  m_passes["LightningShader"]->setPass();
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("PlaneShader");
+  setPassByName("LightningShader");
 
-  graphMan.setShaderResourceView(m_targets["DepthMap"], 0);
-  graphMan.setShaderResourceView(m_targets["NormalMap"], 1);
-  graphMan.setShaderResourceView(m_targets["ColorMap"], 2);
-  graphMan.setShaderResourceView(m_targets["PropMap"], 3);
-  graphMan.setShaderResourceView(m_targets["VBlurMap"], 4);
-  graphMan.setShaderResourceView(m_targets["ShadowMap"], 5);
+  graphMan.setShaderResourceView(pDepthMap, 0);
+  graphMan.setShaderResourceView(pNormalMap, 1);
+  graphMan.setShaderResourceView(pColorMap, 2);
+  graphMan.setShaderResourceView(pPropMap, 3);
+  graphMan.setShaderResourceView(pVBlurMap, 4);
+  graphMan.setShaderResourceView(pShadowMap, 5);
 
   graphMan.draw(3, 0);
 
@@ -324,9 +375,9 @@ RenderManager::renderScene()
   /*              Sky Box              */
   /*************************************/
   auto& skyBoxGO = scene.getGameObjectList()[2];
-  graphMan.clearRenderTarget(m_targets["SkyBoxMap"], LinearColor(0.0f, 0.0f, 0.0f));
-  graphMan.setRenderTargets({ m_targets["SkyBoxMap"] }, pDepthSV);
-  m_passes["SkyBoxShader"]->setPass();
+  clearRenderTargetByName("SkyBoxMap");
+  setRenderTargetsByName({ "SkyBoxMap" }, pDepthSV);
+  setPassByName("SkyBoxShader");
 
   for (auto& component : skyBoxGO->components) {
     if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
@@ -343,11 +394,15 @@ RenderManager::renderScene()
 
   cleanShaderObjects();
 
-  graphMan.setRenderTargets({ m_targets["MainTarget"] }, pDepthSV);
-  m_passes["FinalShader"]->setPass();
+  /*************************************/
+  /*            Add Sky Box            */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("PlaneShader");
+  setPassByName("FinalShader");
 
-  graphMan.setShaderResourceView(m_targets["NormalMap"], 0);
-  graphMan.setShaderResourceView(m_targets["SkyBoxMap"], 1);
+  graphMan.setShaderResourceView(pNormalMap, 0);
+  graphMan.setShaderResourceView(pSkyBoxMap, 1);
 
   graphMan.draw(3, 0);
 }

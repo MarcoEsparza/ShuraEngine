@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/04/14
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -34,7 +34,6 @@ namespace shEngineSDK {
 /*****************************************************************************/
 
 class RenderTargetView;
-class ProgramShader;
 class InputLayout;
 class SamplerState;
 class RasterizerState;

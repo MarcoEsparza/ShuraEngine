@@ -20,6 +20,7 @@
 #include "shPrerequisitesCore.h"
 #include "shModule.h"
 #include "shVector2.h"
+#include "shLinearColor.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -65,6 +66,15 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name);
 
+  SPtr<Texture2D>
+  getRenderTargetByName(const String& name);
+
+  void
+  clearRenderTargetByName(const String& name, const LinearColor& color = LinearColor::BLACK);
+
+  void
+  setRenderTargetsByName(const Vector<String>& names, const SPtr<Texture2D>& pDepthS);
+
   /**
   *  @brief Reserve a space on the renderer with a given name.
   * 
@@ -90,7 +100,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @param String& passName
   */
   void
-  setPass(const SPtr<Pass>& pPass, const String& passName);
+  addPass(const SPtr<Pass>& pPass, const String& passName);
 
   /**
   *  @brief Executes the given pass.
@@ -98,7 +108,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @param String& passName
   */
   void
-  makePass(const String& passName);
+  setPassByName(const String& passName);
 
   /**
   *  @brief Recompile the shaders on the storaged passes.
@@ -178,12 +188,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   /**
   *  @brief Map to save passes.
   */
-  UMap<String, SPtr<Pass>> m_passes;
+  UMap<uint32, SPtr<Pass>> m_passes;
 
   /**
   *  @brief Map to save targets.
   */
-  UMap<String, SPtr<Texture2D>> m_targets;
+  UMap<uint32, SPtr<Texture2D>> m_targets;
 
   /**
   *  @brief Blend state for basic geometry.

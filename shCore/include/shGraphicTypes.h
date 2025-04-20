@@ -457,4 +457,13 @@ struct DepthStencilDesc
   DepthStencilOpDesc frontFace;
   DepthStencilOpDesc backFace;
 };
+
+/**
+*  @brief Shader macro struct.
+*/
+struct SH_CORE_EXPORT ShaderMacro
+{
+  String name;
+  String definition;
+};
 }

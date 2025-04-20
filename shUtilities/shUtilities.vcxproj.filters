@@ -43,6 +43,9 @@
     <Filter Include="Include\Debug">
       <UniqueIdentifier>{f41a1c14-d585-41e4-b0fe-ac8c892c74e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Debug">
+      <UniqueIdentifier>{ea3d42b8-67c0-4847-abaa-aa567582e33c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shBoxAAB.h">
@@ -204,7 +207,7 @@
       <Filter>Source\Script</Filter>
     </ClCompile>
     <ClCompile Include="source\shLogger.cpp">
-      <Filter>Source\Util</Filter>
+      <Filter>Source\Debug</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

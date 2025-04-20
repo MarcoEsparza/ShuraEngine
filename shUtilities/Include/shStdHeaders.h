@@ -150,7 +150,7 @@ template<typename to, typename from>
 SPtr<to>
 sh_reinterpretPCast(const SPtr<from>& pFrom)
 {
-  return std::reinterpret_pointer_cast<to>(from);
+  return std::reinterpret_pointer_cast<to>(pFrom);
 }
 
 /**
