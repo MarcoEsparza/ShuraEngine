@@ -2,7 +2,7 @@
 /*
 *  @file    shComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/04/23
 *  @brief   Component Base class.
 *
 *  Component Base class.
@@ -30,8 +30,8 @@ enum SH_CORE_EXPORT E
   kTexture,
   kStaticMesh,
   kSkeletalMesh,
-  kStaticMeshUnion,
   kAnimator,
+  kSkyBox,
 
   kCount
 };
@@ -83,6 +83,6 @@ class SH_CORE_EXPORT Component
   /**
   *  @brief Component type.
   */
-  COMPONENT_TYPE::E m_type;
+  COMPONENT_TYPE::E m_type = COMPONENT_TYPE::kCount;
 };
 }

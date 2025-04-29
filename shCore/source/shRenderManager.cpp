@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/04/23
 *  @brief   Render module.
 *
 *  Render module.
@@ -21,6 +21,7 @@
 #include "shGraphicsManager.h"
 #include "shSceneGraph.h"
 #include "shMeshComponent.h"
+#include "shSkyBoxComponent.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
 #include "shPass.h"
@@ -96,7 +97,9 @@ RenderManager::clearRenderTargetByName(const String& name, const LinearColor& co
   GraphicsManager& graphMan = g_graphicsMan();
   auto pRTV = getRenderTargetByName(name);
 
-  graphMan.clearRenderTarget(pRTV, color);
+  if (pRTV) {
+    graphMan.clearRenderTarget(pRTV, color);
+  }
 }
 
 void
@@ -108,7 +111,9 @@ RenderManager::setRenderTargetsByName(const Vector<String>& names,
 
   for (auto& name : names) {
     auto pTarget = getRenderTargetByName(name);
-    pRTVs.push_back(pTarget);
+    if (pTarget) {
+      pRTVs.push_back(pTarget);
+    }
   }
 
   graphMan.setRenderTargets(pRTVs, pDepthS);
@@ -157,22 +162,33 @@ void RenderManager::recompileShaders()
 }
 
 void
-RenderManager::drawSMUInScene(const Vector<SPtr<StaticMeshUnionComponent>>& meshList)
+RenderManager::drawStaticMeshOnScene(const SceneGraph& scene)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  for (auto& meshUnion : meshList) {
-    graphMan.setVertexBuffers(meshUnion->getVertexBuffer());
-    graphMan.setIndexBuffers(meshUnion->getIndexBuffer());
+  graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
 
-    uint32 indexCount = 0;
-    uint32 vertexCount = 0;
-    for (auto& mesh : meshUnion->getMeshResource()->meshes) {
-      auto mat = reinterpret_pointer_cast<Material>(mesh->material);
-      setResourceViewFromPBRMaterial(mat);
-      graphMan.drawIndexed(mesh->numIndex, indexCount, vertexCount);
-      indexCount += mesh->numIndex;
-      vertexCount += mesh->numVertex;
+  for (auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+        auto meshComponent = sh_reinterpretPCast<StaticMeshComponent>(component);
+
+        graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
+        graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+
+        Transform modelT = gameObject->transform.getTransform();
+        graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+
+        uint32 indexCount = 0;
+        uint32 vertexCount = 0;
+        auto& meshResource = meshComponent->m_mesh;
+        for (auto& mesh : meshResource->m_meshes) {
+          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+          indexCount += mesh.numIndices;
+          vertexCount += mesh.numVertices;
+        }
+      }
     }
   }
 }
@@ -249,30 +265,7 @@ RenderManager::renderScene()
   graphMan.clearDepthStencil(pShadowMap);
   setRenderTargetsByName({ "ShadowTemp" }, pShadowMap);
   setPassByName("SMapShader");
-
-  auto& pistolGO = scene.getGameObjectList()[0];
-  auto& sponzaGO = scene.getGameObjectList()[1];
-  SPtr<StaticMeshUnionComponent> pistolMesh;
-  SPtr<StaticMeshUnionComponent> sponzaMesh;
-  for (auto& component : pistolGO->components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-      pistolMesh = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-    }
-  }
-  for (auto& component : sponzaGO->components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-      sponzaMesh = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-    }
-  }
-  graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
-
-  Transform modelT = pistolGO->transform.getTransform();
-  graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-  drawSMUInScene({ pistolMesh });
-
-  modelT = sponzaGO->transform.getTransform();
-  graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-  drawSMUInScene({ sponzaMesh });
+  drawStaticMeshOnScene(scene);
 
   cleanShaderObjects();
 
@@ -297,16 +290,7 @@ RenderManager::renderScene()
 
   setRenderTargetsByName({ "DepthMap", "NormalMap", "ColorMap", "PropMap" }, pDepthSV);
   setPassByName("GBufferShader");
-
-  modelT = pistolGO->transform.getTransform();
-  graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-  graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
-  drawSMUInScene({ pistolMesh });
-
-  modelT = sponzaGO->transform.getTransform();
-  graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-  graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
-  drawSMUInScene({ sponzaMesh });
+  drawStaticMeshOnScene(scene);
 
   cleanShaderObjects();
 
@@ -379,16 +363,17 @@ RenderManager::renderScene()
   setRenderTargetsByName({ "SkyBoxMap" }, pDepthSV);
   setPassByName("SkyBoxShader");
 
-  for (auto& component : skyBoxGO->components) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-      auto pMesh = reinterpret_pointer_cast<StaticMeshComponent>(component);
-      graphMan.setVertexBuffers(pMesh->m_vertexBuffer);
-      graphMan.setIndexBuffers(pMesh->m_indexBuffer);
+  for (auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kSkyBox) {
+        auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(component);
+        graphMan.setVertexBuffers(pSkyBox->getVertexBuffer());
+        graphMan.setIndexBuffers(pSkyBox->getIndexBuffer());
+        graphMan.setShaderResourceView(pSkyBox->getMaterial()->baseColor, 0);
 
-      auto& pMat = pMesh->meshData->material;
-      graphMan.setShaderResourceView(pMat->baseColor, 0);
-
-      graphMan.drawIndexed(pMesh->meshData->numIndex, 0, 0);
+        uint32 numIndices = static_cast<uint32>(pSkyBox->getIndices().size());
+        graphMan.drawIndexed(numIndices, 0, 0);
+      }
     }
   }
 
@@ -405,6 +390,8 @@ RenderManager::renderScene()
   graphMan.setShaderResourceView(pSkyBoxMap, 1);
 
   graphMan.draw(3, 0);
+
+  cleanShaderObjects();
 }
 
 void

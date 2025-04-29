@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/04/23
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -45,7 +45,6 @@ namespace shEngineSDK {
 struct Bone;
 class Material;
 class StaticMeshResource;
-class StaticMeshUnionResource;
 class SkeletalMeshResource;
 class SkeletonResource;
 class AnimationResource;
@@ -96,8 +95,16 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   * 
   *  TODO: This function is not completed yet.
   */
-  void
+  bool
   saveResourceToAsset(const SPtr<Resource> pRes);
+
+  /**
+  *  @brief Load a model from cache.
+  *
+  *  @param String& fileName
+  */
+  SPtr<Resource>
+  loadModelFromCache(const String& fileName);
 
  private:
   /**
@@ -178,13 +185,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Material>
   createMaterialFromFile(const aiMaterial* pMat);
 
-  /**
-  *  @brief Load a model from cache.
-  *
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  loadModelFromCache(const String& fileName);
+  
 
   /*************************************************************/
   /*
@@ -226,47 +227,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   proccessStaticMesh(const aiMesh* mesh,
                      const aiScene* scene,
                      SPtr<StaticMeshResource>& currentMesh);
-
-  /*************************************************************/
-  /*
-  *  Static Mesh Union
-  */
-  /*************************************************************/
-
-  /**
-  *  @brief Creates the static mesh.
-  *
-  *  @param String& fileName
-  *  @param aiNode* node
-  *  @param aiScene* scene
-  */
-  SPtr<Resource>
-  createStaticMeshUnion(const String& fileName,
-                        const aiNode* node,
-                        const aiScene* scene);
-
-  /**
-  *  @brief If the model file is for static meshes, this function process all
-  *         nodes on the loaded file scene.
-  * 
-  *  @param aiNode* node
-  *  @param aiScene* scene
-  */
-  void
-  proccessStaticMeshUnionNode(const aiNode* node,
-                              const aiScene* scene,
-                              SPtr<StaticMeshUnionResource> meshUnion);
-
-  /**
-  *  @brief If the model file is for static meshes, this function process and
-  *         creates all static meshes on the file.
-  * 
-  *  @param aiMesh* mesh
-  */
-  void
-  proccessStaticUnionMesh(const aiMesh* mesh,
-                          const aiScene* scene,
-                          SPtr<StaticMeshUnionResource> meshUnion);
 
   /*************************************************************/
   /*

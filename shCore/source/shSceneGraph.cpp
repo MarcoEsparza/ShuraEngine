@@ -2,7 +2,7 @@
 /*
 *  @file    shSceneGraph.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/04/23
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
@@ -20,8 +20,6 @@
 #include "shGraphicsManager.h"
 #include "shMeshComponent.h"
 #include "shAnimatorComponent.h"
-
-using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
 SceneGraph::~SceneGraph()
@@ -56,21 +54,21 @@ SceneGraph::getGameObjectList() const
   return m_gameObjects;
 }
 
-const Vector<SPtr<StaticMeshUnionComponent>>
-SceneGraph::getStaticMeshUnionComponentInScene() const
+const Vector<SPtr<StaticMeshComponent>>
+SceneGraph::getStaticMeshComponentInScene() const
 {
-  Vector<SPtr<StaticMeshUnionComponent>> smuComponents;
+  Vector<SPtr<StaticMeshComponent>> meshes;
 
-  for (auto& object : m_gameObjects) {
-    for (auto& component : object->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMeshUnion) {
-        auto meshUC = reinterpret_pointer_cast<StaticMeshUnionComponent>(component);
-        smuComponents.push_back(meshUC);
+  for (auto& gameObject : m_gameObjects) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+        auto mesh = sh_reinterpretPCast<StaticMeshComponent>(component);
+        meshes.push_back(mesh);
       }
     }
   }
 
-  return smuComponents;
+  return meshes;
 }
 
 SceneGraph& g_sceneGraph()

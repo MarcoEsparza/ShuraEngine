@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/04/23
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -405,11 +405,11 @@ ResourceManager::getResource(const String& resourceName)
   return isResourceLoaded(resourceName);
 }
 
-void
+bool
 ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes)
 {
   Asset resAsset;
-  resAsset.saveResourceToAsset(pRes);
+  return resAsset.saveResourceToAsset(pRes);
 }
 
 SPtr<Resource>
@@ -462,6 +462,10 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
       pRes = loadTextureFromDDS(fullPath.string());
       return true;
     }
+  }
+  else if (filePath.compareExtensions({ ".dds" })) {
+    pRes = loadTextureFromDDS(filePath.toString());
+    return true;
   }
   else if (filePath.compareExtensions({ ".sha" })) {
     SystemPath path = filePath.toString();
@@ -540,12 +544,7 @@ ResourceManager::loadModelFromFile(const String& fileName)
     return createSkeletalMesh(pScene, fileName);
   }
   else {
-    if (pScene->mNumMeshes == 1) {
-      return createStaticMesh(fileName, pScene->mRootNode, pScene);
-    }
-    else {
-      return createStaticMeshUnion(fileName, pScene->mRootNode, pScene);
-    }
+    return createStaticMesh(fileName, pScene->mRootNode, pScene);
   }
 }
 
@@ -573,8 +572,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     SystemPath filename = aiPath.C_Str();
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
-    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     pMeshMat->baseColor = pImage->texture;
+    pMeshMat->baseColorPath = pImage->getPath().toString();
   }
 
   if (normCount == 0) {
@@ -587,8 +587,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     SystemPath filename = aiPath.C_Str();
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
-    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     pMeshMat->normal = pImage->texture;
+    pMeshMat->normalPath = pImage->getPath().toString();
   }
 
   if (metalCount == 0) {
@@ -601,8 +602,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     SystemPath filename = aiPath.C_Str();
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
-    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     pMeshMat->metallic = pImage->texture;
+    pMeshMat->metallicPath = pImage->getPath().toString();
   }
 
   if (roughCount == 0) {
@@ -615,8 +617,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     SystemPath filename = aiPath.C_Str();
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
-    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     pMeshMat->roughness = pImage->texture;
+    pMeshMat->roughnessPath = pImage->getPath().toString();
   }
 
   if (aoCount == 0) {
@@ -629,8 +632,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     SystemPath filename = aiPath.C_Str();
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
-    auto pImage = reinterpret_pointer_cast<ImageResource>(loadResourceFromFile(filePath));
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     pMeshMat->ao = pImage->texture;
+    pMeshMat->aoPath = pImage->getPath().toString();
   }
   
   pMeshMat->m_type = MATERIAL_TYPE::kPBR;
@@ -643,45 +647,27 @@ SPtr<Resource>
 ResourceManager::loadModelFromCache(const String& fileName)
 {
   Asset model;
-  auto pRes = model.loadResourceFromAsset(Path(fileName));
+  model.loadResourceFromAsset(Path(fileName));
+  auto& pRes = model.m_res;
 
-  if (pRes->getType() == RESOURCE_TYPE::kMeshUnion) {
-    auto pSMURes = reinterpret_pointer_cast<StaticMeshUnionResource>(pRes);
-
-    for (uint32 i = 0; i < pSMURes->materials.size(); ++i) {
-      /*auto pBCImage = reinterpret_pointer_cast<ImageResource>(
-                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
-      pSMURes->materials[i]->baseColor = pBCImage->texture;
-
-      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
-                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
-      pSMURes->materials[i]->baseColor = pBCImage->texture;
-
-      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
-                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
-      pSMURes->materials[i]->baseColor = pBCImage->texture;
-
-      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
-                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
-      pSMURes->materials[i]->baseColor = pBCImage->texture;
-
-      auto pBCImage = reinterpret_pointer_cast<ImageResource>(
-                      loadResourceFromFile(Path(pSMURes->materials[i]->baseColorPath)));
-      pSMURes->materials[i]->baseColor = pBCImage->texture;*/
-    }
-  }
+  SystemPath path = fileName;
+  pRes->setName(path.filename().string());
+  m_loadedResources[pRes->getName()] = pRes;
 
   return pRes;
 }
 
 SPtr<Resource>
-ResourceManager::createStaticMesh(const String&,
+ResourceManager::createStaticMesh(const String& fileName,
                                   const aiNode* node,
                                   const aiScene* scene)
 {
   auto currentMesh = sh_makeShared<StaticMeshResource>();
 
   proccessStaticMeshNode(node, scene, currentMesh);
+  SystemPath path = fileName;
+  currentMesh->setName(path.filename().string());
+  m_loadedResources[currentMesh->getName()] = currentMesh;
 
   return currentMesh;
 }
@@ -706,102 +692,36 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
                                     const aiScene* scene,
                                     SPtr<StaticMeshResource>& currentMesh)
 {
-  currentMesh->vertices = getVertexDataFromMesh(mesh);
-  currentMesh->numVertex = mesh->mNumVertices;
-  currentMesh->indices = getIndicesFromMesh(mesh, currentMesh->numIndex);
+  MeshData currentData;
+  currentData.name = mesh->mName.C_Str();
+  currentData.vertices = getVertexDataFromMesh(mesh);
+  currentData.numVertices = mesh->mNumVertices;
+  currentData.indices = getIndicesFromMesh(mesh, currentData.numIndices);
 
-  auto* mat = scene->mMaterials[mesh->mMaterialIndex];
+  auto* aiMat = scene->mMaterials[mesh->mMaterialIndex];
+  currentData.materialIndex = mesh->mMaterialIndex;
+  auto currentMat = createMaterialFromFile(aiMat);
 
-  auto meshMaterial = sh_makeShared<Material>();
-
-  auto& imgRes = m_loadedResources["White.png"];
-  auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
-  meshMaterial->baseColor = img->texture;
-  meshMaterial->name = mat->GetName().C_Str();
-  currentMesh->material = meshMaterial;
-
-  currentMesh->setName(mesh->mName.C_Str());
-  m_loadedResources[currentMesh->getName()] = currentMesh;
-}
-
-SPtr<Resource>
-ResourceManager::createStaticMeshUnion(const String& fileName,
-                                       const aiNode* node,
-                                       const aiScene* scene)
-{
-  auto meshUnion = sh_makeShared<StaticMeshUnionResource>();
-
-  proccessStaticMeshUnionNode(node, scene, meshUnion);
-
-  if(meshUnion->meshes.size() > 1){
-    SystemPath name = fileName;
-    meshUnion->setName(name.filename().string());
-    
-    m_loadedResources[meshUnion->getName()] = meshUnion;
-  }
-
-  return meshUnion;
-}
-
-void
-ResourceManager::proccessStaticMeshUnionNode(const aiNode* node,
-                                             const aiScene* scene,
-                                             SPtr<StaticMeshUnionResource> meshUnion)
-{
-  for (uint32 i = 0; i < node->mNumMeshes; ++i) {
-    aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    proccessStaticUnionMesh(mesh, scene, meshUnion);
-  }
-
-  for (uint32 i = 0; i < node->mNumChildren; ++i) {
-    proccessStaticMeshUnionNode(node->mChildren[i], scene, meshUnion);
-  }
-}
-
-void
-ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
-                                         const aiScene* scene,
-                                         SPtr<StaticMeshUnionResource> meshUnion)
-{
-  auto currentMesh = sh_makeShared<StaticMeshResource>();
-  currentMesh->vertices = getVertexDataFromMesh(mesh);
-  currentMesh->numVertex = mesh->mNumVertices;
-  currentMesh->indices = getIndicesFromMesh(mesh, currentMesh->numIndex);
-
-  auto* mat = scene->mMaterials[mesh->mMaterialIndex];
-  
-  auto meshMaterial = createMaterialFromFile(mat);
-  //auto meshMaterial = make_shared<Material>();
-
-  //auto& imgRes = m_loadedResources["White.dds"];
-  //auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
-  //meshMaterial->baseColor = img->texture;
-  meshMaterial->name = mat->GetName().C_Str();
-  currentMesh->material = meshMaterial;
-  
-  if (meshUnion->materials.size() == 0) {
-    meshUnion->materials.push_back(currentMesh->material);
+  if (currentMesh->m_materials.empty()) {
+    currentMesh->m_materials.push_back(currentMat);
   }
   else {
-    for (uint32 i = 0; i < meshUnion->materials.size(); ++i) {
-      auto& unionMat = meshUnion->materials[i];
-      if (currentMesh->material->name == unionMat->name) {
-        currentMesh->material = unionMat;
+    for (uint32 i = 0; i < currentMesh->m_materials.size(); ++i) {
+      auto& mat = currentMesh->m_materials[i];
+      if (currentMat->name == mat->name) {
+        currentData.materialIndex = i;
         break;
       }
       else {
-        if (i == (meshUnion->materials.size() - 1)) {
-          meshUnion->materials.push_back(currentMesh->material);
-          break;
+        if (i == currentMesh->m_materials.size() - 1) {
+          currentMesh->m_materials.push_back(currentMat);
+          currentData.materialIndex = i + 1;
         }
       }
     }
   }
 
-  currentMesh->setName(mesh->mName.C_Str());
-  //m_loadedResources[currentMesh->getName()] = currentMesh;
-
-  meshUnion->meshes.push_back(currentMesh);
+  currentMesh->m_meshes.push_back(currentData);
 }
 
 SPtr<Resource>
@@ -810,7 +730,7 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   auto skeletalMesh = sh_makeShared<SkeletalMeshResource>();
   auto skeleton = sh_makeShared<SkeletonResource>();
 
-  skeletalMesh->materials.resize(scene->mNumMaterials);
+  skeletalMesh->m_materials.resize(scene->mNumMaterials);
 
   proccessSkeletalMeshNode(scene->mRootNode, scene, skeletalMesh, skeleton);
 
@@ -854,31 +774,31 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
                                       SPtr<SkeletalMeshResource>& skeletalMesh,
                                       SPtr<SkeletonResource>& skeleton)
 {
-  SkeletalMeshInfo currentMeshInfo;
+  SkeletalMeshData currentMeshInfo;
 
   Vector<VertexData> currentMeshVertices = getVertexDataFromMesh(mesh);
 
   currentMeshInfo.numVertices = mesh->mNumVertices;
   ExtractBoneWeightForVertex(currentMeshVertices, mesh, skeleton);
   for (auto& vertex : currentMeshVertices) {
-    skeletalMesh->vertices.push_back(vertex);
+    skeletalMesh->m_vertices.push_back(vertex);
   }
-  skeletalMesh->indices = getIndicesFromMesh(mesh, currentMeshInfo.numIndices);
+  skeletalMesh->m_indices = getIndicesFromMesh(mesh, currentMeshInfo.numIndices);
 
   currentMeshInfo.name = mesh->mName.C_Str();
   currentMeshInfo.materialIndex = mesh->mMaterialIndex;
 
-  if (skeletalMesh->materials[currentMeshInfo.materialIndex] == nullptr) {
+  if (skeletalMesh->m_materials[currentMeshInfo.materialIndex] == nullptr) {
     auto meshMat = sh_makeShared<Material>();
     auto& imgRes = m_loadedResources["White.png"];
-    auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
+    auto img = sh_reinterpretPCast<ImageResource>(imgRes);
     meshMat->baseColor = img->texture;
     auto mat = scene->mMaterials[mesh->mMaterialIndex];
     meshMat->name = mat->GetName().C_Str();
-    skeletalMesh->materials[currentMeshInfo.materialIndex] = meshMat;
+    skeletalMesh->m_materials[currentMeshInfo.materialIndex] = meshMat;
   }
 
-  skeletalMesh->meshes.push_back(currentMeshInfo);
+  skeletalMesh->m_meshes.push_back(currentMeshInfo);
 }
 
 void

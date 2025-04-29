@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/04/23
 *  @brief   Render module.
 *
 *  Render module.
@@ -28,12 +28,12 @@ namespace shEngineSDK {
 *  Foward declarations
 */
 /*****************************************************************************/
-class StaticMeshUnionComponent;
 class Material;
 class Pass;
 class BlendState;
 class Texture2D;
 class ConstantBuffer;
+class SceneGraph;
 
 /**
 *  @brief Render module.
@@ -66,12 +66,31 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name);
 
+  /**
+  *  @brief Returns a render target by its name.
+  * 
+  *  @param String& name
+  * 
+  *  @return SPtr<Texture2D>
+  */
   SPtr<Texture2D>
   getRenderTargetByName(const String& name);
 
+  /**
+  *  @brief Clear a render target by its name.
+  * 
+  *  @param String& name
+  *  @param LinearColor& color = LinearColor::BLACK
+  */
   void
   clearRenderTargetByName(const String& name, const LinearColor& color = LinearColor::BLACK);
 
+  /**
+  *  @brief Set a render target by its names.
+  * 
+  *  @param Vector<String>& names: Render targets names
+  *  @param SPtr<Texture2D>& pDepthS: Depth Stencil
+  */
   void
   setRenderTargetsByName(const Vector<String>& names, const SPtr<Texture2D>& pDepthS);
 
@@ -117,12 +136,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   recompileShaders();
 
   /**
-  *  @brief Draw Static Mesh Union Components in scene.
+  *  @brief
   * 
-  *  @param Vector<SPtr<StaticMeshUnionComponent>>& meshList
+  *  @param
   */
   void
-  drawSMUInScene(const Vector<SPtr<StaticMeshUnionComponent>>& meshList);
+  drawStaticMeshOnScene(const SceneGraph& scene);
 
   /**
   *  @brief Sets the resource view from PBRMaterial.

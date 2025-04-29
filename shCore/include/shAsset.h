@@ -25,32 +25,53 @@
 namespace shEngineSDK {
 struct SH_CORE_EXPORT ResourceInfoHeader
 {
-  RESOURCE_TYPE::E type;
+  RESOURCE_TYPE::E type = RESOURCE_TYPE::kCount;
   String name;
 };
 
-struct SH_CORE_EXPORT StaticMeshAssetHeader
+struct SH_CORE_EXPORT MeshDataHeader
 {
   uint32 numVertices = 0;
   uint32 numIndices = 0;
   uint32 matIndex = 0;
 };
 
-struct SH_CORE_EXPORT SkeletalMeshAssetHeader
-{
-  uint32 numMat = 0;
-};
-
-struct SH_CORE_EXPORT SMUnionAssetHeader
+struct SH_CORE_EXPORT StaticMeshAssetHeader
 {
   uint32 numMeshes = 0;
-  uint32 numMat = 0;
+  uint32 numMaterials = 0;
 };
+
+struct SH_CORE_EXPORT SkeletalMeshAssetHeader
+{
+  uint32 numMeshes = 0;
+  uint32 numMaterials = 0;
+  uint32 numVertices = 0;
+  uint32 numIndices = 0;
+};
+
+//struct SH_CORE_EXPORT ImgResourceAsset
+//{
+//  String 
+//};
 
 struct SH_CORE_EXPORT MaterialAssetHeader
 {
-  MATERIAL_TYPE::E type;
-  MaterialProperties properties;
+  bool hasDiffuse;
+  /*uint32 bHasDiffuseMap : 1;
+  uint32 bHasSpecularMap : 1;
+  uint32 bHasNormalMap : 1;
+  uint32 bHasMetalnessMap : 1;
+  uint32 bHasRoughnessMap : 1;
+  uint32 bHasAmbientOcclusionMap : 1;
+  uint32 bIsOpaque : 1;
+  uint32 bHasAlphaTest : 1;
+  uint32 bHasAlphaBlend : 1;
+  uint32 bIsDoubleSided : 1;
+  uint32 bWireframeEnabled : 1;
+  uint32 bCanCastShadows : 1;
+  uint32 bCanReceiveShadows : 1;
+  uint32 Unused : 19;*/
 };
 
 struct SH_CORE_EXPORT PBRMaterialAsset
@@ -71,14 +92,16 @@ class SH_CORE_EXPORT Asset
   bool
   saveResourceToAsset(const SPtr<Resource>& pRes);
 
-  SPtr<Resource>
+  void
   loadResourceFromAsset(Path filePath);
+
+  SPtr<Resource> m_res;
 
  private:
   void
-  saveSMUnionAsset(const SPtr<Resource>& pRes);
+  saveStaticMesh(const SPtr<Resource>& pRes);
 
-  /*void
-  loadSMUnionAsset(const )*/
+  SPtr<Resource>
+  loadStaticMesh(sh_fstream& file);
 };
 }

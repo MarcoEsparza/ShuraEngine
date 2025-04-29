@@ -231,6 +231,9 @@
     <ClInclude Include="include\shAudioTypes.h">
       <Filter>Header Files\AudioManager</Filter>
     </ClInclude>
+    <ClInclude Include="include\shSkyBoxComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -286,6 +289,9 @@
     </ClCompile>
     <ClCompile Include="source\shAudioManager.cpp">
       <Filter>Source Files\AudioManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shSkyBoxComponent.cpp">
+      <Filter>Source Files\Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

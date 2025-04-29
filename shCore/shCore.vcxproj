@@ -59,6 +59,7 @@
     <ClInclude Include="Include\shScreenEventHandle.h" />
     <ClInclude Include="include\shShader.h" />
     <ClInclude Include="include\shSkeletonResource.h" />
+    <ClInclude Include="include\shSkyBoxComponent.h" />
     <ClInclude Include="include\shSound.h" />
     <ClInclude Include="include\shSwapChain.h" />
     <ClInclude Include="include\shTexture.h" />
@@ -82,6 +83,7 @@
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
+    <ClCompile Include="source\shSkyBoxComponent.cpp" />
     <ClCompile Include="source\shTransformComponent.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

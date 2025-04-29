@@ -2,7 +2,7 @@
 /*
 *  @file    shAsset.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/04/28
 *  @brief   Asset class for cache generation.
 *
 *  Asset class for cache generation.
@@ -17,9 +17,11 @@
 */
 /*************************************************************/
 #include "shAsset.h"
+#include "shResourceManager.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
 #include "shImageResource.h"
+#include "shException.h"
 
 using std::getline;
 
@@ -28,151 +30,233 @@ bool
 Asset::saveResourceToAsset(const SPtr<Resource>& pRes)
 {
   RESOURCE_TYPE::E resType = pRes->getType();
-
-  if (resType == RESOURCE_TYPE::kMeshUnion) {
-    saveSMUnionAsset(pRes);
+  if (resType == RESOURCE_TYPE::kStaticMesh) {
+    saveStaticMesh(pRes);
+    return true;
   }
 
   return false;
 }
 
 void
-Asset::saveSMUnionAsset(const SPtr<Resource>& pRes)
+Asset::loadResourceFromAsset(Path filePath)
 {
-  auto pSMURes = reinterpret_pointer_cast<StaticMeshUnionResource>(pRes);
+  ResourceManager& resMan = g_resourceMan();
+  sh_fstream file(filePath.toString(), ios::in | ios::binary);
 
-  ResourceInfoHeader resIH = {};
-  resIH.type = RESOURCE_TYPE::kMeshUnion;
-  resIH.name = pSMURes->getName();
-
-  SMUnionAssetHeader smuAH = {};
-  smuAH.numMeshes = static_cast<uint32>(pSMURes->meshes.size());
-  smuAH.numMat = static_cast<uint32>(pSMURes->materials.size());
-
-  Path pathName(pSMURes->getName());
-  pathName.replaceExtension(".sha");
-  String fileName = "resources/assets/models/" + pathName.toString();
-
-  sh_fstream file(fileName, ios::out | ios::binary);
-
-  file.write(reinterpret_cast<char*>(&resIH), sizeof(ResourceInfoHeader));
-  file.write(reinterpret_cast<char*>(&smuAH), sizeof(SMUnionAssetHeader));
-
-  for (uint32 i = 0; i < smuAH.numMeshes; ++i) {
-    StaticMeshAssetHeader smaH = {};
-    smaH.numVertices = pSMURes->meshes[i]->numVertex;
-    smaH.numIndices = pSMURes->meshes[i]->numIndex;
-    smaH.matIndex = pSMURes->meshes[i]->matIndex;
-
-    Vector<char> vertexInfo;
-    uint32 verticesSize = static_cast<uint32>(sizeof(VertexData) *
-                                              pSMURes->meshes[i]->vertices.size());
-    memcpy(vertexInfo.data(), pSMURes->meshes[i]->vertices.data(), verticesSize);
-
-    Vector<char> indexInfo;
-    uint32 indicesSize = static_cast<uint32>(sizeof(VertexData) *
-                         pSMURes->meshes[i]->indices.size());
-    memcpy(indexInfo.data(), pSMURes->meshes[i]->indices.data(), indicesSize);
-
-    file.write(reinterpret_cast<char*>(&smaH), sizeof(StaticMeshAssetHeader));
-    file.write(vertexInfo.data(), vertexInfo.size());
-    file.write(indexInfo.data(), indexInfo.size());
+  if (!file.is_open()) {
+    return;
   }
 
-  for (uint32 i = 0; i < smuAH.numMat; ++i) {
-    MaterialAssetHeader mah = {};
-    mah.type = pSMURes->materials[i]->m_type;
-    mah.properties = pSMURes->materials[i]->m_properties;
+  RESOURCE_TYPE::E resType = RESOURCE_TYPE::kCount;
+  file.read(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
 
-    String baseColorPath = pSMURes->materials[i]->baseColorPath;
-    String normalPath = pSMURes->materials[i]->normalPath;
-    String metallicPath = pSMURes->materials[i]->metallicPath;
-    String roughnessPath = pSMURes->materials[i]->roughnessPath;
-    String aoPath = pSMURes->materials[i]->aoPath;
+  if (resType == RESOURCE_TYPE::kStaticMesh) {
+    auto pStaticMesh = sh_makeShared<StaticMeshResource>();
 
-    file.write(reinterpret_cast<char*>(&mah), sizeof(MaterialAssetHeader));
-    file << "\n";
-    file << baseColorPath << "\n";
-    file << normalPath << "\n";
-    file << metallicPath << "\n";
-    file << roughnessPath << "\n";
-    file << aoPath << "\n";
+    StaticMeshAssetHeader meshAH = {};
+    file.read(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
+    pStaticMesh->m_meshes.resize(meshAH.numMeshes);
+    pStaticMesh->m_materials.resize(meshAH.numMaterials);
+
+    for (auto& mesh : pStaticMesh->m_meshes) {
+      MeshDataHeader mdh = {};
+      file.read(reinterpret_cast<char*>(&mdh), sizeof(MeshDataHeader));
+      mesh.numVertices = mdh.numVertices;
+      mesh.numIndices = mdh.numIndices;
+      mesh.materialIndex = mdh.matIndex;
+    
+      uint32 verticesSize = mesh.numVertices * sizeof(VertexData);
+      uint32 indicesSize = mesh.numIndices * sizeof(uint32);
+      Vector<char> verticesData;
+      Vector<char> indicesData;
+      verticesData.resize(verticesSize);
+      indicesData.resize(indicesSize);
+      mesh.vertices.resize(mesh.numVertices);
+      mesh.indices.resize(mesh.numIndices);
+    
+      file.read(reinterpret_cast<char*>(verticesData.data()), verticesSize);
+      file.read(reinterpret_cast<char*>(indicesData.data()), indicesSize);
+      memcpy(mesh.vertices.data(), verticesData.data(), verticesSize);
+      memcpy(mesh.indices.data(), indicesData.data(), indicesSize);
+    
+      String line;
+      getline(file, line);
+      getline(file, line);
+      mesh.name = line;
+    }
+
+    for (auto& mat : pStaticMesh->m_materials) {
+      mat = sh_makeShared<Material>();
+    
+      file.read(reinterpret_cast<char*>(&mat->m_properties), sizeof(MaterialProperties));
+      String line;
+      getline(file, line);
+      getline(file, line);
+      mat->name = line;
+      getline(file, line);
+      mat->baseColorPath = line;
+      getline(file, line);
+      mat->metallicPath = line;
+      getline(file, line);
+      mat->roughnessPath = line;
+      getline(file, line);
+      mat->normalPath = line;
+      getline(file, line);
+      mat->aoPath = line;
+    
+      auto pBaseColor = sh_reinterpretPCast<ImageResource>(
+                        resMan.loadResourceFromFile(Path(mat->baseColorPath)));
+      auto pMetallic = sh_reinterpretPCast<ImageResource>(
+                       resMan.loadResourceFromFile(Path(mat->metallicPath)));
+      auto pRoughness = sh_reinterpretPCast<ImageResource>(
+                        resMan.loadResourceFromFile(Path(mat->roughnessPath)));
+      auto pNormal = sh_reinterpretPCast<ImageResource>(
+                     resMan.loadResourceFromFile(Path(mat->normalPath)));
+      auto pAO = sh_reinterpretPCast<ImageResource>(
+                 resMan.loadResourceFromFile(Path(mat->aoPath)));
+    
+      mat->baseColor = pBaseColor->texture;
+      mat->metallic = pMetallic->texture;
+      mat->roughness = pRoughness->texture;
+      mat->normal = pNormal->texture;
+      mat->ao = pAO->texture;
+    }
+
+    m_res = pStaticMesh;
+  }
+
+  file.close();
+}
+
+void
+Asset::saveStaticMesh(const SPtr<Resource>& pRes)
+{
+  auto pStaticMesh = sh_reinterpretPCast<StaticMeshResource>(pRes);
+  RESOURCE_TYPE::E resType = RESOURCE_TYPE::kStaticMesh;
+
+  StaticMeshAssetHeader meshAH = {};
+  meshAH.numMeshes = static_cast<uint32>(pStaticMesh->m_meshes.size());
+  meshAH.numMaterials = static_cast<uint32>(pStaticMesh->m_materials.size());
+
+  SystemPath pathName = pStaticMesh->getName();
+  pathName.replace_extension(".sha");
+  String fileName = "resources/assets/models/" + pathName.string();
+  sh_fstream file(fileName, ios::out | ios::binary);
+
+  file.write(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
+  file.write(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
+
+  for (auto& mesh : pStaticMesh->m_meshes) {
+    MeshDataHeader mdh = {};
+    mdh.numVertices = mesh.numVertices;
+    mdh.numIndices = mesh.numIndices;
+    mdh.matIndex = mesh.materialIndex;
+    file.write(reinterpret_cast<char*>(&mdh), sizeof(MeshDataHeader));
+
+    Vector<char> verticesData;
+    Vector<char> indicesData;
+    uint32 verticesSize = static_cast<uint32>(mesh.vertices.size() * sizeof(VertexData));
+    uint32 indicesSize = static_cast<uint32>(mesh.indices.size() * sizeof(uint32));
+    verticesData.resize(verticesSize);
+    indicesData.resize(indicesSize);
+    memcpy(verticesData.data(), mesh.vertices.data(), verticesSize);
+    memcpy(indicesData.data(), mesh.indices.data(), indicesSize);
+
+    file.write(verticesData.data(), verticesSize);
+    file.write(indicesData.data(), indicesSize);
+    file << "\n" << mesh.name << "\n";
+  }
+
+  for (auto& mat : pStaticMesh->m_materials) {
+    file.write(reinterpret_cast<char*>(&mat->m_properties), sizeof(MaterialProperties));
+    file << "\n" << mat->name << "\n";
+    file << mat->baseColorPath << "\n";
+    file << mat->metallicPath << "\n";
+    file << mat->roughnessPath << "\n";
+    file << mat->normalPath << "\n";
+    file << mat->aoPath << "\n";
   }
 
   file.close();
 }
 
 SPtr<Resource>
-Asset::loadResourceFromAsset(Path filePath)
+Asset::loadStaticMesh(sh_fstream& file)
 {
-  sh_fstream file(filePath.toString(), ios::in | ios::binary);
+  ResourceManager& resMan = g_resourceMan();
+  auto pStaticMesh = sh_makeShared<StaticMeshResource>();
 
-  if (!file.is_open()) {
-    return nullptr;
+  StaticMeshAssetHeader meshAH = {};
+  file.read(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
+  pStaticMesh->m_meshes.resize(meshAH.numMeshes);
+  pStaticMesh->m_materials.resize(meshAH.numMaterials);
+
+  for (auto& mesh : pStaticMesh->m_meshes) {
+    MeshDataHeader mdh = {};
+    file.read(reinterpret_cast<char*>(&mdh), sizeof(MeshDataHeader));
+    mesh.numVertices = mdh.numVertices;
+    mesh.numIndices = mdh.numIndices;
+    mesh.materialIndex = mdh.matIndex;
+
+    uint32 verticesSize = mesh.numVertices * sizeof(VertexData);
+    uint32 indicesSize = mesh.numIndices * sizeof(uint32);
+    Vector<char> verticesData;
+    Vector<char> indicesData;
+    verticesData.resize(verticesSize);
+    indicesData.resize(indicesSize);
+    mesh.vertices.resize(mesh.numVertices);
+    mesh.indices.resize(mesh.numIndices);
+
+    file.read(reinterpret_cast<char*>(verticesData.data()), verticesSize);
+    file.read(reinterpret_cast<char*>(indicesData.data()), indicesSize);
+    memcpy(mesh.vertices.data(), verticesData.data(), verticesSize);
+    memcpy(mesh.indices.data(), indicesData.data(), indicesSize);
+
+    String line;
+    getline(file, line);
+    getline(file, line);
+    mesh.name = line;
   }
 
-  ResourceInfoHeader rih = {};
-  file.read(reinterpret_cast<char*>(&rih), sizeof(ResourceInfoHeader));
+  for (auto& mat : pStaticMesh->m_materials) {
+    mat = sh_makeShared<Material>();
 
-  if (rih.type == RESOURCE_TYPE::kMeshUnion) {
-    auto pSMURes = sh_makeShared<StaticMeshUnionResource>();
+    file.read(reinterpret_cast<char*>(&mat->m_properties), sizeof(MaterialProperties));
+    String line;
+    getline(file, line);
+    getline(file, line);
+    mat->name = line;
+    getline(file, line);
+    mat->baseColorPath = line;
+    getline(file, line);
+    mat->metallicPath = line;
+    getline(file, line);
+    mat->roughnessPath = line;
+    getline(file, line);
+    mat->normalPath = line;
+    getline(file, line);
+    mat->aoPath = line;
 
-    SMUnionAssetHeader smuAH = {};
-    file.read(reinterpret_cast<char*>(&smuAH), sizeof(SMUnionAssetHeader));
-    
-    for (uint32 i = 0; i < smuAH.numMeshes; ++i) {
-      StaticMeshAssetHeader smaH = {};
-      file.read(reinterpret_cast<char*>(&smaH), sizeof(StaticMeshAssetHeader));
+    auto pBaseColor = sh_reinterpretPCast<ImageResource>(
+                      resMan.loadResourceFromFile(Path(mat->baseColorPath)));
+    auto pMetallic = sh_reinterpretPCast<ImageResource>(
+                     resMan.loadResourceFromFile(Path(mat->metallicPath)));
+    auto pRoughness = sh_reinterpretPCast<ImageResource>(
+                      resMan.loadResourceFromFile(Path(mat->roughnessPath)));
+    auto pNormal = sh_reinterpretPCast<ImageResource>(
+                   resMan.loadResourceFromFile(Path(mat->normalPath)));
+    auto pAO = sh_reinterpretPCast<ImageResource>(
+               resMan.loadResourceFromFile(Path(mat->aoPath)));
 
-      auto pSMesh = sh_makeShared<StaticMeshResource>();
-      pSMesh->numVertex = smaH.numVertices;
-      pSMesh->numIndex = smaH.numIndices;
-      pSMesh->matIndex = smaH.matIndex;
-
-      pSMesh->vertices.resize(smaH.numVertices);
-      uint32 vertInfoSize = smaH.numVertices * sizeof(VertexData);
-      Vector<char> verticesInfo;
-      verticesInfo.resize(vertInfoSize);
-      file.read(verticesInfo.data(), vertInfoSize);
-      memcpy(pSMesh->vertices.data(), verticesInfo.data(), vertInfoSize);
-
-      pSMesh->indices.resize(smaH.numIndices);
-      uint32 indInfoSize = smaH.numIndices * sizeof(uint32);
-      Vector<char> indicesInfo;
-      indicesInfo.resize(indInfoSize);
-      file.read(indicesInfo.data(), indInfoSize);
-      memcpy(pSMesh->indices.data(), indicesInfo.data(), indInfoSize);
-
-      pSMURes->meshes.push_back(pSMesh);
-    }
-
-    for (uint32 i = 0; i < smuAH.numMat; ++i) {
-      MaterialAssetHeader mah = {};
-      file.read(reinterpret_cast<char*>(&mah), sizeof(MaterialAssetHeader));
-
-      auto pMat = sh_makeShared<Material>();
-      pMat->m_type = mah.type;
-      pMat->m_properties = mah.properties;
-      
-      Vector<String> texPaths;
-      String line;
-      while (getline(file, line)) {
-        texPaths.push_back(line);
-      }
-
-      pMat->baseColorPath = texPaths[0];
-      pMat->normalPath = texPaths[1];
-      pMat->metallicPath = texPaths[2];
-      pMat->roughnessPath = texPaths[3];
-      pMat->aoPath = texPaths[4];
-
-      pSMURes->materials.push_back(pMat);
-      //auto pBCImage = reinterpret_pointer_cast<ImageResource>()
-    }
-
-    return pSMURes;
+    mat->baseColor = pBaseColor->texture;
+    mat->metallic = pMetallic->texture;
+    mat->roughness = pRoughness->texture;
+    mat->normal = pNormal->texture;
+    mat->ao = pAO->texture;
   }
 
-  return nullptr;
+  file.close();
+  return pStaticMesh;
 }
 }
