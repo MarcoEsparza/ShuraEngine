@@ -17,6 +17,7 @@
 */
 /*************************************************************/
 #include "shAsset.h"
+#include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
@@ -41,6 +42,7 @@ Asset::saveResourceToAsset(const SPtr<Resource>& pRes)
 void
 Asset::loadResourceFromAsset(Path filePath)
 {
+  GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resMan = g_resourceMan();
   sh_fstream file(filePath.toString(), ios::in | ios::binary);
 
@@ -105,8 +107,16 @@ Asset::loadResourceFromAsset(Path filePath)
       getline(file, line);
       mat->aoPath = line;
     
-      auto pBaseColor = sh_reinterpretPCast<ImageResource>(
-                        resMan.loadResourceFromFile(Path(mat->baseColorPath)));
+      auto pBaseColor = sh_makeShared<ImageResource>();
+
+      if (mat->baseColorPath != "") {
+        pBaseColor = sh_reinterpretPCast<ImageResource>(
+                     resMan.loadResourceFromFile(Path(mat->baseColorPath)));
+      }
+      else {
+        pBaseColor->texture = graphMan.createErrorTexturre();
+      }
+
       auto pMetallic = sh_reinterpretPCast<ImageResource>(
                        resMan.loadResourceFromFile(Path(mat->metallicPath)));
       auto pRoughness = sh_reinterpretPCast<ImageResource>(
