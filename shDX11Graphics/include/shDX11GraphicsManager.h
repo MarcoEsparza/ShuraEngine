@@ -573,6 +573,20 @@ class DX11GraphicsManager : public GraphicsManager
                                 const uint32 numViews) override;
 
   /**
+  *  @brief Sets a shader resource.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot
+  *  @param uint32 numViews
+  *  @param uint32* count
+  */
+  void
+  internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                                 const uint32 startSlot,
+                                 const uint32 numViews,
+                                 const uint32* count) override;
+
+  /**
   *  @brief Sets the Sampler State.
   * 
   *  @param SPtr<SamplerState> pSamplerLinear
@@ -639,6 +653,18 @@ class DX11GraphicsManager : public GraphicsManager
   internalDrawIndexed(const uint32 indexCount,
                       const uint32 startIndexLocation,
                       const uint32 baseVertexLocation) override;
+
+  /**
+  *  @brief Dispatch compute shader.
+  *
+  *  @param uint32 threadGroupCountX
+  *  @param uint32 threadGroupCountY
+  *  @param uint32 threadGroupCountZ
+  */
+  void
+  internalDispatch(const uint32 threadGroupCountX,
+                   const uint32 threadGroupCountY,
+                   const uint32 threadGroupCountZ) override;
 
   /***************************************************************************/
   /*

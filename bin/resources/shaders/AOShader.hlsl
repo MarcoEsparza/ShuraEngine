@@ -92,3 +92,15 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     
   return 1.0f - ao;
 }
+
+[numthreads(16, 16, 1)]
+void
+CSMain(uint3 dtID : SV_DispatchThreadID)
+{
+  if (dtID.x >= ScreenSize.x || dtID.y >= ScreenSize.y)
+  {
+      return;
+  }
+    
+  
+}

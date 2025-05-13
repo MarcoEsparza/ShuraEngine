@@ -5,6 +5,7 @@ Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
 Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
+RWTexture2D<float4> t_outputMap : register(u0);
 
 #ifndef PCF_KERNEL_SIZE
 #define PCF_KERNEL_SIZE 5
@@ -227,4 +228,82 @@ float4 mainPS(PS_INPUT input) : SV_Target
   finalColor *= shadowFactor;
     
   return float4(finalColor, 1.0f);
+}
+
+[numthreads(16, 16, 1)]
+void
+CSMain(uint3 dtID : SV_DispatchThreadID)
+{
+  if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
+    return;
+  }
+    
+  float2 screenUV = dtID.xy / Dimensions;
+    
+  //float4 depth = t_depthMap.Sample(textureSampler, screenUV);
+  //float4 normalMap = t_normalMap.Sample(textureSampler, screenUV);
+  //float4 color = t_colorMap.Sample(textureSampler, screenUV);
+  //float4 propMap = t_propMap.Sample(textureSampler, screenUV);
+  //float4 ao = t_aoMap.Sample(textureSampler, screenUV);
+  //float4 shadows = t_shadowMap.Sample(textureSampler, screenUV);
+    
+  float4 depth = t_depthMap.Load(int3(dtID.xy, 0)).xyz;
+  float4 normalMap = t_normalMap.Load(int3(dtID.xy, 0)).xyz;
+  float4 color = t_colorMap.Load(int3(dtID.xy, 0)).rgb;
+  float4 propMap = t_propMap.Load(int3(dtID.xy, 0)).rgb;
+  float4 ao = t_aoMap.Load(int3(dtID.xy, 0)).rgb;
+  float4 shadows = t_shadowMap.Load(int3(dtID.xy, 0)).rgb;
+    
+  float3 albedo = color.rgb;
+  float metalness = propMap.r;
+  float3 normal = normalMap.xyz;
+  float roughness = propMap.b;
+    
+  if(color.a < 0.5f)
+  {
+    discard;
+  }
+  if (normalMap.w == 0)
+  {
+    return;
+  }
+    
+  normal = normal * 2.0f - 1.0f;
+  float4 posWorld = depth;
+    
+  float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
+  float3 viewDirection = normalize(ViewPos.xyz - posWorld.xyz);
+  float NdL = saturate(dot(normal, lightDir));
+    
+  float3 F0 = lerp(0.04, albedo, metalness);
+    
+  float3 ambientLight = 0.15f * albedo;
+    
+  float3 specular = cookTorrenceSpecular(normal, viewDirection, lightDir, roughness, F0);
+  float3 finalColor = pow(((((albedo + specular) * NdL) + ambientLight) * ao.r), 1.0f / 2.2f);
+    
+  float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
+  lightWorldPos.xyz /= lightWorldPos.w;
+    
+  float2 shadowCoord = lightWorldPos.xy * 0.5f + 0.5f;
+  shadowCoord.y = 1.0f - shadowCoord.y;
+    
+  bool inShadow = false;
+  float shadowFactor = 1.0f;
+  if(shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
+    shadowCoord.y < 0.0f || shadowCoord.x > 1.0f) {
+    inShadow = true;
+
+    t_outputMap[dtID.xy] = float4(ambientLight, 1.0f);
+    return;
+  }
+    
+  float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
+    
+  float texelSize = 1.0f / shadowMapSize;
+    
+  shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
+    
+  finalColor *= shadowFactor;
+  t_outputMap[dtID.xy] = float4(finalColor, 1.0f);
 }

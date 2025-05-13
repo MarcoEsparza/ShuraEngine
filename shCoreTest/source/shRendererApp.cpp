@@ -118,6 +118,9 @@ RendererApp::onCreate()
   auto pVBlurShader = renderMan.getPass("VBlurShader");
   pHBlurShader->addPSConstantBuffer(m_pViewportBuffer, 0);
   pVBlurShader->addPSConstantBuffer(m_pViewportBuffer, 0);
+  
+  pHBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+  pVBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
 
   // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
@@ -131,6 +134,13 @@ RendererApp::onCreate()
   pLightningShader->addPSConstantBuffer(m_pViewportBuffer, 3);
   pLightningShader->addPSConstantBuffer(m_pLCBuffer, 4);
   pLightningShader->addPSConstantBuffer(m_pLSizeBuffer, 5);
+
+  pLightningShader->addCSConstantBuffer(m_pInvVP, 0);
+  pLightningShader->addCSConstantBuffer(m_pCameraPosition, 1);
+  pLightningShader->addCSConstantBuffer(m_pLightBuffer, 2);
+  pLightningShader->addCSConstantBuffer(m_pViewportBuffer, 3);
+  pLightningShader->addCSConstantBuffer(m_pLCBuffer, 4);
+  pLightningShader->addCSConstantBuffer(m_pLSizeBuffer, 5);
 
   // Skybox shader buffers
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
@@ -529,6 +539,9 @@ RendererApp::initGraphicAssets()
   pLightningShader->setPShaderInfo("resources/shaders/LightningShader.hlsl",
                                    "mainPS",
                                    "ps_5_0");
+  pLightningShader->setCShaderInfo("resources/shaders/LightningShader.hlsl",
+                                   "CSMain",
+                                   "cs_5_0");
   pLightningShader->compileShader();
 
   // AO
@@ -536,6 +549,9 @@ RendererApp::initGraphicAssets()
   pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
                             "mainPS",
                             "ps_5_0");
+  pAOShader->setCShaderInfo("resources/shaders/AOShader.hlsl",
+                            "CSMain",
+                            "cs_5_0");
   pAOShader->compileShader();
 
   // HBlur
@@ -543,6 +559,9 @@ RendererApp::initGraphicAssets()
   pHBlurShader->setPShaderInfo("resources/shaders/HBlurShader.hlsl",
                                "mainPS",
                                "ps_5_0");
+  pHBlurShader->setCShaderInfo("resources/shaders/HBlurShader.hlsl",
+                               "CSMain",
+                               "cs_5_0");
   pHBlurShader->compileShader();
 
   // VBlur
@@ -550,6 +569,9 @@ RendererApp::initGraphicAssets()
   pVBlurShader->setPShaderInfo("resources/shaders/VBlurShader.hlsl",
                                "mainPS",
                                "ps_5_0");
+  pVBlurShader->setCShaderInfo("resources/shaders/VBlurShader.hlsl",
+                               "CSMain",
+                               "cs_5_0");
   pVBlurShader->compileShader();
 
   // Shadow map
@@ -926,6 +948,34 @@ RendererApp::setRenderTargets()
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
+  /*auto pComputeAO = graphMan.createTexture2D(getScreenDescription().width,
+                                             getScreenDescription().height,
+                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                             USAGE::kDefault,
+                                             BIND_FLAGS::kShaderResource |
+                                             BIND_FLAGS::kUnorderedAccess);*/
+
+  auto pComputeLight = graphMan.createTexture2D(getScreenDescription().width,
+                                                getScreenDescription().height,
+                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                USAGE::kDefault,
+                                                BIND_FLAGS::kShaderResource |
+                                                BIND_FLAGS::kUnorderedAccess);
+
+  auto pComputeHBlur = graphMan.createTexture2D(getScreenDescription().width,
+                                                getScreenDescription().height,
+                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                USAGE::kDefault,
+                                                BIND_FLAGS::kShaderResource |
+                                                BIND_FLAGS::kUnorderedAccess);
+
+  auto pComputeVBlur = graphMan.createTexture2D(getScreenDescription().width,
+                                                getScreenDescription().height,
+                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                USAGE::kDefault,
+                                                BIND_FLAGS::kShaderResource |
+                                                BIND_FLAGS::kUnorderedAccess);
+
   // Save targets on render manager
   renderMan.addRenderTarget(pMainTarget, "MainTarget");
   renderMan.addRenderTarget(pDepthTarget, "DepthMap");
@@ -933,11 +983,15 @@ RendererApp::setRenderTargets()
   renderMan.addRenderTarget(pColorTarget, "ColorMap");
   renderMan.addRenderTarget(pPropTarget, "PropMap");
   renderMan.addRenderTarget(pAoTarget, "AOMap");
+  //renderMan.addRenderTarget(pComputeAO, "AOMap");
   renderMan.addRenderTarget(pHbTarget, "HBlurMap");
+  renderMan.addRenderTarget(pComputeHBlur, "CHBlurMap");
   renderMan.addRenderTarget(pVbTarget, "VBlurMap");
+  renderMan.addRenderTarget(pComputeVBlur, "CVBlurMap");
   renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
   renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
   renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
+  renderMan.addRenderTarget(pComputeLight, "ComputeLightMap");
 }
 
 void

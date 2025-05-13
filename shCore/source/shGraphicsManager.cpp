@@ -340,6 +340,15 @@ GraphicsManager::setShaderResourceView(const SPtr<Texture2D>& pShaderRV,
 }
 
 void
+GraphicsManager::setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                                        const uint32 startSlot,
+                                        const uint32 numViews,
+                                        const uint32* count)
+{
+  internalSetUnorderedAccessView(pUAV, startSlot, numViews, count);
+}
+
+void
 GraphicsManager::setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                                  const uint32 startSlot,
                                  const uint32 numSamplers)
@@ -384,6 +393,14 @@ GraphicsManager::drawIndexed(const uint32 indexCount,
                              const uint32 baseVertexLocation)
 {
   internalDrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+}
+
+void 
+GraphicsManager::dispatch(const uint32 threadGroupCountX,
+                          const uint32 threadGroupCountY,
+                          const uint32 threadGroupCountZ)
+{
+  internalDispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 }
 
 GraphicsManager& g_graphicsMan()

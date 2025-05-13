@@ -220,19 +220,19 @@ Pass::setPass() const
       graphMan.vsSetConstantBuffers(pVSCBufferPair.first, pVSCBufferPair.second);
     }
   }
-  for (auto& pVSCBufferPair : m_psCBuffers) {
-    if (pVSCBufferPair.first) {
-      graphMan.psSetConstantBuffers(pVSCBufferPair.first, pVSCBufferPair.second);
+  for (auto& pPSCBufferPair : m_psCBuffers) {
+    if (pPSCBufferPair.first) {
+      graphMan.psSetConstantBuffers(pPSCBufferPair.first, pPSCBufferPair.second);
     }
   }
-  for (auto& pVSCBufferPair : m_gsCBuffers) {
-    if (pVSCBufferPair.first) {
-      graphMan.gsSetConstantBuffers(pVSCBufferPair.first, pVSCBufferPair.second);
+  for (auto& pGSCBufferPair : m_gsCBuffers) {
+    if (pGSCBufferPair.first) {
+      graphMan.gsSetConstantBuffers(pGSCBufferPair.first, pGSCBufferPair.second);
     }
   }
-  for (auto& pVSCBufferPair : m_csCBuffers) {
-    if (pVSCBufferPair.first) {
-      graphMan.csSetConstantBuffers(pVSCBufferPair.first, pVSCBufferPair.second);
+  for (auto& pCSCBufferPair : m_csCBuffers) {
+    if (pCSCBufferPair.first) {
+      graphMan.csSetConstantBuffers(pCSCBufferPair.first, pCSCBufferPair.second);
     }
   }
 }

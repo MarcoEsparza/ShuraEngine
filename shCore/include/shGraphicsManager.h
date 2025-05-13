@@ -576,6 +576,20 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                         const uint32 numViews = 1);
 
   /**
+  *  @brief Sets a shader resource.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  *  @param uint32* count = nullptr
+  */
+  void
+  setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                         const uint32 startSlot = 0,
+                         const uint32 numViews = 1,
+                         const uint32* count = nullptr);
+
+  /**
   *  @brief Sets the Sampler State.
   *
   *  @param SPtr<SamplerState>& pSamplerLinear
@@ -641,6 +655,18 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   drawIndexed(const uint32 indexCount,
               const uint32 startIndexLocation,
               const uint32 baseVertexLocation);
+
+  /**
+  *  @brief Dispatch compute shader.
+  *
+  *  @param uint32 threadGroupCountX
+  *  @param uint32 threadGroupCountY
+  *  @param uint32 threadGroupCountZ
+  */
+  void
+  dispatch(const uint32 threadGroupCountX,
+           const uint32 threadGroupCountY,
+           const uint32 threadGroupCountZ);
 
   /*************************************************************/
   /*
@@ -1162,6 +1188,20 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                                 const uint32 numViews) = 0;
 
   /**
+  *  @brief Sets a shader resource.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot
+  *  @param uint32 numViews
+  *  @param uint32* count
+  */
+  virtual void
+  internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                                 const uint32 startSlot,
+                                 const uint32 numViews,
+                                 const uint32* count) = 0;
+
+  /**
   *  @brief Calls the selected API overrided function.
   * 
   *  @param SPtr<SamplerState>& pSamplerLinear
@@ -1228,6 +1268,18 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   internalDrawIndexed(const uint32 indexCount,
                       const uint32 startIndexLocation,
                       const uint32 baseVertexLocation) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param uint32 threadGroupCountX
+  *  @param uint32 threadGroupCountY
+  *  @param uint32 threadGroupCountZ
+  */
+  virtual void
+  internalDispatch(const uint32 threadGroupCountX,
+                   const uint32 threadGroupCountY,
+                   const uint32 threadGroupCountZ) = 0;
 };
 
 /**

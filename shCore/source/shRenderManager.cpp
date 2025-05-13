@@ -248,6 +248,8 @@ RenderManager::renderScene()
   auto pHBlurMap = getRenderTargetByName("HBlurMap");
   auto pVBlurMap = getRenderTargetByName("VBlurMap");
   auto pSkyBoxMap = getRenderTargetByName("SkyBoxMap");
+  auto pCHBlur = getRenderTargetByName("CHBlurMap");
+  auto pComputeLightMap = getRenderTargetByName("ComputeLightMap");
 
   /*************************************/
   /*          Shadow Mapping           */
@@ -318,10 +320,13 @@ RenderManager::renderScene()
   setPassByName("HBlurShader");
 
   graphMan.setShaderResourceView(pAOMap, 0);
+  graphMan.setUnorderedAccessView(pCHBlur, 0);
 
   graphMan.draw(3, 0);
+  graphMan.dispatch(16, 16, 1);
 
   cleanShaderResourceView();
+  graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*            Vetical Blur           */
@@ -350,15 +355,17 @@ RenderManager::renderScene()
   graphMan.setShaderResourceView(pPropMap, 3);
   graphMan.setShaderResourceView(pVBlurMap, 4);
   graphMan.setShaderResourceView(pShadowMap, 5);
+  graphMan.setUnorderedAccessView(pComputeLightMap, 0);
 
   graphMan.draw(3, 0);
+  graphMan.dispatch(16, 16, 1);
 
   cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*              Sky Box              */
   /*************************************/
-  auto& skyBoxGO = scene.getGameObjectList()[2];
   clearRenderTargetByName("SkyBoxMap");
   setRenderTargetsByName({ "SkyBoxMap" }, pDepthSV);
   setPassByName("SkyBoxShader");

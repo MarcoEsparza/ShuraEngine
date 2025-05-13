@@ -888,6 +888,18 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
                                                                &pTexture->m_pRenderTV));
   }
 
+  if ((bindFlags & D3D11_BIND_UNORDERED_ACCESS) == D3D11_BIND_UNORDERED_ACCESS)
+  {
+    D3D11_UNORDERED_ACCESS_VIEW_DESC descUAV;
+    memset(&descUAV, 0, sizeof(descUAV));
+    descUAV.Format = textureDesc.Format;
+    descUAV.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+    descUAV.Texture2D.MipSlice = 0;
+    throwIfFailed(m_pDevice->m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
+                                                                  &descUAV,
+                                                                  &pTexture->m_pUnorderedAV));
+  }
+
   return pTexture;
 }
 
@@ -1418,6 +1430,28 @@ DX11GraphicsManager::internalSetShaderResourceView(const SPtr<Texture2D>& pShade
 }
 
 void
+DX11GraphicsManager::internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                                                    const uint32 startSlot,
+                                                    const uint32 numViews,
+                                                    const uint32* count)
+{
+  if (pUAV == nullptr) {
+    ID3D11UnorderedAccessView* dx11UAV = nullptr;
+    m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
+                                                                  numViews,
+                                                                  &dx11UAV,
+                                                                  nullptr);
+    return;
+  }
+
+  auto pUAVTexture = sh_reinterpretPCast<DX11Texture2D>(pUAV);
+  m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
+                                                                numViews,
+                                                                &pUAVTexture->m_pUnorderedAV,
+                                                                nullptr);
+}
+
+void
 DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                                              const uint32 startSlot,
                                              const uint32 numSamplers)
@@ -1485,5 +1519,15 @@ DX11GraphicsManager::internalDrawIndexed(const uint32 indexCount,
   m_pDeviceContext->m_pDeviceContext->DrawIndexed(indexCount,
                                                   startIndexLocation,
                                                   baseVertexLocation);
+}
+
+void
+DX11GraphicsManager::internalDispatch(const uint32 threadGroupCountX,
+                                      const uint32 threadGroupCountY,
+                                      const uint32 threadGroupCountZ)
+{
+  m_pDeviceContext->m_pDeviceContext->Dispatch(threadGroupCountX,
+                                               threadGroupCountY,
+                                               threadGroupCountZ);
 }
 }
