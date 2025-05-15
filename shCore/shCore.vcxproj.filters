@@ -97,6 +97,12 @@
     <Filter Include="Source Files\AudioManager">
       <UniqueIdentifier>{f8b2dabd-fedc-4dc9-be86-043fb52481f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\OpenCL">
+      <UniqueIdentifier>{7156f66f-cee5-4f74-8c8e-5b69fe215ab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\OpenCL">
+      <UniqueIdentifier>{7da05ee0-8833-47e3-8e76-93cfd3ec0500}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -234,6 +240,9 @@
     <ClInclude Include="include\shSkyBoxComponent.h">
       <Filter>Header Files\Component</Filter>
     </ClInclude>
+    <ClInclude Include="include\shOCLManager.h">
+      <Filter>Header Files\OpenCL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -292,6 +301,9 @@
     </ClCompile>
     <ClCompile Include="source\shSkyBoxComponent.cpp">
       <Filter>Source Files\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shOCLManager.cpp">
+      <Filter>Source Files\OpenCL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

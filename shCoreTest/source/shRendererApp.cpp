@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/05/13
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -111,36 +111,37 @@ RendererApp::onCreate()
   auto pAOShader = renderMan.getPass("AOShader");
   m_pAOBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
   graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
-  pAOShader->addPSConstantBuffer(m_pAOBuffer, 0);
+  pAOShader->addCSConstantBuffer(m_pAOBuffer, 0);
 
   // Blur buffers
   auto pHBlurShader = renderMan.getPass("HBlurShader");
   auto pVBlurShader = renderMan.getPass("VBlurShader");
-  pHBlurShader->addPSConstantBuffer(m_pViewportBuffer, 0);
-  pVBlurShader->addPSConstantBuffer(m_pViewportBuffer, 0);
-  
   pHBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
   pVBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+  
+  //pHBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+  //pVBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
 
   // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
 
   // Lightning shader buffers
-  auto pLightningShader = renderMan.getPass("LightningShader");
-  pLightningShader->addPSConstantBuffer(m_pInvVP, 0);
-  pLightningShader->addPSConstantBuffer(m_pCameraPosition, 1);
-  pLightningShader->addPSConstantBuffer(m_pLightBuffer, 2);
-  pLightningShader->addPSConstantBuffer(m_pViewportBuffer, 3);
-  pLightningShader->addPSConstantBuffer(m_pLCBuffer, 4);
-  pLightningShader->addPSConstantBuffer(m_pLSizeBuffer, 5);
+  //auto pLightningShader = renderMan.getPass("LightningShader");
+  //pLightningShader->addPSConstantBuffer(m_pInvVP, 0);
+  //pLightningShader->addPSConstantBuffer(m_pCameraPosition, 1);
+  //pLightningShader->addPSConstantBuffer(m_pLightBuffer, 2);
+  //pLightningShader->addPSConstantBuffer(m_pViewportBuffer, 3);
+  //pLightningShader->addPSConstantBuffer(m_pLCBuffer, 4);
+  //pLightningShader->addPSConstantBuffer(m_pLSizeBuffer, 5);
 
-  pLightningShader->addCSConstantBuffer(m_pInvVP, 0);
-  pLightningShader->addCSConstantBuffer(m_pCameraPosition, 1);
-  pLightningShader->addCSConstantBuffer(m_pLightBuffer, 2);
-  pLightningShader->addCSConstantBuffer(m_pViewportBuffer, 3);
-  pLightningShader->addCSConstantBuffer(m_pLCBuffer, 4);
-  pLightningShader->addCSConstantBuffer(m_pLSizeBuffer, 5);
+  auto pLightCS = renderMan.getPass("LightCS");
+  pLightCS->addCSConstantBuffer(m_pInvVP, 0);
+  pLightCS->addCSConstantBuffer(m_pCameraPosition, 1);
+  pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
+  pLightCS->addCSConstantBuffer(m_pViewportBuffer, 3);
+  pLightCS->addCSConstantBuffer(m_pLCBuffer, 4);
+  pLightCS->addCSConstantBuffer(m_pLSizeBuffer, 5);
 
   // Skybox shader buffers
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
@@ -534,21 +535,28 @@ RendererApp::initGraphicAssets()
                                  "ps_5_0");
   pGbufferShader->compileShader();
 
-  // Deferred
-  auto pLightningShader = sh_makeShared<Pass>();
+  // Lightning
+  /*auto pLightningShader = sh_makeShared<Pass>();
   pLightningShader->setPShaderInfo("resources/shaders/LightningShader.hlsl",
                                    "mainPS",
-                                   "ps_5_0");
-  pLightningShader->setCShaderInfo("resources/shaders/LightningShader.hlsl",
+                                   "ps_5_0");*/
+  /*pLightningShader->setCShaderInfo("resources/shaders/LightningShader.hlsl",
                                    "CSMain",
-                                   "cs_5_0");
-  pLightningShader->compileShader();
+                                   "cs_5_0");*/
+  //pLightningShader->compileShader();
+
+  // Lightning Compute
+  auto pLightCS = sh_makeShared<Pass>();
+  pLightCS->setCShaderInfo("resources/shaders/LightCShader.hlsl",
+                           "CSMain",
+                           "cs_5_0");
+  pLightCS->compileShader();
 
   // AO
   auto pAOShader = sh_makeShared<Pass>();
-  pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
+  /*pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
                             "mainPS",
-                            "ps_5_0");
+                            "ps_5_0");*/
   pAOShader->setCShaderInfo("resources/shaders/AOShader.hlsl",
                             "CSMain",
                             "cs_5_0");
@@ -556,9 +564,9 @@ RendererApp::initGraphicAssets()
 
   // HBlur
   auto pHBlurShader = sh_makeShared<Pass>();
-  pHBlurShader->setPShaderInfo("resources/shaders/HBlurShader.hlsl",
+  /*pHBlurShader->setPShaderInfo("resources/shaders/HBlurShader.hlsl",
                                "mainPS",
-                               "ps_5_0");
+                               "ps_5_0");*/
   pHBlurShader->setCShaderInfo("resources/shaders/HBlurShader.hlsl",
                                "CSMain",
                                "cs_5_0");
@@ -566,9 +574,9 @@ RendererApp::initGraphicAssets()
 
   // VBlur
   auto pVBlurShader = sh_makeShared<Pass>();
-  pVBlurShader->setPShaderInfo("resources/shaders/VBlurShader.hlsl",
+  /*pVBlurShader->setPShaderInfo("resources/shaders/VBlurShader.hlsl",
                                "mainPS",
-                               "ps_5_0");
+                               "ps_5_0");*/
   pVBlurShader->setCShaderInfo("resources/shaders/VBlurShader.hlsl",
                                "CSMain",
                                "cs_5_0");
@@ -686,8 +694,8 @@ RendererApp::initGraphicAssets()
   pGbufferShader->setDepthStencilState(pDepthStencil);
 
   // Lightining
-  pLightningShader->generateInputLayout();
-  pLightningShader->setSamplerState(pSamplerLinear);
+  /*pLightningShader->generateInputLayout();
+  pLightningShader->setSamplerState(pSamplerLinear);*/
 
   // AO
   pAOShader->generateInputLayout();
@@ -728,11 +736,13 @@ RendererApp::initGraphicAssets()
   renderMan.addPass(pAOShader, "AOShader");
   renderMan.addPass(pHBlurShader, "HBlurShader");
   renderMan.addPass(pVBlurShader, "VBlurShader");
-  renderMan.addPass(pLightningShader, "LightningShader");
+  //renderMan.addPass(pLightningShader, "LightningShader");
   renderMan.addPass(pSMapShader, "SMapShader");
   renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
   renderMan.addPass(pFinalShader, "FinalShader");
   renderMan.addPass(pPlaneVS, "PlaneShader");
+
+  renderMan.addPass(pLightCS, "LightCS");
 
   // Create and set render targets for deferred rendering
   setRenderTargets();
@@ -906,14 +916,14 @@ RendererApp::setRenderTargets()
                                               BIND_FLAGS::kRenderTarget |
                                               BIND_FLAGS::kShaderResource);
 
-  auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
+  /*auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
                                             TEXTURE_FORMAT::kR16_FLOAT,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
-                                            BIND_FLAGS::kShaderResource);
+                                            BIND_FLAGS::kShaderResource);*/
 
-  auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
+  /*auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
@@ -925,7 +935,7 @@ RendererApp::setRenderTargets()
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
-                                            BIND_FLAGS::kShaderResource);
+                                            BIND_FLAGS::kShaderResource);*/
 
   auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
                                               static_cast<uint32>(m_shadowTexSize),
@@ -948,12 +958,12 @@ RendererApp::setRenderTargets()
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  /*auto pComputeAO = graphMan.createTexture2D(getScreenDescription().width,
-                                             getScreenDescription().height,
-                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                             USAGE::kDefault,
-                                             BIND_FLAGS::kShaderResource |
-                                             BIND_FLAGS::kUnorderedAccess);*/
+  auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                            getScreenDescription().height,
+                                            TEXTURE_FORMAT::kR16_FLOAT,
+                                            USAGE::kDefault,
+                                            BIND_FLAGS::kShaderResource |
+                                            BIND_FLAGS::kUnorderedAccess);
 
   auto pComputeLight = graphMan.createTexture2D(getScreenDescription().width,
                                                 getScreenDescription().height,
@@ -962,19 +972,19 @@ RendererApp::setRenderTargets()
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
 
-  auto pComputeHBlur = graphMan.createTexture2D(getScreenDescription().width,
-                                                getScreenDescription().height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kShaderResource |
-                                                BIND_FLAGS::kUnorderedAccess);
+  auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                            getScreenDescription().height,
+                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                            USAGE::kDefault,
+                                            BIND_FLAGS::kShaderResource |
+                                            BIND_FLAGS::kUnorderedAccess);
 
-  auto pComputeVBlur = graphMan.createTexture2D(getScreenDescription().width,
-                                                getScreenDescription().height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kShaderResource |
-                                                BIND_FLAGS::kUnorderedAccess);
+  auto pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
+                                            getScreenDescription().height,
+                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                            USAGE::kDefault,
+                                            BIND_FLAGS::kShaderResource |
+                                            BIND_FLAGS::kUnorderedAccess);
 
   // Save targets on render manager
   renderMan.addRenderTarget(pMainTarget, "MainTarget");
@@ -983,15 +993,12 @@ RendererApp::setRenderTargets()
   renderMan.addRenderTarget(pColorTarget, "ColorMap");
   renderMan.addRenderTarget(pPropTarget, "PropMap");
   renderMan.addRenderTarget(pAoTarget, "AOMap");
-  //renderMan.addRenderTarget(pComputeAO, "AOMap");
   renderMan.addRenderTarget(pHbTarget, "HBlurMap");
-  renderMan.addRenderTarget(pComputeHBlur, "CHBlurMap");
   renderMan.addRenderTarget(pVbTarget, "VBlurMap");
-  renderMan.addRenderTarget(pComputeVBlur, "CVBlurMap");
   renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
   renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
+  renderMan.addRenderTarget(pComputeLight, "LightCMap");
   renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
-  renderMan.addRenderTarget(pComputeLight, "ComputeLightMap");
 }
 
 void

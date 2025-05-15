@@ -561,16 +561,28 @@ class DX11GraphicsManager : public GraphicsManager
                            const uint32 numClassInstances = 0) override;
 
   /**
-  *  @brief Sets a shader resource.
+  *  @brief Sets a shader resource to the pixel shader.
   * 
   *  @param SPtr<Texture> pShaderRV
   *  @param uint32 startSlot = 0
   *  @param uint32 numViews = 1
   */
   void
-  internalSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+  internalPSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
                                 const uint32 startSlot,
                                 const uint32 numViews) override;
+
+  /**
+  *  @brief Sets a shader resource to the compute shader.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot
+  *  @param uint32 numViews
+  */
+  void
+  internalCSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                  const uint32 startSlot,
+                                  const uint32 numViews) override;
 
   /**
   *  @brief Sets a shader resource.

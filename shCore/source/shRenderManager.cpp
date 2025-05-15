@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/05/13
 *  @brief   Render module.
 *
 *  Render module.
@@ -203,23 +203,23 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
   }
 
   if (pMat->baseColor) {
-    graphMan.setShaderResourceView(pMat->baseColor);
+    graphMan.psSetShaderResourceView(pMat->baseColor);
   }
 
   if (pMat->normal) {
-    graphMan.setShaderResourceView(pMat->normal, 1);
+    graphMan.psSetShaderResourceView(pMat->normal, 1);
   }
 
   if (pMat->metallic) {
-    graphMan.setShaderResourceView(pMat->metallic, 2);
+    graphMan.psSetShaderResourceView(pMat->metallic, 2);
   }
 
   if (pMat->roughness) {
-    graphMan.setShaderResourceView(pMat->roughness, 3);
+    graphMan.psSetShaderResourceView(pMat->roughness, 3);
   }
 
   if (pMat->ao) {
-    graphMan.setShaderResourceView(pMat->ao, 4);
+    graphMan.psSetShaderResourceView(pMat->ao, 4);
   }
 
   if (pMat->m_properties.bHasAlphaTest) {
@@ -248,8 +248,8 @@ RenderManager::renderScene()
   auto pHBlurMap = getRenderTargetByName("HBlurMap");
   auto pVBlurMap = getRenderTargetByName("VBlurMap");
   auto pSkyBoxMap = getRenderTargetByName("SkyBoxMap");
-  auto pCHBlur = getRenderTargetByName("CHBlurMap");
-  auto pComputeLightMap = getRenderTargetByName("ComputeLightMap");
+  //auto pCHBlur = getRenderTargetByName("CHBlurMap");
+  auto pLightCMap = getRenderTargetByName("LightCMap");
 
   /*************************************/
   /*          Shadow Mapping           */
@@ -299,66 +299,101 @@ RenderManager::renderScene()
   /*************************************/
   /*         Ambient Occlusion         */
   /*************************************/
-  clearRenderTargetByName("AOMap");
-  setRenderTargetsByName({ "AOMap" }, pDepthSV);
-  setPassByName("PlaneShader");
+  //clearRenderTargetByName("AOMap");
+  //setRenderTargetsByName({ "AOMap" }, pDepthSV);
+  //setPassByName("PlaneShader");
+
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("AOShader");
 
-  graphMan.setShaderResourceView(pDepthMap, 0);
-  graphMan.setShaderResourceView(pNormalMap, 1);
+  graphMan.csSetShaderResourceView(pDepthMap, 0);
+  graphMan.csSetShaderResourceView(pNormalMap, 1);
+  graphMan.setUnorderedAccessView(pAOMap, 0);
 
-  graphMan.draw(3, 0);
+  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
+                    static_cast<uint32>(m_screenDimension.y / 16.0f),
+                    1);
+  //graphMan.draw(3, 0);
 
   cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*          Horizontal Blur          */
   /*************************************/
-  clearRenderTargetByName("HBlurMap");
-  setRenderTargetsByName({ "HBlurMap" }, pDepthSV);
-  setPassByName("PlaneShader");
+  //clearRenderTargetByName("HBlurMap");
+  //setRenderTargetsByName({ "HBlurMap" }, pDepthSV);
+  //setPassByName("PlaneShader");
+
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("HBlurShader");
 
-  graphMan.setShaderResourceView(pAOMap, 0);
-  graphMan.setUnorderedAccessView(pCHBlur, 0);
+  //graphMan.psSetShaderResourceView(pAOMap, 0);
+  graphMan.csSetShaderResourceView(pAOMap, 0);
+  graphMan.setUnorderedAccessView(pHBlurMap, 0);
 
-  graphMan.draw(3, 0);
-  graphMan.dispatch(16, 16, 1);
+  //graphMan.draw(3, 0);
+  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
+                    static_cast<uint32>(m_screenDimension.y / 16.0f),
+                    1);
 
-  cleanShaderResourceView();
+  cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*            Vetical Blur           */
   /*************************************/
-  clearRenderTargetByName("VBlurMap");
-  setRenderTargetsByName({ "VBlurMap" }, pDepthSV);
-  setPassByName("PlaneShader");
+  //clearRenderTargetByName("VBlurMap");
+  //setRenderTargetsByName({ "VBlurMap" }, pDepthSV);
+  //setPassByName("PlaneShader");
+
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("VBlurShader");
 
-  graphMan.setShaderResourceView({ pHBlurMap }, 0);
+  //graphMan.psSetShaderResourceView({ pHBlurMap }, 0);
+  graphMan.csSetShaderResourceView(pHBlurMap, 0);
+  graphMan.setUnorderedAccessView(pVBlurMap, 0);
 
-  graphMan.draw(3, 0);
+  //graphMan.draw(3, 0);
+  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
+                    static_cast<uint32>(m_screenDimension.y / 16.0f),
+                    1);
 
   cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*             Lightning             */
   /*************************************/
-  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  /*setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("PlaneShader");
   setPassByName("LightningShader");
 
-  graphMan.setShaderResourceView(pDepthMap, 0);
-  graphMan.setShaderResourceView(pNormalMap, 1);
-  graphMan.setShaderResourceView(pColorMap, 2);
-  graphMan.setShaderResourceView(pPropMap, 3);
-  graphMan.setShaderResourceView(pVBlurMap, 4);
-  graphMan.setShaderResourceView(pShadowMap, 5);
-  graphMan.setUnorderedAccessView(pComputeLightMap, 0);
+  graphMan.psSetShaderResourceView(pDepthMap, 0);
+  graphMan.psSetShaderResourceView(pNormalMap, 1);
+  graphMan.psSetShaderResourceView(pColorMap, 2);
+  graphMan.psSetShaderResourceView(pPropMap, 3);
+  graphMan.psSetShaderResourceView(pVBlurMap, 4);
+  graphMan.psSetShaderResourceView(pShadowMap, 5);
 
   graphMan.draw(3, 0);
-  graphMan.dispatch(16, 16, 1);
+
+  cleanShaderObjects();*/
+
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("LightCS");
+
+  graphMan.csSetShaderResourceView(pDepthMap, 0);
+  graphMan.csSetShaderResourceView(pNormalMap, 1);
+  graphMan.csSetShaderResourceView(pColorMap, 2);
+  graphMan.csSetShaderResourceView(pPropMap, 3);
+  graphMan.csSetShaderResourceView(pVBlurMap, 4);
+  graphMan.csSetShaderResourceView(pShadowMap, 5);
+  graphMan.setUnorderedAccessView(pLightCMap, 0);
+
+  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
+                    static_cast<uint32>(m_screenDimension.y / 16.0f),
+                    1);
 
   cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
@@ -376,7 +411,7 @@ RenderManager::renderScene()
         auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(component);
         graphMan.setVertexBuffers(pSkyBox->getVertexBuffer());
         graphMan.setIndexBuffers(pSkyBox->getIndexBuffer());
-        graphMan.setShaderResourceView(pSkyBox->getMaterial()->baseColor, 0);
+        graphMan.psSetShaderResourceView(pSkyBox->getMaterial()->baseColor, 0);
 
         uint32 numIndices = static_cast<uint32>(pSkyBox->getIndices().size());
         graphMan.drawIndexed(numIndices, 0, 0);
@@ -393,21 +428,43 @@ RenderManager::renderScene()
   setPassByName("PlaneShader");
   setPassByName("FinalShader");
 
-  graphMan.setShaderResourceView(pNormalMap, 0);
-  graphMan.setShaderResourceView(pSkyBoxMap, 1);
+  graphMan.psSetShaderResourceView(pNormalMap, 0);
+  graphMan.psSetShaderResourceView(pSkyBoxMap, 1);
+  graphMan.psSetShaderResourceView(pLightCMap, 2);
 
   graphMan.draw(3, 0);
 
   cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
 }
 
 void
-RenderManager::cleanShaderResourceView(uint32 numSRV)
+RenderManager::cleanPSShaderResourceView(uint32 numSRV)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
   for (uint32 i = 0; i < numSRV; ++i) {
-    graphMan.setShaderResourceView(nullptr, i);
+    graphMan.psSetShaderResourceView(nullptr, i);
+  }
+}
+
+void
+RenderManager::cleanCSShaderResourceView(uint32 numSRV)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  for (uint32 i = 0; i < numSRV; ++i) {
+    graphMan.csSetShaderResourceView(nullptr, i);
+  }
+}
+
+void
+RenderManager::cleanCSUAView(uint32 numSRV)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  for (uint32 i = 0; i < numSRV; ++i) {
+    graphMan.setUnorderedAccessView(nullptr, i);
   }
 }
 
@@ -432,11 +489,35 @@ RenderManager::cleanPSConstantBuffers(uint32 numCB)
 }
 
 void
+RenderManager::cleanGSConstantBuffers(uint32 numCB)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  for (uint32 i = 0; i < numCB; ++i) {
+    graphMan.gsSetConstantBuffers(nullptr, i);
+  }
+}
+
+void
+RenderManager::cleanCSConstantBuffers(uint32 numCB)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  for (uint32 i = 0; i < numCB; ++i) {
+    graphMan.csSetConstantBuffers(nullptr, i);
+  }
+}
+
+void
 RenderManager::cleanShaderObjects()
 {
-  cleanShaderResourceView();
+  cleanPSShaderResourceView();
+  cleanCSShaderResourceView();
+  //cleanCSUAView();
   cleanVSConstantBuffers();
   cleanPSConstantBuffers();
+  cleanGSConstantBuffers();
+  cleanCSConstantBuffers();
 }
 
 void

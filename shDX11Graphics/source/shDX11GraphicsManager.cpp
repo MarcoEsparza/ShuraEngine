@@ -1410,7 +1410,7 @@ DX11GraphicsManager::internalSetComputeShader(const SPtr<ComputeShader>& pCShade
 }
 
 void
-DX11GraphicsManager::internalSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+DX11GraphicsManager::internalPSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
                                                    const uint32 startSlot,
                                                    const uint32 numViews)
 {
@@ -1425,6 +1425,26 @@ DX11GraphicsManager::internalSetShaderResourceView(const SPtr<Texture2D>& pShade
   auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV);
 
   m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
+                                                           numViews,
+                                                           &pShaderTexture->m_pShaderRV);
+}
+
+void
+DX11GraphicsManager::internalCSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                                     const uint32 startSlot,
+                                                     const uint32 numViews)
+{
+  if (pShaderRV == nullptr) {
+    ID3D11ShaderResourceView* dx11SRV = nullptr;
+    m_pDeviceContext->m_pDeviceContext->CSSetShaderResources(startSlot,
+                                                             numViews,
+                                                             &dx11SRV);
+    return;
+  }
+
+  auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV);
+
+  m_pDeviceContext->m_pDeviceContext->CSSetShaderResources(startSlot,
                                                            numViews,
                                                            &pShaderTexture->m_pShaderRV);
 }

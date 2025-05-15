@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/05/13
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -564,16 +564,28 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                    const uint32 numClassInstances = 0);
 
   /**
-  *  @brief Sets a shader resource.
+  *  @brief Sets a shader resource to the pixel shader.
   *
   *  @param SPtr<Texture2D>& pShaderRV
   *  @param uint32 startSlot = 0
   *  @param uint32 numViews = 1
   */
   void
-  setShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                        const uint32 startSlot = 0,
-                        const uint32 numViews = 1);
+  psSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1);
+
+  /**
+  *  @brief Sets a shader resource to the compute shader.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  csSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1);
 
   /**
   *  @brief Sets a shader resource.
@@ -1183,9 +1195,21 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 numViews
   */
   virtual void
-  internalSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                                const uint32 startSlot,
-                                const uint32 numViews) = 0;
+  internalPSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                  const uint32 startSlot,
+                                  const uint32 numViews) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot
+  *  @param uint32 numViews
+  */
+  virtual void
+  internalCSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                  const uint32 startSlot,
+                                  const uint32 numViews) = 0;
 
   /**
   *  @brief Sets a shader resource.

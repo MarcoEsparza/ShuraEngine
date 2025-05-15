@@ -46,6 +46,7 @@
     <ClInclude Include="include\shGraphicsManager.h" />
     <ClInclude Include="include\shGraphicTypes.h" />
     <ClInclude Include="include\shInputLayout.h" />
+    <ClInclude Include="include\shOCLManager.h" />
     <ClInclude Include="include\shPass.h" />
     <ClInclude Include="Include\shPrerequisitesCore.h" />
     <ClInclude Include="include\shRasterizerState.h" />
@@ -77,6 +78,7 @@
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
+    <ClCompile Include="source\shOCLManager.cpp" />
     <ClCompile Include="source\shPass.cpp" />
     <ClCompile Include="source\shRenderManager.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
@@ -163,12 +165,12 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
       <AdditionalDependencies>shUtilitiesd.lib;assimp-vc143-mtd.lib;libluad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -182,14 +184,14 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
       <AdditionalDependencies>shUtilities.lib;assimp-vc143-mt.lib;liblua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -201,12 +203,12 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
       <AdditionalDependencies>shUtilitiesd.lib;assimp-vc143-mtd.lib;libluad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -220,14 +222,14 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
       <AdditionalDependencies>shUtilities.lib;assimp-vc143-mt.lib;liblua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>

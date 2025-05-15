@@ -158,12 +158,28 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   renderScene();
 
   /**
-  *  @brief Clean the shader resource view slots.
+  *  @brief Clean the PS shader resource view slots.
   *
   *  @param uint32 numSRV = 128
   */
   void
-  cleanShaderResourceView(uint32 numSRV = 128);
+  cleanPSShaderResourceView(uint32 numSRV = 128);
+
+  /**
+  *  @brief Clean the CS shader resource view slots.
+  *
+  *  @param uint32 numSRV = 128
+  */
+  void
+  cleanCSShaderResourceView(uint32 numSRV = 128);
+
+  /**
+  *  @brief Clean the CS unordered access view slots.
+  *
+  *  @param uint32 numSRV = 128
+  */
+  void
+  cleanCSUAView(uint32 numSRV = 128);
 
   /**
   *  @brief Clean the vertex shader constant buffer slots.
@@ -180,6 +196,22 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   cleanPSConstantBuffers(uint32 numCB = 14);
+
+  /**
+  *  @brief Clean the geometry shader constant buffer slots.
+  *
+  *  @param uint32 numCB = 14
+  */
+  void
+  cleanGSConstantBuffers(uint32 numCB = 14);
+
+  /**
+  *  @brief Clean the compute shader constant buffer slots.
+  *
+  *  @param uint32 numCB = 14
+  */
+  void
+  cleanCSConstantBuffers(uint32 numCB = 14);
 
   /**
   *  @brief Call the other clean functions.

@@ -332,11 +332,19 @@ GraphicsManager::setComputeShader(const SPtr<ComputeShader>& pCShader,
 }
 
 void
-GraphicsManager::setShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+GraphicsManager::psSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
                                        const uint32 startSlot,
                                        const uint32 numViews)
 {
-  internalSetShaderResourceView(pShaderRV, startSlot, numViews);
+  internalPSSetShaderResourceView(pShaderRV, startSlot, numViews);
+}
+
+void
+GraphicsManager::csSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                         const uint32 startSlot,
+                                         const uint32 numViews)
+{
+  internalCSSetShaderResourceView(pShaderRV, startSlot, numViews);
 }
 
 void

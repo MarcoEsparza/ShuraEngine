@@ -242,13 +242,13 @@ PhysicsApp::onRender()
   graphMan.vsSetConstantBuffers(m_pBase, 1);
   graphMan.setVertexBuffers(m_pSpriteBase->m_pVB);
   graphMan.setIndexBuffers(m_pSpriteBase->m_pIB);
-  graphMan.setShaderResourceView(m_pSpriteBase->m_pTexture);
+  graphMan.psSetShaderResourceView(m_pSpriteBase->m_pTexture);
   graphMan.drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
 
   graphMan.vsSetConstantBuffers(m_springBall->m_ballBuffer, 1);
   graphMan.setVertexBuffers(m_springBall->m_sprite->m_pVB);
   graphMan.setIndexBuffers(m_springBall->m_sprite->m_pIB);
-  graphMan.setShaderResourceView(m_springBall->m_sprite->m_pTexture);
+  graphMan.psSetShaderResourceView(m_springBall->m_sprite->m_pTexture);
   graphMan.drawIndexed(static_cast<uint32>(m_springBall->m_sprite->m_indices.size()), 0, 0);
 
   /*for (auto& ball : m_activeBalls) {

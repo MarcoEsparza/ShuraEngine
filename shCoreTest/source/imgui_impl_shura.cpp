@@ -229,7 +229,7 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
 
         // Bind texture, Draw
         SPtr<Texture2D>& pTexture = *reinterpret_cast<SPtr<Texture2D>*>(pcmd->GetTexID());
-        graphMan.setShaderResourceView(pTexture);
+        graphMan.psSetShaderResourceView(pTexture);
         graphMan.drawIndexed(pcmd->ElemCount,
                              pcmd->IdxOffset + global_idx_offset,
                              pcmd->VtxOffset + global_vtx_offset);
