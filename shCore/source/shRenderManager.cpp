@@ -299,24 +299,22 @@ RenderManager::renderScene()
   /*************************************/
   /*         Ambient Occlusion         */
   /*************************************/
-  //clearRenderTargetByName("AOMap");
-  //setRenderTargetsByName({ "AOMap" }, pDepthSV);
-  //setPassByName("PlaneShader");
-
-  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  clearRenderTargetByName("AOMap");
+  setRenderTargetsByName({ "AOMap" }, pDepthSV);
+  setPassByName("PlaneShader");
   setPassByName("AOShader");
 
-  graphMan.csSetShaderResourceView(pDepthMap, 0);
-  graphMan.csSetShaderResourceView(pNormalMap, 1);
-  graphMan.setUnorderedAccessView(pAOMap, 0);
+  graphMan.psSetShaderResourceView(pDepthMap, 0);
+  graphMan.psSetShaderResourceView(pNormalMap, 1);
+  //graphMan.setUnorderedAccessView(pAOMap, 0);
 
-  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
+  /*graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
                     static_cast<uint32>(m_screenDimension.y / 16.0f),
-                    1);
-  //graphMan.draw(3, 0);
+                    1);*/
+  graphMan.draw(3, 0);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*          Horizontal Blur          */

@@ -111,7 +111,7 @@ RendererApp::onCreate()
   auto pAOShader = renderMan.getPass("AOShader");
   m_pAOBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
   graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
-  pAOShader->addCSConstantBuffer(m_pAOBuffer, 0);
+  pAOShader->addPSConstantBuffer(m_pAOBuffer, 0);
 
   // Blur buffers
   auto pHBlurShader = renderMan.getPass("HBlurShader");
@@ -554,12 +554,12 @@ RendererApp::initGraphicAssets()
 
   // AO
   auto pAOShader = sh_makeShared<Pass>();
-  /*pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
+  pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
                             "mainPS",
-                            "ps_5_0");*/
-  pAOShader->setCShaderInfo("resources/shaders/AOShader.hlsl",
+                            "ps_5_0");
+  /*pAOShader->setCShaderInfo("resources/shaders/AOShader.hlsl",
                             "CSMain",
-                            "cs_5_0");
+                            "cs_5_0");*/
   pAOShader->compileShader();
 
   // HBlur
@@ -916,12 +916,12 @@ RendererApp::setRenderTargets()
                                               BIND_FLAGS::kRenderTarget |
                                               BIND_FLAGS::kShaderResource);
 
-  /*auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
+  auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
                                             TEXTURE_FORMAT::kR16_FLOAT,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
-                                            BIND_FLAGS::kShaderResource);*/
+                                            BIND_FLAGS::kShaderResource);
 
   /*auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
@@ -958,12 +958,12 @@ RendererApp::setRenderTargets()
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
+  /*auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
                                             getScreenDescription().height,
                                             TEXTURE_FORMAT::kR16_FLOAT,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kShaderResource |
-                                            BIND_FLAGS::kUnorderedAccess);
+                                            BIND_FLAGS::kUnorderedAccess);*/
 
   auto pComputeLight = graphMan.createTexture2D(getScreenDescription().width,
                                                 getScreenDescription().height,

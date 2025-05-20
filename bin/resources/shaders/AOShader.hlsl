@@ -4,7 +4,7 @@
 SamplerState textureSampler : register(s0);
 Texture2D t_posMap : register(t0);
 Texture2D t_normalMap : register(t1);
-RWTexture2D<float4> t_outputMap : register(u0);
+//RWTexture2D<float4> t_outputMap : register(u0);
 
 cbuffer AOSettings : register(b0)
 {
@@ -24,12 +24,14 @@ struct PS_INPUT
 
 float3 getPosition(in float2 uv)
 {
-  return t_posMap.Load(uint3(uv, 0)).rgb;
+  return t_posMap.Sample(textureSampler, uv).rgb;
+  //return t_posMap.Load(uint3(uv, 0)).rgb;
 }
 
 float4 getNormal(in float2 uv)
 {
-  float4 normal = t_normalMap.Load(uint3(uv, 0));
+  float4 normal = t_normalMap.Sample(textureSampler, uv);
+  //float4 normal = t_normalMap.Load(uint3(uv, 0));
   normal.xyz = normal.xyz * 2.0f - 1.0f;
   return normal;
 }
@@ -51,14 +53,65 @@ float computeAO(in float2 tcood, in float2 uv, in float3 p, in float3 cnorm)
   return max(0.0f, dot(cnorm, v) - Bias) * (1.0f / (1.0f + d)) * Intensity;
 }
 
-//float4 mainPS(PS_INPUT input) : SV_TARGET
+float4 mainPS(PS_INPUT input) : SV_TARGET
+{
+  float2 screenUV = input.Position.xy / ScreenSize;
+  
+  float4 normal = getNormal(screenUV);
+  if(normal.w == 0.0f)
+  {
+    clip(-1);
+  }
+  
+  float3 pos = getPosition(screenUV);
+  float3 n = normal.xyz;
+  float2 rand = getRandom(screenUV);
+  
+  float ao = 0.0f;
+  float rad = SampleRad / -pos.x;
+  
+  float2 vec[4] =
+  {
+   float2(1.0f, 0.0f),
+   float2(-1.0f, 0.0f),
+   float2(0.0f, 1.0f),
+   float2(0.0f, -1.0f)
+  };
+
+  int iter = 4;
+  for(int j = 0; j < iter; ++j)
+  {
+    float2 coord1 = reflect(vec[j], rand) * rad;
+    float2 coord2 = float2(coord1.x * 0.707 - coord1.y * 0.707,
+                           coord1.x * 0.707 - coord1.y * 0.707);
+     
+    ao += computeAO(screenUV, coord1 * 0.25f, pos.xyz, n);
+    ao += computeAO(screenUV, coord2 * 0.5f,  pos.xyz, n);
+    ao += computeAO(screenUV, coord2 * 0.75f, pos.xyz, n);
+    ao += computeAO(screenUV, coord2,         pos.xyz, n);
+  }
+  
+  ao /= (iter * 4);
+  
+  return 1.0f - ao;
+}
+
+//[numthreads(16, 16, 1)]
+//void
+//CSMain(uint3 dtID : SV_DispatchThreadID)
 //{
-//  float2 screenUV = input.Position.xy / ScreenSize;
+//  if (dtID.x >= ScreenSize.x || dtID.y >= ScreenSize.y)
+//  {
+//     return;
+//  }
+  
+//  float2 screenUV = dtID.xy / ScreenSize;
     
 //  float4 normal = getNormal(screenUV);
 //  if(normal.w == 0.0f)
 //  {
-//    clip(-1);
+//    t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+//    return;
 //  }
     
 //  float3 pos = getPosition(screenUV);
@@ -75,7 +128,7 @@ float computeAO(in float2 tcood, in float2 uv, in float3 p, in float3 cnorm)
 //   float2(0.0f, 1.0f),
 //   float2(0.0f, -1.0f)
 //  };
-
+    
 //  int iter = 4;
 //  for(int j = 0; j < iter; ++j)
 //  {
@@ -91,56 +144,5 @@ float computeAO(in float2 tcood, in float2 uv, in float3 p, in float3 cnorm)
     
 //  ao /= (iter * 4);
     
-//  return 1.0f - ao;
+//  t_outputMap[dtID.xy] = 1.0f - ao;
 //}
-
-[numthreads(16, 16, 1)]
-void
-CSMain(uint3 dtID : SV_DispatchThreadID)
-{
-  if (dtID.x >= ScreenSize.x || dtID.y >= ScreenSize.y)
-  {
-     return;
-  }
-  
-  float2 screenUV = dtID.xy / ScreenSize;
-    
-  float4 normal = getNormal(screenUV);
-  if(normal.w == 0.0f)
-  {
-    t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    return;
-  }
-    
-  float3 pos = getPosition(screenUV);
-  float3 n = normal.xyz;
-  float2 rand = getRandom(screenUV);
-    
-  float ao = 0.0f;
-  float rad = SampleRad / -pos.x;
-    
-  float2 vec[4] =
-  {
-   float2(1.0f, 0.0f),
-   float2(-1.0f, 0.0f),
-   float2(0.0f, 1.0f),
-   float2(0.0f, -1.0f)
-  };
-    
-  int iter = 4;
-  for(int j = 0; j < iter; ++j)
-  {
-    float2 coord1 = reflect(vec[j], rand) * rad;
-    float2 coord2 = float2(coord1.x * 0.707 - coord1.y * 0.707,
-                           coord1.x * 0.707 - coord1.y * 0.707);
-       
-    ao += computeAO(screenUV, coord1 * 0.25f, pos.xyz, n);
-    ao += computeAO(screenUV, coord2 * 0.5f,  pos.xyz, n);
-    ao += computeAO(screenUV, coord2 * 0.75f, pos.xyz, n);
-    ao += computeAO(screenUV, coord2,         pos.xyz, n);
-  }
-    
-  ao /= (iter * 4);
-    
-  t_outputMap[dtID.xy] = 1.0f - ao;
-}
