@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/05/26
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -195,11 +195,12 @@ class RendererApp : public BaseApp
   *  Functions
   */
   /***************************************************************************/
+ private:
   /**
-  *  @brief Initialize the graphic assets.
+  *  @brief Initialize the shaders.
   */
   void
-  initGraphicAssets();
+  initShaders();
 
   /**
   *  @brief Initialize the app camera.
@@ -350,6 +351,11 @@ class RendererApp : public BaseApp
   *  @brief Current mouse position.
   */
   Vector2 m_currentMousePos = Vector2(0.0f, 0.0f);
+
+  /**
+  *  @brief Screen size.
+  */
+  Vector2 m_screenSize = Vector2(0.0f, 0.0f);
 
   /**
   *  @brief Is camera going foward?

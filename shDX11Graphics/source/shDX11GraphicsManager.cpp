@@ -292,7 +292,7 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   multiSample.Quality = m_multiSampleConfig.quality;
 
   scDesc.SampleDesc = multiSample;
-  scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
   scDesc.BufferCount = 2;
   scDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
   scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;

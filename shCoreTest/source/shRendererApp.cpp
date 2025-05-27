@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/13
+*  @date    2025/05/26
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -63,9 +63,12 @@ RendererApp::onCreate()
   AudioManager& audioMan = AudioManager::instance();
 
   m_shadowTexSize = 2048.0f;
+  m_screenSize = Vector2(static_cast<float>(getScreenDescription().width),
+                         static_cast<float>(getScreenDescription().height));
 
   // Initialize graphics
-  initGraphicAssets();
+  initShaders();
+  setRenderTargets();
   initCamera();
 
   // Imgui initialize
@@ -101,8 +104,8 @@ RendererApp::onCreate()
 
   // Ambient occlusion buffers
   AOBuffer aoBuffer;
-  aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
-  aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
+  aoBuffer.viewport.x = m_screenSize.x;
+  aoBuffer.viewport.y = m_screenSize.y;
   aoBuffer.samplerRad = m_aoSamplerRad = 1.0f;
   aoBuffer.scale = m_aoScale = 1.0f;
   aoBuffer.bias = m_aoBias = 0.01f;
@@ -118,23 +121,12 @@ RendererApp::onCreate()
   auto pVBlurShader = renderMan.getPass("VBlurShader");
   pHBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
   pVBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-  
-  //pHBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-  //pVBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
 
   // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
 
   // Lightning shader buffers
-  //auto pLightningShader = renderMan.getPass("LightningShader");
-  //pLightningShader->addPSConstantBuffer(m_pInvVP, 0);
-  //pLightningShader->addPSConstantBuffer(m_pCameraPosition, 1);
-  //pLightningShader->addPSConstantBuffer(m_pLightBuffer, 2);
-  //pLightningShader->addPSConstantBuffer(m_pViewportBuffer, 3);
-  //pLightningShader->addPSConstantBuffer(m_pLCBuffer, 4);
-  //pLightningShader->addPSConstantBuffer(m_pLSizeBuffer, 5);
-
   auto pLightCS = renderMan.getPass("LightCS");
   pLightCS->addCSConstantBuffer(m_pInvVP, 0);
   pLightCS->addCSConstantBuffer(m_pCameraPosition, 1);
@@ -302,8 +294,7 @@ RendererApp::onRender()
   graphMan.setPrimitiveTopology();
 
   renderMan.setShadowMapSize(m_lcamSize);
-  renderMan.setScreenDimensions(Vector2(static_cast<float>(getScreenDescription().width),
-                                        static_cast<float>(getScreenDescription().height)));
+  renderMan.setScreenDimensions(Vector2(m_screenSize.x, m_screenSize.y));
   renderMan.renderScene();
 
   ImGui::Render();
@@ -315,21 +306,21 @@ RendererApp::onResize(const ResizeData& rszData)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  float width = static_cast<float>(rszData.width);
-  float height = static_cast<float>(rszData.height);
+  m_screenSize.x = static_cast<float>(rszData.width);
+  m_screenSize.y = static_cast<float>(rszData.height);
 
   setRenderTargets();
 
   m_camera.setPerspectiveData(m_camera.getHalfFOV(),
-                              width,
-                              height,
+                              m_screenSize.x,
+                              m_screenSize.y,
                               m_camera.getNear(),
                               m_camera.getFar());
 
   updateCamera();
 
-  Vector4 viewport(width,
-                   height,
+  Vector4 viewport(m_screenSize.x,
+                   m_screenSize.y,
                    m_camera.getFar(),
                    m_camera.getNear());
   graphMan.updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
@@ -504,21 +495,10 @@ RendererApp::onDestroy()
 {
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
-
-  m_pVP.reset();
-  m_pInvVP.reset();
-  m_pModelTransform.reset();
-  m_pCameraPosition.reset();
-  m_pLightBuffer.reset();
-  m_pViewportBuffer.reset();
-  m_pAOBuffer.reset();
-
-  m_pModel->~GameObject();
-  m_pModel.reset();
 }
 
 void
-RendererApp::initGraphicAssets()
+RendererApp::initShaders()
 {
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
   GraphicsManager& graphMan = g_graphicsMan();
@@ -536,16 +516,6 @@ RendererApp::initGraphicAssets()
   pGbufferShader->compileShader();
 
   // Lightning
-  /*auto pLightningShader = sh_makeShared<Pass>();
-  pLightningShader->setPShaderInfo("resources/shaders/LightningShader.hlsl",
-                                   "mainPS",
-                                   "ps_5_0");*/
-  /*pLightningShader->setCShaderInfo("resources/shaders/LightningShader.hlsl",
-                                   "CSMain",
-                                   "cs_5_0");*/
-  //pLightningShader->compileShader();
-
-  // Lightning Compute
   auto pLightCS = sh_makeShared<Pass>();
   pLightCS->setCShaderInfo("resources/shaders/LightCShader.hlsl",
                            "CSMain",
@@ -557,16 +527,10 @@ RendererApp::initGraphicAssets()
   pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
                             "mainPS",
                             "ps_5_0");
-  /*pAOShader->setCShaderInfo("resources/shaders/AOShader.hlsl",
-                            "CSMain",
-                            "cs_5_0");*/
   pAOShader->compileShader();
 
   // HBlur
   auto pHBlurShader = sh_makeShared<Pass>();
-  /*pHBlurShader->setPShaderInfo("resources/shaders/HBlurShader.hlsl",
-                               "mainPS",
-                               "ps_5_0");*/
   pHBlurShader->setCShaderInfo("resources/shaders/HBlurShader.hlsl",
                                "CSMain",
                                "cs_5_0");
@@ -574,9 +538,6 @@ RendererApp::initGraphicAssets()
 
   // VBlur
   auto pVBlurShader = sh_makeShared<Pass>();
-  /*pVBlurShader->setPShaderInfo("resources/shaders/VBlurShader.hlsl",
-                               "mainPS",
-                               "ps_5_0");*/
   pVBlurShader->setCShaderInfo("resources/shaders/VBlurShader.hlsl",
                                "CSMain",
                                "cs_5_0");
@@ -693,21 +654,8 @@ RendererApp::initGraphicAssets()
   pGbufferShader->setBlendState(pBlendState);
   pGbufferShader->setDepthStencilState(pDepthStencil);
 
-  // Lightining
-  /*pLightningShader->generateInputLayout();
-  pLightningShader->setSamplerState(pSamplerLinear);*/
-
   // AO
-  pAOShader->generateInputLayout();
   pAOShader->setSamplerState(pSamplerLinear);
-
-  // HBlur
-  pHBlurShader->generateInputLayout();
-  pHBlurShader->setSamplerState(pSamplerLinear);
-
-  // VBlur
-  pVBlurShader->generateInputLayout();
-  pVBlurShader->setSamplerState(pSamplerLinear);
 
   // Shadow Map
   pSMapShader->generateInputLayout();
@@ -724,7 +672,6 @@ RendererApp::initGraphicAssets()
   pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
 
   // Add skybox
-  pFinalShader->generateInputLayout();
   pFinalShader->setSamplerState(pSamplerLinear);
 
   // Plane vs
@@ -736,16 +683,11 @@ RendererApp::initGraphicAssets()
   renderMan.addPass(pAOShader, "AOShader");
   renderMan.addPass(pHBlurShader, "HBlurShader");
   renderMan.addPass(pVBlurShader, "VBlurShader");
-  //renderMan.addPass(pLightningShader, "LightningShader");
+  renderMan.addPass(pLightCS, "LightCS");
   renderMan.addPass(pSMapShader, "SMapShader");
   renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
   renderMan.addPass(pFinalShader, "FinalShader");
   renderMan.addPass(pPlaneVS, "PlaneShader");
-
-  renderMan.addPass(pLightCS, "LightCS");
-
-  // Create and set render targets for deferred rendering
-  setRenderTargets();
 }
 
 void
@@ -760,8 +702,8 @@ RendererApp::initCamera()
                     Vector3(0.0f, 0.0f, 0.0f),
                     Vector3::UP,
                     30.0f * Math::DEG2RAD,
-                    static_cast<float>(getScreenDescription().width),
-                    static_cast<float>(getScreenDescription().height),
+                    m_screenSize.x,
+                    m_screenSize.y,
                     0.1f,
                     2000.0f);
 
@@ -798,8 +740,8 @@ RendererApp::initCamera()
                                        sizeof(InvVP));
 
   // Init buffer for viewport
-  Vector4 viewport(static_cast<float>(getScreenDescription().width),
-                   static_cast<float>(getScreenDescription().height),
+  Vector4 viewport(m_screenSize.x,
+                   m_screenSize.y,
                    m_camera.getFar(),
                    m_camera.getNear());
   m_pViewportBuffer = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
@@ -888,54 +830,54 @@ RendererApp::setRenderTargets()
 
   auto pMainTarget = graphMan.getMainRenderTargetView();
 
-  auto pDepthTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                               getScreenDescription().height,
+  auto pDepthTarget = graphMan.createTexture2D(m_screenSize.x,
+                                               m_screenSize.y,
                                                TEXTURE_FORMAT::kR32G32B32A32_float,
                                                USAGE::kDefault,
                                                BIND_FLAGS::kRenderTarget |
                                                BIND_FLAGS::kShaderResource);
 
-  auto pNormalTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                                getScreenDescription().height,
+  auto pNormalTarget = graphMan.createTexture2D(m_screenSize.x,
+                                                m_screenSize.y,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  auto pColorTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                               getScreenDescription().height,
+  auto pColorTarget = graphMan.createTexture2D(m_screenSize.x,
+                                               m_screenSize.y,
                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                USAGE::kDefault,
                                                BIND_FLAGS::kRenderTarget |
                                                BIND_FLAGS::kShaderResource);
 
-  auto pPropTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                              getScreenDescription().height,
+  auto pPropTarget = graphMan.createTexture2D(m_screenSize.x,
+                                              m_screenSize.y,
                                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                               USAGE::kDefault,
                                               BIND_FLAGS::kRenderTarget |
                                               BIND_FLAGS::kShaderResource);
 
-  auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                            getScreenDescription().height,
+  auto pAoTarget = graphMan.createTexture2D(m_screenSize.x,
+                                            m_screenSize.y,
                                             TEXTURE_FORMAT::kR16_FLOAT,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
                                             BIND_FLAGS::kShaderResource);
 
-  /*auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                            getScreenDescription().height,
+  auto pHbTarget = graphMan.createTexture2D(m_screenSize.x,
+                                            m_screenSize.y,
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
-                                            BIND_FLAGS::kRenderTarget |
-                                            BIND_FLAGS::kShaderResource);
+                                            BIND_FLAGS::kShaderResource |
+                                            BIND_FLAGS::kUnorderedAccess);
 
-  auto pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                            getScreenDescription().height,
+  auto pVbTarget = graphMan.createTexture2D(m_screenSize.x,
+                                            m_screenSize.y,
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
-                                            BIND_FLAGS::kRenderTarget |
-                                            BIND_FLAGS::kShaderResource);*/
+                                            BIND_FLAGS::kShaderResource |
+                                            BIND_FLAGS::kUnorderedAccess);
 
   auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
                                               static_cast<uint32>(m_shadowTexSize),
@@ -951,40 +893,19 @@ RendererApp::setRenderTargets()
                                                     BIND_FLAGS::kRenderTarget |
                                                     BIND_FLAGS::kShaderResource);
 
-  auto pSkyBoxTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                                getScreenDescription().height,
+  auto pSkyBoxTarget = graphMan.createTexture2D(m_screenSize.x,
+                                                m_screenSize.y,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  /*auto pAoTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                            getScreenDescription().height,
-                                            TEXTURE_FORMAT::kR16_FLOAT,
-                                            USAGE::kDefault,
-                                            BIND_FLAGS::kShaderResource |
-                                            BIND_FLAGS::kUnorderedAccess);*/
-
-  auto pComputeLight = graphMan.createTexture2D(getScreenDescription().width,
-                                                getScreenDescription().height,
+  auto pComputeLight = graphMan.createTexture2D(m_screenSize.x,
+                                                m_screenSize.y,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
-
-  auto pHbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                            getScreenDescription().height,
-                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                            USAGE::kDefault,
-                                            BIND_FLAGS::kShaderResource |
-                                            BIND_FLAGS::kUnorderedAccess);
-
-  auto pVbTarget = graphMan.createTexture2D(getScreenDescription().width,
-                                            getScreenDescription().height,
-                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
-                                            USAGE::kDefault,
-                                            BIND_FLAGS::kShaderResource |
-                                            BIND_FLAGS::kUnorderedAccess);
 
   // Save targets on render manager
   renderMan.addRenderTarget(pMainTarget, "MainTarget");
@@ -1004,8 +925,8 @@ RendererApp::setRenderTargets()
 void
 RendererApp::setImgui()
 {
-  float width = static_cast<float>(getScreenDescription().width);
-  float height = static_cast<float>(getScreenDescription().height);
+  float width = m_screenSize.x;
+  float height = m_screenSize.y;
 
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImVec2(250.0f, height));

@@ -248,8 +248,11 @@ RenderManager::renderScene()
   auto pHBlurMap = getRenderTargetByName("HBlurMap");
   auto pVBlurMap = getRenderTargetByName("VBlurMap");
   auto pSkyBoxMap = getRenderTargetByName("SkyBoxMap");
-  //auto pCHBlur = getRenderTargetByName("CHBlurMap");
   auto pLightCMap = getRenderTargetByName("LightCMap");
+
+  uint32 dispatchX = static_cast<uint32>((m_screenDimension.x + 32.0f) / 32.0f);
+  uint32 dispatchY = static_cast<uint32>((m_screenDimension.y + 32.0f) / 32.0f);
+  uint32 dispatchZ = 1;
 
   /*************************************/
   /*          Shadow Mapping           */
@@ -306,34 +309,21 @@ RenderManager::renderScene()
 
   graphMan.psSetShaderResourceView(pDepthMap, 0);
   graphMan.psSetShaderResourceView(pNormalMap, 1);
-  //graphMan.setUnorderedAccessView(pAOMap, 0);
 
-  /*graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
-                    static_cast<uint32>(m_screenDimension.y / 16.0f),
-                    1);*/
   graphMan.draw(3, 0);
 
   cleanShaderObjects();
-  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*          Horizontal Blur          */
   /*************************************/
-  //clearRenderTargetByName("HBlurMap");
-  //setRenderTargetsByName({ "HBlurMap" }, pDepthSV);
-  //setPassByName("PlaneShader");
-
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("HBlurShader");
 
-  //graphMan.psSetShaderResourceView(pAOMap, 0);
   graphMan.csSetShaderResourceView(pAOMap, 0);
   graphMan.setUnorderedAccessView(pHBlurMap, 0);
 
-  //graphMan.draw(3, 0);
-  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
-                    static_cast<uint32>(m_screenDimension.y / 16.0f),
-                    1);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
@@ -341,21 +331,13 @@ RenderManager::renderScene()
   /*************************************/
   /*            Vetical Blur           */
   /*************************************/
-  //clearRenderTargetByName("VBlurMap");
-  //setRenderTargetsByName({ "VBlurMap" }, pDepthSV);
-  //setPassByName("PlaneShader");
-
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("VBlurShader");
 
-  //graphMan.psSetShaderResourceView({ pHBlurMap }, 0);
   graphMan.csSetShaderResourceView(pHBlurMap, 0);
   graphMan.setUnorderedAccessView(pVBlurMap, 0);
 
-  //graphMan.draw(3, 0);
-  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
-                    static_cast<uint32>(m_screenDimension.y / 16.0f),
-                    1);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
@@ -363,21 +345,6 @@ RenderManager::renderScene()
   /*************************************/
   /*             Lightning             */
   /*************************************/
-  /*setRenderTargetsByName({ "MainTarget" }, pDepthSV);
-  setPassByName("PlaneShader");
-  setPassByName("LightningShader");
-
-  graphMan.psSetShaderResourceView(pDepthMap, 0);
-  graphMan.psSetShaderResourceView(pNormalMap, 1);
-  graphMan.psSetShaderResourceView(pColorMap, 2);
-  graphMan.psSetShaderResourceView(pPropMap, 3);
-  graphMan.psSetShaderResourceView(pVBlurMap, 4);
-  graphMan.psSetShaderResourceView(pShadowMap, 5);
-
-  graphMan.draw(3, 0);
-
-  cleanShaderObjects();*/
-
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("LightCS");
 
@@ -389,9 +356,7 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pShadowMap, 5);
   graphMan.setUnorderedAccessView(pLightCMap, 0);
 
-  graphMan.dispatch(static_cast<uint32>(m_screenDimension.x / 16.0f),
-                    static_cast<uint32>(m_screenDimension.y / 16.0f),
-                    1);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);

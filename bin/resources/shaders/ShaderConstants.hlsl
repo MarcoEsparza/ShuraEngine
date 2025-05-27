@@ -16,6 +16,11 @@ Texture2D t_shadowMap : register(t10);
 #define PCF_KERNEL_SIZE 5
 #endif
 
+cbuffer MainBuffer : register(b0)
+{
+  
+}
+
 cbuffer AOSettings : register(b8)
 {
   float2 ScreenSize;

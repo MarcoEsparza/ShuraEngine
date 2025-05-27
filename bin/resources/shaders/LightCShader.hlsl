@@ -157,7 +157,7 @@ float3 cookTorrenceSpecular(float3 normal,
   return (D * G * F) / denominator;
 }
 
-[numthreads(16, 16, 1)]
+[numthreads(32, 32, 1)]
 void CSMain(uint3 dtID : SV_DispatchThreadID)
 {
   if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
