@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/05/29
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -28,6 +28,7 @@
 #include "shSphere.h"
 #include "shDegree.h"
 #include "shRadian.h"
+#include "shCollisionInfo.h"
 
 namespace shEngineSDK {
  /*************************************************************/
@@ -209,7 +210,7 @@ PlatformMath::atanh(const Radian& radian)
 /*************************************************************/
 
 bool
-PlatformMath::pointBoxIntersect(const Vector3& point, const BoxAAB& box)
+PlatformMath::intersect(const Vector3& point, const BoxAAB& box, CollisionInfo& colInfo)
 {
   return (point.x >= box.min.x &&
           point.x <= box.max.x &&
@@ -220,7 +221,7 @@ PlatformMath::pointBoxIntersect(const Vector3& point, const BoxAAB& box)
 }
 
 bool
-PlatformMath::pointBoxIntersect(const Vector3& point, const BoxOBB& box)
+PlatformMath::intersect(const Vector3& point, const BoxOBB& box, CollisionInfo& colInfo)
 {
   Vector3 right, up, forward;
   box.rotation.toAxes(right, up, forward);
@@ -241,7 +242,7 @@ PlatformMath::pointBoxIntersect(const Vector3& point, const BoxOBB& box)
 }
 
 bool
-PlatformMath::pointSphereIntersect(const Vector3& point, const Sphere& sph)
+PlatformMath::intersect(const Vector3& point, const Sphere& sph, CollisionInfo& colInfo)
 {
   const float distance = sqrt(((point.x - sph.center.x) *
                               (point.x - sph.center.x)) +
@@ -254,7 +255,7 @@ PlatformMath::pointSphereIntersect(const Vector3& point, const Sphere& sph)
 }
 
 bool
-PlatformMath::pointCapsuleIntersect(const Vector3& point, const Capsule& cap)
+PlatformMath::intersect(const Vector3& point, const Capsule& cap, CollisionInfo& colInfo)
 {
   const Vector3 pointAB = cap.pointB - cap.pointA;
   const Vector3 pointAP = point - cap.pointA;
@@ -276,13 +277,13 @@ PlatformMath::pointCapsuleIntersect(const Vector3& point, const Capsule& cap)
 }
 
 bool
-PlatformMath::pointRectIntersect(const Vector2& point, const Rect& rect)
+PlatformMath::intersect(const Vector2& point, const Rect& rect, CollisionInfo& colInfo)
 {
   return rect.pointIntersect(point);
 }
 
 bool
-PlatformMath::pointPlaneIntersect(const Vector3& point, const Plane& plane)
+PlatformMath::intersect(const Vector3& point, const Plane& plane, CollisionInfo& colInfo)
 {
   const float distance = plane.pointToPlaneDistance(point);
 
@@ -290,7 +291,7 @@ PlatformMath::pointPlaneIntersect(const Vector3& point, const Plane& plane)
 }
 
 bool
-PlatformMath::boxBoxIntersect(const BoxAAB& box, const BoxAAB& box1)
+PlatformMath::intersect(const BoxAAB& box, const BoxAAB& box1, CollisionInfo& colInfo)
 {
   return (box.min.x <= box1.max.x &&
           box.max.x >= box1.min.x &&
@@ -301,7 +302,7 @@ PlatformMath::boxBoxIntersect(const BoxAAB& box, const BoxAAB& box1)
 }
 
 bool
-PlatformMath::boxBoxIntersect(const BoxOBB& box, const BoxOBB& box1)
+PlatformMath::intersect(const BoxOBB& box, const BoxOBB& box1, CollisionInfo& colInfo)
 {
   Vector<Vector3> axes;
   axes.resize(15);
@@ -345,7 +346,7 @@ PlatformMath::boxBoxIntersect(const BoxOBB& box, const BoxOBB& box1)
 }
 
 bool
-PlatformMath::boxBoxIntersect(const BoxAAB& boxA, const BoxOBB& boxO)
+PlatformMath::intersect(const BoxAAB& boxA, const BoxOBB& boxO, CollisionInfo& colInfo)
 {
   Vector<Vector3> aabbAxes = { Vector3(1.0f,0.0f,0.0f),
                                Vector3(0.0f,1.0f,0.0f),
@@ -402,7 +403,7 @@ PlatformMath::boxBoxIntersect(const BoxAAB& boxA, const BoxOBB& boxO)
 }
 
 bool
-PlatformMath::boxCapsuleIntersect(const BoxAAB& box, const Capsule& cap)
+PlatformMath::intersect(const BoxAAB& box, const Capsule& cap, CollisionInfo& colInfo)
 {
   Vector3 closestPoint(0.0f, 0.0f, 0.0f);
 
@@ -424,7 +425,7 @@ PlatformMath::boxCapsuleIntersect(const BoxAAB& box, const Capsule& cap)
 }
 
 bool
-PlatformMath::boxCapsuleIntersect(const BoxOBB& box, const Capsule& cap)
+PlatformMath::intersect(const BoxOBB& box, const Capsule& cap, CollisionInfo& colInfo)
 {
   Vector<Vector3> obbAxes;
   obbAxes.resize(3);
@@ -480,7 +481,7 @@ PlatformMath::boxCapsuleIntersect(const BoxOBB& box, const Capsule& cap)
 }
 
 bool
-PlatformMath::boxPlaneIntersect(const BoxAAB& box, const Plane& plane)
+PlatformMath::intersect(const BoxAAB& box, const Plane& plane, CollisionInfo& colInfo)
 {
   auto vertices = box.getVertices();
   Array<float, 8> evaluations;
@@ -505,7 +506,7 @@ PlatformMath::boxPlaneIntersect(const BoxAAB& box, const Plane& plane)
 }
 
 bool
-PlatformMath::boxPlaneIntersect(const BoxOBB& box, const Plane& plane)
+PlatformMath::intersect(const BoxOBB& box, const Plane& plane, CollisionInfo& colInfo)
 {
   auto corners = box.getCorners();
 
@@ -531,7 +532,7 @@ PlatformMath::boxPlaneIntersect(const BoxOBB& box, const Plane& plane)
 }
 
 bool
-PlatformMath::boxRectIntersect(const BoxAAB& box, const Rect& rect)
+PlatformMath::intersect(const BoxAAB& box, const Rect& rect, CollisionInfo& colInfo)
 {
   return (box.min.x <= rect.max.x &&
           box.max.x >= rect.min.x &&
@@ -540,7 +541,7 @@ PlatformMath::boxRectIntersect(const BoxAAB& box, const Rect& rect)
 }
 
 bool
-PlatformMath::boxRectIntersect(const BoxOBB& box, const Rect& rect)
+PlatformMath::intersect(const BoxOBB& box, const Rect& rect, CollisionInfo& colInfo)
 {
   Array<float, 4> projX;
   Array<float, 4> projY;
@@ -564,7 +565,7 @@ PlatformMath::boxRectIntersect(const BoxOBB& box, const Rect& rect)
 }
 
 bool
-PlatformMath::sphereSphereIntersect(const Sphere& sph, const Sphere& sph1)
+PlatformMath::intersect(const Sphere& sph, const Sphere& sph1, CollisionInfo& colInfo)
 {
   const float distance = sqrt((sph.center.x - sph1.center.x) +
                               (sph.center.y - sph1.center.y) +
@@ -574,7 +575,7 @@ PlatformMath::sphereSphereIntersect(const Sphere& sph, const Sphere& sph1)
 }
 
 bool
-PlatformMath::boxSphereIntersect(const BoxAAB& box, const Sphere& sph)
+PlatformMath::intersect(const BoxAAB& box, const Sphere& sph, CollisionInfo& colInfo)
 {
   const float x = max(box.min.x, min(sph.center.x, box.max.x));
   const float y = max(box.min.y, min(sph.center.y, box.max.y));
@@ -588,7 +589,7 @@ PlatformMath::boxSphereIntersect(const BoxAAB& box, const Sphere& sph)
 }
 
 bool
-PlatformMath::boxSphereIntersect(const BoxOBB& box, const Sphere& sph)
+PlatformMath::intersect(const BoxOBB& box, const Sphere& sph, CollisionInfo& colInfo)
 {
   Vector3 sphereToBox = sph.center - box.center;
   Vector3 transformedSphCenter = box.rotation.toRotate(sphereToBox);
@@ -605,7 +606,7 @@ PlatformMath::boxSphereIntersect(const BoxOBB& box, const Sphere& sph)
 }
 
 bool
-PlatformMath::sphereCapsuleIntersect(const Sphere& sph, const Capsule& cap)
+PlatformMath::intersect(const Sphere& sph, const Capsule& cap, CollisionInfo& colInfo)
 {
   const Vector3 closestPoint = sph.center.closestPointOnSegment(cap.pointA, cap.pointB);
 
@@ -615,7 +616,7 @@ PlatformMath::sphereCapsuleIntersect(const Sphere& sph, const Capsule& cap)
 }
 
 bool
-PlatformMath::spherePlaneIntersect(const Sphere& sph, const Plane& plane)
+PlatformMath::intersect(const Sphere& sph, const Plane& plane, CollisionInfo& colInfo)
 {
   float dist = PlatformMath::abs(plane.normal.dot(sph.center) - plane.distance) /
                plane.normal.mag();
@@ -624,7 +625,7 @@ PlatformMath::spherePlaneIntersect(const Sphere& sph, const Plane& plane)
 }
 
 bool
-PlatformMath::sphereRectIntersect(const Sphere& sph, const Rect& rect)
+PlatformMath::intersect(const Sphere& sph, const Rect& rect, CollisionInfo& colInfo)
 {
   const float closestX = clamp(sph.center.x, rect.min.x, rect.max.x);
   const float closestY = clamp(sph.center.y, rect.min.y, rect.max.y);
@@ -636,7 +637,7 @@ PlatformMath::sphereRectIntersect(const Sphere& sph, const Rect& rect)
 }
 
 bool
-PlatformMath::capsuleCapsuleIntersect(const Capsule& cap, const Capsule& cap1)
+PlatformMath::intersect(const Capsule& cap, const Capsule& cap1, CollisionInfo& colInfo)
 {
   const Vector3 c1Normal = (cap.pointB - cap.pointA).getNormalized();
   const Vector3 c1EndOffset = c1Normal + cap.radius;
@@ -678,7 +679,7 @@ PlatformMath::capsuleCapsuleIntersect(const Capsule& cap, const Capsule& cap1)
 }
 
 bool
-PlatformMath::capsulePlaneIntersect(const Capsule& cap, const Plane& plane)
+PlatformMath::intersect(const Capsule& cap, const Plane& plane, CollisionInfo& colInfo)
 {
   float distA = plane.pointToPlaneDistance(cap.pointA);
   float distB = plane.pointToPlaneDistance(cap.pointB);
@@ -699,7 +700,7 @@ PlatformMath::capsulePlaneIntersect(const Capsule& cap, const Plane& plane)
 }
 
 bool
-PlatformMath::capsuleRectIntersect(const Capsule& cap, const Rect& rect)
+PlatformMath::intersect(const Capsule& cap, const Rect& rect, CollisionInfo& colInfo)
 {
   // Capsule points projected
   const Vector2 projCapA(cap.pointA.x, cap.pointA.y);
@@ -708,8 +709,8 @@ PlatformMath::capsuleRectIntersect(const Capsule& cap, const Rect& rect)
   Sphere sphereA(cap.pointA, cap.radius);
   Sphere sphereB(cap.pointB, cap.radius);
 
-  if(sphereRectIntersect(sphereA, rect) ||
-     sphereRectIntersect(sphereB, rect)) {
+  if(intersect(sphereA, rect, colInfo) ||
+     intersect(sphereB, rect, colInfo)) {
     return true;
   }
 
@@ -717,7 +718,7 @@ PlatformMath::capsuleRectIntersect(const Capsule& cap, const Rect& rect)
 }
 
 bool
-PlatformMath::planePlaneIntersect(const Plane& plane, const Plane& plane1)
+PlatformMath::intersect(const Plane& plane, const Plane& plane1, CollisionInfo& colInfo)
 {
   const Vector3 lineDir = plane.normal.cross(plane1.normal);
 
@@ -729,7 +730,7 @@ PlatformMath::planePlaneIntersect(const Plane& plane, const Plane& plane1)
 }
 
 bool
-PlatformMath::planeRectIntersect(const Plane& plane, const Rect& rect)
+PlatformMath::intersect(const Plane& plane, const Rect& rect, CollisionInfo& colInfo)
 {
   auto vertices = rect.getVertices();
   Array<float, 4> evaluations;
@@ -751,7 +752,7 @@ PlatformMath::planeRectIntersect(const Plane& plane, const Rect& rect)
 }
 
 bool
-PlatformMath::rectRectIntersect(const Rect& rect, const Rect& rect1)
+PlatformMath::intersect(const Rect& rect, const Rect& rect1, CollisionInfo& colInfo)
 {
   return (rect.min.x <= rect1.max.x &&
           rect.max.x >= rect1.min.x &&
