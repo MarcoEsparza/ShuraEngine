@@ -143,6 +143,10 @@ RendererApp::onCreate()
   auto pFinalShader = renderMan.getPass("FinalShader");
   pFinalShader->addPSConstantBuffer(m_pViewportBuffer, 0);
 
+  // Histogram
+  auto pHistogramShader = renderMan.getPass("HistogramShader");
+  pHistogramShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+
   // Create audio
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
@@ -577,6 +581,13 @@ RendererApp::initShaders()
                            "vs_5_0");
   pPlaneVS->compileShader();
 
+  // Histogram shader
+  auto pHistogramShader = sh_makeShared<Pass>();
+  pHistogramShader->setCShaderInfo("resources/shaders/HistogramShader.hlsl",
+                                   "CSMain",
+                                   "cs_5_0");
+  pHistogramShader->compileShader();
+
   // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -688,6 +699,7 @@ RendererApp::initShaders()
   renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
   renderMan.addPass(pFinalShader, "FinalShader");
   renderMan.addPass(pPlaneVS, "PlaneShader");
+  renderMan.addPass(pHistogramShader, "HistogramShader");
 }
 
 void
@@ -828,52 +840,55 @@ RendererApp::setRenderTargets()
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
 
+  uint32 width = static_cast<uint32>(m_screenSize.x);
+  uint32 height = static_cast<uint32>(m_screenSize.y);
+
   auto pMainTarget = graphMan.getMainRenderTargetView();
 
-  auto pDepthTarget = graphMan.createTexture2D(m_screenSize.x,
-                                               m_screenSize.y,
+  auto pDepthTarget = graphMan.createTexture2D(width,
+                                               height,
                                                TEXTURE_FORMAT::kR32G32B32A32_float,
                                                USAGE::kDefault,
                                                BIND_FLAGS::kRenderTarget |
                                                BIND_FLAGS::kShaderResource);
 
-  auto pNormalTarget = graphMan.createTexture2D(m_screenSize.x,
-                                                m_screenSize.y,
+  auto pNormalTarget = graphMan.createTexture2D(width,
+                                                height,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  auto pColorTarget = graphMan.createTexture2D(m_screenSize.x,
-                                               m_screenSize.y,
+  auto pColorTarget = graphMan.createTexture2D(width,
+                                               height,
                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                USAGE::kDefault,
                                                BIND_FLAGS::kRenderTarget |
                                                BIND_FLAGS::kShaderResource);
 
-  auto pPropTarget = graphMan.createTexture2D(m_screenSize.x,
-                                              m_screenSize.y,
+  auto pPropTarget = graphMan.createTexture2D(width,
+                                              height,
                                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                               USAGE::kDefault,
                                               BIND_FLAGS::kRenderTarget |
                                               BIND_FLAGS::kShaderResource);
 
-  auto pAoTarget = graphMan.createTexture2D(m_screenSize.x,
-                                            m_screenSize.y,
+  auto pAoTarget = graphMan.createTexture2D(width,
+                                            height,
                                             TEXTURE_FORMAT::kR16_FLOAT,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kRenderTarget |
                                             BIND_FLAGS::kShaderResource);
 
-  auto pHbTarget = graphMan.createTexture2D(m_screenSize.x,
-                                            m_screenSize.y,
+  auto pHbTarget = graphMan.createTexture2D(width,
+                                            height,
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kShaderResource |
                                             BIND_FLAGS::kUnorderedAccess);
 
-  auto pVbTarget = graphMan.createTexture2D(m_screenSize.x,
-                                            m_screenSize.y,
+  auto pVbTarget = graphMan.createTexture2D(width,
+                                            height,
                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kShaderResource |
@@ -893,16 +908,23 @@ RendererApp::setRenderTargets()
                                                     BIND_FLAGS::kRenderTarget |
                                                     BIND_FLAGS::kShaderResource);
 
-  auto pSkyBoxTarget = graphMan.createTexture2D(m_screenSize.x,
-                                                m_screenSize.y,
+  auto pSkyBoxTarget = graphMan.createTexture2D(width,
+                                                height,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
-  auto pComputeLight = graphMan.createTexture2D(m_screenSize.x,
-                                                m_screenSize.y,
+  auto pComputeLight = graphMan.createTexture2D(width,
+                                                height,
                                                 TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                USAGE::kDefault,
+                                                BIND_FLAGS::kShaderResource |
+                                                BIND_FLAGS::kUnorderedAccess);
+
+  auto pHistogramMap = graphMan.createTexture2D(256,
+                                                3,
+                                                TEXTURE_FORMAT::kR32G32B32A32_float,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
@@ -920,11 +942,15 @@ RendererApp::setRenderTargets()
   renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
   renderMan.addRenderTarget(pComputeLight, "LightCMap");
   renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
+  renderMan.addRenderTarget(pHistogramMap, "HistogramMap");
 }
 
 void
 RendererApp::setImgui()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
+
   float width = m_screenSize.x;
   float height = m_screenSize.y;
 
@@ -1226,6 +1252,10 @@ RendererApp::setImgui()
   if (ImGui::Button("Play Sound")) {
     bIsSoundPlaying = true;
   }
+
+  auto pTex = renderMan.getRenderTargetByName("HistogramMap");
+
+  //ImGui::Image(reinterpret_cast<ImTextureID>(&pTex), ImVec2(512, 90));
 
   ImGui::End();
 }

@@ -239,6 +239,7 @@ RenderManager::renderScene()
   auto pDepthSV = graphMan.getMainDepthStencil();
 
   // Get render targets
+  auto pMainTarget = getRenderTargetByName("MainTarget");
   auto pShadowMap = getRenderTargetByName("ShadowMap");
   auto pDepthMap = getRenderTargetByName("DepthMap");
   auto pNormalMap = getRenderTargetByName("NormalMap");
@@ -249,6 +250,7 @@ RenderManager::renderScene()
   auto pVBlurMap = getRenderTargetByName("VBlurMap");
   auto pSkyBoxMap = getRenderTargetByName("SkyBoxMap");
   auto pLightCMap = getRenderTargetByName("LightCMap");
+  auto pHistogramMap = getRenderTargetByName("HistogramMap");
 
   uint32 dispatchX = static_cast<uint32>((m_screenDimension.x + 32.0f) / 32.0f);
   uint32 dispatchY = static_cast<uint32>((m_screenDimension.y + 32.0f) / 32.0f);
@@ -396,6 +398,24 @@ RenderManager::renderScene()
   graphMan.psSetShaderResourceView(pLightCMap, 2);
 
   graphMan.draw(3, 0);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*             Histogram             */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("HistogramShader");
+
+  graphMan.csSetShaderResourceView(pLightCMap, 0);
+  graphMan.setUnorderedAccessView(pHistogramMap, 0);
+
+  uint32 dx = static_cast<uint32>(256.0f + 32.0f) / 32.0f;
+  uint32 dy = 3;
+  uint32 dz = 1;
+
+  graphMan.dispatch(dx, dy, dz);
 
   cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
