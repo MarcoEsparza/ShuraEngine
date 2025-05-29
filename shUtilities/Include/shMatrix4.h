@@ -533,7 +533,7 @@ class SH_UTILITY_EXPORT Transform : public Matrix4
   /**
   *  @breif Default constructor.
   */
-  Transform() = default;
+  Transform() { *this = Matrix4::IDENTITY; };
 
   /**
   *  @breif Default destructor.

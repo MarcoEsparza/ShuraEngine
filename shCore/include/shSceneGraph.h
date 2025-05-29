@@ -2,7 +2,7 @@
 /*
 *  @file    shSceneGraph.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/30
+*  @date    2025/04/23
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
@@ -25,7 +25,8 @@
 #include "shInputLayout.h"
 
 namespace shEngineSDK {
-class StaticMeshUnionComponent;
+class StaticMeshComponent;
+class SkeletalMeshComponent;
 
 /**
 *  @brief Scene graph class.
@@ -73,8 +74,8 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   const Vector<SPtr<GameObject>>&
   getGameObjectList() const;
 
-  const Vector<SPtr<StaticMeshUnionComponent>>
-  getStaticMeshUnionComponentInScene() const;
+  const Vector<SPtr<StaticMeshComponent>>
+  getStaticMeshComponentInScene() const;
 
   /*************************************************************/
   /*

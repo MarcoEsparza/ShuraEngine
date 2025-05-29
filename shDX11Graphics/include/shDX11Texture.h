@@ -94,6 +94,11 @@ class DX11Texture2D : public Texture2D
   *  @brief DirectX11 Texture2D pointer.
   */
   ID3D11Texture2D* m_pTexture2D = nullptr;
+
+  /**
+  *  @brief DirectX11 Unordered Access View pointer.
+  */
+  ID3D11UnorderedAccessView* m_pUnorderedAV = nullptr;
 };
 
 /*************************************************************/

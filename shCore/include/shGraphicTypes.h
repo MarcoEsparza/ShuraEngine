@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/11
+*  @date    2025/03/28
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
@@ -156,6 +156,11 @@ enum SH_CORE_EXPORT E
   kR8G8B8A8_snorm = 29,
   kR8G8B8A8_uint = 30,
   kR8G8B8A8_sint = 32,
+  kR32_Typeless = 39,
+  kD32_float = 40,
+  kR32_float = 41,
+  kR32_uint = 42,
+  kR32_sint = 43,
   kD24_UNORM_S8_uint = 45,
   kR16_TYPELESS = 53,
   kR16_FLOAT = 54,
@@ -455,5 +460,14 @@ struct DepthStencilDesc
   uint8 stencilWriteMask;
   DepthStencilOpDesc frontFace;
   DepthStencilOpDesc backFace;
+};
+
+/**
+*  @brief Shader macro struct.
+*/
+struct SH_CORE_EXPORT ShaderMacro
+{
+  String name;
+  String definition;
 };
 }

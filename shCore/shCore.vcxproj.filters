@@ -91,6 +91,18 @@
     <Filter Include="Source Files\GameObject">
       <UniqueIdentifier>{996cbf49-57ab-4a7c-90c1-cd8223301621}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\AudioManager">
+      <UniqueIdentifier>{870315f6-8860-4d7e-9520-8b820c0f1afc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AudioManager">
+      <UniqueIdentifier>{f8b2dabd-fedc-4dc9-be86-043fb52481f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\OpenCL">
+      <UniqueIdentifier>{7156f66f-cee5-4f74-8c8e-5b69fe215ab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\OpenCL">
+      <UniqueIdentifier>{7da05ee0-8833-47e3-8e76-93cfd3ec0500}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -207,6 +219,30 @@
     <ClInclude Include="include\shLight.h">
       <Filter>Header Files\Light</Filter>
     </ClInclude>
+    <ClInclude Include="include\shAsset.h">
+      <Filter>Header Files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shAudioManager.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSound.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shChannel.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shChannelGroup.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shAudioTypes.h">
+      <Filter>Header Files\AudioManager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shSkyBoxComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shOCLManager.h">
+      <Filter>Header Files\OpenCL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -256,6 +292,18 @@
     </ClCompile>
     <ClCompile Include="source\shGameObject.cpp">
       <Filter>Source Files\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shAsset.cpp">
+      <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shAudioManager.cpp">
+      <Filter>Source Files\AudioManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shSkyBoxComponent.cpp">
+      <Filter>Source Files\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shOCLManager.cpp">
+      <Filter>Source Files\OpenCL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

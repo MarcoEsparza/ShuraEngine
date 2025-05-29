@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/04/23
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -25,6 +25,7 @@
 #include "shImageResource.h"
 #include "shSkeletonResource.h"
 #include "shAnimationResource.h"
+#include "shAsset.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -36,8 +37,6 @@
 using std::fstream;
 using std::ios;
 using std::getline;
-
-using std::reinterpret_pointer_cast;
 
 /**
 *  @brief Custom flags for assimp importer
@@ -87,7 +86,7 @@ const Vector<String> ResourceManager::IMAGE_EXTENSIONS = { ".png",
 *
 *  @return Matrix4
 */
-Matrix4
+static Matrix4
 aiMatrixToMatrix4(const aiMatrix4x4& aiMatrix)
 {
   return Matrix4(static_cast<float>(aiMatrix.a1),
@@ -118,7 +117,7 @@ aiMatrixToMatrix4(const aiMatrix4x4& aiMatrix)
 *
 *  @return Vector3
 */
-Vector3
+static Vector3
 aiVec3ToVector3(const aiVector3D& aiVec)
 {
   return Vector3(aiVec.x, aiVec.y, aiVec.z);
@@ -131,10 +130,73 @@ aiVec3ToVector3(const aiVector3D& aiVec)
 *
 *  @return Quaternion
 */
-Quaternion
+static Quaternion
 aiQuatToQuaternion(const aiQuaternion& aiQuat)
 {
   return Quaternion(aiQuat.w, aiQuat.x, aiQuat.y, aiQuat.z);
+}
+
+static Vector<VertexData>
+getVertexDataFromMesh(const aiMesh* mesh)
+{
+  Vector<VertexData> vertices;
+
+  for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
+    VertexData vertex;
+
+    vertex.position = Vector3(mesh->mVertices[i].x,
+                              mesh->mVertices[i].y,
+                              mesh->mVertices[i].z);
+
+    if (mesh->HasNormals()) {
+      vertex.normal = Vector3(mesh->mNormals[i].x,
+                              mesh->mNormals[i].y,
+                              mesh->mNormals[i].z);
+    }
+    else {
+      vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    if (mesh->mTextureCoords[0]) {
+      vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
+        mesh->mTextureCoords[0][i].y);
+    }
+
+    if (mesh->HasTangentsAndBitangents()) {
+      vertex.tangents.x = mesh->mTangents[i].x;
+      vertex.tangents.y = mesh->mTangents[i].y;
+      vertex.tangents.z = mesh->mTangents[i].z;
+
+      vertex.bitangents.x = mesh->mBitangents[i].x;
+      vertex.bitangents.y = mesh->mBitangents[i].y;
+      vertex.bitangents.z = mesh->mBitangents[i].z;
+    }
+    else {
+      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
+      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    vertices.push_back(vertex);
+  }
+  return vertices;
+}
+
+static Vector<uint32>
+getIndicesFromMesh(const aiMesh* mesh, uint32& numIndex)
+{
+  Vector<uint32> indices;
+
+  for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
+    aiFace face = mesh->mFaces[i];
+
+    numIndex += face.mNumIndices;
+
+    for (uint32 j = 0; j < face.mNumIndices; ++j) {
+      indices.push_back(face.mIndices[j]);
+    }
+  }
+
+  return indices;
 }
 
 /**
@@ -144,7 +206,7 @@ aiQuatToQuaternion(const aiQuaternion& aiQuat)
 *  @param int32 boneID
 *  @param float weight
 */
-void
+static void
 setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
 {
   if (vertex.boneIds.x < 0) {
@@ -172,7 +234,7 @@ setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
 *  @param const aiMesh* mesh
 *  @param SPtr<SkeletonResource>& skeleton
 */
-void
+static void
 ExtractBoneWeightForVertex(Vector<VertexData>& vertices,
                            const aiMesh* mesh,
                            SPtr<SkeletonResource>& skeleton)
@@ -214,7 +276,7 @@ ExtractBoneWeightForVertex(Vector<VertexData>& vertices,
 *
 *  @return BoneTransformTrack
 */
-BoneTransformTrack
+static BoneTransformTrack
 getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel)
 {
   BoneTransformTrack btt;
@@ -253,7 +315,7 @@ getBTTrack(const String& boneName, int32 ID, const aiNodeAnim* channel)
   return btt;
 }
 
-void
+static void
 ReadHierarchyData(AnimationNodeData& dest, const aiNode* src)
 {
   SH_ASSERT(src);
@@ -269,7 +331,7 @@ ReadHierarchyData(AnimationNodeData& dest, const aiNode* src)
   }
 }
 
-void
+static void
 ReadMissingBoneTracks(const aiAnimation* aiAnim,
   SPtr<SkeletonResource>& skeleton,
   SPtr<AnimationResource>& animation)
@@ -314,6 +376,16 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
 {
   SPtr<Resource> resource;
 
+  // Check if resource is already on memory
+  if (isResourceOnMemory(filePath, resource)) {
+    return resource;
+  }
+
+  // Check if there is a cache for resource
+  if (isCacheForResource(filePath, resource)) {
+    return resource;
+  }
+
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
     resource = loadTextureFromFile(filePath.toString());
   }
@@ -331,6 +403,13 @@ SPtr<Resource>
 ResourceManager::getResource(const String& resourceName)
 {
   return isResourceLoaded(resourceName);
+}
+
+bool
+ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes)
+{
+  Asset resAsset;
+  return resAsset.saveResourceToAsset(pRes);
 }
 
 SPtr<Resource>
@@ -357,17 +436,91 @@ ResourceManager::isResourceLoaded(const Path& fileName)
   return nullptr;
 }
 
+bool
+ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
+{
+  auto resObj = m_loadedResources.find(filePath.toString());
+
+  if (resObj != m_loadedResources.end()) {
+    pRes = (*resObj).second;
+    return true;
+  }
+
+  pRes = nullptr;
+  return false;
+}
+
+bool
+ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
+{
+  if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
+    SystemPath path = filePath.toString();
+    path.replace_extension(".dds");
+    SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
+
+    if (std::filesystem::exists(fullPath)) {
+      pRes = loadTextureFromDDS(fullPath.string());
+      return true;
+    }
+  }
+  else if (filePath.compareExtensions({ ".dds" })) {
+    pRes = loadTextureFromDDS(filePath.toString());
+    return true;
+  }
+  else if (filePath.compareExtensions({ ".sha" })) {
+    SystemPath path = filePath.toString();
+    path.replace_extension(".sha");
+    SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
+
+    if (std::filesystem::exists(fullPath)) {
+      
+      return true;
+    }
+  }
+
+  return false;
+}
+
 SPtr<Resource>
 ResourceManager::loadTextureFromFile(const String& fileName)
 {
-  auto pImage = make_shared<ImageResource>();
+  GraphicsManager& graphMan = g_graphicsMan();
 
-  pImage->texture = GraphicsManager::instance().createTextureFromFile(fileName);
+  auto pImage = sh_makeShared<ImageResource>();
+
+  pImage->texture = graphMan.createTextureFromFile(fileName);
 
   SystemPath file = fileName;
   pImage->setName(file.filename().string());
 
   m_loadedResources[pImage->getName()] = pImage;
+
+  SystemPath path = file.filename();
+  path.replace_extension(".dds");
+  String saveTex = "resources/assets/textures/" + path.string();
+
+  graphMan.saveTextureToDDS(pImage->texture, saveTex);
+
+  Path texPath(saveTex);
+  pImage->setPath(texPath);
+
+  return pImage;
+}
+
+SPtr<Resource>
+ResourceManager::loadTextureFromDDS(const String& filename)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  auto pImage = sh_makeShared<ImageResource>();
+
+  pImage->texture = graphMan.createTextureFromDDS(filename);
+
+  SystemPath file = filename;
+  pImage->setName(file.filename().string());
+  m_loadedResources[pImage->getName()] = pImage;
+  Path texPath(filename);
+  pImage->setPath(texPath);
 
   return pImage;
 }
@@ -391,23 +544,130 @@ ResourceManager::loadModelFromFile(const String& fileName)
     return createSkeletalMesh(pScene, fileName);
   }
   else {
-    if (pScene->mNumMeshes == 1) {
-      return createStaticMesh(fileName, pScene->mRootNode, pScene);
-    }
-    else {
-      return createStaticMeshUnion(fileName, pScene->mRootNode, pScene);
-    }
+    return createStaticMesh(fileName, pScene->mRootNode, pScene);
   }
 }
 
+SPtr<Material>
+ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  auto pMeshMat = sh_makeShared<Material>();
+
+  uint32 diffCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
+  uint32 normCount = pMat->GetTextureCount(aiTextureType_NORMALS);
+  uint32 metalCount = pMat->GetTextureCount(aiTextureType_METALNESS);
+  uint32 roughCount = pMat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
+  uint32 aoCount = pMat->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
+
+  if (diffCount == 0) {
+    // Create error texture
+    pMeshMat->m_properties.bHasDiffuseMap = true;
+    pMeshMat->baseColor = graphMan.createErrorTexturre();
+  }
+  else {
+    pMeshMat->m_properties.bHasDiffuseMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->baseColor = pImage->texture;
+    pMeshMat->baseColorPath = pImage->getPath().toString();
+  }
+
+  if (normCount == 0) {
+    pMeshMat->m_properties.bHasNormalMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasNormalMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_NORMALS, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->normal = pImage->texture;
+    pMeshMat->normalPath = pImage->getPath().toString();
+  }
+
+  if (metalCount == 0) {
+    pMeshMat->m_properties.bHasMetalnessMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasMetalnessMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_METALNESS, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->metallic = pImage->texture;
+    pMeshMat->metallicPath = pImage->getPath().toString();
+  }
+
+  if (roughCount == 0) {
+    pMeshMat->m_properties.bHasRoughnessMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasRoughnessMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->roughness = pImage->texture;
+    pMeshMat->roughnessPath = pImage->getPath().toString();
+  }
+
+  if (aoCount == 0) {
+    pMeshMat->m_properties.bHasAmbientOcclusionMap = false;
+  }
+  else {
+    pMeshMat->m_properties.bHasAmbientOcclusionMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    String directory = "resources/textures/";
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    pMeshMat->ao = pImage->texture;
+    pMeshMat->aoPath = pImage->getPath().toString();
+  }
+  
+  pMeshMat->m_type = MATERIAL_TYPE::kPBR;
+  pMeshMat->name = pMat->GetName().C_Str();
+
+  return pMeshMat;
+}
+
 SPtr<Resource>
-ResourceManager::createStaticMesh(const String&,
+ResourceManager::loadModelFromCache(const String& fileName)
+{
+  Asset model;
+  model.loadResourceFromAsset(Path(fileName));
+  auto& pRes = model.m_res;
+
+  SystemPath path = fileName;
+  pRes->setName(path.filename().string());
+  m_loadedResources[pRes->getName()] = pRes;
+
+  return pRes;
+}
+
+SPtr<Resource>
+ResourceManager::createStaticMesh(const String& fileName,
                                   const aiNode* node,
                                   const aiScene* scene)
 {
-  auto currentMesh = make_shared<StaticMeshResource>();
+  auto currentMesh = sh_makeShared<StaticMeshResource>();
 
   proccessStaticMeshNode(node, scene, currentMesh);
+  SystemPath path = fileName;
+  currentMesh->setName(path.filename().string());
+  m_loadedResources[currentMesh->getName()] = currentMesh;
 
   return currentMesh;
 }
@@ -432,203 +692,45 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
                                     const aiScene* scene,
                                     SPtr<StaticMeshResource>& currentMesh)
 {
-  for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
-    VertexData vertex;
+  MeshData currentData;
+  currentData.name = mesh->mName.C_Str();
+  currentData.vertices = getVertexDataFromMesh(mesh);
+  currentData.numVertices = mesh->mNumVertices;
+  currentData.indices = getIndicesFromMesh(mesh, currentData.numIndices);
 
-    vertex.position = Vector3(mesh->mVertices[i].x,
-                              mesh->mVertices[i].y,
-                              mesh->mVertices[i].z);
+  auto* aiMat = scene->mMaterials[mesh->mMaterialIndex];
+  currentData.materialIndex = mesh->mMaterialIndex;
+  auto currentMat = createMaterialFromFile(aiMat);
 
-    if (mesh->HasNormals()) {
-      vertex.normal = Vector3(mesh->mNormals[i].x,
-                              mesh->mNormals[i].y,
-                              mesh->mNormals[i].z);
-    }
-    else {
-      vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
-    }
-
-    if (mesh->mTextureCoords[0]) {
-      vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
-                           mesh->mTextureCoords[0][i].y);
-    }
-
-    if (mesh->HasTangentsAndBitangents()) {
-      vertex.tangents.x = mesh->mTangents[i].x;
-      vertex.tangents.y = mesh->mTangents[i].y;
-      vertex.tangents.z = mesh->mTangents[i].z;
-
-      vertex.bitangents.x = mesh->mBitangents[i].x;
-      vertex.bitangents.y = mesh->mBitangents[i].y;
-      vertex.bitangents.z = mesh->mBitangents[i].z;
-    }
-    else {
-      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
-      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
-    }
-
-    currentMesh->vertices.push_back(vertex);
-  }
-
-  currentMesh->numVertex = mesh->mNumVertices;
-
-  for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
-    aiFace face = mesh->mFaces[i];
-
-    currentMesh->numIndex += face.mNumIndices;
-
-    for (uint32 j = 0; j < face.mNumIndices; ++j) {
-      currentMesh->indices.push_back(face.mIndices[j]);
-    }
-  }
-
-  auto* mat = scene->mMaterials[mesh->mMaterialIndex];
-
-  auto meshMaterial = make_shared<PBRMaterial>();
-
-  auto& imgRes = m_loadedResources["White.png"];
-  auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
-  meshMaterial->baseColor = img->texture;
-  meshMaterial->name = mat->GetName().C_Str();
-  currentMesh->material = meshMaterial;
-
-  currentMesh->setName(mesh->mName.C_Str());
-  m_loadedResources[currentMesh->getName()] = currentMesh;
-}
-
-SPtr<Resource>
-ResourceManager::createStaticMeshUnion(const String& fileName,
-                                       const aiNode* node,
-                                       const aiScene* scene)
-{
-  auto meshUnion = make_shared<StaticMeshUnionResource>();
-
-  proccessStaticMeshUnionNode(node, scene, meshUnion);
-
-  if(meshUnion->meshes.size() > 1){
-    SystemPath name = fileName;
-    meshUnion->setName(name.filename().string());
-    
-    m_loadedResources[meshUnion->getName()] = meshUnion;
-  }
-
-  return meshUnion;
-}
-
-void
-ResourceManager::proccessStaticMeshUnionNode(const aiNode* node,
-                                             const aiScene* scene,
-                                             SPtr<StaticMeshUnionResource> meshUnion)
-{
-  for (uint32 i = 0; i < node->mNumMeshes; ++i) {
-    aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    proccessStaticUnionMesh(mesh, scene, meshUnion);
-  }
-
-  for (uint32 i = 0; i < node->mNumChildren; ++i) {
-    proccessStaticMeshUnionNode(node->mChildren[i], scene, meshUnion);
-  }
-}
-
-void
-ResourceManager::proccessStaticUnionMesh(const aiMesh* mesh,
-                                         const aiScene* scene,
-                                         SPtr<StaticMeshUnionResource> meshUnion)
-{
-  auto currentMesh = make_shared<StaticMeshResource>();
-
-  for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
-    VertexData vertex;
-
-    vertex.position = Vector3(mesh->mVertices[i].x,
-                              mesh->mVertices[i].y,
-                              mesh->mVertices[i].z);
-
-    if (mesh->HasNormals()) {
-      vertex.normal = Vector3(mesh->mNormals[i].x,
-                              mesh->mNormals[i].y,
-                              mesh->mNormals[i].z);
-    }
-    else {
-      vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
-    }
-
-    if (mesh->mTextureCoords[0]) {
-      vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
-                           mesh->mTextureCoords[0][i].y);
-    }
-
-    if (mesh->HasTangentsAndBitangents()) {
-      vertex.tangents.x = mesh->mTangents[i].x;
-      vertex.tangents.y = mesh->mTangents[i].y;
-      vertex.tangents.z = mesh->mTangents[i].z;
-
-      vertex.bitangents.x = mesh->mBitangents[i].x;
-      vertex.bitangents.y = mesh->mBitangents[i].y;
-      vertex.bitangents.z = mesh->mBitangents[i].z;
-    }
-    else {
-      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
-      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
-    }
-
-    currentMesh->vertices.push_back(vertex);
-  }
-
-  currentMesh->numVertex = mesh->mNumVertices;
-
-  for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
-    aiFace face = mesh->mFaces[i];
-
-    currentMesh->numIndex += face.mNumIndices;
-
-    for (uint32 j = 0; j < face.mNumIndices; ++j) {
-      currentMesh->indices.push_back(face.mIndices[j]);
-    }
-  }
-
-  auto* mat = scene->mMaterials[mesh->mMaterialIndex];
-  
-  auto meshMaterial = make_shared<PBRMaterial>();
-
-  auto imgRes = m_loadedResources["White.png"];
-  auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
-  meshMaterial->baseColor = img->texture;
-  meshMaterial->name = mat->GetName().C_Str();
-  currentMesh->material = meshMaterial;
-  
-  if (meshUnion->materials.size() == 0) {
-    meshUnion->materials.push_back(currentMesh->material);
+  if (currentMesh->m_materials.empty()) {
+    currentMesh->m_materials.push_back(currentMat);
   }
   else {
-    for (uint32 i = 0; i < meshUnion->materials.size(); ++i) {
-      auto unionMat = meshUnion->materials[i];
-      if (currentMesh->material->name == unionMat->name) {
-        currentMesh->material = unionMat;
+    for (uint32 i = 0; i < currentMesh->m_materials.size(); ++i) {
+      auto& mat = currentMesh->m_materials[i];
+      if (currentMat->name == mat->name) {
+        currentData.materialIndex = i;
         break;
       }
       else {
-        if (i == (meshUnion->materials.size() - 1)) {
-          meshUnion->materials.push_back(currentMesh->material);
-          break;
+        if (i == currentMesh->m_materials.size() - 1) {
+          currentMesh->m_materials.push_back(currentMat);
+          currentData.materialIndex = i + 1;
         }
       }
     }
   }
 
-  currentMesh->setName(mesh->mName.C_Str());
-  m_loadedResources[currentMesh->getName()] = currentMesh;
-
-  meshUnion->meshes.push_back(currentMesh);
+  currentMesh->m_meshes.push_back(currentData);
 }
 
 SPtr<Resource>
 ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName)
 {
-  auto skeletalMesh = make_shared<SkeletalMeshResource>();
-  auto skeleton = make_shared<SkeletonResource>();
+  auto skeletalMesh = sh_makeShared<SkeletalMeshResource>();
+  auto skeleton = sh_makeShared<SkeletonResource>();
 
-  skeletalMesh->materials.resize(scene->mNumMaterials);
+  skeletalMesh->m_materials.resize(scene->mNumMaterials);
 
   proccessSkeletalMeshNode(scene->mRootNode, scene, skeletalMesh, skeleton);
 
@@ -641,7 +743,7 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   m_loadedResources[skeleton->getName()] = skeleton;
 
   if (scene->HasAnimations()) {
-    auto animation = make_shared<AnimationResource>();
+    auto animation = sh_makeShared<AnimationResource>();
     proccessAnimation(scene, animation, skeleton, 0);
     animation->setName(file.filename().string() + "Animation");
     m_loadedResources[animation->getName()] = animation;
@@ -672,79 +774,31 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
                                       SPtr<SkeletalMeshResource>& skeletalMesh,
                                       SPtr<SkeletonResource>& skeleton)
 {
-  SkeletalMeshInfo currentMeshInfo;
-  Vector<VertexData> currentMeshVertices;
+  SkeletalMeshData currentMeshInfo;
 
-  for (uint32 i = 0; i < mesh->mNumVertices; ++i) {
-    VertexData vertex;
+  Vector<VertexData> currentMeshVertices = getVertexDataFromMesh(mesh);
 
-    vertex.position = Vector3(mesh->mVertices[i].x,
-                              mesh->mVertices[i].y,
-                              mesh->mVertices[i].z);
-
-    if (mesh->HasNormals()) {
-      vertex.normal = Vector3(mesh->mNormals[i].x,
-                              mesh->mNormals[i].y,
-                              mesh->mNormals[i].z);
-    }
-    else {
-      vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
-    }
-
-    if (mesh->mTextureCoords[0]) {
-      vertex.tex = Vector2(mesh->mTextureCoords[0][i].x,
-                           mesh->mTextureCoords[0][i].y);
-    }
-
-    if (mesh->HasTangentsAndBitangents()) {
-      vertex.tangents.x = mesh->mTangents[i].x;
-      vertex.tangents.y = mesh->mTangents[i].y;
-      vertex.tangents.z = mesh->mTangents[i].z;
-
-      vertex.bitangents.x = mesh->mBitangents[i].x;
-      vertex.bitangents.y = mesh->mBitangents[i].y;
-      vertex.bitangents.z = mesh->mBitangents[i].z;
-    }
-    else {
-      vertex.tangents = Vector3(0.0f, 0.0f, 0.0f);
-      vertex.bitangents = Vector3(0.0f, 0.0f, 0.0f);
-    }
-
-    currentMeshVertices.push_back(vertex);
-  }
-
-  currentMeshInfo.numVertices = static_cast<uint32>(currentMeshVertices.size());
-
+  currentMeshInfo.numVertices = mesh->mNumVertices;
   ExtractBoneWeightForVertex(currentMeshVertices, mesh, skeleton);
-
   for (auto& vertex : currentMeshVertices) {
-    skeletalMesh->vertices.push_back(vertex);
+    skeletalMesh->m_vertices.push_back(vertex);
   }
-
-  for (uint32 i = 0; i < mesh->mNumFaces; ++i) {
-    aiFace face = mesh->mFaces[i];
-
-    currentMeshInfo.numIndices += face.mNumIndices;
-
-    for (uint32 j = 0; j < face.mNumIndices; ++j) {
-      skeletalMesh->indices.push_back(face.mIndices[j]);
-    }
-  }
+  skeletalMesh->m_indices = getIndicesFromMesh(mesh, currentMeshInfo.numIndices);
 
   currentMeshInfo.name = mesh->mName.C_Str();
   currentMeshInfo.materialIndex = mesh->mMaterialIndex;
 
-  if (skeletalMesh->materials[currentMeshInfo.materialIndex] == nullptr) {
-    auto meshMat = make_shared<PBRMaterial>();
+  if (skeletalMesh->m_materials[currentMeshInfo.materialIndex] == nullptr) {
+    auto meshMat = sh_makeShared<Material>();
     auto& imgRes = m_loadedResources["White.png"];
-    auto img = reinterpret_pointer_cast<ImageResource>(imgRes);
+    auto img = sh_reinterpretPCast<ImageResource>(imgRes);
     meshMat->baseColor = img->texture;
     auto mat = scene->mMaterials[mesh->mMaterialIndex];
     meshMat->name = mat->GetName().C_Str();
-    skeletalMesh->materials[currentMeshInfo.materialIndex] = meshMat;
+    skeletalMesh->m_materials[currentMeshInfo.materialIndex] = meshMat;
   }
 
-  skeletalMesh->meshes.push_back(currentMeshInfo);
+  skeletalMesh->m_meshes.push_back(currentMeshInfo);
 }
 
 void

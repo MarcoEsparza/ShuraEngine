@@ -64,6 +64,9 @@ class SH_UTILITY_EXPORT Path
   const char*
   c_str() const;
 
+  const wchar_t*
+  wc_str() const;
+
   /**
   *  @brief Gets the content of the Path in string.
   * 

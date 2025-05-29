@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/04/08
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -241,6 +241,12 @@ class SH_CORE_EXPORT BaseApp
   */
   void
   loadGraphicAPI();
+
+  /**
+  *  @brief Load the audio api.
+  */
+  void
+  loadAudioAPI();
 
   /**
   *  @brief Initialize all managers singletons.

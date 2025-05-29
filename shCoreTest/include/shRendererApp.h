@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/05/26
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -34,7 +34,6 @@ namespace shEngineSDK {
 /*****************************************************************************/
 
 class RenderTargetView;
-class ProgramShader;
 class InputLayout;
 class SamplerState;
 class RasterizerState;
@@ -47,6 +46,7 @@ class SceneGraph;
 class PBRMaterial;
 class GameObject;
 class Texture2D;
+class Sound;
 
 /**
 *  @brief Structure for view-projection.
@@ -195,11 +195,12 @@ class RendererApp : public BaseApp
   *  Functions
   */
   /***************************************************************************/
+ private:
   /**
-  *  @brief Initialize the graphic assets.
+  *  @brief Initialize the shaders.
   */
   void
-  initGraphicAssets();
+  initShaders();
 
   /**
   *  @brief Initialize the app camera.
@@ -219,6 +220,15 @@ class RendererApp : public BaseApp
   void
   updateCamera();
 
+  /**
+  *  @brief Initialize light orthographic camera.
+  */
+  void
+  initLightCamera();
+
+  /**
+  *  @brief Set render targets information.
+  */
   void
   setRenderTargets();
 
@@ -228,6 +238,24 @@ class RendererApp : public BaseApp
   void
   setImgui();
 
+  /**
+  *  @brief Load pistol model, materials and game object.
+  */
+  void
+  loadPistol();
+
+  /**
+  *  @brief Load sponza model, materials and game object.
+  */
+  void
+  loadSponza();
+
+  /**
+  *  @brief Load skybox model, materials and game object.
+  */
+  void
+  loadSkybox();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -235,34 +263,14 @@ class RendererApp : public BaseApp
   /***************************************************************************/
  private:
   /**
-  *  @brief Targets for first pass.
-  */
-  Vector<SPtr<Texture2D>> m_targets;
-
-  /**
-  *  @brief Main render target.
-  */
-  Vector<SPtr<Texture2D>> m_mainTarget;
-  
-  /**
-  *  @brief Ambient occlusion render target.
-  */
-  Vector<SPtr<Texture2D>> m_aoTarget;
-
-  /**
-  *  @brief Horizontal blur render target.
-  */
-  Vector<SPtr<Texture2D>> m_hbTarget;
-
-  /**
-  *  @brief Vertical Blur render target.
-  */
-  Vector<SPtr<Texture2D>> m_vbTarget;
-
-  /**
-  *  @brief Model game object.
+  *  @brief Pistol game object.
   */
   SPtr<GameObject> m_pModel;
+
+  /**
+  *  @brief Sponza game object.
+  */
+  SPtr<GameObject> m_pSponza;
 
   /**
   *  @brief Constant Buffer for view-projection.
@@ -275,9 +283,14 @@ class RendererApp : public BaseApp
   SPtr<ConstantBuffer> m_pInvVP;
 
   /**
-  *  @brief Constant Buffer for model transform.
+  *  @brief Constant Buffer for pistol transform.
   */
   SPtr<ConstantBuffer> m_pModelTransform;
+
+  /**
+  *  @brief Constant Buffer for sponza transform.
+  */
+  SPtr<ConstantBuffer> m_pSponzaTransform;
 
   /**
   *  @brief Constant Buffer for camera position.
@@ -300,9 +313,24 @@ class RendererApp : public BaseApp
   SPtr<ConstantBuffer> m_pAOBuffer;
 
   /**
+  *  @brief Constant buffer for light camera.
+  */
+  SPtr<ConstantBuffer> m_pLCBuffer;
+
+  /**
+  *  @brief Constant buffer for light size.
+  */
+  SPtr<ConstantBuffer> m_pLSizeBuffer;
+
+  /**
   *  @brief App camera.
   */
   Camera m_camera;
+
+  /**
+  *  @brief Light orthographic camera.
+  */
+  Camera m_lightCam;
 
   /**
   *  @brief Is left mouse button clicked?
@@ -323,6 +351,11 @@ class RendererApp : public BaseApp
   *  @brief Current mouse position.
   */
   Vector2 m_currentMousePos = Vector2(0.0f, 0.0f);
+
+  /**
+  *  @brief Screen size.
+  */
+  Vector2 m_screenSize = Vector2(0.0f, 0.0f);
 
   /**
   *  @brief Is camera going foward?
@@ -385,19 +418,34 @@ class RendererApp : public BaseApp
   float m_hdelta = 0.0f;
 
   /**
-  *  @brief Model position.
+  *  @brief Pistol position.
   */
   Vector3 m_modelPos = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model rotation.
+  *  @brief Pistol rotation.
   */
   Vector3 m_modelRot = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Model scale.
+  *  @brief Pistol scale.
   */
   Vector3 m_modelScale = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Sponza position.
+  */
+  Vector3 m_sponzaPos = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Sponza rotation.
+  */
+  Vector3 m_sponzaRot = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Sponza scale.
+  */
+  Vector3 m_sponzaScale = { 0.0f, 0.0f, 0.0f };
 
   /**
   *  @brief Ambient occlusion sampler rad.
@@ -420,18 +468,43 @@ class RendererApp : public BaseApp
   float m_aoIntensity = 1.0f;
 
   /**
-  *  @brief Float to test imgui.
+  *  @brief Light position.
   */
-  float m_lIntensity = 0.0f;
+  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief String to test imgui.
+  *  @brief Light camera target.
   */
-  String m_str;
+  Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Light structure.
+  *  @brief Light camera near.
   */
-  //Light m_light = {};
+  float m_lcamNear = 0.0f;
+
+  /**
+  *  @brief Light camera far.
+  */
+  float m_lcamFar = 0.0f;
+
+  /**
+  *  @brief Light camera size.
+  */
+  float m_lcamSize = 0.0f;
+
+  /**
+  *  @brief Testing audio.
+  */
+  SPtr<Sound> m_testSound;
+
+  /**
+  *  @brief Is audio playing?
+  */
+  bool bIsSoundPlaying = false;
+
+  /**
+  *  @brief Size of shadow texture.
+  */
+  float m_shadowTexSize = 0;
 };
 }

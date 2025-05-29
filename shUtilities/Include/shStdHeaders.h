@@ -2,12 +2,12 @@
 /*
 *  @file    shStdHeaders.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/16
+*  @date    2025/04/14
 *  @brief   Header for the STD libraries
 *
 *  This file includes the most common and required STL objects.
-* It takes account of the operating system of the build to modify
-* the required object.
+*  It takes account of the operating system of the build to modify
+*  the required object.
 * 
 *  @bug     No bug known
 */
@@ -124,14 +124,34 @@ template <typename T>
 using Queue = std::queue<T>;
 
 /*
-*  @note This will change later to a wrapper.
+*  @brief Function to create an engine shared pointer.
 */
-using std::make_shared;
+template<typename T, typename... Args>
+SPtr<T>
+sh_makeShared(Args&&... args)
+{
+  return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
 /*
-*  @note This will change later to a wrapper.
+*  @brief Function to create an engine unique pointer.
 */
-using std::make_unique;
+template<typename T, typename... Args>
+UPtr<T>
+sh_makeUnique(Args&&... args)
+{
+  return std::make_unique<T>(std::forward<Args>(args)...);
+}
+
+/*
+*  @brief Function to reinterpret a shared pointer.
+*/
+template<typename to, typename from>
+SPtr<to>
+sh_reinterpretPCast(const SPtr<from>& pFrom)
+{
+  return std::reinterpret_pointer_cast<to>(pFrom);
+}
 
 /**
 *  @brief Byte wrapper to use along the engine.
@@ -139,26 +159,41 @@ using std::make_unique;
 using Byte = std::byte;
 
 /**
-*  @brief
+*  @breif File stream for Shura Engine.
+*/
+using sh_fstream = std::fstream;
+
+/**
+*  @breif This will change later to a wrapper.
+*/
+using std::ios;
+
+/**
+*  @brief File system path wrapper.
 */
 using SystemPath = std::filesystem::path;
+
+/**
+*  @brief Hash wrapper.
+*/
+template<class T>
+using sh_hash = std::hash<T>;
 }
 
-// TODO: Change to a own hash class.
 namespace std
 {
-  template<>
-  struct hash<string>
+template<>
+struct hash<string>
+{
+  size_t operator()(const string& path) const
   {
-    size_t operator()(const string& path) const
+    size_t hash = 0;
+    for (char i : path)
     {
-      size_t hash = 0;
-      for (char i : path)
-      {
-        hash = 65599 * hash + i;
-      }
-
-      return hash ^ (hash >> 16);
+      hash = 65599 * hash + i;
     }
-  };
+
+    return hash ^ (hash >> 16);
+  }
+};
 }

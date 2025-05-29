@@ -2,7 +2,7 @@
 /*
 *  @file    shMeshResource.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/04/22
 *  @brief   Mesh resource classes.
 *
 *  Mesh resource classes.
@@ -23,6 +23,24 @@
 #include "shMaterial.h"
 
 namespace shEngineSDK {
+struct SH_CORE_EXPORT MeshData
+{
+  uint32 numVertices = 0;
+  uint32 numIndices = 0;
+  uint32 materialIndex = 0;
+  String name;
+  Vector<VertexData> vertices;
+  Vector<uint32> indices;
+};
+
+struct SH_CORE_EXPORT SkeletalMeshData
+{
+  uint32 numVertices = 0;
+  uint32 numIndices = 0;
+  uint32 materialIndex = 0;
+  String name;
+};
+
 /**
 *  @brief Static mesh data.
 */
@@ -46,37 +64,14 @@ class SH_CORE_EXPORT StaticMeshResource : public Resource
   /*************************************************************/
  public:
   /**
-  *  @brief Mesh VertexData
+  *  @brief Meshes info.
   */
-  Vector<VertexData> vertices;
+  Vector<MeshData> m_meshes;
 
   /**
-  *  @brief Mesh indices
+  *  @brief Materials info.
   */
-  Vector<uint32> indices;
-
-  /**
-  *  @brief Number of vertex.
-  */
-  uint32 numVertex = 0;
-
-  /**
-  *  @brief Number of index.
-  */
-  uint32 numIndex = 0;
-
-  /**
-  *  @brief Material info.
-  */
-  SPtr<Material> material;
-};
-
-struct SkeletalMeshInfo
-{
-  uint32 numVertices = 0;
-  uint32 numIndices = 0;
-  uint32 materialIndex = 0;
-  String name;
+  Vector<SPtr<Material>> m_materials;
 };
 
 /**
@@ -101,48 +96,24 @@ class SH_CORE_EXPORT SkeletalMeshResource : public Resource
   */
   /*************************************************************/
  public:
-  Vector<SkeletalMeshInfo> meshes;
+  /**
+  *  @brief Meshes info.
+  */
+  Vector<SkeletalMeshData> m_meshes;
 
-  Vector<SPtr<Material>> materials;
+  /**
+  *  @brief Materials info.
+  */
+  Vector<SPtr<Material>> m_materials;
 
   /**
   *  @brief Mesh VertexData
   */
-  Vector<VertexData> vertices;
+  Vector<VertexData> m_vertices;
 
   /**
   *  @brief Mesh indices
   */
-  Vector<uint32> indices;
-};
-
-class StaticMeshUnionResource : public Resource
-{
- public:
-  /**
-  *  @brief Default constructor.
-  */
-  StaticMeshUnionResource() : Resource(RESOURCE_TYPE::kMeshUnion) {}
-
-  /**
-  *  @brief Default destructor.
-  */
-  ~StaticMeshUnionResource() = default;
-
-  /*************************************************************/
-  /*
-  *  Variables
-  */
-  /*************************************************************/
- public:
-  /**
-  *  @brief Meshes.
-  */
-  Vector<SPtr<StaticMeshResource>> meshes;
-
-  /**
-  *  @brief Materials.
-  */
-  Vector<SPtr<Material>> materials;
+  Vector<uint32> m_indices;
 };
 }

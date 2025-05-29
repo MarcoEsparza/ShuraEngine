@@ -33,8 +33,14 @@ Path::Path(const char* filePath)
 const char*
 Path::c_str() const
 {
-  String ret = m_path.string();
-  return ret.c_str();
+  auto ret = m_path.string().c_str();
+  return ret;
+}
+
+const wchar_t*
+Path::wc_str() const
+{
+  return m_path.wstring().c_str();
 }
 
 String

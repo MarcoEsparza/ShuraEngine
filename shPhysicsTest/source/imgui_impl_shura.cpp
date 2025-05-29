@@ -216,7 +216,7 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
 
         // Bind texture, Draw
         SPtr<Texture2D>& pTexture = *reinterpret_cast<SPtr<Texture2D>*>(pcmd->GetTexID());
-        graphMan.setShaderResourceView(pTexture);
+        graphMan.psSetShaderResourceView(pTexture);
         graphMan.drawIndexed(pcmd->ElemCount,
                              pcmd->IdxOffset + global_idx_offset,
                              pcmd->VtxOffset + global_vtx_offset);
@@ -350,9 +350,9 @@ ImGui_ImplShura_CreateDeviceObjects()
   depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
   depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
 
-  bd->pImGuiShuraProgram->setRasterizerState(rasterDesc);
-  bd->pImGuiShuraProgram->setBlendState(blendDesc);
-  bd->pImGuiShuraProgram->setDepthStencilState(depthSDesc);
+  bd->pImGuiShuraProgram->setRasterizerStateFromDesc(rasterDesc);
+  bd->pImGuiShuraProgram->setBlendStateFromDesc(blendDesc);
+  bd->pImGuiShuraProgram->setDepthStencilStateFromDesc(depthSDesc);
 
   // Create texture and sampler state
   ImGui_ImplShura_CreateFontsTexture();

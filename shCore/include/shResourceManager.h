@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/28
+*  @date    2025/04/23
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -33,6 +33,7 @@
 struct aiScene;
 struct aiNode;
 struct aiMesh;
+struct aiMaterial;
 
 namespace shEngineSDK {
  /*************************************************************/
@@ -40,27 +41,13 @@ namespace shEngineSDK {
 *  Internal forward declarations
 */
 /*************************************************************/
+
 struct Bone;
+class Material;
 class StaticMeshResource;
-class StaticMeshUnionResource;
 class SkeletalMeshResource;
 class SkeletonResource;
 class AnimationResource;
-
-// TODO : Finish this for cache creation.
-struct SH_CORE_EXPORT ResourceInfoHeader
-{
-  RESOURCE_TYPE::E type;
-};
-
-// TODO : Finish this for cache creation.
-struct SH_CORE_EXPORT ModelCacheHeader
-{
-  int32 numMeshes;
-  int32 numVertices;
-  int32 numIndices;
-  int32 numPaths;
-};
 
 /**
 *  @brief Resource Manager module for loading all desired resources from files.
@@ -101,6 +88,24 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   getResource(const String& resourceName);
 
+  /**
+  *  @brief Saves the given resource to an asset for better loading.
+  *
+  *  @param SPtr<Resource> pRes
+  * 
+  *  TODO: This function is not completed yet.
+  */
+  bool
+  saveResourceToAsset(const SPtr<Resource> pRes);
+
+  /**
+  *  @brief Load a model from cache.
+  *
+  *  @param String& fileName
+  */
+  SPtr<Resource>
+  loadModelFromCache(const String& fileName);
+
  private:
   /**
   *  @brief Checks if the resource is already loaded.
@@ -118,6 +123,24 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   isResourceLoaded(const Path& fileName);
 
+  /**
+  *  @brief Checks if the resource is already loaded on memory.
+  *
+  *  @param Path& fileName
+  *  @param SPtr<Resource>& pRes
+  */
+  bool
+  isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes);
+
+  /**
+  *  @brief Checks if there is a cache for resource.
+  *
+  *  @param Path& fileName
+  *  @param SPtr<Resource>& pRes
+  */
+  bool
+  isCacheForResource(const Path& filePath, SPtr<Resource>& pRes);
+
   /*************************************************************/
   /*
   *  Texture
@@ -132,6 +155,14 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadTextureFromFile(const String& fileName);
 
+  /**
+  *  @brief Load a dds image and creates a texture.
+  *
+  *  @param String& fileName
+  */
+  SPtr<Resource>
+  loadTextureFromDDS(const String& filename);
+
   /*************************************************************/
   /*
   *  Model loading
@@ -145,6 +176,16 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   SPtr<Resource>
   loadModelFromFile(const String& fileName);
+
+  /**
+  *  @brief Creates an engine material from an aiMaterial.
+  *
+  *  @param aiMaterial* pMat
+  */
+  SPtr<Material>
+  createMaterialFromFile(const aiMaterial* pMat);
+
+  
 
   /*************************************************************/
   /*
@@ -186,47 +227,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   proccessStaticMesh(const aiMesh* mesh,
                      const aiScene* scene,
                      SPtr<StaticMeshResource>& currentMesh);
-
-  /*************************************************************/
-  /*
-  *  Static Mesh Union
-  */
-  /*************************************************************/
-
-  /**
-  *  @brief Creates the static mesh.
-  *
-  *  @param String& fileName
-  *  @param aiNode* node
-  *  @param aiScene* scene
-  */
-  SPtr<Resource>
-  createStaticMeshUnion(const String& fileName,
-                        const aiNode* node,
-                        const aiScene* scene);
-
-  /**
-  *  @brief If the model file is for static meshes, this function process all
-  *         nodes on the loaded file scene.
-  * 
-  *  @param aiNode* node
-  *  @param aiScene* scene
-  */
-  void
-  proccessStaticMeshUnionNode(const aiNode* node,
-                              const aiScene* scene,
-                              SPtr<StaticMeshUnionResource> meshUnion);
-
-  /**
-  *  @brief If the model file is for static meshes, this function process and
-  *         creates all static meshes on the file.
-  * 
-  *  @param aiMesh* mesh
-  */
-  void
-  proccessStaticUnionMesh(const aiMesh* mesh,
-                          const aiScene* scene,
-                          SPtr<StaticMeshUnionResource> meshUnion);
 
   /*************************************************************/
   /*

@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/03/15
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -37,7 +37,7 @@ class SH_CORE_EXPORT Camera
   Camera() = default;
 
   /**
-  *  @brief Perpective camera constructor.
+  *  @brief Perspective camera constructor.
   * 
   *  @param const Vector3& camPos
   *  @param const Vector3& targetPos
@@ -66,7 +66,7 @@ class SH_CORE_EXPORT Camera
            m_far(maxZ) {}
 
   /**
-  *  @brief Perpective camera constructor.
+  *  @brief Orthographic camera constructor.
   *
   *  @param const Vector3& camPos
   *  @param const Vector3& targetPos
@@ -227,7 +227,7 @@ class SH_CORE_EXPORT Camera
   *  @return const ViewMatrix&
   */
   FORCEINLINE const Matrix4&
-  getView() const;
+  getView();
 
   /**
   *  @brief Gets the projection matrix.
@@ -235,7 +235,7 @@ class SH_CORE_EXPORT Camera
   *  @return const ViewMatrix&
   */
   FORCEINLINE const Matrix4&
-  getProjection() const;
+  getProjection();
 
   /**
   *  @brief Returns true if camera is orthographic.
@@ -440,65 +440,82 @@ FORCEINLINE void
 Camera::setIsOrthographic(const bool bOrtho)
 {
   m_bIsOrtho = bOrtho;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setPosition(const Vector3& position)
 {
   m_position = position;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setTarget(const Vector3& target)
 {
   m_target = target;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setUp(const Vector3& up)
 {
   m_up = up;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setWidth(const float width)
 {
   m_screenWidth = width;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setHeight(const float height)
 {
   m_screenHeight = height;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setHalfFOV(const float hFOV)
 {
   m_halfFOV = hFOV;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setNear(const float near)
 {
   m_near = near;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE void
 Camera::setFar(const float far)
 {
   m_far = far;
+  m_bIsDirty = true;
 }
 
 FORCEINLINE const Matrix4&
-Camera::getView() const
+Camera::getView()
 {
+  if (m_bIsDirty) {
+    update();
+    m_bIsDirty = false;
+  }
   return m_view;
 }
 
 FORCEINLINE const Matrix4&
-Camera::getProjection() const
+Camera::getProjection()
 {
+  if (m_bIsDirty) {
+    update();
+    m_bIsDirty = false;
+  }
   return m_proj;
 }
 

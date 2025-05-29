@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/07
+*  @date    2025/04/14
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -22,123 +22,217 @@
 #include "shShader.h"
 
 namespace shEngineSDK {
-Pass::~Pass()
+void
+Pass::setVShaderInfo(const String& shaderPath,
+                     const String& entry,
+                     const String& model,
+                     const Vector<ShaderMacro>& macros)
 {
-  m_pShader.reset();
-  m_pInputLayout.reset();
-  m_pSamplerState.reset();
-  m_pRasterState.reset();
-  m_pBlendState.reset();
-  m_pDsState.reset();
-
-  for (auto& pCBuffer : m_vsCBuffers) {
-    pCBuffer.reset();
-  }
-  for (auto& pCBuffer : m_psCBuffers) {
-    pCBuffer.reset();
-  }
+  m_vsPath = shaderPath;
+  m_vsEntryPoint = entry;
+  m_vsModel = model;
+  m_vsMacros = macros;
 }
 
 void
-Pass::setShaderInfo(const String& shaderPath,
-                    const String& vsEntry,
-                    const String& psEntry,
-                    const String& vsModel,
-                    const String& psModel)
+Pass::setPShaderInfo(const String& shaderPath,
+                     const String& entry,
+                     const String& model,
+                     const Vector<ShaderMacro>& macros)
 {
-  m_shaderPath = shaderPath;
-  m_vsEntryPoint = vsEntry;
-  m_psEntryPoint = psEntry;
-  m_vsShaderModel = vsModel;
-  m_psShaderModel = psModel;
+  m_psPath = shaderPath;
+  m_psEntryPoint = entry;
+  m_psModel = model;
+  m_psMacros = macros;
 }
 
 void
-Pass::setRasterizerState(const RasterizerDesc& rasterDesc)
+Pass::setGShaderInfo(const String& shaderPath,
+                     const String& entry,
+                     const String& model,
+                     const Vector<ShaderMacro>& macros)
 {
-  m_rasterDesc = rasterDesc;
-  m_pRasterState = g_graphicsMan().createRasterizerState(m_rasterDesc);
+  m_gsPath = shaderPath;
+  m_gsEntryPoint = entry;
+  m_gsModel = model;
+  m_gsMacros = macros;
 }
 
 void
-Pass::setBlendState(const BlendDesc& blendDesc)
+Pass::setCShaderInfo(const String& shaderPath,
+                     const String& entry,
+                     const String& model,
+                     const Vector<ShaderMacro>& macros)
 {
-  m_blendDesc = blendDesc;
-  m_pBlendState = g_graphicsMan().createBlendState(m_blendDesc);
+  m_csPath = shaderPath;
+  m_csEntryPoint = entry;
+  m_csModel = model;
+  m_csMacros = macros;
 }
 
 void
-Pass::setDepthStencilState(const DepthStencilDesc& dsDesc)
+Pass::setRasterizerStateFromDesc(const RasterizerDesc& rasterDesc)
 {
-  m_dsDesc = dsDesc;
-  m_pDsState = g_graphicsMan().createDepthStencilState(m_dsDesc);
+  m_pRasterState = g_graphicsMan().createRasterizerState(rasterDesc);
 }
 
 void
-Pass::addVSConstantBuffer(const SPtr<ConstantBuffer>& buffer)
+Pass::setBlendStateFromDesc(const BlendDesc& blendDesc)
 {
-  m_vsCBuffers.push_back(buffer);
+  m_pBlendState = g_graphicsMan().createBlendState(blendDesc);
 }
 
 void
-Pass::addPSConstantBuffer(const SPtr<ConstantBuffer>& buffer)
+Pass::setDepthStencilStateFromDesc(const DepthStencilDesc& dsDesc)
 {
-  m_psCBuffers.push_back(buffer);
+  m_pDsState = g_graphicsMan().createDepthStencilState(dsDesc);
+}
+
+void
+Pass::addVSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot)
+{
+  m_vsCBuffers.push_back({ buffer, slot });
+}
+
+void
+Pass::addPSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot)
+{
+  m_psCBuffers.push_back({ buffer, slot });
+}
+
+void
+Pass::addGSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot)
+{
+  m_gsCBuffers.push_back({ buffer, slot });
+}
+
+void
+Pass::addCSConstantBuffer(const SPtr<ConstantBuffer>& buffer, const uint32 slot)
+{
+  m_csCBuffers.push_back({ buffer, slot });
 }
 
 void
 Pass::compileShader()
 {
-  if (m_pShader) {
-    m_pShader->~ProgramShader();
-    m_pShader.reset();
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  // Reset pointer if there's already a Vertex Shader in it.
+  if (m_pVShader) {
+    m_pVShader.reset();
+  }
+  // It will not compile if there's no path for shader
+  if (m_vsPath != "") {
+    m_pVShader = graphMan.createVertexShader(m_vsPath,
+                                             m_vsEntryPoint,
+                                             m_vsModel,
+                                             m_vsMacros);
   }
 
-  m_pShader = g_graphicsMan().createProgramShader(m_shaderPath,
-                                                  m_vsEntryPoint,
-                                                  m_psEntryPoint,
-                                                  m_vsShaderModel,
-                                                  m_psShaderModel);
+  // Reset pointer if there's already a Pixel Shader in it.
+  if (m_pPShader) {
+    m_pPShader.reset();
+  }
+  // It will not compile if there's no path for shader
+  if (m_psPath != "") {
+    m_pPShader = graphMan.createPixelShader(m_psPath,
+                                            m_psEntryPoint,
+                                            m_psModel,
+                                            m_psMacros);
+  }
+
+  // Reset pointer if there's already a Geometry Shader in it.
+  if (m_pGShader) {
+    m_pGShader.reset();
+  }
+  // It will not compile if there's no path for shader
+  if (m_gsPath != "") {
+    m_pGShader = graphMan.createGeometryShader(m_gsPath,
+                                               m_gsEntryPoint,
+                                               m_gsModel,
+                                               m_gsMacros);
+  }
+
+  // Reset pointer if there's already a Compute Shader in it.
+  if (m_pCShader) {
+    m_pCShader.reset();
+  }
+  // It will not compile if there's no path for shader
+  if (m_csPath != "") {
+    m_pCShader = graphMan.createComputeShader(m_csPath,
+                                              m_csEntryPoint,
+                                              m_csModel,
+                                              m_csMacros);
+  }
 }
 
 void
 Pass::generateInputLayout()
 {
-  if (!m_pShader) {
+  if (!m_pVShader) {
     return;
   }
 
-  m_pInputLayout = g_graphicsMan().createInputLayoutFromShader(m_pShader);
+  m_pInputLayout = g_graphicsMan().createInputLayoutFromShader(m_pVShader);
 }
 
 void
 Pass::setPass() const
 {
-  g_graphicsMan().setProgramShader(m_pShader);
-  g_graphicsMan().setInputLayout(m_pInputLayout);
-  g_graphicsMan().setSamplerState(m_pSamplerState);
+  GraphicsManager& graphMan = g_graphicsMan();
 
+  // Set shaders
+  if (m_pVShader) {
+    graphMan.setVertexShader(m_pVShader);
+  }
+  if (m_pPShader) {
+    graphMan.setPixelShader(m_pPShader);
+  }
+  if (m_pGShader) {
+    graphMan.setGeometryShader(m_pGShader);
+  }
+  if (m_pCShader) {
+    graphMan.setComputeShader(m_pCShader);
+  }
+
+  // Set input layout
+  if (m_pInputLayout) {
+    graphMan.setInputLayout(m_pInputLayout);
+  }
+
+  // Set states
   if (m_pRasterState) {
-    g_graphicsMan().setRasterizerState(m_pRasterState);
+    graphMan.setSamplerState(m_pSamplerState);
   }
-
+  if (m_pRasterState) {
+    graphMan.setRasterizerState(m_pRasterState);
+  }
   if (m_pBlendState) {
-    g_graphicsMan().setBlendState(m_pBlendState);
+    graphMan.setBlendState(m_pBlendState);
   }
-
   if (m_pDsState) {
-    g_graphicsMan().setDepthStencilState(m_pDsState);
+    graphMan.setDepthStencilState(m_pDsState);
   }
 
-  for (uint32 i = 0; i < m_vsCBuffers.size(); ++i) {
-    if (m_vsCBuffers[i]) {
-      g_graphicsMan().vsSetConstantBuffers(m_vsCBuffers[i], i);
+  // Set constant buffers
+  for (auto& pVSCBufferPair : m_vsCBuffers) {
+    if (pVSCBufferPair.first) {
+      graphMan.vsSetConstantBuffers(pVSCBufferPair.first, pVSCBufferPair.second);
     }
   }
-
-  for (uint32 i = 0; i < m_psCBuffers.size(); ++i) {
-    if (m_psCBuffers[i]) {
-      g_graphicsMan().psSetConstantBuffers(m_psCBuffers[i], i);
+  for (auto& pPSCBufferPair : m_psCBuffers) {
+    if (pPSCBufferPair.first) {
+      graphMan.psSetConstantBuffers(pPSCBufferPair.first, pPSCBufferPair.second);
+    }
+  }
+  for (auto& pGSCBufferPair : m_gsCBuffers) {
+    if (pGSCBufferPair.first) {
+      graphMan.gsSetConstantBuffers(pGSCBufferPair.first, pGSCBufferPair.second);
+    }
+  }
+  for (auto& pCSCBufferPair : m_csCBuffers) {
+    if (pCSCBufferPair.first) {
+      graphMan.csSetConstantBuffers(pCSCBufferPair.first, pCSCBufferPair.second);
     }
   }
 }

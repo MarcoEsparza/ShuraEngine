@@ -281,6 +281,30 @@ OrthographicProjectionMatrix::OrthographicProjectionMatrix(const float left,
   m[3][1] = 0.0f;
   m[3][2] = 0.0f;
   m[3][3] = 1.0f;
+
+  /*float width = 1.0f / (right - left);
+  float height = 1.0f / (top - bottom);
+  float depth = 1.0f / (farZ - nearZ);
+
+  m[0][0] = 2.0f * width;
+  m[0][1] = 0.0f;
+  m[0][2] = 0.0f;
+  m[0][3] = 0.0f;
+
+  m[1][0] = 0.0f;
+  m[1][1] = 2.0f * height;
+  m[1][2] = 0.0f;
+  m[1][3] = 0.0f;
+
+  m[2][0] = 0.0f;
+  m[2][1] = 0.0f;
+  m[2][2] = depth;
+  m[2][3] = 0.0f;
+
+  m[3][0] = -(right + left) * width;
+  m[3][1] = -(top + bottom) * height;
+  m[3][2] = -nearZ * depth;
+  m[3][3] = 1.0f;*/
 }
 
 /*************************************************************/

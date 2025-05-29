@@ -35,7 +35,7 @@ int main(int argc, const char** argv)
   desc.fullscreen = false;
   desc.positionX = 0;
   desc.positionY = 0;
-  desc.width = 1400;
+  desc.width = 1600;
   desc.height = 800;
   desc.iconPath = "resources/ShuraIcon.ico";
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/05/13
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -36,7 +36,10 @@ class IndexBuffer;
 class ConstantBuffer;
 class InputLayout;
 class SamplerState;
-class ProgramShader;
+class VertexShader;
+class PixelShader;
+class GeometryShader;
+class ComputeShader;
 class Texture2D;
 class BlendState;
 class RasterizerState;
@@ -141,7 +144,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   SPtr<InputLayout>
   createInputLayout(const Vector<InputDesc>& desc,
-                    const SPtr<ProgramShader>& pShader);
+                    const SPtr<VertexShader>& pShader);
 
   /**
   *  @brief Creates Input Layout from a VertexShader.
@@ -151,25 +154,71 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<InputLayout>
   */
   SPtr<InputLayout>
-  createInputLayoutFromShader(const SPtr<ProgramShader>& pShader);
+  createInputLayoutFromShader(const SPtr<VertexShader>& pShader);
 
   /**
-  *  @brief Creates a Program Shader.
+  *  @brief Creates a Vertex Shader.
   *
-  *  @param const String& fileName
-  *  @param const String& vsEntryPoint
-  *  @param const String& psEntryPoint
-  *  @param const String& vsShaderModel
-  *  @param const String& psShaderModel
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
   *
-  *  @return SPtr<ProgramShader>
+  *  @return SPtr<VertexShader>
   */
-  SPtr<ProgramShader>
-  createProgramShader(const String& fileName,
-                      const String& vsEntryPoint,
-                      const String& psEntryPoint,
-                      const String& vsShaderModel,
-                      const String& psShaderModel);
+  SPtr<VertexShader>
+  createVertexShader(const String& fileName,
+                     const String& entryPoint,
+                     const String& shaderModel,
+                     const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Creates a Pixel Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<PixelShader>
+  */
+  SPtr<PixelShader>
+  createPixelShader(const String& fileName,
+                    const String& entryPoint,
+                    const String& shaderModel,
+                    const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Creates a Geometry Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<GeometryShader>
+  */
+  SPtr<GeometryShader>
+  createGeometryShader(const String& fileName,
+                       const String& entryPoint,
+                       const String& shaderModel,
+                       const Vector<ShaderMacro>& macros = {});
+
+  /**
+  *  @brief Creates a Compute Shader.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<ComputeShader>
+  */
+  SPtr<ComputeShader>
+  createComputeShader(const String& fileName,
+                      const String& entryPoint,
+                      const String& shaderModel,
+                      const Vector<ShaderMacro>& macros = {});
 
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
@@ -239,6 +288,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   createTextureFromFile(const String& fileName);
 
   /**
+  *  @brief Creates a Texture2D from a dds file.
+  *
+  *  @param String& fileName
+  *
+  *  @return SPtr<Texture2D>
+  */
+  SPtr<Texture2D>
+  createTextureFromDDS(const String& fileName);
+
+  /**
   *  @brief Creates a Texture2D.
   *
   *  @param uint32 width
@@ -255,6 +314,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_unorm,
                   const uint32 usage = USAGE::kDefault,
                   const uint32 bindFlags = BIND_FLAGS::kShaderResource);
+
+  /**
+  *  @brief Creates an error Texture2D.
+  *
+  *  @return SPtr<Texture2D>
+  */
+  SPtr<Texture2D>
+  createErrorTexturre();
 
   /**
   *  @brief Creates a blend state.
@@ -325,6 +392,15 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   void
   updateScreenSize(const SPtr<Screen>& pScreen);
 
+  /**
+  *  @brief Saves a Texture2D to a dds file.
+  * 
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param String&  filePath
+  */
+  void
+  saveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath);
+
   /********************
   *  Setters
   ********************/
@@ -380,7 +456,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 offset = 0);
 
   /**
-  *  @brief Sets a Constant Buffer for  the vertex shader with given start slot
+  *  @brief Sets a Constant Buffer for the vertex shader with given start slot
   *         and number of buffers.
   *
   *  @param SPtr<ConstantBuffer>& pCBuffer
@@ -393,7 +469,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                        const uint32 numBuffers = 1);
 
   /**
-  *  @brief Sets a Constant Buffer for  the pixel shader with given start slot
+  *  @brief Sets a Constant Buffer for the pixel shader with given start slot
   *         and number of buffers.
   *
   *  @param SPtr<ConstantBuffer>& pCBuffer
@@ -402,6 +478,32 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   void
   psSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                       const uint32 startSlot = 0,
+                       const uint32 numBuffers = 1);
+
+  /**
+  *  @brief Sets a Constant Buffer for the geometry shader with given start slot
+  *         and number of buffers.
+  *
+  *  @param SPtr<ConstantBuffer>& pCBuffer
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numBuffers = 1
+  */
+  void
+  gsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                       const uint32 startSlot = 0,
+                       const uint32 numBuffers = 1);
+
+  /**
+  *  @brief Sets a Constant Buffer for the compute shader with given start slot
+  *         and number of buffers.
+  *
+  *  @param SPtr<ConstantBuffer>& pCBuffer
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numBuffers = 1
+  */
+  void
+  csSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
                        const uint32 startSlot = 0,
                        const uint32 numBuffers = 1);
 
@@ -416,14 +518,74 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Sets the Vertex Shader.
   *
-  *  @param SPtr<ProgramShader>& pVShader
+  *  @param SPtr<VertexShader>& pVShader
   *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
   *  @param uint32 numClassInstances = 0
   */
   void
-  setProgramShader(const SPtr<ProgramShader>& pVShader,
+  setVertexShader(const SPtr<VertexShader>& pVShader,
                   const void* ppClassInstances = nullptr,
                   const uint32 numClassInstances = 0);
+
+  /**
+  *  @brief Sets the Pixel Shader.
+  *
+  *  @param SPtr<PixelShader>& pPShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  void
+  setPixelShader(const SPtr<PixelShader>& pPShader,
+                 const void* ppClassInstances = nullptr,
+                 const uint32 numClassInstances = 0);
+
+  /**
+  *  @brief Sets the Geometry Shader.
+  *
+  *  @param SPtr<GeometryShader>& pGShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  void
+  setGeometryShader(const SPtr<GeometryShader>& pGShader,
+                    const void* ppClassInstances = nullptr,
+                    const uint32 numClassInstances = 0);
+
+  /**
+  *  @brief Sets the Compute Shader.
+  *
+  *  @param SPtr<ComputeShader>& pCShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  void
+  setComputeShader(const SPtr<ComputeShader>& pCShader,
+                   const void* ppClassInstances = nullptr,
+                   const uint32 numClassInstances = 0);
+
+  /**
+  *  @brief Sets a shader resource to the pixel shader.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  psSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1);
+
+  /**
+  *  @brief Sets a shader resource to the compute shader.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  csSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1);
 
   /**
   *  @brief Sets a shader resource.
@@ -431,11 +593,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<Texture2D>& pShaderRV
   *  @param uint32 startSlot = 0
   *  @param uint32 numViews = 1
+  *  @param uint32* count = nullptr
   */
   void
-  setShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                        const uint32 startSlot = 0,
-                        const uint32 numViews = 1);
+  setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                         const uint32 startSlot = 0,
+                         const uint32 numViews = 1,
+                         const uint32* count = nullptr);
 
   /**
   *  @brief Sets the Sampler State.
@@ -503,6 +667,18 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   drawIndexed(const uint32 indexCount,
               const uint32 startIndexLocation,
               const uint32 baseVertexLocation);
+
+  /**
+  *  @brief Dispatch compute shader.
+  *
+  *  @param uint32 threadGroupCountX
+  *  @param uint32 threadGroupCountY
+  *  @param uint32 threadGroupCountZ
+  */
+  void
+  dispatch(const uint32 threadGroupCountX,
+           const uint32 threadGroupCountY,
+           const uint32 threadGroupCountZ);
 
   /*************************************************************/
   /*
@@ -587,7 +763,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual SPtr<InputLayout>
   internalCreateInputLayout(const Vector<InputDesc>& desc,
-                            const SPtr<ProgramShader>& pPShader) = 0;
+                            const SPtr<VertexShader>& pPShader) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -597,25 +773,71 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayoutFromShader(const SPtr<ProgramShader>& pPShader) = 0;
+  internalCreateInputLayoutFromShader(const SPtr<VertexShader>& pPShader) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
-  * 
-  *  @param const String& fileName
-  *  @param const String& vsEntryPoint
-  *  @param const String& psEntryPoint
-  *  @param const String& vsShaderModel
-  *  @param const String& psShaderModel
   *
-  *  @return SPtr<ProgramShader>
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<VertexShader>
   */
-  virtual SPtr<ProgramShader>
-  internalCreateProgramShader(const String& fileName,
-                              const String& vsEntryPoint,
-                              const String& psEntryPoint,
-                              const String& vsShaderModel,
-                              const String& psShaderModel) = 0;
+  virtual SPtr<VertexShader>
+  internalCreateVertexShader(const String& fileName,
+                             const String& entryPoint,
+                             const String& shaderModel,
+                             const Vector<ShaderMacro>& macros) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<PixelShader>
+  */
+  virtual SPtr<PixelShader>
+  internalCreatePixelShader(const String& fileName,
+                            const String& entryPoint,
+                            const String& shaderModel,
+                            const Vector<ShaderMacro>& macros) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<GeometryShader>
+  */
+  virtual SPtr<GeometryShader>
+  internalCreateGeometryShader(const String& fileName,
+                               const String& entryPoint,
+                               const String& shaderModel,
+                               const Vector<ShaderMacro>& macros) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param String& fileName
+  *  @param String& entryPoint
+  *  @param String& shaderModel
+  *  @param Vector<ShaderMacro>& macros
+  *
+  *  @return SPtr<ComputeShader>
+  */
+  virtual SPtr<ComputeShader>
+  internalCreateComputeShader(const String& fileName,
+                              const String& entryPoint,
+                              const String& shaderModel,
+                              const Vector<ShaderMacro>& macros) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -683,6 +905,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
 
   /**
   *  @brief Calls the selected API overrided function.
+  *
+  *  @param String& fileName
+  *
+  *  @return SPtr<Texture2D>
+  */
+  virtual SPtr<Texture2D>
+  internalCreateTextureFromDDS(const String& fileName) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
   * 
   *  @param uint32 width
   *  @param uint32 height
@@ -698,6 +930,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                           const uint32 format,
                           const uint32 usage,
                           const uint32 bindFlags) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @return SPtr<Texture2D>
+  */
+  virtual SPtr<Texture2D>
+  internalCreateErrorTexture() = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -766,6 +1006,15 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   internalUpdateScreenSize(const SPtr<Screen>& pScreen) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  *  @param String& filePath
+  */
+  virtual void
+  internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture, const String& filePath) = 0;
 
   /********************
   *  Setters
@@ -849,6 +1098,30 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Calls the selected API overrided function.
   * 
+  *  @param SPtr<ConstantBuffer>& pCBuffer
+  *  @param uint32 startSlot
+  *  @param uint32 numBuffers
+  */
+  virtual void
+  internalGSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                               const uint32 startSlot,
+                               const uint32 numBuffers) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  * 
+  *  @param SPtr<ConstantBuffer>& pCBuffer
+  *  @param uint32 startSlot
+  *  @param uint32 numBuffers
+  */
+  virtual void
+  internalCSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                               const uint32 startSlot,
+                               const uint32 numBuffers) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  * 
   *  @param uint32 primitive = 4
   */
   virtual void
@@ -861,10 +1134,58 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param void* ppClassInstances
   *  @param uint32 numClassInstances
   */
-  virtual void
+  /*virtual void
   internalSetProgramShader(const SPtr<ProgramShader>& pVShader,
                            const void* ppClassInstances,
+                           const uint32 numClassInstances) = 0;*/
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  * 
+  *  @param SPtr<VertexShader>& pVShader
+  *  @param void* ppClassInstances
+  *  @param uint32 numClassInstances
+  */
+  virtual void
+  internalSetVertexShader(const SPtr<VertexShader>& pVShader,
+                           const void* ppClassInstances,
                            const uint32 numClassInstances) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<PixelShader>& pPShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  virtual void
+  internalSetPixelShader(const SPtr<PixelShader>& pPShader,
+                         const void* ppClassInstances = nullptr,
+                         const uint32 numClassInstances = 0) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<GeometryShader>& pGShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  virtual void
+  internalSetGeometryShader(const SPtr<GeometryShader>& pGShader,
+                            const void* ppClassInstances = nullptr,
+                            const uint32 numClassInstances = 0) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<ComputeShader>& pCShader
+  *  @param void* ppClassInstances = nullptr This interface encapsulates an HLSL class.
+  *  @param uint32 numClassInstances = 0
+  */
+  virtual void
+  internalSetComputeShader(const SPtr<ComputeShader>& pCShader,
+                           const void* ppClassInstances = nullptr,
+                           const uint32 numClassInstances = 0) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -874,9 +1195,35 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 numViews
   */
   virtual void
-  internalSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                                const uint32 startSlot,
-                                const uint32 numViews) = 0;
+  internalPSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                  const uint32 startSlot,
+                                  const uint32 numViews) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot
+  *  @param uint32 numViews
+  */
+  virtual void
+  internalCSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                  const uint32 startSlot,
+                                  const uint32 numViews) = 0;
+
+  /**
+  *  @brief Sets a shader resource.
+  *
+  *  @param SPtr<Texture2D>& pShaderRV
+  *  @param uint32 startSlot
+  *  @param uint32 numViews
+  *  @param uint32* count
+  */
+  virtual void
+  internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                                 const uint32 startSlot,
+                                 const uint32 numViews,
+                                 const uint32* count) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -945,6 +1292,18 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   internalDrawIndexed(const uint32 indexCount,
                       const uint32 startIndexLocation,
                       const uint32 baseVertexLocation) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param uint32 threadGroupCountX
+  *  @param uint32 threadGroupCountY
+  *  @param uint32 threadGroupCountZ
+  */
+  virtual void
+  internalDispatch(const uint32 threadGroupCountX,
+                   const uint32 threadGroupCountY,
+                   const uint32 threadGroupCountZ) = 0;
 };
 
 /**

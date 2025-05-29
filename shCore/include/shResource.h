@@ -2,7 +2,7 @@
 /*
 *  @file    shResource.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/04/22
 *  @brief   Resource base class.
 *
 *  Resource base class.
@@ -32,7 +32,6 @@ enum SH_CORE_EXPORT E
   kSkeletalMesh,
   kSkeleton,
   kAnmimation,
-  kMeshUnion,
 
   kCount
 };
@@ -126,6 +125,6 @@ class SH_CORE_EXPORT Resource
   /**
   *  @brief Resource type.
   */
-  RESOURCE_TYPE::E m_type;
+  RESOURCE_TYPE::E m_type = RESOURCE_TYPE::kCount;
 };
 }

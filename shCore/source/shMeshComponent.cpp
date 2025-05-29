@@ -2,7 +2,7 @@
 /*
 *  @file    shMeshComponent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/09
+*  @date    2025/04/23
 *  @brief   Mesh component classes.
 *
 *  Mesh component classes.
@@ -22,55 +22,53 @@
 #include "shBuffers.h"
 
 namespace shEngineSDK {
-StaticMeshUnionComponent::~StaticMeshUnionComponent()
+void
+StaticMeshComponent::setMeshData(const SPtr<StaticMeshResource>& pMeshRes)
 {
-  m_meshesData->~StaticMeshUnionResource();
-  m_meshesData.reset();
+  GraphicsManager& graphMan = g_graphicsMan();
+  m_mesh = pMeshRes;
 
-  m_vertexBuffer->~VertexBuffer();
-  m_vertexBuffer.reset();
+  // Get all vertices
+  Vector<VertexData> vertices;
+  for (auto& mesh : m_mesh->m_meshes) {
+    for (auto& vertex : mesh.vertices) {
+      vertices.push_back(vertex);
+    }
+  }
 
-  m_indexBuffer->~IndexBuffer();
-  m_indexBuffer.reset();
+  // Get all indices
+  Vector<uint32> indices;
+  for (auto& mesh : m_mesh->m_meshes) {
+    for (auto& index : mesh.indices) {
+      indices.push_back(index);
+    }
+  }
+
+  // Create certex and index buffers
+  m_vertexBuffer = graphMan.createVertexBuffer(vertices);
+  m_indexBuffer = graphMan.createIndexBuffer(indices);
 }
 
 void
 SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResource)
 {
-  meshData = meshResource;
-  Vector<VertexData> skeletalVertex;
-  Vector<uint32> skeletalIndex;
+  GraphicsManager& graphMan = g_graphicsMan();
+  m_mesh = meshResource;
 
-  for (auto& vertex : meshData->vertices) {
+  // Get all vertices
+  Vector<VertexData> skeletalVertex;
+  for (auto& vertex : m_mesh->m_vertices) {
     skeletalVertex.push_back(vertex);
   }
 
-  for (auto& index : meshData->indices) {
+  // Get all indices
+  Vector<uint32> skeletalIndex;
+  for (auto& index : m_mesh->m_indices) {
     skeletalIndex.push_back(index);
   }
 
-  m_vertexBuffer = GraphicsManager::instance().createVertexBuffer(skeletalVertex);
-  m_indexBuffer = GraphicsManager::instance().createIndexBuffer(skeletalIndex);
-}
-
-void
-StaticMeshUnionComponent::setMeshData(const SPtr<StaticMeshUnionResource>& pSMUResource)
-{
-  m_meshesData = pSMUResource;
-  Vector<VertexData> vertices;
-  Vector<uint32> indices;
-
-  for (auto& mesh : m_meshesData->meshes) {
-    for (auto& vertex : mesh->vertices) {
-      vertices.push_back(vertex);
-    }
-
-    for (auto& index : mesh->indices) {
-      indices.push_back(index);
-    }
-  }
-
-  m_vertexBuffer = g_graphicsMan().createVertexBuffer(vertices);
-  m_indexBuffer = g_graphicsMan().createIndexBuffer(indices);
+  // Create certex and index buffers
+  m_vertexBuffer = graphMan.createVertexBuffer(skeletalVertex);
+  m_indexBuffer = graphMan.createIndexBuffer(skeletalIndex);
 }
 }

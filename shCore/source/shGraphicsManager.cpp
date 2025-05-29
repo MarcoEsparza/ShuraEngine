@@ -2,7 +2,7 @@
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/11
+*  @date    2025/04/14
 *  @brief   Graphics Manager module that uses function from loaded API.
 *
 *  Graphics Manager module that uses function from loaded API.
@@ -66,36 +66,52 @@ GraphicsManager::getMainDepthStencil() const
 
 SPtr<InputLayout>
 GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
-                                   const SPtr<ProgramShader>& pShader)
+                                   const SPtr<VertexShader>& pShader)
 {
   return internalCreateInputLayout(desc, pShader);
 }
 
 SPtr<InputLayout>
-GraphicsManager::createInputLayoutFromShader(const SPtr<ProgramShader>& pShader)
+GraphicsManager::createInputLayoutFromShader(const SPtr<VertexShader>& pShader)
 {
   return internalCreateInputLayoutFromShader(pShader);
 }
 
-SPtr<ProgramShader>
-GraphicsManager::createProgramShader(const String& fileName,
-                                     const String& vsEntryPoint,
-                                     const String& psEntryPoint,
-                                     const String& vsShaderModel,
-                                     const String& psShaderModel)
+SPtr<VertexShader>
+GraphicsManager::createVertexShader(const String& fileName,
+                                    const String& entryPoint,
+                                    const String& shaderModel,
+                                    const Vector<ShaderMacro>& macros)
 {
-  return internalCreateProgramShader(fileName,
-                                     vsEntryPoint,
-                                     psEntryPoint,
-                                     vsShaderModel,
-                                     psShaderModel);
+  return internalCreateVertexShader(fileName, entryPoint, shaderModel, macros);
 }
 
-//SPtr<VertexBuffer>
-//GraphicsManager::createVertexBuffer(const Vector<VertexData>& vertices, const uint32 usage)
-//{
-//  return internalCreateVertexBuffer(vertices, usage);
-//}
+SPtr<PixelShader>
+GraphicsManager::createPixelShader(const String& fileName,
+                                   const String& entryPoint,
+                                   const String& shaderModel,
+                                   const Vector<ShaderMacro>& macros)
+{
+  return internalCreatePixelShader(fileName, entryPoint, shaderModel, macros);
+}
+
+SPtr<GeometryShader>
+GraphicsManager::createGeometryShader(const String& fileName,
+                                      const String& entryPoint,
+                                      const String& shaderModel,
+                                      const Vector<ShaderMacro>& macros)
+{
+  return internalCreateGeometryShader(fileName, entryPoint, shaderModel, macros);
+}
+
+SPtr<ComputeShader>
+GraphicsManager::createComputeShader(const String& fileName,
+                                     const String& entryPoint,
+                                     const String& shaderModel,
+                                     const Vector<ShaderMacro>& macros)
+{
+  return internalCreateComputeShader(fileName, entryPoint, shaderModel, macros);
+}
 
 SPtr<IndexBuffer>
 GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint32 usage)
@@ -132,6 +148,12 @@ GraphicsManager::createTextureFromFile(const String& fileName)
 }
 
 SPtr<Texture2D>
+GraphicsManager::createTextureFromDDS(const String& fileName)
+{
+  return internalCreateTextureFromDDS(fileName);
+}
+
+SPtr<Texture2D>
 GraphicsManager::createTexture2D(const uint32 width,
                                  const uint32 height,
                                  const uint32 format,
@@ -139,6 +161,11 @@ GraphicsManager::createTexture2D(const uint32 width,
                                  const uint32 bindFlags)
 {
   return internalCreateTexture2D(width, height, format, usage, bindFlags);
+}
+
+SPtr<Texture2D> GraphicsManager::createErrorTexturre()
+{
+  return internalCreateErrorTexture();
 }
 
 SPtr<BlendState>
@@ -183,6 +210,13 @@ void
 GraphicsManager::updateScreenSize(const SPtr<Screen>& pScreen)
 {
   internalUpdateScreenSize(pScreen);
+}
+
+void
+GraphicsManager::saveTextureToDDS(const SPtr<Texture2D>& pTexture,
+                                  const String& filePath)
+{
+  internalSaveTextureToDDS(pTexture, filePath);
 }
 
 void
@@ -236,25 +270,90 @@ GraphicsManager::psSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
+GraphicsManager::gsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                                      const uint32 startSlot,
+                                      const uint32 numBuffers)
+{
+  internalGSSetConstantBuffers(pCBuffer, startSlot, numBuffers);
+}
+
+void
+GraphicsManager::csSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+                                      const uint32 startSlot,
+                                      const uint32 numBuffers)
+{
+  internalCSSetConstantBuffers(pCBuffer, startSlot, numBuffers);
+}
+
+void
 GraphicsManager::setPrimitiveTopology(const uint32 primitive)
 {
   internalSetPrimitiveTopology(primitive);
 }
 
+//void
+//GraphicsManager::setProgramShader(const SPtr<ProgramShader>& pVShader,
+//                                 const void* ppClassInstances,
+//                                 const uint32 numClassInstances)
+//{
+//  internalSetProgramShader(pVShader, ppClassInstances, numClassInstances);
+//}
+
 void
-GraphicsManager::setProgramShader(const SPtr<ProgramShader>& pVShader,
+GraphicsManager::setVertexShader(const SPtr<VertexShader>& pVShader,
                                  const void* ppClassInstances,
                                  const uint32 numClassInstances)
 {
-  internalSetProgramShader(pVShader, ppClassInstances, numClassInstances);
+  internalSetVertexShader(pVShader, ppClassInstances, numClassInstances);
 }
 
 void
-GraphicsManager::setShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+GraphicsManager::setPixelShader(const SPtr<PixelShader>& pPShader,
+                                const void* ppClassInstances,
+                                const uint32 numClassInstances)
+{
+  internalSetPixelShader(pPShader, ppClassInstances, numClassInstances);
+}
+
+void
+GraphicsManager::setGeometryShader(const SPtr<GeometryShader>& pGShader,
+                                   const void* ppClassInstances,
+                                   const uint32 numClassInstances)
+{
+  internalSetGeometryShader(pGShader, ppClassInstances, numClassInstances);
+}
+
+void
+GraphicsManager::setComputeShader(const SPtr<ComputeShader>& pCShader,
+                                  const void* ppClassInstances,
+                                  const uint32 numClassInstances)
+{
+  internalSetComputeShader(pCShader, ppClassInstances, numClassInstances);
+}
+
+void
+GraphicsManager::psSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
                                        const uint32 startSlot,
                                        const uint32 numViews)
 {
-  internalSetShaderResourceView(pShaderRV, startSlot, numViews);
+  internalPSSetShaderResourceView(pShaderRV, startSlot, numViews);
+}
+
+void
+GraphicsManager::csSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+                                         const uint32 startSlot,
+                                         const uint32 numViews)
+{
+  internalCSSetShaderResourceView(pShaderRV, startSlot, numViews);
+}
+
+void
+GraphicsManager::setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+                                        const uint32 startSlot,
+                                        const uint32 numViews,
+                                        const uint32* count)
+{
+  internalSetUnorderedAccessView(pUAV, startSlot, numViews, count);
 }
 
 void
@@ -302,6 +401,14 @@ GraphicsManager::drawIndexed(const uint32 indexCount,
                              const uint32 baseVertexLocation)
 {
   internalDrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+}
+
+void 
+GraphicsManager::dispatch(const uint32 threadGroupCountX,
+                          const uint32 threadGroupCountY,
+                          const uint32 threadGroupCountZ)
+{
+  internalDispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 }
 
 GraphicsManager& g_graphicsMan()
