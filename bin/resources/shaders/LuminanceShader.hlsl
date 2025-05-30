@@ -1,4 +1,3 @@
-SamplerState textureSampler : register(s0);
 Texture2D<float4> t_inputMap : register(t0);
 RWTexture2D<float4> t_outputMap : register(u0);
 
@@ -22,5 +21,5 @@ CSMain( uint3 dtID : SV_DispatchThreadID )
   
   float luminance = dot(color.rgb, float3(0.2126, 0.7152, 0.0722));
     
-  t_outputMap[dtID.xy] = float4(luminance, luminance, luminance, 1.0f);
+  t_outputMap[dtID.xy] = float4(luminance.xxx, 1.0f);
 }

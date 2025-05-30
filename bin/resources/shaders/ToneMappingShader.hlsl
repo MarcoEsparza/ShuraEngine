@@ -3,18 +3,11 @@ Texture2D t_inputMap : register(t0);
 Texture3D<float4> lutTex : register(t1);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-cbuffer Viewport : register(b0)
+cbuffer ToneIndex : register(b0)
 {
-  float2 Dimensions;
-  float unused;
-  float unused1;
-}
-
-cbuffer ToneIndex : register(b1)
-{
+  float2 ScreenSize;
   float index;
   float lutSize;
-  float2 unused2;
 }
 
 float3
@@ -91,7 +84,7 @@ lutToneMap(float3 color)
 void
 CSMain(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
+  if (dtID.x >= ScreenSize.x || dtID.y >= ScreenSize.y) {
     return;
   }
 

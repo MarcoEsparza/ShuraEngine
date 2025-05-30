@@ -22,6 +22,7 @@
     <ClInclude Include="Include\shBoxAAB.h" />
     <ClInclude Include="Include\shBoxOBB.h" />
     <ClInclude Include="Include\shCapsule.h" />
+    <ClInclude Include="include\shCollisionInfo.h" />
     <ClInclude Include="include\shColor.h" />
     <ClInclude Include="include\shDegree.h" />
     <ClInclude Include="Include\shException.h" />

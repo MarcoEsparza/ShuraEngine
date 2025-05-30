@@ -65,6 +65,12 @@ RendererApp::onCreate()
   m_shadowTexSize = 2048.0f;
   m_screenSize = Vector2(static_cast<float>(getScreenDescription().width),
                          static_cast<float>(getScreenDescription().height));
+  m_minR = 0.0f;
+  m_maxR = 255.0f;
+  m_minG = 0.0f;
+  m_maxG = 255.0f;
+  m_minB = 0.0f;
+  m_maxB = 255.0f;
 
   // Initialize graphics
   initShaders();
@@ -146,6 +152,42 @@ RendererApp::onCreate()
   // Histogram
   auto pHistogramShader = renderMan.getPass("HistogramShader");
   pHistogramShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+
+  // ToneMap
+  ToneMap tm = {};
+  tm.screenSize = m_screenSize;
+  tm.lutSize = 1.0f;
+  tm.index = static_cast<float>(m_toneMapIndex);
+
+  m_pToneMapBuffer = graphMan.createConstantBuffer(sizeof(ToneMap));
+  graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
+
+  auto pToneMapShader = renderMan.getPass("ToneMapShader");
+  pToneMapShader->addCSConstantBuffer(m_pToneMapBuffer, 0);
+
+  // Add skybox
+  auto pASBShader = renderMan.getPass("ASBShader");
+  pASBShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+
+  // Luminance
+  auto pLuminanceShader = renderMan.getPass("LuminanceShader");
+  pLuminanceShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+
+  // Post Process
+  PostProcessValues ppV = {};
+  ppV.minR = m_minR;
+  ppV.maxR = m_maxR;
+  ppV.minG = m_minG;
+  ppV.maxG = m_maxG;
+  ppV.minB = m_minB;
+  ppV.maxB = m_maxB;
+
+  m_pPPBuffer = graphMan.createConstantBuffer(sizeof(PostProcessValues));
+  graphMan.updateConstantBuffer(m_pPPBuffer, &ppV, sizeof(PostProcessValues));
+
+  auto pPPShader = renderMan.getPass("PPShader");
+  pPPShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+  pPPShader->addCSConstantBuffer(m_pPPBuffer, 1);
 
   // Create audio
   Path audioPath("resources/cat.wav");
@@ -287,6 +329,14 @@ RendererApp::onUpdate()
     bIsSoundPlaying = false;
   }
   audioMan.update();
+
+  // Update tone map
+  ToneMap tm = {};
+  tm.screenSize = m_screenSize;
+  tm.lutSize = 1.0f;
+  tm.index = static_cast<float>(m_toneMapIndex);
+
+  graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
 }
 
 void
@@ -588,6 +638,34 @@ RendererApp::initShaders()
                                    "cs_5_0");
   pHistogramShader->compileShader();
 
+  // Add skybox shader
+  auto pASBShader = sh_makeShared<Pass>();
+  pASBShader->setCShaderInfo("resources/shaders/AddSkyboxShader.hlsl",
+                             "CSMain",
+                             "cs_5_0");
+  pASBShader->compileShader();
+
+  // Luminance shader
+  auto pLuminanceShader = sh_makeShared<Pass>();
+  pLuminanceShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
+                                   "CSMain",
+                                   "cs_5_0");
+  pLuminanceShader->compileShader();
+
+  // ToneMap shader
+  auto pToneMapShader = sh_makeShared<Pass>();
+  pToneMapShader->setCShaderInfo("resources/shaders/ToneMappingShader.hlsl",
+                                 "CSMain",
+                                 "cs_5_0");
+  pToneMapShader->compileShader();
+
+  // PostProcess shader
+  auto pPPShader = sh_makeShared<Pass>();
+  pPPShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                            "CSMain",
+                            "cs_5_0");
+  pPPShader->compileShader();
+
   // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -689,6 +767,9 @@ RendererApp::initShaders()
   pPlaneVS->generateInputLayout();
   pPlaneVS->setDepthStencilStateFromDesc(planeDepthSDesc);
 
+  // ToneMap
+  pToneMapShader->setSamplerState(pSamplerLinear);
+
   // Save passes on render manager
   renderMan.addPass(pGbufferShader, "GBufferShader");
   renderMan.addPass(pAOShader, "AOShader");
@@ -700,6 +781,10 @@ RendererApp::initShaders()
   renderMan.addPass(pFinalShader, "FinalShader");
   renderMan.addPass(pPlaneVS, "PlaneShader");
   renderMan.addPass(pHistogramShader, "HistogramShader");
+  renderMan.addPass(pASBShader, "ASBShader");
+  renderMan.addPass(pLuminanceShader, "LuminanceShader");
+  renderMan.addPass(pToneMapShader, "ToneMapShader");
+  renderMan.addPass(pPPShader, "PPShader");
 }
 
 void
@@ -924,10 +1009,38 @@ RendererApp::setRenderTargets()
 
   auto pHistogramMap = graphMan.createTexture2D(256,
                                                 3,
-                                                TEXTURE_FORMAT::kR32G32B32A32_float,
+                                                TEXTURE_FORMAT::kR32G32B32A32_uint,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
+
+  auto pToneMap = graphMan.createTexture2D(width,
+                                           height,
+                                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                           USAGE::kDefault,
+                                           BIND_FLAGS::kShaderResource |
+                                           BIND_FLAGS::kUnorderedAccess);
+
+  auto pTempMap = graphMan.createTexture2D(width,
+                                           height,
+                                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                           USAGE::kDefault,
+                                           BIND_FLAGS::kShaderResource |
+                                           BIND_FLAGS::kUnorderedAccess);
+
+  auto pLuminance = graphMan.createTexture2D(width,
+                                             height,
+                                             TEXTURE_FORMAT::kR32_float,
+                                             USAGE::kDefault,
+                                             BIND_FLAGS::kShaderResource |
+                                             BIND_FLAGS::kUnorderedAccess);
+
+  auto pPPMap = graphMan.createTexture2D(width,
+                                         height,
+                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                         USAGE::kDefault,
+                                         BIND_FLAGS::kShaderResource |
+                                         BIND_FLAGS::kUnorderedAccess);
 
   // Save targets on render manager
   renderMan.addRenderTarget(pMainTarget, "MainTarget");
@@ -943,6 +1056,10 @@ RendererApp::setRenderTargets()
   renderMan.addRenderTarget(pComputeLight, "LightCMap");
   renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
   renderMan.addRenderTarget(pHistogramMap, "HistogramMap");
+  renderMan.addRenderTarget(pTempMap, "TempMap");
+  renderMan.addRenderTarget(pLuminance, "LuminanceMap");
+  renderMan.addRenderTarget(pToneMap, "ToneMap");
+  renderMan.addRenderTarget(pPPMap, "PPMap");
 }
 
 void
@@ -1256,6 +1373,17 @@ RendererApp::setImgui()
   auto pTex = renderMan.getRenderTargetByName("HistogramMap");
 
   //ImGui::Image(reinterpret_cast<ImTextureID>(&pTex), ImVec2(512, 90));
+
+  ImGui::Combo("ToneMapping", &m_toneMapIndex, "Reinhard\0ACES\0Uncharted2\0AgX\0LUT\0");
+  ImGui::Spacing();
+  ImGui::DragFloat("Min R:", &m_minR, 1.0f, 0.0f, 255.0f);
+  ImGui::DragFloat("Max R:", &m_maxR, 1.0f, 0.0f, 255.0f);
+  ImGui::Spacing();
+  ImGui::DragFloat("Min G:", &m_minG, 1.0f, 0.0f, 255.0f);
+  ImGui::DragFloat("Max G:", &m_maxG, 1.0f, 0.0f, 255.0f);
+  ImGui::Spacing();
+  ImGui::DragFloat("Min B:", &m_minB, 1.0f, 0.0f, 255.0f);
+  ImGui::DragFloat("Max B:", &m_maxB, 1.0f, 0.0f, 255.0f);
 
   ImGui::End();
 }

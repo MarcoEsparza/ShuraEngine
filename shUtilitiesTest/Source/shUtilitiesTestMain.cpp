@@ -470,13 +470,13 @@ TEST_CASE("BoxAAB") {
   Rect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
   Sphere sph(pos2, 1.5f);
 
-  REQUIRE(Math::boxBoxIntersect(box1, box2) == (true));
-  REQUIRE(Math::pointBoxIntersect(point, box1) == (true));
-  REQUIRE(Math::boxBoxIntersect(box1, obb) == (true));
-  REQUIRE(Math::boxCapsuleIntersect(box1, cap1) == (true));
-  REQUIRE(Math::boxPlaneIntersect(box2, plane) == (true));
-  REQUIRE(Math::boxRectIntersect(box1, rect) == (true));
-  REQUIRE(Math::boxSphereIntersect(box1, sph) == (true));
+  REQUIRE(Math::intersect(box1, box2) == (true));
+  REQUIRE(Math::intersect(point, box1) == (true));
+  REQUIRE(Math::intersect(box1, obb) == (true));
+  REQUIRE(Math::intersect(box1, cap1) == (true));
+  REQUIRE(Math::intersect(box2, plane) == (true));
+  REQUIRE(Math::intersect(box1, rect) == (true));
+  REQUIRE(Math::intersect(box1, sph) == (true));
 }
 
 /*************************************************************/
@@ -498,12 +498,12 @@ TEST_CASE("BoxOBB") {
   Rect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
   Sphere sph(Vector3(0.0f, 0.0f, 0.0f), 1.5f);
 
-  REQUIRE(Math::boxBoxIntersect(box1, box2) == (true));
-  REQUIRE(Math::pointBoxIntersect(point, box1) == (true));
-  REQUIRE(Math::boxCapsuleIntersect(box1, cap1) == (true));
-  REQUIRE(Math::boxPlaneIntersect(box1, plane) == (true));
-  REQUIRE(Math::boxRectIntersect(box1, rect) == (true));
-  REQUIRE(Math::boxSphereIntersect(box1, sph) == (true));
+  REQUIRE(Math::intersect(box1, box2) == (true));
+  REQUIRE(Math::intersect(point, box1) == (true));
+  REQUIRE(Math::intersect(box1, cap1) == (true));
+  REQUIRE(Math::intersect(box1, plane) == (true));
+  REQUIRE(Math::intersect(box1, rect) == (true));
+  REQUIRE(Math::intersect(box1, sph) == (true));
 }
 
 /*************************************************************/
@@ -519,10 +519,10 @@ TEST_CASE("Capsule") {
   Plane plane(Vector3(3.1f, 4.3f, 2.0f), 1.0f);
   Rect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
 
-  REQUIRE(Math::capsuleCapsuleIntersect(cap1, cap2) == (true));
-  REQUIRE(Math::pointCapsuleIntersect(point, cap1) == (true));
-  REQUIRE(Math::capsulePlaneIntersect(cap1, plane) == (true));
-  REQUIRE(Math::capsuleRectIntersect(cap1, rect) == (true));
+  REQUIRE(Math::intersect(cap1, cap2) == (true));
+  REQUIRE(Math::intersect(point, cap1) == (true));
+  REQUIRE(Math::intersect(cap1, plane) == (true));
+  REQUIRE(Math::intersect(cap1, rect) == (true));
 }
 
 /*************************************************************/
@@ -539,11 +539,11 @@ TEST_CASE("Sphere") {
   Plane plane(Vector3(0.0f, 4.0f, 0.0f), -4.0f);
   Rect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
 
-  REQUIRE(Math::sphereSphereIntersect(sph1, sph2) == (true));
-  REQUIRE(Math::pointSphereIntersect(point, sph1) == (true));
-  REQUIRE(Math::sphereCapsuleIntersect(sph1, cap1) == (true));
-  REQUIRE(Math::spherePlaneIntersect(sph1, plane) == (true));
-  REQUIRE(Math::sphereRectIntersect(sph1, rect) == (true));
+  REQUIRE(Math::intersect(sph1, sph2) == (true));
+  REQUIRE(Math::intersect(point, sph1) == (true));
+  REQUIRE(Math::intersect(sph1, cap1) == (true));
+  REQUIRE(Math::intersect(sph1, plane) == (true));
+  REQUIRE(Math::intersect(sph1, rect) == (true));
 }
 
 /*************************************************************/
@@ -556,8 +556,8 @@ TEST_CASE("Rect") {
   Rect r2(Vector2(1.5f, 0.5f), Vector2(1.5f, 2.0f));
   Vector2 point(3.5f, 2.8f);
 
-  REQUIRE(Math::rectRectIntersect(r1, r2) == (true));
-  REQUIRE(Math::pointRectIntersect(point, r1) == (true));
+  REQUIRE(Math::intersect(r1, r2) == (true));
+  REQUIRE(Math::intersect(point, r1) == (true));
 }
 
 /*************************************************************/
@@ -572,9 +572,9 @@ TEST_CASE("Plane") {
 
   Rect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
 
-  REQUIRE(Math::planePlaneIntersect(pln1, pln2) == (true));
-  REQUIRE(Math::pointPlaneIntersect(point, pln1) == (true));
-  REQUIRE(Math::planeRectIntersect(pln1, rect) == (true));
+  REQUIRE(Math::intersect(pln1, pln2) == (true));
+  REQUIRE(Math::intersect(point, pln1) == (true));
+  REQUIRE(Math::intersect(pln1, rect) == (true));
 }
 
 /*************************************************************/

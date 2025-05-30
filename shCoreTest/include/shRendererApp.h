@@ -66,6 +66,24 @@ struct InvVP
   Matrix4 invV;
 };
 
+struct ToneMap
+{
+  Vector2 screenSize;
+  float index;
+  float lutSize;
+};
+
+struct PostProcessValues
+{
+  float minR = 0.0f;
+  float maxR = 0.0f;
+  float minG = 0.0f;
+  float maxG = 0.0f;
+  float minB = 0.0f;
+  float maxB = 0.0f;
+  Vector2 unused = Vector2(0.0f, 0.0f);
+};
+
 /**
 *  @brief App for render testing.
 */
@@ -322,6 +340,10 @@ class RendererApp : public BaseApp
   */
   SPtr<ConstantBuffer> m_pLSizeBuffer;
 
+
+  SPtr<ConstantBuffer> m_pToneMapBuffer;
+  SPtr<ConstantBuffer> m_pPPBuffer;
+
   /**
   *  @brief App camera.
   */
@@ -506,5 +528,13 @@ class RendererApp : public BaseApp
   *  @brief Size of shadow texture.
   */
   float m_shadowTexSize = 0;
+
+  int32 m_toneMapIndex = 0;
+  float m_minR = 0.0f;
+  float m_maxR = 0.0f;
+  float m_minG = 0.0f;
+  float m_maxG = 0.0f;
+  float m_minB = 0.0f;
+  float m_maxB = 0.0f;
 };
 }

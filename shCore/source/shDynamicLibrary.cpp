@@ -42,7 +42,8 @@ DynamicLibrary::load()
   m_dynLibHandler = static_cast<DYNAMIC_LIBRARY_HANDLE>(DYNAMIC_LIBRARY_LOAD(m_name.c_str()));
 
   if (!m_dynLibHandler) {
-    SH_ASSERT("Couldnt load dll");
+    auto error = GetLastError();
+    SH_ASSERT(false && "Couldnt load dll");
   }
 }
 

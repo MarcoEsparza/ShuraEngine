@@ -251,6 +251,10 @@ RenderManager::renderScene()
   auto pSkyBoxMap = getRenderTargetByName("SkyBoxMap");
   auto pLightCMap = getRenderTargetByName("LightCMap");
   auto pHistogramMap = getRenderTargetByName("HistogramMap");
+  auto pToneMap = getRenderTargetByName("ToneMap");
+  auto pTempMap = getRenderTargetByName("TempMap");
+  auto pLuminance = getRenderTargetByName("LuminanceMap");
+  auto pPPMap = getRenderTargetByName("PPMap");
 
   uint32 dispatchX = static_cast<uint32>((m_screenDimension.x + 32.0f) / 32.0f);
   uint32 dispatchY = static_cast<uint32>((m_screenDimension.y + 32.0f) / 32.0f);
@@ -370,13 +374,16 @@ RenderManager::renderScene()
   setRenderTargetsByName({ "SkyBoxMap" }, pDepthSV);
   setPassByName("SkyBoxShader");
 
+  SPtr<Texture2D> pSbTex = nullptr;
+
   for (auto& gameObject : scene.getGameObjectList()) {
     for (auto& component : gameObject->components) {
       if (component->getType() == COMPONENT_TYPE::kSkyBox) {
         auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(component);
         graphMan.setVertexBuffers(pSkyBox->getVertexBuffer());
         graphMan.setIndexBuffers(pSkyBox->getIndexBuffer());
-        graphMan.psSetShaderResourceView(pSkyBox->getMaterial()->baseColor, 0);
+        pSbTex = pSkyBox->getMaterial()->baseColor;
+        graphMan.psSetShaderResourceView(pSbTex, 0);
 
         uint32 numIndices = static_cast<uint32>(pSkyBox->getIndices().size());
         graphMan.drawIndexed(numIndices, 0, 0);
@@ -390,6 +397,19 @@ RenderManager::renderScene()
   /*            Add Sky Box            */
   /*************************************/
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("ASBShader");
+
+  graphMan.csSetShaderResourceView(pLightCMap, 0);
+  graphMan.csSetShaderResourceView(pNormalMap, 1);
+  graphMan.csSetShaderResourceView(pSbTex, 2);
+  graphMan.setUnorderedAccessView(pTempMap, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("PlaneShader");
   setPassByName("FinalShader");
 
@@ -400,15 +420,70 @@ RenderManager::renderScene()
   graphMan.draw(3, 0);
 
   cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);*/
+
+  /*************************************/
+  /*             Luminance             */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("LuminanceShader");
+
+  graphMan.csSetShaderResourceView(pTempMap, 0);
+  graphMan.setUnorderedAccessView(pLuminance, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*             Tone Map              */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("ToneMapShader");
+
+  graphMan.csSetShaderResourceView(pLuminance, 0);
+  graphMan.setUnorderedAccessView(pToneMap, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*            PostProcess            */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("PPShader");
+
+  graphMan.csSetShaderResourceView(pToneMap, 0);
+  graphMan.setUnorderedAccessView(pTempMap, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*         Add to backbuffer         */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("PlaneShader");
+  setPassByName("FinalShader");
+
+  graphMan.psSetShaderResourceView(pTempMap, 0);
+
+  graphMan.draw(3, 0);
+
+  cleanShaderObjects();
 
   /*************************************/
   /*             Histogram             */
   /*************************************/
-  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  /*setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("HistogramShader");
 
-  graphMan.csSetShaderResourceView(pLightCMap, 0);
+  graphMan.csSetShaderResourceView(pTempMap, 0);
   graphMan.setUnorderedAccessView(pHistogramMap, 0);
 
   uint32 dx = static_cast<uint32>(256.0f + 32.0f) / 32.0f;
@@ -418,7 +493,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dx, dy, dz);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  graphMan.setUnorderedAccessView(nullptr, 0);*/
 }
 
 void
