@@ -23,8 +23,8 @@
 namespace shEngineSDK {
 class Vector3;
 class Vector2;
-class BoxAAB;
-class BoxOBB;
+class AABBox;
+class OBBox;
 class Capsule;
 class Plane;
 class Rect;
@@ -328,7 +328,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const Vector3& point, const BoxAAB& box, CollisionInfo& colInfo);
+  intersect(const Vector3& point, const AABBox& box, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with an oriented bounding box.
@@ -339,7 +339,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const Vector3& point, const BoxOBB& box, CollisionInfo& colInfo);
+  intersect(const Vector3& point, const OBBox& box, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with a sphere.
@@ -394,7 +394,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxAAB& box, const BoxAAB& box1, CollisionInfo& colInfo);
+  intersect(const AABBox& box, const AABBox& box1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with another box.
@@ -405,7 +405,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxOBB& box, const BoxOBB& box1, CollisionInfo& colInfo);
+  intersect(const OBBox& box, const OBBox& box1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with another box.
@@ -416,7 +416,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxAAB& boxA, const BoxOBB& boxO, CollisionInfo& colInfo);
+  intersect(const AABBox& boxA, const OBBox& boxO, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a capsule.
@@ -427,7 +427,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxAAB& box, const Capsule& cap, CollisionInfo& colInfo);
+  intersect(const AABBox& box, const Capsule& cap, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a capsule.
@@ -438,7 +438,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxOBB& box, const Capsule& cap, CollisionInfo& colInfo);
+  intersect(const OBBox& box, const Capsule& cap, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a plane.
@@ -449,7 +449,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxAAB& box, const Plane& plane, CollisionInfo& colInfo);
+  intersect(const AABBox& box, const Plane& plane, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a plane.
@@ -460,7 +460,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxOBB& box, const Plane& plane, CollisionInfo& colInfo);
+  intersect(const OBBox& box, const Plane& plane, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a rect.
@@ -471,7 +471,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxAAB& box, const Rect& rect, CollisionInfo& colInfo);
+  intersect(const AABBox& box, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a rect.
@@ -482,7 +482,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxOBB& box, const Rect& rect, CollisionInfo& colInfo);
+  intersect(const OBBox& box, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a sphere is intersecting with another sphere.
@@ -504,7 +504,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxAAB& box, const Sphere& sph, CollisionInfo& colInfo);
+  intersect(const AABBox& box, const Sphere& sph, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a sphere.
@@ -515,7 +515,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  intersect(const BoxOBB& box, const Sphere& sph, CollisionInfo& colInfo);
+  intersect(const OBBox& box, const Sphere& sph, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a sphere is intersecting with a capsule.
