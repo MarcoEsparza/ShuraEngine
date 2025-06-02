@@ -24,6 +24,9 @@
     <ClInclude Include="include\shPlatformPhysics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\shRigidbody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shCircleCollision.cpp">

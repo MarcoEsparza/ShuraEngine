@@ -22,6 +22,7 @@
     <ClInclude Include="include\shCircleCollision.h" />
     <ClInclude Include="include\shPlatformPhysics.h" />
     <ClInclude Include="include\shPrerequisitesPhysics.h" />
+    <ClInclude Include="include\shRigidbody.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shCircleCollision.cpp" />
