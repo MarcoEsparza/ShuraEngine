@@ -599,16 +599,28 @@ class DX11GraphicsManager : public GraphicsManager
                                  const uint32* count) override;
 
   /**
-  *  @brief Sets the Sampler State.
+  *  @brief Sets the Sampler State to the pixel shader.
   * 
   *  @param SPtr<SamplerState> pSamplerLinear
   *  @param uint32 startSlot = 0
   *  @param uint32 numSamplers = 1
   */
   void
-  internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
-                          const uint32 startSlot,
-                          const uint32 numSamplers) override;
+  internalPSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                            const uint32 startSlot,
+                            const uint32 numSamplers) override;
+
+  /**
+  *  @brief Sets the Sampler State to the compute shader.
+  * 
+  *  @param SPtr<SamplerState>& pSamplerLinear
+  *  @param uint32 startSlot
+  *  @param uint32 numSamplers
+  */
+  void
+  internalCSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                            const uint32 startSlot,
+                            const uint32 numSamplers) override;
 
   /**
   *  @brief Sets the blend state to the device context.

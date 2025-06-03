@@ -8,6 +8,12 @@ cbuffer Viewport : register(b0)
   float unused1;
 }
 
+cbuffer BrightParams : register(b1)
+{
+  float threshold;
+  float3 unused2;
+}
+
 [numthreads(32, 32, 1)]
 void
 CSMain( uint3 dtID : SV_DispatchThreadID )
@@ -16,10 +22,16 @@ CSMain( uint3 dtID : SV_DispatchThreadID )
     return;
   }
     
-  float2 coord = float2(dtID.x, dtID.y) / float2(Dimensions.x, Dimensions.y);
+  //float2 coord = float2(dtID.x, dtID.y) / float2(Dimensions.x, Dimensions.y);
   float4 color = t_inputMap.Load(int3(dtID.xy, 0));
   
   float luminance = dot(color.rgb, float3(0.2126, 0.7152, 0.0722));
     
-  t_outputMap[dtID.xy] = float4(luminance.xxx, 1.0f);
+  if(luminance > threshold) {
+    t_outputMap[dtID.xy] = color;
+  }
+  else
+  {
+    t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  }
 }

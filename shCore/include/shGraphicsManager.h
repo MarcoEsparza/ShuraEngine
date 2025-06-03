@@ -602,16 +602,28 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                          const uint32* count = nullptr);
 
   /**
-  *  @brief Sets the Sampler State.
+  *  @brief Sets the Sampler State to the pixel shader.
   *
   *  @param SPtr<SamplerState>& pSamplerLinear
   *  @param uint32 startSlot = 0
   *  @param uint32 numSamplers = 1
   */
   void
-  setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
-                  const uint32 startSlot = 0,
-                  const uint32 numSamplers = 1);
+  setPSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                    const uint32 startSlot = 0,
+                    const uint32 numSamplers = 1);
+
+  /**
+  *  @brief Sets the Sampler State to the compute shader.
+  *
+  *  @param SPtr<SamplerState>& pSamplerLinear
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numSamplers = 1
+  */
+  void
+  setCSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                    const uint32 startSlot = 0,
+                    const uint32 numSamplers = 1);
 
   /**
   *  @brief Sets the blend state to the device context.
@@ -1233,9 +1245,21 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 numSamplers
   */
   virtual void
-  internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
-                          const uint32 startSlot,
-                          const uint32 numSamplers) = 0;
+  internalPSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                            const uint32 startSlot,
+                            const uint32 numSamplers) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  * 
+  *  @param SPtr<SamplerState>& pSamplerLinear
+  *  @param uint32 startSlot
+  *  @param uint32 numSamplers
+  */
+  virtual void
+  internalCSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                            const uint32 startSlot,
+                            const uint32 numSamplers) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

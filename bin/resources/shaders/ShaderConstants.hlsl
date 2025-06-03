@@ -18,7 +18,22 @@ Texture2D t_shadowMap : register(t10);
 
 cbuffer MainBuffer : register(b0)
 {
-  
+  float4x4 matView;
+  float4x4 matViewTranspose;
+  float4x4 matViewInverse;
+  float4x4 matViewInverseTranspose;
+
+  float4x4 matProjection;
+  float4x4 matProjectionTranspose;
+  float4x4 matProjectionInverse;
+  float4x4 matProjectionInverseTranspose;
+    
+  float2 viewPort;
+  float nearClip;
+  float farClip;
+    
+  float4 viewPos;
+  float4 viewTarget;
 }
 
 cbuffer AOSettings : register(b8)
@@ -51,39 +66,4 @@ float2 getRandom(in float2 uv)
     float noiseZ = (frac(sin(dot(uv, float2(13.3238f, 63.122f) * 3.0f)) * 59998.47362f));
     
     return normalize(float3(noiseX, noiseY, noiseZ));
-}
-
-float computeAO(in float2 tcood, in float2 uv, in float3 p, in float3 cnorm)
-{
-    float3 diff = getPosition(tcood + uv).xyz - p;
-    const float d = length(diff) * Scale;
-    const float v = normalize(diff);
-    return max(0.0f, dot(cnorm, v) - Bias) * (1.0f / (1.0f + d)) * Intensity;
-}
-
-float
-pcFiltering(float2 uv,
-            float depth,
-            float texelSize,
-            float shadowBias)
-{
-  float shadow = 0.0f;
-  int sampleCount = 0;
-
-  for (int y = -PCF_KERNEL_SIZE; y <= PCF_KERNEL_SIZE; ++y)
-  {
-    for (int x = -PCF_KERNEL_SIZE; x <= PCF_KERNEL_SIZE; ++x)
-    {
-    
-      float2 offset = float2(x, y) * texelSize;
-      float sampledDepth = t_shadowMap.Sample(textureSampler, uv + offset).r;
-
-      if (depth - shadowBias > sampledDepth)
-      {
-          shadow += 1.0f;
-      }
-      ++sampleCount;
-    }
-  }
-  return 1.0f - (shadow / sampleCount);
 }

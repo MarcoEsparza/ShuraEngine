@@ -73,6 +73,12 @@ struct ToneMap
   float lutSize;
 };
 
+struct BrightMap
+{
+  float brightThreshold = 0.0f;
+  Vector3 unused = Vector3::ZERO;
+};
+
 struct PostProcessValues
 {
   float minR = 0.0f;
@@ -342,6 +348,7 @@ class RendererApp : public BaseApp
 
 
   SPtr<ConstantBuffer> m_pToneMapBuffer;
+  SPtr<ConstantBuffer> m_pLuminanceBuffer;
   SPtr<ConstantBuffer> m_pPPBuffer;
 
   /**
@@ -536,5 +543,11 @@ class RendererApp : public BaseApp
   float m_maxG = 0.0f;
   float m_minB = 0.0f;
   float m_maxB = 0.0f;
+
+  float m_brightT = 1.0f;
+
+  float m_fpsTimer = 0.0f;
+  uint32 m_fpsCount = 0;
+  uint32 m_fpsCountGUI = 0;
 };
 }

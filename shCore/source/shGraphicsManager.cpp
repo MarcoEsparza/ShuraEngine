@@ -138,11 +138,19 @@ GraphicsManager::createTextureFromFile(const String& fileName)
 {
   int32 width, height, bpp;
 
-  uint8* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+  SystemPath path = fileName;
+  SPtr<Texture2D> pTexture;
 
-  auto pTexture = internalCreateTextureFromFile(data, width, height, bpp);
-
-  stbi_image_free(data);
+  if (path.extension() == ".hdr") {
+    //void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    //pTexture = internalCreateTextureFromFile(data, width, height, bpp);
+    //stbi_image_free(data);
+  }
+  else {
+    uint8* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    pTexture = internalCreateTextureFromFile(data, width, height, bpp);
+    stbi_image_free(data);
+  }
 
   return pTexture;
 }
@@ -357,11 +365,19 @@ GraphicsManager::setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
 }
 
 void
-GraphicsManager::setSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+GraphicsManager::setPSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
                                  const uint32 startSlot,
                                  const uint32 numSamplers)
 {
-  internalSetSamplerState(pSamplerLinear, startSlot, numSamplers);
+  internalPSSetSamplerState(pSamplerLinear, startSlot, numSamplers);
+}
+
+void
+GraphicsManager::setCSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                                   const uint32 startSlot,
+                                   const uint32 numSamplers)
+{
+  internalCSSetSamplerState(pSamplerLinear, startSlot, numSamplers);
 }
 
 void

@@ -201,8 +201,9 @@ Pass::setPass() const
   }
 
   // Set states
-  if (m_pRasterState) {
-    graphMan.setSamplerState(m_pSamplerState);
+  if (m_pSamplerState) {
+    graphMan.setPSSamplerState(m_pSamplerState);
+    graphMan.setCSSamplerState(m_pSamplerState);
   }
   if (m_pRasterState) {
     graphMan.setRasterizerState(m_pRasterState);

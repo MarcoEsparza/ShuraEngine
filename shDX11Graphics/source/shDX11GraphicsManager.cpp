@@ -1472,15 +1472,39 @@ DX11GraphicsManager::internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
 }
 
 void
-DX11GraphicsManager::internalSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
-                                             const uint32 startSlot,
-                                             const uint32 numSamplers)
+DX11GraphicsManager::internalPSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                                               const uint32 startSlot,
+                                               const uint32 numSamplers)
 {
-  auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear);
+  if (pSamplerLinear) {
+    auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear);
 
-  m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
-                                                    numSamplers,
-                                                    &pSampler->m_pSamplerLinear);
+    m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
+                                                      numSamplers,
+                                                      &pSampler->m_pSamplerLinear);
+  }
+  else {
+    ID3D11SamplerState* pSampler = nullptr;
+    m_pDeviceContext->m_pDeviceContext->PSSetSamplers(0, 1, &pSampler);
+  }
+}
+
+void
+DX11GraphicsManager::internalCSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+                                               const uint32 startSlot,
+                                               const uint32 numSamplers)
+{
+  if (pSamplerLinear) {
+    auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear);
+
+    m_pDeviceContext->m_pDeviceContext->CSSetSamplers(startSlot,
+                                                      numSamplers,
+                                                      &pSampler->m_pSamplerLinear);
+  }
+  else {
+    ID3D11SamplerState* pSampler = nullptr;
+    m_pDeviceContext->m_pDeviceContext->CSSetSamplers(0, 1, &pSampler);
+  }
 }
 
 void

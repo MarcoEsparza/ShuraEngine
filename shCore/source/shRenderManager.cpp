@@ -401,26 +401,13 @@ RenderManager::renderScene()
 
   graphMan.csSetShaderResourceView(pLightCMap, 0);
   graphMan.csSetShaderResourceView(pNormalMap, 1);
-  graphMan.csSetShaderResourceView(pSbTex, 2);
+  graphMan.csSetShaderResourceView(pSkyBoxMap, 2);
   graphMan.setUnorderedAccessView(pTempMap, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
   graphMan.setUnorderedAccessView(nullptr, 0);
-
-  /*setRenderTargetsByName({ "MainTarget" }, pDepthSV);
-  setPassByName("PlaneShader");
-  setPassByName("FinalShader");
-
-  graphMan.psSetShaderResourceView(pNormalMap, 0);
-  graphMan.psSetShaderResourceView(pSkyBoxMap, 1);
-  graphMan.psSetShaderResourceView(pLightCMap, 2);
-
-  graphMan.draw(3, 0);
-
-  cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);*/
 
   /*************************************/
   /*             Luminance             */
@@ -442,8 +429,51 @@ RenderManager::renderScene()
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("ToneMapShader");
 
-  graphMan.csSetShaderResourceView(pLuminance, 0);
+  graphMan.csSetShaderResourceView(pTempMap, 0);
   graphMan.setUnorderedAccessView(pToneMap, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*          Horizontal Blur          */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("HBlurShader");
+
+  graphMan.csSetShaderResourceView(pLuminance, 0);
+  graphMan.setUnorderedAccessView(pHBlurMap, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*            Vetical Blur           */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("VBlurShader");
+
+  graphMan.csSetShaderResourceView(pHBlurMap, 0);
+  graphMan.setUnorderedAccessView(pVBlurMap, 0);
+
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+  graphMan.setUnorderedAccessView(nullptr, 0);
+
+  /*************************************/
+  /*            Additive Mix           */
+  /*************************************/
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setPassByName("AddMixShader");
+
+  graphMan.csSetShaderResourceView(pToneMap, 0);
+  graphMan.csSetShaderResourceView(pVBlurMap, 1);
+  graphMan.setUnorderedAccessView(pTempMap, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -456,8 +486,8 @@ RenderManager::renderScene()
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("PPShader");
 
-  graphMan.csSetShaderResourceView(pToneMap, 0);
-  graphMan.setUnorderedAccessView(pTempMap, 0);
+  graphMan.csSetShaderResourceView(pTempMap, 0);
+  graphMan.setUnorderedAccessView(pPPMap, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -471,7 +501,7 @@ RenderManager::renderScene()
   setPassByName("PlaneShader");
   setPassByName("FinalShader");
 
-  graphMan.psSetShaderResourceView(pTempMap, 0);
+  graphMan.psSetShaderResourceView(pPPMap, 0);
 
   graphMan.draw(3, 0);
 
@@ -480,20 +510,20 @@ RenderManager::renderScene()
   /*************************************/
   /*             Histogram             */
   /*************************************/
-  /*setRenderTargetsByName({ "MainTarget" }, pDepthSV);
+  setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("HistogramShader");
 
-  graphMan.csSetShaderResourceView(pTempMap, 0);
+  graphMan.csSetShaderResourceView(pPPMap, 0);
   graphMan.setUnorderedAccessView(pHistogramMap, 0);
 
-  uint32 dx = static_cast<uint32>(256.0f + 32.0f) / 32.0f;
+  uint32 dx = static_cast<uint32>((256.0f + 32.0f) / 32.0f);
   uint32 dy = 3;
   uint32 dz = 1;
 
   graphMan.dispatch(dx, dy, dz);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);*/
+  graphMan.setUnorderedAccessView(nullptr, 0);
 }
 
 void

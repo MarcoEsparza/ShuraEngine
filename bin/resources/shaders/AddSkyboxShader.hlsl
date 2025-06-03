@@ -17,13 +17,16 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
     return;
   }
 
-  float4 color = t_colorMap.Load(uint3(dtID.xy, 0));
   float4 normal = t_normalMap.Load(uint3(dtID.xy, 0));
+  float len = length(normal.xyz);
+  float4 color;
     
-  if(length(normal.xyz) > 0.01f) {
-    t_outputMap[dtID.xy] = color;
+  if(len < 0.001f) {
+    color = t_skyboxlMap.Load(uint3(dtID.xy, 0));
+  }
+  else {
+    color = t_colorMap.Load(uint3(dtID.xy, 0));
   }
     
-  float4 sbColor = t_skyboxlMap.Load(uint3(dtID.xy, 0));
-  t_outputMap[dtID.xy] = sbColor;
+  t_outputMap[dtID.xy] = color;
 }

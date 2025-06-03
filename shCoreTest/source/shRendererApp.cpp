@@ -170,17 +170,23 @@ RendererApp::onCreate()
   pASBShader->addCSConstantBuffer(m_pViewportBuffer, 0);
 
   // Luminance
+  BrightMap bm = {};
+  bm.brightThreshold = m_brightT;
+  m_pLuminanceBuffer = graphMan.createConstantBuffer(sizeof(BrightMap));
+  graphMan.updateConstantBuffer(m_pLuminanceBuffer, &bm, sizeof(BrightMap));
+
   auto pLuminanceShader = renderMan.getPass("LuminanceShader");
   pLuminanceShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+  pLuminanceShader->addCSConstantBuffer(m_pLuminanceBuffer, 1);
 
   // Post Process
   PostProcessValues ppV = {};
-  ppV.minR = m_minR;
-  ppV.maxR = m_maxR;
-  ppV.minG = m_minG;
-  ppV.maxG = m_maxG;
-  ppV.minB = m_minB;
-  ppV.maxB = m_maxB;
+  ppV.minR = m_minR / 255.0f;
+  ppV.maxR = m_maxR / 255.0f;
+  ppV.minG = m_minG / 255.0f;
+  ppV.maxG = m_maxG / 255.0f;
+  ppV.minB = m_minB / 255.0f;
+  ppV.maxB = m_maxB / 255.0f;
 
   m_pPPBuffer = graphMan.createConstantBuffer(sizeof(PostProcessValues));
   graphMan.updateConstantBuffer(m_pPPBuffer, &ppV, sizeof(PostProcessValues));
@@ -188,6 +194,10 @@ RendererApp::onCreate()
   auto pPPShader = renderMan.getPass("PPShader");
   pPPShader->addCSConstantBuffer(m_pViewportBuffer, 0);
   pPPShader->addCSConstantBuffer(m_pPPBuffer, 1);
+
+  // AddMix
+  auto pAddMix = renderMan.getPass("AddMixShader");
+  pAddMix->addCSConstantBuffer(m_pViewportBuffer, 0);
 
   // Create audio
   Path audioPath("resources/cat.wav");
@@ -201,6 +211,8 @@ RendererApp::onUpdate()
   GraphicsManager& graphMan = g_graphicsMan();
   AudioManager& audioMan = AudioManager::instance();
   Time& time = g_time();
+
+  m_fpsTimer += time.getFrameDeltaTime();
 
   // Update imgui
   ImGui_ImplShura_NewFrame();
@@ -222,6 +234,15 @@ RendererApp::onUpdate()
   lights[0] = m_lightPos;
 
   setImgui();
+
+  if (m_fpsTimer >= 1.0f) {
+    m_fpsTimer = 0.0f;
+    m_fpsCount = 0;
+  }
+  else
+  {
+    ++m_fpsCount;
+  }
 
   // Update models transform
   if (m_modelPos != m_pModel->getPosition()) {
@@ -337,6 +358,20 @@ RendererApp::onUpdate()
   tm.index = static_cast<float>(m_toneMapIndex);
 
   graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
+
+  BrightMap bm = {};
+  bm.brightThreshold = m_brightT;
+  graphMan.updateConstantBuffer(m_pLuminanceBuffer, &bm, sizeof(BrightMap));
+
+  // Post Process
+  PostProcessValues ppV = {};
+  ppV.minR = m_minR / 255.0f;
+  ppV.maxR = m_maxR / 255.0f;
+  ppV.minG = m_minG / 255.0f;
+  ppV.maxG = m_maxG / 255.0f;
+  ppV.minB = m_minB / 255.0f;
+  ppV.maxB = m_maxB / 255.0f;
+  graphMan.updateConstantBuffer(m_pPPBuffer, &ppV, sizeof(PostProcessValues));
 }
 
 void
@@ -660,6 +695,13 @@ RendererApp::initShaders()
   pToneMapShader->compileShader();
 
   // PostProcess shader
+  auto pAddMixShader = sh_makeShared<Pass>();
+  pAddMixShader->setCShaderInfo("resources/shaders/AdditiveMixShader.hlsl",
+                                "CSMain",
+                                "cs_5_0");
+  pAddMixShader->compileShader();
+
+  // PostProcess shader
   auto pPPShader = sh_makeShared<Pass>();
   pPPShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
                             "CSMain",
@@ -760,7 +802,7 @@ RendererApp::initShaders()
   pSkyBoxShader->setBlendState(pBlendState);
   pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
 
-  // Add skybox
+  // Final
   pFinalShader->setSamplerState(pSamplerLinear);
 
   // Plane vs
@@ -785,6 +827,7 @@ RendererApp::initShaders()
   renderMan.addPass(pLuminanceShader, "LuminanceShader");
   renderMan.addPass(pToneMapShader, "ToneMapShader");
   renderMan.addPass(pPPShader, "PPShader");
+  renderMan.addPass(pAddMixShader, "AddMixShader");
 }
 
 void
@@ -1009,7 +1052,7 @@ RendererApp::setRenderTargets()
 
   auto pHistogramMap = graphMan.createTexture2D(256,
                                                 3,
-                                                TEXTURE_FORMAT::kR32G32B32A32_uint,
+                                                TEXTURE_FORMAT::kR32_uint,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
@@ -1030,7 +1073,7 @@ RendererApp::setRenderTargets()
 
   auto pLuminance = graphMan.createTexture2D(width,
                                              height,
-                                             TEXTURE_FORMAT::kR32_float,
+                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                              USAGE::kDefault,
                                              BIND_FLAGS::kShaderResource |
                                              BIND_FLAGS::kUnorderedAccess);
@@ -1065,7 +1108,7 @@ RendererApp::setRenderTargets()
 void
 RendererApp::setImgui()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
 
   float width = m_screenSize.x;
@@ -1370,9 +1413,9 @@ RendererApp::setImgui()
     bIsSoundPlaying = true;
   }
 
-  auto pTex = renderMan.getRenderTargetByName("HistogramMap");
+  auto pTex = renderMan.getRenderTargetByName("TempMap");
 
-  //ImGui::Image(reinterpret_cast<ImTextureID>(&pTex), ImVec2(512, 90));
+  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pTex), ImVec2(160, 80));
 
   ImGui::Combo("ToneMapping", &m_toneMapIndex, "Reinhard\0ACES\0Uncharted2\0AgX\0LUT\0");
   ImGui::Spacing();
@@ -1384,6 +1427,18 @@ RendererApp::setImgui()
   ImGui::Spacing();
   ImGui::DragFloat("Min B:", &m_minB, 1.0f, 0.0f, 255.0f);
   ImGui::DragFloat("Max B:", &m_maxB, 1.0f, 0.0f, 255.0f);
+  ImGui::Spacing();
+
+  ImGui::Spacing();
+  ImGui::DragFloat("BrightThreshold:", &m_brightT, 0.01f, -1.0f, 1.0f);
+  ImGui::Spacing();
+
+  if (m_fpsTimer >= 1.0f) {
+    m_fpsCountGUI = m_fpsCount;
+  }
+  String strCount = std::to_string(m_fpsCountGUI);
+  String text = strCount + ": fps";
+  ImGui::Text(text.c_str());
 
   ImGui::End();
 }

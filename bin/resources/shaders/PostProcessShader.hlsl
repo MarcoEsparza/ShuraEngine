@@ -28,6 +28,7 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
   }
 
   float4 color = t_inputMap.Load(uint3(dtID.xy, 0));
+    
   color = saturate(color);
     
   color.r = lerp(minR, maxR, color.r);

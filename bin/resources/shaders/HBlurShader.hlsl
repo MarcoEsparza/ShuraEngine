@@ -1,4 +1,4 @@
-Texture2D t_AOMap : register(t0);
+Texture2D t_inputMap : register(t0);
 RWTexture2D<float4> t_outputMap : register(u0);
 
 cbuffer Viewport : register(b0)
@@ -34,7 +34,7 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
 
   for (int i = 0; i < 5; ++i)
   {
-    float3 color = t_AOMap.Load(int3(dtID.xy, 0)).rgb;
+    float3 color = t_inputMap.Load(int3(dtID.xy, 0)).rgb;
     sum += color * kernel[i];
   }
 
