@@ -20,6 +20,7 @@
 #include "shLogger.h"
 #include "shScreen.h"
 #include "shLinearColor.h"
+#include "shException.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -761,7 +762,7 @@ DX11GraphicsManager::internalCreateSamplerState(const uint32 filter, const uint3
 }
 
 SPtr<Texture2D>
-DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
+DX11GraphicsManager::internalCreateTextureFromFile(const void* pData,
                                                    const int32 width,
                                                    const int32 height,
                                                    const int32 bpp)
@@ -769,11 +770,11 @@ DX11GraphicsManager::internalCreateTextureFromFile(const uint8* pData,
   int32 pitch = width * bpp;
 
   auto pTexture = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
-                                                          width,
-                                                          height,
-                                                          DXGI_FORMAT_R8G8B8A8_UNORM,
-                                                          D3D11_USAGE_DEFAULT,
-                                                          D3D11_BIND_SHADER_RESOURCE));
+                                                     width,
+                                                     height,
+                                                     DXGI_FORMAT_R8G8B8A8_UNORM,
+                                                     D3D11_USAGE_DEFAULT,
+                                                     D3D11_BIND_SHADER_RESOURCE));
 
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D,
                                                         0,
@@ -1238,24 +1239,40 @@ DX11GraphicsManager::internalSetVertexBuffers(const SPtr<VertexBuffer>& pVBuffer
                                               const uint32 numBuffers,
                                               const uint32 offset)
 {
-  auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer);
+  if (pVBuffer != nullptr) {
+    auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer);
 
-  m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
-                                                         numBuffers,
-                                                         &pVertexBuffer->m_pBuffer,
-                                                         &pVertexBuffer->m_stride,
-                                                         &offset);
+    m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
+                                                           numBuffers,
+                                                           &pVertexBuffer->m_pBuffer,
+                                                           &pVertexBuffer->m_stride,
+                                                           &offset);
+  }
+  else {
+    ID3D11Buffer* pVB = nullptr;
+    m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
+                                                           numBuffers,
+                                                           &pVB,
+                                                           0,
+                                                           &offset);
+  }
 }
 
 void
 DX11GraphicsManager::internalSetIndexBuffers(const SPtr<IndexBuffer>& pIBuffer,
                                              const uint32 offset)
 {
-  auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer);
-
-  m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
-                                      static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
-                                      offset);
+  if(pIBuffer != nullptr){
+    auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer);
+    
+    m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
+                                        static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
+                                        offset);
+  }
+  else {
+    ID3D11Buffer* pIB = nullptr;
+    m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIB, DXGI_FORMAT_UNKNOWN, offset);
+  }
 }
 
 void
@@ -1455,6 +1472,7 @@ DX11GraphicsManager::internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
                                                     const uint32 numViews,
                                                     const uint32* count)
 {
+  SH_UNREFERENCED_PARAMETER(count);
   if (pUAV == nullptr) {
     ID3D11UnorderedAccessView* dx11UAV = nullptr;
     m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,

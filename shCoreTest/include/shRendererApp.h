@@ -68,9 +68,10 @@ struct InvVP
 
 struct ToneMap
 {
-  Vector2 screenSize;
-  float index;
-  float lutSize;
+  float index = 0.0f;
+  float lutSize = 0.0f;
+  float whitePoint = 0.0f;
+  float exposure = 0.0f;
 };
 
 struct BrightMap
@@ -545,6 +546,8 @@ class RendererApp : public BaseApp
   float m_maxB = 0.0f;
 
   float m_brightT = 1.0f;
+  float m_rWP = 1.0f;
+  float m_acesExposure = 1.0f;
 
   float m_fpsTimer = 0.0f;
   uint32 m_fpsCount = 0;

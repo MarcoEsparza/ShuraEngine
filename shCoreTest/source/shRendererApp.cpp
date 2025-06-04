@@ -155,15 +155,17 @@ RendererApp::onCreate()
 
   // ToneMap
   ToneMap tm = {};
-  tm.screenSize = m_screenSize;
   tm.lutSize = 1.0f;
   tm.index = static_cast<float>(m_toneMapIndex);
+  tm.whitePoint = m_rWP;
+  tm.exposure = m_acesExposure;
 
   m_pToneMapBuffer = graphMan.createConstantBuffer(sizeof(ToneMap));
   graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
 
   auto pToneMapShader = renderMan.getPass("ToneMapShader");
-  pToneMapShader->addCSConstantBuffer(m_pToneMapBuffer, 0);
+  pToneMapShader->addCSConstantBuffer(m_pViewportBuffer, 0);
+  pToneMapShader->addCSConstantBuffer(m_pToneMapBuffer, 1);
 
   // Add skybox
   auto pASBShader = renderMan.getPass("ASBShader");
@@ -353,9 +355,10 @@ RendererApp::onUpdate()
 
   // Update tone map
   ToneMap tm = {};
-  tm.screenSize = m_screenSize;
   tm.lutSize = 1.0f;
   tm.index = static_cast<float>(m_toneMapIndex);
+  tm.whitePoint = m_rWP;
+  tm.exposure = m_acesExposure;
 
   graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
 
@@ -1071,8 +1074,8 @@ RendererApp::setRenderTargets()
                                            BIND_FLAGS::kShaderResource |
                                            BIND_FLAGS::kUnorderedAccess);
 
-  auto pLuminance = graphMan.createTexture2D(width,
-                                             height,
+  auto pLuminance = graphMan.createTexture2D(512,
+                                             512,
                                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
                                              USAGE::kDefault,
                                              BIND_FLAGS::kShaderResource |
@@ -1430,7 +1433,11 @@ RendererApp::setImgui()
   ImGui::Spacing();
 
   ImGui::Spacing();
-  ImGui::DragFloat("BrightThreshold:", &m_brightT, 0.01f, -1.0f, 1.0f);
+  ImGui::DragFloat("BrightThreshold:", &m_brightT, 0.01f, 0.0f, 1.0f);
+  ImGui::Spacing();
+  ImGui::DragFloat("WhitePoint:", &m_rWP, 0.01f, 0.5f, 11.2f);
+  ImGui::Spacing();
+  ImGui::DragFloat("Exposure:", &m_acesExposure, 0.01f, 0.5f, 2.0f);
   ImGui::Spacing();
 
   if (m_fpsTimer >= 1.0f) {

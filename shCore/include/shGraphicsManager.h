@@ -910,7 +910,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<Texture2D>
   */
   virtual SPtr<Texture2D>
-  internalCreateTextureFromFile(const uint8* pData,
+  internalCreateTextureFromFile(const void* pData,
                                 const int32 width,
                                 const int32 height,
                                 const int32 bpp) = 0;

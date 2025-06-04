@@ -142,12 +142,12 @@ GraphicsManager::createTextureFromFile(const String& fileName)
   SPtr<Texture2D> pTexture;
 
   if (path.extension() == ".hdr") {
-    //void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-    //pTexture = internalCreateTextureFromFile(data, width, height, bpp);
-    //stbi_image_free(data);
+    void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    pTexture = internalCreateTextureFromFile(data, width, height, bpp);
+    stbi_image_free(data);
   }
   else {
-    uint8* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
     pTexture = internalCreateTextureFromFile(data, width, height, bpp);
     stbi_image_free(data);
   }

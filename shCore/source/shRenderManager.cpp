@@ -72,6 +72,14 @@ RenderManager::onStartUp()
 }
 
 void
+RenderManager::onShutDown()
+{
+  m_passes.clear();
+  m_targets.clear();
+  cleanShaderObjects();
+}
+
+void
 RenderManager::addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name)
 {
   StringID strID(name);
@@ -332,7 +340,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*            Vetical Blur           */
@@ -346,7 +354,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*             Lightning             */
@@ -365,7 +373,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*              Sky Box              */
@@ -407,7 +415,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*             Luminance             */
@@ -418,10 +426,12 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pTempMap, 0);
   graphMan.setUnorderedAccessView(pLuminance, 0);
 
-  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+  uint32 dSize = static_cast<uint32>(512.0f / 32.0f);
+
+  graphMan.dispatch(dSize, dSize, 1);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*             Tone Map              */
@@ -435,7 +445,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*          Horizontal Blur          */
@@ -449,7 +459,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*            Vetical Blur           */
@@ -463,7 +473,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*            Additive Mix           */
@@ -478,7 +488,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*            PostProcess            */
@@ -492,7 +502,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
   /*         Add to backbuffer         */
@@ -523,7 +533,7 @@ RenderManager::renderScene()
   graphMan.dispatch(dx, dy, dz);
 
   cleanShaderObjects();
-  graphMan.setUnorderedAccessView(nullptr, 0);
+  //graphMan.setUnorderedAccessView(nullptr, 0);
 }
 
 void
@@ -597,15 +607,31 @@ RenderManager::cleanCSConstantBuffers(uint32 numCB)
 }
 
 void
+RenderManager::cleanVertexBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  graphMan.setVertexBuffers(nullptr);
+}
+
+void
+RenderManager::cleanIndexBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  graphMan.setIndexBuffers(nullptr);
+}
+
+void
 RenderManager::cleanShaderObjects()
 {
   cleanPSShaderResourceView();
   cleanCSShaderResourceView();
-  //cleanCSUAView();
+  cleanCSUAView(1);
   cleanVSConstantBuffers();
   cleanPSConstantBuffers();
   cleanGSConstantBuffers();
   cleanCSConstantBuffers();
+  //cleanVertexBuffer();
+  //cleanIndexBuffer();
 }
 
 void

@@ -266,7 +266,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTextureFromFile(const uint8* pData,
+  internalCreateTextureFromFile(const void* pData,
                                 const int32 width,
                                 const int32 height,
                                 const int32 bpp) override;

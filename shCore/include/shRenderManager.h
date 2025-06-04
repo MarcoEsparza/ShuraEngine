@@ -58,6 +58,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   onStartUp() override;
 
   /**
+  *  @brief Override event for module.
+  */
+  void
+  onShutDown() override;
+
+  /**
   *  @brief Adds a render target to the render manager.
   * 
   *  @param SPtr<Texture2D>& pRTV
@@ -212,6 +218,18 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   cleanCSConstantBuffers(uint32 numCB = 14);
+
+  /**
+  *  @brief Clean the vertex buffer.
+  */
+  void
+  cleanVertexBuffer();
+
+  /**
+  *  @brief Clean the index buffer.
+  */
+  void
+  cleanIndexBuffer();
 
   /**
   *  @brief Call the other clean functions.

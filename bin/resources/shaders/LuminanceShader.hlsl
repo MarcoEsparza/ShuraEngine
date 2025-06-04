@@ -14,6 +14,12 @@ cbuffer BrightParams : register(b1)
   float3 unused2;
 }
 
+float
+CalLuminance(float3 color)
+{
+  return dot(color, float3(0.2126, 0.7152, 0.0722));
+}
+
 [numthreads(32, 32, 1)]
 void
 CSMain( uint3 dtID : SV_DispatchThreadID )
@@ -22,16 +28,12 @@ CSMain( uint3 dtID : SV_DispatchThreadID )
     return;
   }
     
-  //float2 coord = float2(dtID.x, dtID.y) / float2(Dimensions.x, Dimensions.y);
   float4 color = t_inputMap.Load(int3(dtID.xy, 0));
-  
-  float luminance = dot(color.rgb, float3(0.2126, 0.7152, 0.0722));
+  float luminance = CalLuminance(color.rgb);
+  //float4 result = (luminance > threshold) ? color : float4(0.0f, 0.0f, 0.0f, 0.0f);
     
-  if(luminance > threshold) {
-    t_outputMap[dtID.xy] = color;
-  }
-  else
-  {
-    t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
-  }
+  float3 bloomColor = max(color - threshold, 0.0f);
+  //bloomColor
+    
+  t_outputMap[dtID.xy] = bloomColor;
 }
