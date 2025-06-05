@@ -27,4 +27,10 @@ Logger::Log(const String& logStr)
 {
   cout << logStr << "\n";
 }
+
+SH_UTILITY_EXPORT Logger&
+g_logger()
+{
+  return Logger::instance();
+}
 }

@@ -61,9 +61,6 @@ class SH_UTILITY_EXPORT Logger : public Module<Logger>
 /**
 *  @brief Easier way to access the Logger module.
 */
-FORCEINLINE SH_UTILITY_EXPORT Logger&
-g_logger()
-{
-  return Logger::instance();
-}
+SH_UTILITY_EXPORT Logger&
+g_logger();
 }

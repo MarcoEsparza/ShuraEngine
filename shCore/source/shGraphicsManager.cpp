@@ -166,9 +166,10 @@ GraphicsManager::createTexture2D(const uint32 width,
                                  const uint32 height,
                                  const uint32 format,
                                  const uint32 usage,
-                                 const uint32 bindFlags)
+                                 const uint32 bindFlags,
+                                 const uint32 mipLevels)
 {
-  return internalCreateTexture2D(width, height, format, usage, bindFlags);
+  return internalCreateTexture2D(width, height, format, usage, bindFlags, mipLevels);
 }
 
 SPtr<Texture2D> GraphicsManager::createErrorTexturre()
@@ -192,6 +193,12 @@ SPtr<DepthStencilState>
 GraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
 {
     return internalCreateDepthStencilState(depthSDesc);
+}
+
+void
+GraphicsManager::generateMips(const WPtr<Texture2D>& pTexture)
+{
+  internalGenerateMips(pTexture);
 }
 
 void

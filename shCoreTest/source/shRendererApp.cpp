@@ -686,9 +686,16 @@ RendererApp::initShaders()
   // Luminance shader
   auto pLuminanceShader = sh_makeShared<Pass>();
   pLuminanceShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                   "CSMain",
+                                   "LuminanceCS",
                                    "cs_5_0");
   pLuminanceShader->compileShader();
+
+  // Luminance shader
+  auto pBrightShader = sh_makeShared<Pass>();
+  pBrightShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
+                                "BrightCS",
+                                "cs_5_0");
+  pBrightShader->compileShader();
 
   // ToneMap shader
   auto pToneMapShader = sh_makeShared<Pass>();
@@ -978,28 +985,28 @@ RendererApp::setRenderTargets()
 
   auto pDepthTarget = graphMan.createTexture2D(width,
                                                height,
-                                               TEXTURE_FORMAT::kR32G32B32A32_float,
+                                               TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
                                                USAGE::kDefault,
                                                BIND_FLAGS::kRenderTarget |
                                                BIND_FLAGS::kShaderResource);
 
   auto pNormalTarget = graphMan.createTexture2D(width,
                                                 height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
   auto pColorTarget = graphMan.createTexture2D(width,
                                                height,
-                                               TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                               TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                                USAGE::kDefault,
                                                BIND_FLAGS::kRenderTarget |
                                                BIND_FLAGS::kShaderResource);
 
   auto pPropTarget = graphMan.createTexture2D(width,
                                               height,
-                                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                               USAGE::kDefault,
                                               BIND_FLAGS::kRenderTarget |
                                               BIND_FLAGS::kShaderResource);
@@ -1013,77 +1020,84 @@ RendererApp::setRenderTargets()
 
   auto pHbTarget = graphMan.createTexture2D(width,
                                             height,
-                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                            TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kShaderResource |
                                             BIND_FLAGS::kUnorderedAccess);
 
   auto pVbTarget = graphMan.createTexture2D(width,
                                             height,
-                                            TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                            TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                             USAGE::kDefault,
                                             BIND_FLAGS::kShaderResource |
                                             BIND_FLAGS::kUnorderedAccess);
 
   auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
                                               static_cast<uint32>(m_shadowTexSize),
-                                              TEXTURE_FORMAT::kR32_Typeless,
+                                              TEXTURE_FORMAT::kR32_TYPELESS,
                                               USAGE::kDefault,
                                               BIND_FLAGS::kDepthStencil |
                                               BIND_FLAGS::kShaderResource);
 
   auto pShadowTempTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
                                                     static_cast<uint32>(m_shadowTexSize),
-                                                    TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                    TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                                     USAGE::kDefault,
                                                     BIND_FLAGS::kRenderTarget |
                                                     BIND_FLAGS::kShaderResource);
 
   auto pSkyBoxTarget = graphMan.createTexture2D(width,
                                                 height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kRenderTarget |
                                                 BIND_FLAGS::kShaderResource);
 
   auto pComputeLight = graphMan.createTexture2D(width,
                                                 height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                                TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
 
   auto pHistogramMap = graphMan.createTexture2D(256,
                                                 3,
-                                                TEXTURE_FORMAT::kR32_uint,
+                                                TEXTURE_FORMAT::kR32_UINT,
                                                 USAGE::kDefault,
                                                 BIND_FLAGS::kShaderResource |
                                                 BIND_FLAGS::kUnorderedAccess);
 
   auto pToneMap = graphMan.createTexture2D(width,
                                            height,
-                                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                           TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                            USAGE::kDefault,
                                            BIND_FLAGS::kShaderResource |
                                            BIND_FLAGS::kUnorderedAccess);
 
   auto pTempMap = graphMan.createTexture2D(width,
                                            height,
-                                           TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                           TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                            USAGE::kDefault,
                                            BIND_FLAGS::kShaderResource |
                                            BIND_FLAGS::kUnorderedAccess);
 
   auto pLuminance = graphMan.createTexture2D(512,
                                              512,
-                                             TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                             TEXTURE_FORMAT::kR32_FLOAT,
                                              USAGE::kDefault,
                                              BIND_FLAGS::kShaderResource |
                                              BIND_FLAGS::kUnorderedAccess);
 
+  auto pBright = graphMan.createTexture2D(512,
+                                          512,
+                                          TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
+                                          USAGE::kDefault,
+                                          BIND_FLAGS::kShaderResource |
+                                          BIND_FLAGS::kUnorderedAccess);
+
   auto pPPMap = graphMan.createTexture2D(width,
                                          height,
-                                         TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                         TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                          USAGE::kDefault,
                                          BIND_FLAGS::kShaderResource |
                                          BIND_FLAGS::kUnorderedAccess);

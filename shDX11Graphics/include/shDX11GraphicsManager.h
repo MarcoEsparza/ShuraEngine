@@ -297,7 +297,8 @@ class DX11GraphicsManager : public GraphicsManager
                           const uint32 height,
                           const uint32 format,
                           const uint32 usage,
-                          const uint32 bindFlags) override;
+                          const uint32 bindFlags,
+                          const uint32 mipLevels) override;
 
   /**
   *  @brief Creates an error Texture2D.
@@ -337,6 +338,14 @@ class DX11GraphicsManager : public GraphicsManager
   */
   SPtr<DepthStencilState>
   internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc) override;
+
+  /**
+  *  @brief GenerateMips for a texture.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  */
+  void
+  internalGenerateMips(const WPtr<Texture2D>& pTexture) override;
 
   /********************
   *  Update

@@ -10,30 +10,42 @@ cbuffer Viewport : register(b0)
 
 cbuffer BrightParams : register(b1)
 {
-  float threshold;
+  float bloomThreshold;
   float3 unused2;
 }
 
 float
-CalLuminance(float3 color)
+Luminance(float3 color)
 {
-  return dot(color, float3(0.2126, 0.7152, 0.0722));
+  return dot(color, float3(0.2126f, 0.7152f, 0.0722f));
 }
 
 [numthreads(32, 32, 1)]
 void
-CSMain( uint3 dtID : SV_DispatchThreadID )
+LuminanceCS( uint3 dtID : SV_DispatchThreadID )
 {
   if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
     return;
   }
     
   float4 color = t_inputMap.Load(int3(dtID.xy, 0));
-  float luminance = CalLuminance(color.rgb);
-  //float4 result = (luminance > threshold) ? color : float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float luminance = Luminance(color.rgb);
+  t_outputMap[dtID.xy] = log(max(luminance, 0.0001f));
+}
+
+[numthreads(32, 32, 1)]
+void
+BrightCS( uint3 dtID : SV_DispatchThreadID )
+{
+  if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
+    return;
+  }
     
-  float3 bloomColor = max(color - threshold, 0.0f);
-  //bloomColor
+  float4 color = t_inputMap.Load(int3(dtID.xy, 0));
+  float luminance = Luminance(color.rgb);
     
-  t_outputMap[dtID.xy] = bloomColor;
+  float3 bloomColor = max(color - bloomThreshold, 0.0f);
+  bloomColor *= step(bloomThreshold, luminance);
+    
+  t_outputMap[dtID.xy] = float4(bloomColor, 0.0f);
 }

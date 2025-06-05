@@ -268,7 +268,7 @@ ImGui_ImplShura_CreateFontsTexture()
   // Upload texture to graphics system
   bd->pFontTexture = graphMan.createTexture2D(width,
                                               height,
-                                              TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                                               USAGE::kDefault,
                                               BIND_FLAGS::kShaderResource);
 
@@ -304,15 +304,15 @@ ImGui_ImplShura_CreateDeviceObjects()
   Vector<InputDesc> ilDesc;
   ilDesc.resize(3);
 
-  ilDesc[0].format = TEXTURE_FORMAT::kR32G32_float;
+  ilDesc[0].format = TEXTURE_FORMAT::kR32G32_FLOAT;
   ilDesc[0].type = INPUT_LAYOUT_TYPES::kPosition;
   ilDesc[0].size = 8;
 
-  ilDesc[1].format = TEXTURE_FORMAT::kR32G32_float;
+  ilDesc[1].format = TEXTURE_FORMAT::kR32G32_FLOAT;
   ilDesc[1].type = INPUT_LAYOUT_TYPES::kTexcoord;
   ilDesc[1].size = 8;
 
-  ilDesc[2].format = TEXTURE_FORMAT::kR8G8B8A8_unorm;
+  ilDesc[2].format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
   ilDesc[2].type = INPUT_LAYOUT_TYPES::kColor;
   ilDesc[2].size = 4;
 

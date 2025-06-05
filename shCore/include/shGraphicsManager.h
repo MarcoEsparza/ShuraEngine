@@ -302,18 +302,20 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @param uint32 width
   *  @param uint32 height
-  *  @param uint32 format = 87
-  *  @param uint32 usage = 0
-  *  @param uint32 bindFlags = 8
+  *  @param uint32 format = TEXTURE_FORMAT::kR8G8B8A8_UNORM
+  *  @param uint32 usage = USAGE::kDefault
+  *  @param uint32 bindFlags = BIND_FLAGS::kShaderResource
+  *  @param uint32 mipLevels = 1
   *
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
   createTexture2D(const uint32 width,
                   const uint32 height,
-                  const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_unorm,
+                  const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                   const uint32 usage = USAGE::kDefault,
-                  const uint32 bindFlags = BIND_FLAGS::kShaderResource);
+                  const uint32 bindFlags = BIND_FLAGS::kShaderResource,
+                  const uint32 mipLevels = 1);
 
   /**
   *  @brief Creates an error Texture2D.
@@ -353,6 +355,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   SPtr<DepthStencilState>
   createDepthStencilState(const DepthStencilDesc& depthSDesc);
+
+  /**
+  *  @brief GenerateMips for a texture.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  */
+  void
+  generateMips(const WPtr<Texture2D>& pTexture);
 
   /********************
   *  Update
@@ -933,6 +943,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 format = 87
   *  @param uint32 usage = 0
   *  @param uint32 bindFlags = 8
+  *  @param uint32 mipLevels = 1
   *
   *  @return SPtr<Texture2D>
   */
@@ -941,7 +952,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                           const uint32 height,
                           const uint32 format,
                           const uint32 usage,
-                          const uint32 bindFlags) = 0;
+                          const uint32 bindFlags,
+                          const uint32 mipLevels) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -980,6 +992,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual SPtr<DepthStencilState>
   internalCreateDepthStencilState(const DepthStencilDesc& rasterizerDesc) = 0;
+
+  /**
+  *  @brief Calls the selected API overrided function.
+  *
+  *  @param SPtr<Texture2D>& pTexture
+  */
+  virtual void
+  internalGenerateMips(const WPtr<Texture2D>& pTexture) = 0;
 
   /********************
   *  Update

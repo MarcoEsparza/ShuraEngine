@@ -420,6 +420,16 @@ RenderManager::renderScene()
   /*************************************/
   /*             Luminance             */
   /*************************************/
+  Viewport lumVP = {};
+  lumVP.width = 512.0f;
+  lumVP.height = 512.0f;
+  lumVP.minDepth = 0.0f;
+  lumVP.maxDepth = 1.0f;
+  lumVP.topLeftX = 0.0f;
+  lumVP.topLeftY = 0.0f;
+
+  graphMan.setViewport(lumVP);
+
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("LuminanceShader");
 
@@ -434,8 +444,18 @@ RenderManager::renderScene()
   //graphMan.setUnorderedAccessView(nullptr, 0);
 
   /*************************************/
+  /*               Bright              */
+  /*************************************/
+
+
+  ///////////////////////////////////////
+
+
+  /*************************************/
   /*             Tone Map              */
   /*************************************/
+  graphMan.setViewport(normalVP);
+
   setRenderTargetsByName({ "MainTarget" }, pDepthSV);
   setPassByName("ToneMapShader");
 

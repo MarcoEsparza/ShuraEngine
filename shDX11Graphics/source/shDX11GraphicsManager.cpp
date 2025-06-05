@@ -71,7 +71,7 @@ compileShaderFromFile(const String& fileName,
                       ID3DBlob** pBlob,
                       const Vector<ShaderMacro>& macros)
 {
-  //Logger& log = Logger::instance();
+  //Logger& log = g_logger();
 
   HRESULT hr = S_OK;
   int32 shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -337,7 +337,8 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                                                             scDesc.BufferDesc.Height,
                                                             DXGI_FORMAT_D24_UNORM_S8_UINT,
                                                             D3D11_USAGE_DEFAULT,
-                                                            D3D11_BIND_DEPTH_STENCIL));
+                                                            D3D11_BIND_DEPTH_STENCIL,
+                                                            1));
 
   //Setup the viewport
   Viewport viewPort;
@@ -774,7 +775,8 @@ DX11GraphicsManager::internalCreateTextureFromFile(const void* pData,
                                                      height,
                                                      DXGI_FORMAT_R8G8B8A8_UNORM,
                                                      D3D11_USAGE_DEFAULT,
-                                                     D3D11_BIND_SHADER_RESOURCE));
+                                                     D3D11_BIND_SHADER_RESOURCE,
+                                                     1));
 
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D,
                                                         0,
@@ -816,7 +818,8 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
                                              const uint32 height,
                                              const uint32 format,
                                              const uint32 usage,
-                                             const uint32 bindFlags)
+                                             const uint32 bindFlags,
+                                             const uint32 mipLevels)
 {
   auto pTexture = std::make_shared<DX11Texture2D>();
 
@@ -824,7 +827,7 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   memset(&textureDesc, 0, sizeof(textureDesc));
   textureDesc.Width = width;
   textureDesc.Height = height;
-  textureDesc.MipLevels = 1;
+  textureDesc.MipLevels = mipLevels;
   textureDesc.ArraySize = 1;
   textureDesc.Format = static_cast<DXGI_FORMAT>(format);
   textureDesc.SampleDesc.Count = 1;
@@ -1033,6 +1036,20 @@ DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& dep
 }
 
 void
+DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D>& pTexture)
+{
+  if (pTexture.expired())
+  {
+    return;
+  }
+  auto pTex = sh_reinterpretPCast<DX11Texture2D>(pTexture.lock());
+
+  if (pTex->m_pShaderRV) {
+    m_pDeviceContext->m_pDeviceContext->GenerateMips(pTex->m_pShaderRV);
+  }
+}
+
+void
 DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
                                                   const void* pData,
                                                   const uint32 dataSize)
@@ -1138,7 +1155,8 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
                                                             pScreen->getHeight(),
                                                             DXGI_FORMAT_D24_UNORM_S8_UINT,
                                                             D3D11_USAGE_DEFAULT,
-                                                            D3D11_BIND_DEPTH_STENCIL));
+                                                            D3D11_BIND_DEPTH_STENCIL,
+                                                            1));
 
   //Setup the viewport
   Viewport viewPort;
