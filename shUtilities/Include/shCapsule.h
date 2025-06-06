@@ -114,12 +114,12 @@ class SH_UTILITY_EXPORT Capsule
   /**
   *  @brief The min value of the capsule figure.
   */
-  Vector3 pointA;
+  Vector3 pointA;//
 
   /**
   *  @brief The max value of the capsule figure.
   */
-  Vector3 pointB;
+  Vector3 pointB;//
 
   Vector3 center;
   Vector3 direction;

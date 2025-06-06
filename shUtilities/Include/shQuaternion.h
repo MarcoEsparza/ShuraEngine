@@ -90,7 +90,7 @@ class SH_UTILITY_EXPORT Quaternion
   toEulerAngles() const;
 
   /**
-  *  @brief Transform Quaternion to Vector3
+  *  @brief Transform Quaternion to rotation Vector3
   *
   *  @param Vector3& vec
   * 
@@ -98,6 +98,16 @@ class SH_UTILITY_EXPORT Quaternion
   */
   Vector3
   toRotate(const Vector3& vec) const;
+
+  /**
+  *  @brief Transform Quaternion to inverse rotation Vector3
+  *
+  *  @param Vector3& vec
+  * 
+  *  @return Vector3
+  */
+  Vector3
+  invRotate(const Vector3& vec) const;
 
   /**
   *  @brief Transform three given Vectors3 to axes vectors for a rotation matrix3.

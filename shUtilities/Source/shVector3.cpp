@@ -120,6 +120,26 @@ Vector3::lerp(const Vector3& _other,
 }
 
 Vector3
+Vector3::clamp(const Vector3& min, const Vector3& max) const
+{
+  return Vector3(Math::clamp(x, min.x, max.x),
+                 Math::clamp(y, min.y, max.y),
+                 Math::clamp(z, min.z, max.z));
+}
+
+float
+Vector3::lenght() const
+{
+  return Math::sqrt((x * x) + (y * y) + (z * z));
+}
+
+float
+Vector3::lenghtSq() const
+{
+  return ((x * x) + (y * y) + (z * z));
+}
+
+Vector3
 Vector3::rotateX(const Radian angle)
 {
   const float cosA = Math::cos(angle);

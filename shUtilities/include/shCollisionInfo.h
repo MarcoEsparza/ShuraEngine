@@ -24,8 +24,8 @@ namespace shEngineSDK {
 */
 struct CollisionInfo
 {
-  float penetrationDistance = 0.0f;
-  float normal = 0.0f;
-  Vector3 contanctPoint = Vector3::ZERO;
+  float penetrationDepth = 0.0f;
+  Vector3 normal = Vector3::ZERO;
+  Vector3 contactPoint = Vector3::ZERO;
 };
 }
