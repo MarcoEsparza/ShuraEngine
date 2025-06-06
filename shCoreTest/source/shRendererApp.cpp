@@ -397,10 +397,12 @@ void
 RendererApp::onResize(const ResizeData& rszData)
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
 
   m_screenSize.x = static_cast<float>(rszData.width);
   m_screenSize.y = static_cast<float>(rszData.height);
 
+  renderMan.clearTargets();
   setRenderTargets();
 
   m_camera.setPerspectiveData(m_camera.getHalfFOV(),
@@ -1132,7 +1134,7 @@ RendererApp::setImgui()
   float height = m_screenSize.y;
 
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(250.0f, height));
+  ImGui::SetNextWindowSize(ImVec2(width / 5.0f, height));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Scenegraph",
                0,
@@ -1143,8 +1145,8 @@ RendererApp::setImgui()
   ImGui::Text(m_pModel->name.c_str());
   ImGui::End();
 
-  ImGui::SetNextWindowPos(ImVec2(width - 400.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(400.0f, height));
+  ImGui::SetNextWindowPos(ImVec2(width - (width / 5.0f), 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(width / 5.0f, height));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Renderer Settings",
                0,

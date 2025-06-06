@@ -238,6 +238,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   cleanShaderObjects();
 
   /**
+  *  @brief Clear the render target storage.
+  */
+  FORCEINLINE void
+  clearTargets();
+
+  /**
   *  @brief Set the shadow map texture size.
   * 
   *  @param float size
@@ -289,6 +295,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
 };
+
+void
+RenderManager::clearTargets()
+{
+  m_targets.clear();
+}
 
 /**
 *  @brief Easier way to access the RendererManager module.
