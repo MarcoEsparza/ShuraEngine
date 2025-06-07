@@ -194,12 +194,13 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  @brief Computes the closest point betwwen two given Vector3 to this.
   * 
-  *  @param Vector3& other
+  *  @param Vector3& A
+  *  @param Vector3& B
   * 
   *  @return Vector3
   */
   Vector3
-  closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const;
+  closestPointOnSegment(const Vector3& A, const Vector3& B) const;
 
   /*
   *  @brief Returns true if all components are zero.

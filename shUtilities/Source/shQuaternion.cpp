@@ -62,7 +62,7 @@ Quaternion::toEulerAngles() const
 }
 
 Vector3
-Quaternion::toRotate(const Vector3& vec) const
+Quaternion::rotate(const Vector3& vec) const
 {
   /*Quaternion qv(0.0f, vec.x, vec.y, vec.z);
   Quaternion res = (*this * qv) * conjugate();*/
@@ -78,7 +78,7 @@ Vector3
 Quaternion::invRotate(const Vector3& vec) const
 {
   Quaternion inv = this->conjugate();
-  return inv.toRotate(vec);
+  return inv.rotate(vec);
 }
 
 void

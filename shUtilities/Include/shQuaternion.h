@@ -97,7 +97,7 @@ class SH_UTILITY_EXPORT Quaternion
   *  @return Vector3
   */
   Vector3
-  toRotate(const Vector3& vec) const;
+  rotate(const Vector3& vec) const;
 
   /**
   *  @brief Transform Quaternion to inverse rotation Vector3

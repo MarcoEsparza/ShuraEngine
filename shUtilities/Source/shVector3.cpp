@@ -191,21 +191,23 @@ Vector3::toRadians()
 }
 
 Vector3
-Vector3::closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const
+Vector3::closestPointOnSegment(const Vector3& A, const Vector3& B) const
 {
-  const Vector3 abVec = vec2 - vec1;
-  const float t = (dot(abVec) / abVec.dot(abVec));
+  const Vector3 AB = B - A;
+  float t = (*this - A).dot(AB) / AB.dot(AB);
+  t = Math::clamp(t, 0.0f, 1.0f);
+  return A + AB * t;
 
-  if (t < 0) {
-    return vec1;
-  }
-  else if (t > 1) {
-    return vec2;
-  }
-
-  return Vector3((vec1.x + t * abVec.x),
-                 (vec1.y + t * abVec.y),
-                 (vec1.z + t * abVec.z));
+  //if (t < 0) {
+  //  return vec1;
+  //}
+  //else if (t > 1) {
+  //  return vec2;
+  //}
+  //
+  //return Vector3((vec1.x + t * abVec.x),
+  //               (vec1.y + t * abVec.y),
+  //               (vec1.z + t * abVec.z));
 }
 
 bool
