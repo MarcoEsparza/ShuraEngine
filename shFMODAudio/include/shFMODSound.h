@@ -20,6 +20,11 @@
 #include "shPrerequisitesFMODAudio.h"
 #include "shSound.h"
 
+namespace FMOD
+{
+  class Sound;
+}
+
 namespace shEngineSDK {
 /**
 *  @brief Sound class implementation for FMOD.

@@ -26,8 +26,7 @@
 #include <Windows.h>
 
 #include <d3dcompiler.h>
-#include <DirectXTex.h>
-#include <DDSTextureLoader11.h>
+#include "DDSTextureLoader11.h"
 
 using namespace DirectX;
 
@@ -199,12 +198,7 @@ compileShaderFromFile(const String& fileName,
 
 DX11GraphicsManager::~DX11GraphicsManager()
 {
-  m_pRenderTargetView.reset();
-  m_pDepthStencil.reset();
-  m_pBackbuffer.reset();
-  m_pSwapChain.reset();
-  m_pDeviceContext.reset();
-  m_pDevice.reset();
+
 }
 
 void
@@ -309,36 +303,34 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
                          reinterpret_cast<void**>(&dxgiFactory));
   
-  m_pSwapChain = sh_makeShared<DX11SwapChain>();
+  auto pSwapChain = sh_makeShared<DX11SwapChain>();
 
   throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice->m_pDevice,
                                              &scDesc,
-                                             &m_pSwapChain->m_pSwapChain));
+                                             &pSwapChain->m_pSwapChain));
 
   //Get Backbuffer Interface
   //Create a render target view
 
-  m_pBackbuffer = sh_makeShared<DX11Texture2D>();
+  auto pBackbuffer = sh_makeShared<DX11Texture2D>();
 
-  throwIfFailed(m_pSwapChain->m_pSwapChain->GetBuffer(0,
+  throwIfFailed(pSwapChain->m_pSwapChain->GetBuffer(0,
                               __uuidof(ID3D11Texture2D),
-                              reinterpret_cast<LPVOID*>(&m_pBackbuffer->m_pTexture2D)));
+                              reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
-  m_pRenderTargetView = sh_makeShared<DX11Texture2D>();
-
-  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(m_pBackbuffer->m_pTexture2D,
+  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
                                       nullptr,
-                                      &m_pRenderTargetView->m_pRenderTV));
+                                      &pBackbuffer->m_pRenderTV));
 
-  m_pDepthStencil = sh_makeShared<DX11Texture2D>();
-
-  m_pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
-                                                            scDesc.BufferDesc.Width,
-                                                            scDesc.BufferDesc.Height,
-                                                            DXGI_FORMAT_D24_UNORM_S8_UINT,
-                                                            D3D11_USAGE_DEFAULT,
-                                                            D3D11_BIND_DEPTH_STENCIL,
-                                                            1));
+  m_pDepthStencil = internalCreateTexture2D(scDesc.BufferDesc.Width,
+                                            scDesc.BufferDesc.Height,
+                                            DXGI_FORMAT_D24_UNORM_S8_UINT,
+                                            D3D11_USAGE_DEFAULT,
+                                            D3D11_BIND_DEPTH_STENCIL,
+                                            1);
+  
+  m_pSwapChain = pSwapChain;
+  m_pBackbuffer = pBackbuffer;
 
   //Setup the viewport
   Viewport viewPort;
@@ -391,13 +383,16 @@ DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
 void
 DX11GraphicsManager::internalPresent(uint32 syncInterval, uint32 flags)
 {
-  m_pSwapChain->m_pSwapChain->Present(syncInterval, flags);
+  SH_ASSERT(m_pSwapChain);
+  DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
+  IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
+  pSwapChain->Present(syncInterval, flags);
 }
 
 SPtr<Texture2D>
 DX11GraphicsManager::internalGetMainRenderTargetView() const
 {
-  return m_pRenderTargetView;
+  return m_pBackbuffer;
 }
 
 SPtr<Texture2D>
@@ -793,22 +788,11 @@ DX11GraphicsManager::internalCreateTextureFromDDS(const String& fileName)
   auto pTexture = sh_makeShared<DX11Texture2D>();
 
   SystemPath path = fileName;
-  ScratchImage image;
-
-  throwIfFailed(LoadFromDDSFile(path.wstring().c_str(),
-                                DDS_FLAGS_NONE,
-                                nullptr,
-                                image));
-
-  throwIfFailed(CreateTexture(m_pDevice->m_pDevice,
-                              image.GetImages(),
-                              image.GetImageCount(),
-                              image.GetMetadata(),
-                              reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D)));
-
-  throwIfFailed(m_pDevice->m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
-                                                               nullptr,
-                                                               &pTexture->m_pShaderRV));
+  
+  throwIfFailed(CreateDDSTextureFromFile(m_pDevice->m_pDevice,
+                          path.wstring().c_str(),
+                          reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D),
+                          &pTexture->m_pShaderRV));
 
   return pTexture;
 }
@@ -1087,9 +1071,6 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
   uint32 width = pScreen->getWidth();
   uint32 height = pScreen->getHeight();
 
-  if (m_pRenderTargetView) {
-    m_pRenderTargetView = nullptr;
-  }
   if (m_pDepthStencil) {
     m_pDepthStencil = nullptr;
   }
@@ -1097,26 +1078,26 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
     m_pBackbuffer = nullptr;
   }
 
-  m_pSwapChain->m_pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
-  m_pBackbuffer = sh_makeShared<DX11Texture2D>();
-  throwIfFailed(m_pSwapChain->m_pSwapChain->GetBuffer(0,
-                              __uuidof(ID3D11Texture2D),
-                              reinterpret_cast<LPVOID*>(&m_pBackbuffer->m_pTexture2D)));
+  DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
+  IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
+  pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
 
-  m_pRenderTargetView = sh_makeShared<DX11Texture2D>();
-  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(m_pBackbuffer->m_pTexture2D,
+  auto pBackbuffer = sh_makeShared<DX11Texture2D>();
+  throwIfFailed(pSwapChain->GetBuffer(0,
+                __uuidof(ID3D11Texture2D),
+                reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
+
+  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
                                       nullptr,
-                                      &m_pRenderTargetView->m_pRenderTV));
-  //m_pBackbuffer->m_pTexture2D->Release();
+                                      &pBackbuffer->m_pRenderTV));
+  m_pBackbuffer = pBackbuffer;
 
-  m_pDepthStencil = sh_makeShared<DX11Texture2D>();
-  m_pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
-                                                       width,
-                                                       height,
-                                                       DXGI_FORMAT_D24_UNORM_S8_UINT,
-                                                       D3D11_USAGE_DEFAULT,
-                                                       D3D11_BIND_DEPTH_STENCIL,
-                                                       1));
+  m_pDepthStencil = internalCreateTexture2D(width,
+                                            height,
+                                            DXGI_FORMAT_D24_UNORM_S8_UINT,
+                                            D3D11_USAGE_DEFAULT,
+                                            D3D11_BIND_DEPTH_STENCIL,
+                                            1);
 
   /*m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(1,
                                                          &m_pRenderTargetView->m_pRenderTV,
@@ -1137,6 +1118,7 @@ void
 DX11GraphicsManager::internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture,
                                               const String& filePath)
 {
+  /*
   auto pResTex = sh_reinterpretPCast<DX11Texture2D>(pTexture);
 
   ScratchImage image;
@@ -1153,6 +1135,7 @@ DX11GraphicsManager::internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture,
                               image.GetMetadata(),
                               DDS_FLAGS_NONE,
                               sFileName.wstring().c_str()));
+  */
 }
 
 void

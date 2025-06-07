@@ -24,8 +24,10 @@ using namespace shEngineSDK;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) {
-    return -1;
+  String graphicsName = "DX11";
+
+  if (argc == 2) {
+    graphicsName = argv[1];
   }
 
   ScreenDesc desc;
@@ -41,7 +43,6 @@ int main(int argc, const char** argv)
 
   GRAPHIC_API::E api = GRAPHIC_API::kDX11;
 
-  String graphicsName = argv[1];
 
   if (graphicsName == "DX11") {
     api = GRAPHIC_API::kDX11;

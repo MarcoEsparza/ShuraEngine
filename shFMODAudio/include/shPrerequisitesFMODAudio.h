@@ -18,7 +18,6 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
-#include <fmod.hpp>
 
 namespace shEngineSDK {
 template <class T>

@@ -20,6 +20,11 @@
 #include "shPrerequisitesFMODAudio.h"
 #include "shChannel.h"
 
+namespace FMOD
+{
+  class Channel;
+}
+
 namespace shEngineSDK {
 /**
 *  @brief Audio FMOD plugin channel.
@@ -57,6 +62,10 @@ class FMODChannel : public Channel
 
 FMODChannel::~FMODChannel()
 {
+#if USING_FMOD
   m_channel->stop();
+#else
+  SH_ASSERT("FMOD is not enabled in this build");
+#endif // USING_FMOD
 }
 }

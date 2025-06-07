@@ -728,21 +728,16 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief The SwapChain for the front and back buffers.
   */
-  SPtr<DX11SwapChain> m_pSwapChain;
+  SPtr<SwapChain> m_pSwapChain;
 
   /**
   *  @brief The back buffer.
   */
-  SPtr<DX11Texture2D> m_pBackbuffer;
+  SPtr<Texture2D> m_pBackbuffer;
 
   /**
   *  @brief The main Depth Stencil.
   */
-  SPtr<DX11Texture2D> m_pDepthStencil;
-
-  /**
-  *  @brief The main Render Target View.
-  */
-  SPtr<DX11Texture2D> m_pRenderTargetView;
+  SPtr<Texture2D> m_pDepthStencil;
 };
 }

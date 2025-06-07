@@ -20,6 +20,11 @@
 #include "shPrerequisitesFMODAudio.h"
 #include "shChannelGroup.h"
 
+namespace FMOD
+{
+  class ChannelGroup;
+}
+
 namespace shEngineSDK {
 /**
 *  @brief Audio FMOD plugin Channel group.
@@ -57,6 +62,10 @@ class FMODChannelGroup : public ChannelGroup
 
 FMODChannelGroup::~FMODChannelGroup()
 {
+#if USING_FMOD
   safeRelease(m_channelGroup);
+#else
+  SH_ASSERT("FMOD is not enabled in this build");
+#endif // USING_FMOD
 }
 }

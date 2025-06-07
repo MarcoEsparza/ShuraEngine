@@ -54,7 +54,7 @@ class DX11Texture : public Texture
 /**
 *  @brief DirectX11 Texture2D class wrapper.
 */
-class DX11Texture2D : public Texture2D
+class DX11Texture2D final : public Texture2D
 {
  public:
   /**
@@ -65,7 +65,7 @@ class DX11Texture2D : public Texture2D
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11Texture2D();
+  ~DX11Texture2D();
 
   friend class DX11GraphicsManager;
 
@@ -101,22 +101,4 @@ class DX11Texture2D : public Texture2D
   ID3D11UnorderedAccessView* m_pUnorderedAV = nullptr;
 };
 
-/*************************************************************/
-/*
-*  Implementations
-*/
-/*************************************************************/
-
-FORCEINLINE DX11Texture::~DX11Texture()
-{
-  SafeRelease(m_pShaderRV);
-}
-
-FORCEINLINE DX11Texture2D::~DX11Texture2D()
-{
-  SafeRelease(m_pShaderRV);
-  SafeRelease(m_pDepthSV);
-  SafeRelease(m_pRenderTV);
-  SafeRelease(m_pTexture2D);
-}
 }

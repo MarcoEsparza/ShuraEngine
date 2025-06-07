@@ -22,6 +22,11 @@
 #include "shModule.h"
 #include "shPath.h"
 
+namespace FMOD
+{
+  class System;
+}
+
 namespace shEngineSDK {
 /*****************************************************************************/
 /*

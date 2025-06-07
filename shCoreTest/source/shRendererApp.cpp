@@ -203,7 +203,8 @@ RendererApp::onCreate()
   // Create audio
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
-  m_testSound->m_channel = CHANNEL_TYPE::kUI;
+  if(m_testSound)
+    m_testSound->m_channel = CHANNEL_TYPE::kUI;
 }
 
 void
