@@ -27,7 +27,11 @@ class Capsule;
 class Sphere;
 struct CollisionInfo;
 
-struct Face {
+/**
+*  @breif Face structure
+*/
+struct Face
+{
   Face(const Vector3& _a, const Vector3& _b, const Vector3& _c);
   
   Vector3 a = Vector3::ZERO;

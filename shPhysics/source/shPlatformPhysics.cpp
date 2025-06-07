@@ -281,7 +281,7 @@ PlatformPhysics::EPA(const OBBox& obb1,
     int closest = -1;
     float minDist = FLT_MAX;
     for (int j = 0; j < faces.size(); ++j) {
-      float dist = std::abs(faces[j].normal.dot(faces[j].a));
+      float dist = Math::abs(faces[j].normal.dot(faces[j].a));
       if (dist < minDist) {
         minDist = dist;
         closest = j;
