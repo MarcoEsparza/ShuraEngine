@@ -626,7 +626,7 @@ void
 ImGui_ImplShura_AddMouseWheelEvent(const float wheel, const float hWheel)
 {
   ImGuiIO& io = ImGui::GetIO();
-  io.AddMouseWheelEvent(hWheel, wheel);
+  io.AddMouseWheelEvent(wheel, hWheel);
 }
 
 void

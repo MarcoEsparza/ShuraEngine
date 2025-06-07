@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/26
+*  @date    2025/06/06
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -287,15 +287,9 @@ class RendererApp : public BaseApp
   */
   /***************************************************************************/
  private:
-  /**
-  *  @brief Pistol game object.
-  */
-  SPtr<GameObject> m_pModel;
-
-  /**
-  *  @brief Sponza game object.
-  */
-  SPtr<GameObject> m_pSponza;
+  /*************************************/
+  /*          ConstantBuffers          */
+  /*************************************/
 
   /**
   *  @brief Constant Buffer for view-projection.
@@ -352,6 +346,10 @@ class RendererApp : public BaseApp
   SPtr<ConstantBuffer> m_pLuminanceBuffer;
   SPtr<ConstantBuffer> m_pPPBuffer;
 
+  /*************************************/
+  /*              Camera               */
+  /*************************************/
+
   /**
   *  @brief App camera.
   */
@@ -361,6 +359,10 @@ class RendererApp : public BaseApp
   *  @brief Light orthographic camera.
   */
   Camera m_lightCam;
+
+  /*************************************/
+  /*              Inputs               */
+  /*************************************/
 
   /**
   *  @brief Is left mouse button clicked?
@@ -381,11 +383,6 @@ class RendererApp : public BaseApp
   *  @brief Current mouse position.
   */
   Vector2 m_currentMousePos = Vector2(0.0f, 0.0f);
-
-  /**
-  *  @brief Screen size.
-  */
-  Vector2 m_screenSize = Vector2(0.0f, 0.0f);
 
   /**
   *  @brief Is camera going foward?
@@ -447,35 +444,33 @@ class RendererApp : public BaseApp
   */
   float m_hdelta = 0.0f;
 
+  /*************************************/
+  /*          Imgui transform          */
+  /*************************************/
+
   /**
-  *  @brief Pistol position.
+  *  @brief Model game object.
+  */
+  SPtr<GameObject> m_pModel;
+
+  /**
+  *  @brief Model position.
   */
   Vector3 m_modelPos = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Pistol rotation.
+  *  @brief Model rotation.
   */
   Vector3 m_modelRot = { 0.0f, 0.0f, 0.0f };
 
   /**
-  *  @brief Pistol scale.
+  *  @brief Model scale.
   */
   Vector3 m_modelScale = { 0.0f, 0.0f, 0.0f };
 
-  /**
-  *  @brief Sponza position.
-  */
-  Vector3 m_sponzaPos = { 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Sponza rotation.
-  */
-  Vector3 m_sponzaRot = { 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Sponza scale.
-  */
-  Vector3 m_sponzaScale = { 0.0f, 0.0f, 0.0f };
+  /*************************************/
+  /*           Imgui shaders           */
+  /*************************************/
 
   /**
   *  @brief Ambient occlusion sampler rad.
@@ -523,6 +518,90 @@ class RendererApp : public BaseApp
   float m_lcamSize = 0.0f;
 
   /**
+  *  @brief Size of shadow texture.
+  */
+  float m_shadowTexSize = 0;
+
+  /**
+  *  @brief Selection for tone mapping
+  */
+  int32 m_toneMapIndex = 0;
+
+  /**
+  *  @brief
+  */
+  float m_minR = 0.0f;
+
+  /**
+  *  @brief
+  */
+  float m_maxR = 0.0f;
+
+  /**
+  *  @brief
+  */
+  float m_minG = 0.0f;
+
+  /**
+  *  @brief
+  */
+  float m_maxG = 0.0f;
+
+  /**
+  *  @brief
+  */
+  float m_minB = 0.0f;
+
+  /**
+  *  @brief
+  */
+  float m_maxB = 0.0f;
+
+  /**
+  *  @brief
+  */
+  float m_brightT = 1.0f;
+
+  /**
+  *  @brief
+  */
+  float m_whitePt = 1.0f;
+
+  /**
+  *  @brief
+  */
+  float m_exposure = 1.0f;
+
+  /**
+  *  @brief
+  */
+  float m_fpsTimer = 0.0f;
+
+  /**
+  *  @brief
+  */
+  uint32 m_fpsCount = 0;
+
+  /**
+  *  @brief
+  */
+  uint32 m_fpsCountGUI = 0;
+
+  /**
+  *  @brief
+  */
+  int32 m_sceneIndex = -1;
+
+  /*************************************/
+  /*               Other               */
+  /*************************************/
+
+  /**
+  *  @brief Screen size.
+  */
+  Vector2 m_screenSize = Vector2(0.0f, 0.0f);
+
+  /**
   *  @brief Testing audio.
   */
   SPtr<Sound> m_testSound;
@@ -531,26 +610,5 @@ class RendererApp : public BaseApp
   *  @brief Is audio playing?
   */
   bool bIsSoundPlaying = false;
-
-  /**
-  *  @brief Size of shadow texture.
-  */
-  float m_shadowTexSize = 0;
-
-  int32 m_toneMapIndex = 0;
-  float m_minR = 0.0f;
-  float m_maxR = 0.0f;
-  float m_minG = 0.0f;
-  float m_maxG = 0.0f;
-  float m_minB = 0.0f;
-  float m_maxB = 0.0f;
-
-  float m_brightT = 1.0f;
-  float m_rWP = 1.0f;
-  float m_acesExposure = 1.0f;
-
-  float m_fpsTimer = 0.0f;
-  uint32 m_fpsCount = 0;
-  uint32 m_fpsCountGUI = 0;
 };
 }

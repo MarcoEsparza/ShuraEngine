@@ -106,7 +106,6 @@ RendererApp::onCreate()
   // GBuffer constant buffers
   auto pBasicShader = renderMan.getPass("GBufferShader");
   pBasicShader->addVSConstantBuffer(m_pVP, 0);
-  pBasicShader->addVSConstantBuffer(m_pModelTransform, 1);
 
   // Ambient occlusion buffers
   AOBuffer aoBuffer;
@@ -157,8 +156,8 @@ RendererApp::onCreate()
   ToneMap tm = {};
   tm.lutSize = 1.0f;
   tm.index = static_cast<float>(m_toneMapIndex);
-  tm.whitePoint = m_rWP;
-  tm.exposure = m_acesExposure;
+  tm.whitePoint = m_whitePt;
+  tm.exposure = m_exposure;
 
   m_pToneMapBuffer = graphMan.createConstantBuffer(sizeof(ToneMap));
   graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
@@ -212,6 +211,7 @@ RendererApp::onUpdate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   AudioManager& audioMan = AudioManager::instance();
+  SceneGraph& scene = g_sceneGraph();
   Time& time = g_time();
 
   m_fpsTimer += time.getFrameDeltaTime();
@@ -223,13 +223,14 @@ RendererApp::onUpdate()
   m_delta = 0.0f;
   m_hdelta = 0.0f;
 
-  m_modelPos = m_pModel->getPosition();
-  m_modelRot = m_pModel->getRotation() * Math::RAD2DEG;
-  m_modelScale = m_pModel->getScale();
-
-  m_sponzaPos = m_pSponza->getPosition();
-  m_sponzaRot = m_pSponza->getRotation() * Math::RAD2DEG;
-  m_sponzaScale = m_pSponza->getScale();
+  if (scene.getGameObjectList().size() && m_sceneIndex >= 0) {
+    m_pModel = scene.getGameObjectList()[m_sceneIndex];
+  }
+  if (m_pModel) {
+    m_modelPos = m_pModel->getPosition();
+    m_modelRot = m_pModel->getRotation() * Math::RAD2DEG;
+    m_modelScale = m_pModel->getScale();
+  }
   
   Vector<Vector4> lights;
   lights.resize(12);
@@ -247,33 +248,17 @@ RendererApp::onUpdate()
   }
 
   // Update models transform
-  if (m_modelPos != m_pModel->getPosition()) {
-    m_pModel->setPosition(m_modelPos);
+  if (m_pModel) {
+    if (m_modelPos != m_pModel->getPosition()) {
+      m_pModel->setPosition(m_modelPos);
+    }
+    if (m_modelRot != m_pModel->getRotation()) {
+      m_pModel->setRotation(m_modelRot * Math::DEG2RAD);
+    }
+    if (m_modelScale != m_pModel->getScale()) {
+      m_pModel->setScale(m_modelScale);
+    }
   }
-  if (m_modelRot != m_pModel->getRotation()) {
-    m_pModel->setRotation(m_modelRot * Math::DEG2RAD);
-  }
-  if (m_modelScale != m_pModel->getScale()) {
-    m_pModel->setScale(m_modelScale);
-  }
-
-  if (m_sponzaPos != m_pSponza->getPosition()) {
-    m_pSponza->setPosition(m_sponzaPos);
-  }
-  if (m_sponzaRot != m_pSponza->getRotation()) {
-    m_pSponza->setRotation(m_sponzaRot * Math::DEG2RAD);
-  }
-  if (m_sponzaScale != m_pSponza->getScale()) {
-    m_pSponza->setScale(m_sponzaScale);
-  }
-
-  graphMan.updateConstantBuffer(m_pModelTransform,
-                                &m_pModel->transform.getTransform(),
-                                sizeof(Transform));
-
-  graphMan.updateConstantBuffer(m_pSponzaTransform,
-                                &m_pSponza->transform.getTransform(),
-                                sizeof(Transform));
 
   // Update light
   Vector3 lightTarget = m_lightCam.getTarget();
@@ -357,8 +342,8 @@ RendererApp::onUpdate()
   ToneMap tm = {};
   tm.lutSize = 1.0f;
   tm.index = static_cast<float>(m_toneMapIndex);
-  tm.whitePoint = m_rWP;
-  tm.exposure = m_acesExposure;
+  tm.whitePoint = m_whitePt;
+  tm.exposure = m_exposure;
 
   graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
 
@@ -1129,12 +1114,13 @@ RendererApp::setImgui()
 {
   //GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
+  SceneGraph& scene = g_sceneGraph();
 
   float width = m_screenSize.x;
   float height = m_screenSize.y;
 
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(width / 5.0f, height));
+  ImGui::SetNextWindowSize(ImVec2(width * 0.2f, height * 0.5f));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Scenegraph",
                0,
@@ -1142,11 +1128,132 @@ RendererApp::setImgui()
                ImGuiWindowFlags_NoCollapse |
                ImGuiWindowFlags_NoResize);
   ImGui::PopStyleColor();
-  ImGui::Text(m_pModel->name.c_str());
+  if (scene.getGameObjectList().size() > 0) {
+    for (uint8 i = 0; i < scene.getGameObjectList().size(); ++i) {
+      bool isSelected = (m_sceneIndex == i);
+      if (ImGui::Selectable(scene.getGameObjectList()[i]->name.c_str()), isSelected) {
+        m_sceneIndex = i;
+      }
+
+      if (ImGui::IsItemClicked()) {
+        m_sceneIndex = i;
+      }
+    }
+  }
   ImGui::End();
 
-  ImGui::SetNextWindowPos(ImVec2(width - (width / 5.0f), 0.0f));
-  ImGui::SetNextWindowSize(ImVec2(width / 5.0f, height));
+  String name = "None";
+  if (scene.getGameObjectList().size() > 0 && m_sceneIndex >= 0) {
+    name = scene.getGameObjectList()[m_sceneIndex]->name;
+  }
+  ImGui::SetNextWindowPos(ImVec2(0.0f, height * 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(width * 0.2f, height * 0.5f));
+  ImGui::Begin(name.c_str(),
+               0,
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoCollapse |
+               ImGuiWindowFlags_NoResize);
+  if (scene.getGameObjectList().size() > 0) {
+    if (ImGui::CollapsingHeader("Transform")) {
+      // Position
+      ImGui::Text("Position:");
+      // Position X
+      ImGui::SameLine(80.0f);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
+      ImGui::PopStyleColor(3);
+      // Position Y
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
+      ImGui::PopStyleColor(3);
+      // Position Z
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
+      ImGui::PopStyleColor(3);
+
+      // Rotation
+      ImGui::Text("Rotation:");
+      // Rotation X
+      ImGui::SameLine(80.0f);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.1f);
+      ImGui::PopStyleColor(3);
+      // Rotation Y
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.1f);
+      ImGui::PopStyleColor(3);
+      // Rotation Z
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.1f);
+      ImGui::PopStyleColor(3);
+
+      // Scale
+      ImGui::Text("Scale:");
+      // Rotation X
+      ImGui::SameLine(80.0f);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.1f);
+      ImGui::PopStyleColor(3);
+      // Rotation Y
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.1f);
+      ImGui::PopStyleColor(3);
+      // Rotation Z
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.1f);
+      ImGui::PopStyleColor(3);
+
+      ImGui::Spacing();
+      ImGui::Spacing();
+      ImGui::SetNextItemWidth(60.0f);
+      ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
+      if (ImGui::Button("Reset")) {
+        m_modelPos = { 0.0f, 0.0f, 0.0f };
+        m_modelRot = { 0.0f, 0.0f, 0.0f };
+        m_modelScale = { 1.0f, 1.0f, 1.0f };
+      }
+      ImGui::PopStyleColor(3);
+    }
+  }
+  ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(width - (width * 0.2f), 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(width * 0.2f, height));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
   ImGui::Begin("Renderer Settings",
                0,
@@ -1154,201 +1261,6 @@ RendererApp::setImgui()
                ImGuiWindowFlags_NoCollapse |
                ImGuiWindowFlags_NoResize);
   ImGui::PopStyleColor();
-
-  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
-  ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(207, 167, 20, 0xff));
-  if (ImGui::CollapsingHeader("Model Transform")) {
-
-    // Position
-    ImGui::Text("Position:");
-    // Position X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Position Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Position Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
-    ImGui::PopStyleColor(3);
-
-    // Rotation
-    ImGui::Text("Rotation:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Rotation Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Rotation Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.1f);
-    ImGui::PopStyleColor(3);
-
-    // Scale
-    ImGui::Text("Scale:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Rotation Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Rotation Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.1f);
-    ImGui::PopStyleColor(3);
-
-    ImGui::Spacing();
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(60.0f);
-    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
-    if (ImGui::Button("Reset")) {
-      m_modelPos = { 0.0f, 0.0f, 0.0f };
-      m_modelRot = { 0.0f, 0.0f, 0.0f };
-      m_modelScale = { 1.0f, 1.0f, 1.0f };
-    }
-    ImGui::PopStyleColor(3);
-
-    // Position
-    ImGui::Text("Position:");
-    // Position X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##sPosX", &m_sponzaPos.x, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Position Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##sPosY", &m_sponzaPos.y, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Position Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##sPosZ", &m_sponzaPos.z, 0.01f);
-    ImGui::PopStyleColor(3);
-
-    // Rotation
-    ImGui::Text("Rotation:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##sRotX", &m_sponzaRot.x, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Rotation Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##sRotY", &m_sponzaRot.y, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Rotation Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##sRotZ", &m_sponzaRot.z, 0.1f);
-    ImGui::PopStyleColor(3);
-
-    // Scale
-    ImGui::Text("Scale:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##sSclX", &m_sponzaScale.x, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Rotation Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##sSclY", &m_sponzaScale.y, 0.01f);
-    ImGui::PopStyleColor(3);
-    // Rotation Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##sSclZ", &m_sponzaScale.z, 0.01f);
-    ImGui::PopStyleColor(3);
-
-    ImGui::Spacing();
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(60.0f);
-    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
-    if (ImGui::Button("Reset##SponzaReset")) {
-      m_sponzaPos = { 0.0f, 0.0f, 0.0f };
-      m_sponzaRot = { 0.0f, 0.0f, 0.0f };
-      m_sponzaScale = { 1.0f, 1.0f, 1.0f };
-    }
-    ImGui::PopStyleColor(3);
-  }
-  ImGui::PopStyleColor(3);
 
   ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(227, 187, 41, 0xff));
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(247, 200, 70, 0xff));
@@ -1451,9 +1363,9 @@ RendererApp::setImgui()
   ImGui::Spacing();
   ImGui::DragFloat("BrightThreshold:", &m_brightT, 0.01f, 0.0f, 1.0f);
   ImGui::Spacing();
-  ImGui::DragFloat("WhitePoint:", &m_rWP, 0.01f, 0.5f, 11.2f);
+  ImGui::DragFloat("WhitePoint:", &m_whitePt, 0.01f, 0.5f, 11.2f);
   ImGui::Spacing();
-  ImGui::DragFloat("Exposure:", &m_acesExposure, 0.01f, 0.5f, 2.0f);
+  ImGui::DragFloat("Exposure:", &m_exposure, 0.01f, 0.5f, 2.0f);
   ImGui::Spacing();
 
   if (m_fpsTimer >= 1.0f) {
@@ -1469,59 +1381,45 @@ RendererApp::setImgui()
 void
 RendererApp::loadPistol()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resourceMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
 
   auto modelRes = sh_reinterpretPCast<StaticMeshResource>(
                   resourceMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
 
-  m_pModel = sh_makeShared<GameObject>();
-  m_pModel->name = "DrakeFire";
+  auto model = sh_makeShared<GameObject>();
+  model->name = "DrakeFire";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(modelRes);
-  m_pModel->addComponent(modelMC);
+  model->addComponent(modelMC);
 
-  m_pModel->transform.getTransform() = Matrix4::IDENTITY;
-  m_pModel->setScale(Vector3::ONE * 5.0f);
+  model->transform.getTransform() = Matrix4::IDENTITY;
+  model->setScale(Vector3::ONE * 5.0f);
 
-  sceneG.addObject(m_pModel);
-
-  m_pModelTransform = graphMan.createConstantBuffer(sizeof(Transform));
-
-  graphMan.updateConstantBuffer(m_pModelTransform,
-                                &m_pModel->transform.getTransform(),
-                                sizeof(Transform));
+  sceneG.addObject(model);
 }
 
 void
 RendererApp::loadSponza()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resourceMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
 
   auto sponzaModelRes = sh_reinterpretPCast<StaticMeshResource>(
                         resourceMan.loadModelFromCache("resources/assets/models/Sponza.sha"));
 
-  m_pSponza = sh_makeShared<GameObject>();
-  m_pSponza->name = "Sponza";
+  auto model = sh_makeShared<GameObject>();
+  model->name = "Sponza";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(sponzaModelRes);
-  m_pSponza->addComponent(modelMC);
+  model->addComponent(modelMC);
 
-  m_pSponza->transform.getTransform() = Matrix4::IDENTITY;
-  m_pSponza->setScale(Vector3::ONE * 0.25f);
+  model->transform.getTransform() = Matrix4::IDENTITY;
+  model->setScale(Vector3::ONE * 0.25f);
 
-  sceneG.addObject(m_pSponza);
-
-  m_pSponzaTransform = graphMan.createConstantBuffer(sizeof(Transform));
-
-  graphMan.updateConstantBuffer(m_pSponzaTransform,
-                                &m_pSponza->transform.getTransform(),
-                                sizeof(Transform));
+  sceneG.addObject(model);
 }
 
 void

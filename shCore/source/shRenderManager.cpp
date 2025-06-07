@@ -174,7 +174,15 @@ RenderManager::drawStaticMeshOnScene(const SceneGraph& scene)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+  if (m_pModelTransform) {
+    graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+  }
+  else {
+    m_pModelTransform = graphMan.createConstantBuffer(sizeof(Matrix4));
+    Matrix4 identity = Matrix4::IDENTITY;
+    graphMan.updateConstantBuffer(m_pModelTransform, &identity, sizeof(Matrix4));
+    graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+  }
 
   for (auto& gameObject : scene.getGameObjectList()) {
     for (auto& component : gameObject->components) {
