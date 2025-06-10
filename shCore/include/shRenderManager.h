@@ -35,6 +35,14 @@ class Texture2D;
 class ConstantBuffer;
 class SceneGraph;
 
+struct RenderTargetInfo
+{
+  String name;
+  uint32 format = 0;
+  uint32 usage = 0;
+  uint32 bFlags = 0;
+};
+
 /**
 *  @brief Render module.
 */
@@ -73,40 +81,16 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name);
 
   /**
-  *  @brief Returns a render target by its name.
-  * 
-  *  @param String& name
-  * 
-  *  @return SPtr<Texture2D>
-  */
-  SPtr<Texture2D>
-  getRenderTargetByName(const String& name);
-
-  /**
-  *  @brief Clear a render target by its name.
-  * 
-  *  @param String& name
-  *  @param LinearColor& color = LinearColor::BLACK
+  *  @brief Creates all textures for the render pipeline.
   */
   void
-  clearRenderTargetByName(const String& name, const LinearColor& color = LinearColor::BLACK);
+  createRenderTextures();
 
   /**
-  *  @brief Set a render target by its names.
-  * 
-  *  @param Vector<String>& names: Render targets names
-  *  @param SPtr<Texture2D>& pDepthS: Depth Stencil
+  *  @brief Creates all passes for the render pipeline.
   */
   void
-  setRenderTargetsByName(const Vector<String>& names, const SPtr<Texture2D>& pDepthS);
-
-  /**
-  *  @brief Reserve a space on the renderer with a given name.
-  * 
-  *  @param String& passName
-  */
-  void
-  createPass(const String& passName);
+  createPasses();
 
   /**
   *  @brief Returns a pass with a given name.
@@ -119,35 +103,16 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   getPass(const String& passName);
 
   /**
-  *  @brief Sets a pass in the renderer with a given name.
-  * 
-  *  @param SPtr<Pass>& pPass
-  *  @param String& passName
-  */
-  void
-  addPass(const SPtr<Pass>& pPass, const String& passName);
-
-  /**
-  *  @brief Executes the given pass.
-  * 
-  *  @param String& passName
-  */
-  void
-  setPassByName(const String& passName);
-
-  /**
   *  @brief Recompile the shaders on the storaged passes.
   */
   void
   recompileShaders();
 
   /**
-  *  @brief
-  * 
-  *  @param
+  *  @brief Draw all static meshes on scene
   */
   void
-  drawStaticMeshOnScene(const SceneGraph& scene);
+  drawStaticMeshOnScene();
 
   /**
   *  @brief Sets the resource view from PBRMaterial.
@@ -220,28 +185,10 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   cleanCSConstantBuffers(uint32 numCB = 14);
 
   /**
-  *  @brief Clean the vertex buffer.
-  */
-  void
-  cleanVertexBuffer();
-
-  /**
-  *  @brief Clean the index buffer.
-  */
-  void
-  cleanIndexBuffer();
-
-  /**
   *  @brief Call the other clean functions.
   */
   void
   cleanShaderObjects();
-
-  /**
-  *  @brief Clear the render target storage.
-  */
-  FORCEINLINE void
-  clearTargets();
 
   /**
   *  @brief Set the shadow map texture size.
@@ -254,10 +201,10 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   /**
   *  @brief Set the screen dimension info for the render manager.
   *
-  *  @param Vector2& screenD
+  *  @param Vector2& screenSize
   */
   void
-  setScreenDimensions(const Vector2& screenD);
+  setScreenSize(const Vector2& screenSize);
 
  private:
   /**
@@ -294,13 +241,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @brief Screen size.
   */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
-};
 
-void
-RenderManager::clearTargets()
-{
-  m_targets.clear();
-}
+  /**
+  *  @brief Storage information for all screen size dependent textures information.
+  */
+  Vector<RenderTargetInfo> m_targetInfoVec;
+};
 
 /**
 *  @brief Easier way to access the RendererManager module.

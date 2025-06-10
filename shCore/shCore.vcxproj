@@ -62,7 +62,6 @@
     <ClInclude Include="include\shSkeletonResource.h" />
     <ClInclude Include="include\shSkyBoxComponent.h" />
     <ClInclude Include="include\shSound.h" />
-    <ClInclude Include="include\shSwapChain.h" />
     <ClInclude Include="include\shTexture.h" />
     <ClInclude Include="include\shTransformComponent.h" />
   </ItemGroup>

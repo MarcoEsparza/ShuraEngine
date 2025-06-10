@@ -39,9 +39,6 @@
     <ClInclude Include="include\shDX11Shader.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\shDX11SwapChain.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="include\shDX11Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>

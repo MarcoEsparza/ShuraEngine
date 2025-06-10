@@ -73,8 +73,13 @@ RendererApp::onCreate()
   m_maxB = 255.0f;
 
   // Initialize graphics
-  initShaders();
-  setRenderTargets();
+  setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
+  //initShaders();
+  //setRenderTargets();
+  renderMan.createPasses();
+  renderMan.setScreenSize(m_screenSize);
+  renderMan.setShadowMapSize(m_shadowTexSize);
+  renderMan.createRenderTextures();
   initCamera();
 
   // Imgui initialize
@@ -211,6 +216,7 @@ void
 RendererApp::onUpdate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
   SceneGraph& scene = g_sceneGraph();
   Time& time = g_time();
@@ -289,6 +295,7 @@ RendererApp::onUpdate()
     lcam.view.getTransposed();
 
     Vector4 camSize = { m_lcamSize, 0.0f, 0.0f, 0.0f };
+    renderMan.setShadowMapSize(m_lcamSize);
 
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
     graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
@@ -370,11 +377,7 @@ RendererApp::onRender()
   RenderManager& renderMan = g_renderMan();
 
   graphMan.setPrimitiveTopology();
-
-  renderMan.setShadowMapSize(m_lcamSize);
-  renderMan.setScreenDimensions(Vector2(m_screenSize.x, m_screenSize.y));
   renderMan.renderScene();
-
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
@@ -388,8 +391,9 @@ RendererApp::onResize(const ResizeData& rszData)
   m_screenSize.x = static_cast<float>(rszData.width);
   m_screenSize.y = static_cast<float>(rszData.height);
 
-  renderMan.clearTargets();
-  setRenderTargets();
+  renderMan.setScreenSize(Vector2(m_screenSize.x, m_screenSize.y));
+  renderMan.createRenderTextures();
+  //setRenderTargets();
 
   m_camera.setPerspectiveData(m_camera.getHalfFOV(),
                               m_screenSize.x,
@@ -811,21 +815,21 @@ RendererApp::initShaders()
   pToneMapShader->setSamplerState(pSamplerLinear);
 
   // Save passes on render manager
-  renderMan.addPass(pGbufferShader, "GBufferShader");
-  renderMan.addPass(pAOShader, "AOShader");
-  renderMan.addPass(pHBlurShader, "HBlurShader");
-  renderMan.addPass(pVBlurShader, "VBlurShader");
-  renderMan.addPass(pLightCS, "LightCS");
-  renderMan.addPass(pSMapShader, "SMapShader");
-  renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
-  renderMan.addPass(pFinalShader, "FinalShader");
-  renderMan.addPass(pPlaneVS, "PlaneShader");
-  renderMan.addPass(pHistogramShader, "HistogramShader");
-  renderMan.addPass(pASBShader, "ASBShader");
-  renderMan.addPass(pLuminanceShader, "LuminanceShader");
-  renderMan.addPass(pToneMapShader, "ToneMapShader");
-  renderMan.addPass(pPPShader, "PPShader");
-  renderMan.addPass(pAddMixShader, "AddMixShader");
+  //renderMan.addPass(pGbufferShader, "GBufferShader");
+  //renderMan.addPass(pAOShader, "AOShader");
+  //renderMan.addPass(pHBlurShader, "HBlurShader");
+  //renderMan.addPass(pVBlurShader, "VBlurShader");
+  //renderMan.addPass(pLightCS, "LightCS");
+  //renderMan.addPass(pSMapShader, "SMapShader");
+  //renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
+  //renderMan.addPass(pFinalShader, "FinalShader");
+  //renderMan.addPass(pPlaneVS, "PlaneShader");
+  //renderMan.addPass(pHistogramShader, "HistogramShader");
+  //renderMan.addPass(pASBShader, "ASBShader");
+  //renderMan.addPass(pLuminanceShader, "LuminanceShader");
+  //renderMan.addPass(pToneMapShader, "ToneMapShader");
+  //renderMan.addPass(pPPShader, "PPShader");
+  //renderMan.addPass(pAddMixShader, "AddMixShader");
 }
 
 void
@@ -963,158 +967,155 @@ RendererApp::initLightCamera()
 void
 RendererApp::setRenderTargets()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
-  RenderManager& renderMan = g_renderMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
+  //RenderManager& renderMan = g_renderMan();
 
-  uint32 width = static_cast<uint32>(m_screenSize.x);
-  uint32 height = static_cast<uint32>(m_screenSize.y);
+  //uint32 width = static_cast<uint32>(m_screenSize.x);
+  //uint32 height = static_cast<uint32>(m_screenSize.y);
 
-  auto pMainTarget = graphMan.getMainRenderTargetView();
+  //auto pDepthTarget = graphMan.createTexture2D(width,
+  //                                             height,
+  //                                             TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+  //                                             USAGE::kDefault,
+  //                                             BIND_FLAGS::kRenderTarget |
+  //                                             BIND_FLAGS::kShaderResource);
 
-  auto pDepthTarget = graphMan.createTexture2D(width,
-                                               height,
-                                               TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-                                               USAGE::kDefault,
-                                               BIND_FLAGS::kRenderTarget |
-                                               BIND_FLAGS::kShaderResource);
+  //auto pNormalTarget = graphMan.createTexture2D(width,
+  //                                              height,
+  //                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                              USAGE::kDefault,
+  //                                              BIND_FLAGS::kRenderTarget |
+  //                                              BIND_FLAGS::kShaderResource);
 
-  auto pNormalTarget = graphMan.createTexture2D(width,
-                                                height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kRenderTarget |
-                                                BIND_FLAGS::kShaderResource);
+  //auto pColorTarget = graphMan.createTexture2D(width,
+  //                                             height,
+  //                                             TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                             USAGE::kDefault,
+  //                                             BIND_FLAGS::kRenderTarget |
+  //                                             BIND_FLAGS::kShaderResource);
 
-  auto pColorTarget = graphMan.createTexture2D(width,
-                                               height,
-                                               TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                               USAGE::kDefault,
-                                               BIND_FLAGS::kRenderTarget |
-                                               BIND_FLAGS::kShaderResource);
+  //auto pPropTarget = graphMan.createTexture2D(width,
+  //                                            height,
+  //                                            TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                            USAGE::kDefault,
+  //                                            BIND_FLAGS::kRenderTarget |
+  //                                            BIND_FLAGS::kShaderResource);
 
-  auto pPropTarget = graphMan.createTexture2D(width,
-                                              height,
-                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                              USAGE::kDefault,
-                                              BIND_FLAGS::kRenderTarget |
-                                              BIND_FLAGS::kShaderResource);
+  //auto pAoTarget = graphMan.createTexture2D(width,
+  //                                          height,
+  //                                          TEXTURE_FORMAT::kR16_FLOAT,
+  //                                          USAGE::kDefault,
+  //                                          BIND_FLAGS::kRenderTarget |
+  //                                          BIND_FLAGS::kShaderResource);
 
-  auto pAoTarget = graphMan.createTexture2D(width,
-                                            height,
-                                            TEXTURE_FORMAT::kR16_FLOAT,
-                                            USAGE::kDefault,
-                                            BIND_FLAGS::kRenderTarget |
-                                            BIND_FLAGS::kShaderResource);
+  //auto pHbTarget = graphMan.createTexture2D(width,
+  //                                          height,
+  //                                          TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                          USAGE::kDefault,
+  //                                          BIND_FLAGS::kShaderResource |
+  //                                          BIND_FLAGS::kUnorderedAccess);
 
-  auto pHbTarget = graphMan.createTexture2D(width,
-                                            height,
-                                            TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                            USAGE::kDefault,
-                                            BIND_FLAGS::kShaderResource |
-                                            BIND_FLAGS::kUnorderedAccess);
+  //auto pVbTarget = graphMan.createTexture2D(width,
+  //                                          height,
+  //                                          TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                          USAGE::kDefault,
+  //                                          BIND_FLAGS::kShaderResource |
+  //                                          BIND_FLAGS::kUnorderedAccess);
 
-  auto pVbTarget = graphMan.createTexture2D(width,
-                                            height,
-                                            TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                            USAGE::kDefault,
-                                            BIND_FLAGS::kShaderResource |
-                                            BIND_FLAGS::kUnorderedAccess);
+  //auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
+  //                                            static_cast<uint32>(m_shadowTexSize),
+  //                                            TEXTURE_FORMAT::kR32_TYPELESS,
+  //                                            USAGE::kDefault,
+  //                                            BIND_FLAGS::kDepthStencil |
+  //                                            BIND_FLAGS::kShaderResource);
 
-  auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
-                                              static_cast<uint32>(m_shadowTexSize),
-                                              TEXTURE_FORMAT::kR32_TYPELESS,
-                                              USAGE::kDefault,
-                                              BIND_FLAGS::kDepthStencil |
-                                              BIND_FLAGS::kShaderResource);
+  //auto pShadowTempTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
+  //                                                  static_cast<uint32>(m_shadowTexSize),
+  //                                                  TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                                  USAGE::kDefault,
+  //                                                  BIND_FLAGS::kRenderTarget |
+  //                                                  BIND_FLAGS::kShaderResource);
 
-  auto pShadowTempTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
-                                                    static_cast<uint32>(m_shadowTexSize),
-                                                    TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                                    USAGE::kDefault,
-                                                    BIND_FLAGS::kRenderTarget |
-                                                    BIND_FLAGS::kShaderResource);
+  //auto pSkyBoxTarget = graphMan.createTexture2D(width,
+  //                                              height,
+  //                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                              USAGE::kDefault,
+  //                                              BIND_FLAGS::kRenderTarget |
+  //                                              BIND_FLAGS::kShaderResource);
 
-  auto pSkyBoxTarget = graphMan.createTexture2D(width,
-                                                height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kRenderTarget |
-                                                BIND_FLAGS::kShaderResource);
+  //auto pComputeLight = graphMan.createTexture2D(width,
+  //                                              height,
+  //                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                              USAGE::kDefault,
+  //                                              BIND_FLAGS::kShaderResource |
+  //                                              BIND_FLAGS::kUnorderedAccess);
 
-  auto pComputeLight = graphMan.createTexture2D(width,
-                                                height,
-                                                TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kShaderResource |
-                                                BIND_FLAGS::kUnorderedAccess);
+  //auto pHistogramMap = graphMan.createTexture2D(256,
+  //                                              3,
+  //                                              TEXTURE_FORMAT::kR32_UINT,
+  //                                              USAGE::kDefault,
+  //                                              BIND_FLAGS::kShaderResource |
+  //                                              BIND_FLAGS::kUnorderedAccess);
 
-  auto pHistogramMap = graphMan.createTexture2D(256,
-                                                3,
-                                                TEXTURE_FORMAT::kR32_UINT,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kShaderResource |
-                                                BIND_FLAGS::kUnorderedAccess);
+  //auto pToneMap = graphMan.createTexture2D(width,
+  //                                         height,
+  //                                         TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                         USAGE::kDefault,
+  //                                         BIND_FLAGS::kShaderResource |
+  //                                         BIND_FLAGS::kUnorderedAccess);
 
-  auto pToneMap = graphMan.createTexture2D(width,
-                                           height,
-                                           TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                           USAGE::kDefault,
-                                           BIND_FLAGS::kShaderResource |
-                                           BIND_FLAGS::kUnorderedAccess);
+  //auto pTempMap = graphMan.createTexture2D(width,
+  //                                         height,
+  //                                         TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                         USAGE::kDefault,
+  //                                         BIND_FLAGS::kShaderResource |
+  //                                         BIND_FLAGS::kUnorderedAccess);
 
-  auto pTempMap = graphMan.createTexture2D(width,
-                                           height,
-                                           TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                           USAGE::kDefault,
-                                           BIND_FLAGS::kShaderResource |
-                                           BIND_FLAGS::kUnorderedAccess);
+  //auto pLuminance = graphMan.createTexture2D(512,
+  //                                           512,
+  //                                           TEXTURE_FORMAT::kR32_FLOAT,
+  //                                           USAGE::kDefault,
+  //                                           BIND_FLAGS::kShaderResource |
+  //                                           BIND_FLAGS::kUnorderedAccess);
 
-  auto pLuminance = graphMan.createTexture2D(512,
-                                             512,
-                                             TEXTURE_FORMAT::kR32_FLOAT,
-                                             USAGE::kDefault,
-                                             BIND_FLAGS::kShaderResource |
-                                             BIND_FLAGS::kUnorderedAccess);
+  //auto pBright = graphMan.createTexture2D(512,
+  //                                        512,
+  //                                        TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
+  //                                        USAGE::kDefault,
+  //                                        BIND_FLAGS::kShaderResource |
+  //                                        BIND_FLAGS::kUnorderedAccess);
 
-  auto pBright = graphMan.createTexture2D(512,
-                                          512,
-                                          TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
-                                          USAGE::kDefault,
-                                          BIND_FLAGS::kShaderResource |
-                                          BIND_FLAGS::kUnorderedAccess);
+  //auto pPPMap = graphMan.createTexture2D(width,
+  //                                       height,
+  //                                       TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+  //                                       USAGE::kDefault,
+  //                                       BIND_FLAGS::kShaderResource |
+  //                                       BIND_FLAGS::kUnorderedAccess);
 
-  auto pPPMap = graphMan.createTexture2D(width,
-                                         height,
-                                         TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                         USAGE::kDefault,
-                                         BIND_FLAGS::kShaderResource |
-                                         BIND_FLAGS::kUnorderedAccess);
-
-  // Save targets on render manager
-  renderMan.addRenderTarget(pMainTarget, "MainTarget");
-  renderMan.addRenderTarget(pDepthTarget, "DepthMap");
-  renderMan.addRenderTarget(pNormalTarget, "NormalMap");
-  renderMan.addRenderTarget(pColorTarget, "ColorMap");
-  renderMan.addRenderTarget(pPropTarget, "PropMap");
-  renderMan.addRenderTarget(pAoTarget, "AOMap");
-  renderMan.addRenderTarget(pHbTarget, "HBlurMap");
-  renderMan.addRenderTarget(pVbTarget, "VBlurMap");
-  renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
-  renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
-  renderMan.addRenderTarget(pComputeLight, "LightCMap");
-  renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
-  renderMan.addRenderTarget(pHistogramMap, "HistogramMap");
-  renderMan.addRenderTarget(pTempMap, "TempMap");
-  renderMan.addRenderTarget(pLuminance, "LuminanceMap");
-  renderMan.addRenderTarget(pToneMap, "ToneMap");
-  renderMan.addRenderTarget(pPPMap, "PPMap");
+  //// Save targets on render manager
+  //renderMan.addRenderTarget(pDepthTarget, "DepthMap");
+  //renderMan.addRenderTarget(pNormalTarget, "NormalMap");
+  //renderMan.addRenderTarget(pColorTarget, "ColorMap");
+  //renderMan.addRenderTarget(pPropTarget, "PropMap");
+  //renderMan.addRenderTarget(pAoTarget, "AOMap");
+  //renderMan.addRenderTarget(pHbTarget, "HBlurMap");
+  //renderMan.addRenderTarget(pVbTarget, "VBlurMap");
+  //renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
+  //renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
+  //renderMan.addRenderTarget(pComputeLight, "LightCMap");
+  //renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
+  //renderMan.addRenderTarget(pHistogramMap, "HistogramMap");
+  //renderMan.addRenderTarget(pTempMap, "TempMap");
+  //renderMan.addRenderTarget(pLuminance, "LuminanceMap");
+  //renderMan.addRenderTarget(pToneMap, "ToneMap");
+  //renderMan.addRenderTarget(pPPMap, "PPMap");
 }
 
 void
 RendererApp::setImgui()
 {
   //GraphicsManager& graphMan = g_graphicsMan();
-  RenderManager& renderMan = g_renderMan();
+  //RenderManager& renderMan = g_renderMan();
   SceneGraph& scene = g_sceneGraph();
 
   float width = m_screenSize.x;
@@ -1344,8 +1345,6 @@ RendererApp::setImgui()
   if (ImGui::Button("Play Sound")) {
     bIsSoundPlaying = true;
   }
-
-  auto pTex = renderMan.getRenderTargetByName("TempMap");
 
   //ImGui::Image(reinterpret_cast<ImTextureID*>(&pTex), ImVec2(160, 80));
 

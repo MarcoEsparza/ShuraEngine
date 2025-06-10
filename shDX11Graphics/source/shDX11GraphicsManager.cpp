@@ -130,82 +130,22 @@ compileShaderFromFile(const String& fileName,
   return true;
 }
 
-//bool
-//compileShaderFromFile(const String& fileName,
-//                      const String& vsEntryPoint,
-//                      const String& psEntryPoint,
-//                      const String& vsShaderModel,
-//                      const String& psShaderModel,
-//                      ID3DBlob** pVertexBlob,
-//                      ID3DBlob** pPixelBlob)
-//{
-//  HRESULT hrVS = S_OK;
-//  HRESULT hrPS = S_OK;
-//  int32 shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-//#if SH_DEBUG_MODE
-//  shaderFlags |= D3DCOMPILE_DEBUG;
-//#endif
-//
-//  auto beg = (String::const_iterator)fileName.begin();
-//  auto end = (String::const_iterator)fileName.end();
-//  WString wFileName(beg, end);
-//
-//  static ShaderInclude shaderInclude;
-//  ID3DBlob* pErrorBlob = nullptr;
-//
-//  hrVS = D3DCompileFromFile(wFileName.c_str(),
-//                            nullptr,
-//                            &shaderInclude,
-//                            vsEntryPoint.c_str() ,
-//                            vsShaderModel.c_str(),
-//                            shaderFlags,
-//                            0,
-//                            pVertexBlob,
-//                            &pErrorBlob);
-//
-//  if (FAILED(hrVS)) {
-//    if (nullptr != pErrorBlob) {
-//      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
-//      SafeRelease(pErrorBlob);
-//    }
-//
-//    return false;
-//  }
-//
-//  SafeRelease(pErrorBlob);
-//
-//  hrPS = D3DCompileFromFile(wFileName.c_str(),
-//                            nullptr,
-//                            &shaderInclude,
-//                            psEntryPoint.c_str(),
-//                            psShaderModel.c_str(),
-//                            shaderFlags,
-//                            0,
-//                            pPixelBlob,
-//                            &pErrorBlob);
-//
-//  if (FAILED(hrPS)) {
-//    if (nullptr != pErrorBlob) {
-//      String errStr(reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
-//      SafeRelease(pErrorBlob);
-//    }
-//
-//    return false;
-//  }
-//
-//  return true;
-//}
-
 DX11GraphicsManager::~DX11GraphicsManager()
 {
 
 }
 
 void
-DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
+DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
                                   const bool bAntiliasing,
                                   const SampleDesc& sample)
 {
+  if (pScreen.expired()) {
+    SH_ASSERT(false && "Screen expired!");
+    return;
+  }
+  auto screen = pScreen.lock();
+
   m_bFullScreen = screen->isFullscreen();
   
   auto hWnd = reinterpret_cast<HWND>(screen->getPlatformHandler());
@@ -303,18 +243,18 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
   dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
                          reinterpret_cast<void**>(&dxgiFactory));
   
-  auto pSwapChain = sh_makeShared<DX11SwapChain>();
+  //m_pSwapChain = sh_makeUnique<IDXGISwapChain>();
 
   throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice->m_pDevice,
                                              &scDesc,
-                                             &pSwapChain->m_pSwapChain));
+                                             &m_pSwapChain));
 
   //Get Backbuffer Interface
   //Create a render target view
 
   auto pBackbuffer = sh_makeShared<DX11Texture2D>();
 
-  throwIfFailed(pSwapChain->m_pSwapChain->GetBuffer(0,
+  throwIfFailed(m_pSwapChain->GetBuffer(0,
                               __uuidof(ID3D11Texture2D),
                               reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
@@ -329,7 +269,6 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
                                             D3D11_BIND_DEPTH_STENCIL,
                                             1);
   
-  m_pSwapChain = pSwapChain;
   m_pBackbuffer = pBackbuffer;
 
   //Setup the viewport
@@ -355,10 +294,13 @@ DX11GraphicsManager::internalInit(const SPtr<Screen> screen,
 }
 
 void
-DX11GraphicsManager::internalClearRenderTarget(const SPtr<Texture2D>& pTarget,
+DX11GraphicsManager::internalClearRenderTarget(const WPtr<Texture2D> pTarget,
                                                const LinearColor& color)
 {
-  auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pTarget);
+  if (pTarget.expired()) {
+    return;
+  }
+  auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pTarget.lock());
   
   FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
@@ -367,12 +309,15 @@ DX11GraphicsManager::internalClearRenderTarget(const SPtr<Texture2D>& pTarget,
 }
 
 void
-DX11GraphicsManager::internalClearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+DX11GraphicsManager::internalClearDepthStencil(const WPtr<Texture2D> pDepthSV,
                                                uint32 flags,
                                                float depth,
                                                uint8 stencil)
 {
-  auto pDTV = sh_reinterpretPCast<DX11Texture2D>(pDepthSV);
+  if (pDepthSV.expired()) {
+    return;
+  }
+  auto pDTV = sh_reinterpretPCast<DX11Texture2D>(pDepthSV.lock());
   
   m_pDeviceContext->m_pDeviceContext->ClearDepthStencilView(pDTV->m_pDepthSV,
                                                             flags,
@@ -384,9 +329,9 @@ void
 DX11GraphicsManager::internalPresent(uint32 syncInterval, uint32 flags)
 {
   SH_ASSERT(m_pSwapChain);
-  DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
-  IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
-  pSwapChain->Present(syncInterval, flags);
+  //DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
+  //IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
+  m_pSwapChain->Present(syncInterval, flags);
 }
 
 SPtr<Texture2D>
@@ -403,10 +348,13 @@ DX11GraphicsManager::internalGetMainDepthStencil() const
 
 SPtr<InputLayout>
 DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
-                                               const SPtr<VertexShader>& pPShader)
+                                               const WPtr<VertexShader> pPShader)
 {
+  if (pPShader.expired()) {
+    return nullptr;
+  }
   auto pInputLayout = sh_makeShared<DX11InputLayout>();
-  auto pVertexShader = sh_reinterpretPCast<DX11VertexShader>(pPShader);
+  auto pVertexShader = sh_reinterpretPCast<DX11VertexShader>(pPShader.lock());
 
   Vector<D3D11_INPUT_ELEMENT_DESC> dxInputDesc;
   dxInputDesc.resize(desc.size());
@@ -461,10 +409,13 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
 }
 
 SPtr<InputLayout>
-DX11GraphicsManager::internalCreateInputLayoutFromShader(const SPtr<VertexShader>& pPShader)
+DX11GraphicsManager::internalCreateInputLayoutFromShader(const WPtr<VertexShader> pPShader)
 {
+  if (pPShader.expired()) {
+    return nullptr;
+  }
   auto pInputLayout = sh_makeShared<DX11InputLayout>();
-  auto pVertexShader = sh_reinterpretPCast<DX11VertexShader>(pPShader);
+  auto pVertexShader = sh_reinterpretPCast<DX11VertexShader>(pPShader.lock());
 
   ID3D11ShaderReflection* pReflector = nullptr;
   throwIfFailed((D3DReflect(pVertexShader->m_pBlob->GetBufferPointer(),
@@ -1020,7 +971,7 @@ DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& dep
 }
 
 void
-DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D>& pTexture)
+DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D> pTexture)
 {
   if (pTexture.expired())
   {
@@ -1034,11 +985,14 @@ DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D>& pTexture)
 }
 
 void
-DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
+DX11GraphicsManager::internalUpdateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
                                                   const void* pData,
                                                   const uint32 dataSize)
 {
-  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+  if (pCBuffer.expired()) {
+    return;
+  }
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pConstantBuffer->m_pBuffer,
                                                         0,
@@ -1049,12 +1003,15 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const SPtr<ConstantBuffer>& pC
 }
 
 void
-DX11GraphicsManager::internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
+DX11GraphicsManager::internalUpdateTexture2D(WPtr<Texture2D> pTexture,
                                              uint8* pData,
                                              uint32 width,
                                              uint32 bpp)
 {
-  auto pTex2D = sh_reinterpretPCast<DX11Texture2D>(pTexture);
+  if (pTexture.expired() || pData == nullptr) {
+    return;
+  }
+  auto pTex2D = sh_reinterpretPCast<DX11Texture2D>(pTexture.lock());
   int32 pitch = width * bpp;
 
   m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTex2D->m_pTexture2D,
@@ -1066,10 +1023,10 @@ DX11GraphicsManager::internalUpdateTexture2D(SPtr<Texture2D>& pTexture,
 }
 
 void
-DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
+DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
 {
-  uint32 width = pScreen->getWidth();
-  uint32 height = pScreen->getHeight();
+  uint32 width = static_cast<uint32>(size.x);
+  uint32 height = static_cast<uint32>(size.y);
 
   if (m_pDepthStencil) {
     m_pDepthStencil = nullptr;
@@ -1078,12 +1035,12 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
     m_pBackbuffer = nullptr;
   }
 
-  DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
-  IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
-  pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+  //DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
+  //IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
+  m_pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
 
   auto pBackbuffer = sh_makeShared<DX11Texture2D>();
-  throwIfFailed(pSwapChain->GetBuffer(0,
+  throwIfFailed(m_pSwapChain->GetBuffer(0,
                 __uuidof(ID3D11Texture2D),
                 reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
@@ -1115,9 +1072,13 @@ DX11GraphicsManager::internalUpdateScreenSize(const SPtr<Screen>& pScreen)
 }
 
 void
-DX11GraphicsManager::internalSaveTextureToDDS(const SPtr<Texture2D>& pTexture,
+DX11GraphicsManager::internalSaveTextureToDDS(const WPtr<Texture2D> pTexture,
                                               const String& filePath)
 {
+  SH_UNREFERENCED_PARAMETER(filePath);
+  if (pTexture.expired()) {
+    return;
+  }
   /*
   auto pResTex = sh_reinterpretPCast<DX11Texture2D>(pTexture);
 
@@ -1152,18 +1113,18 @@ DX11GraphicsManager::internalSetViewport(const Viewport& vp)
 }
 
 void
-DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
-                                              const SPtr<Texture2D>& pDepthSV)
+DX11GraphicsManager::internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+                                              const WPtr<Texture2D> pDepthSV)
 {
   Vector<ID3D11RenderTargetView*> pRTVs;
   uint32 count = 0;
 
   for (auto& pRenderTarget : pRenderTVs) {
-    if (pRenderTarget == nullptr) {
+    if (pRenderTarget.expired()) {
       pRTVs.push_back(nullptr);
     }
     else {
-      auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pRenderTarget);
+      auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pRenderTarget.lock());
 
       pRTVs.push_back(pRTV->m_pRenderTV);
     }
@@ -1175,8 +1136,8 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
   }
 
   ID3D11DepthStencilView* pDSV = nullptr;
-  if (pDepthSV) {
-    auto pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(pDepthSV);
+  if (!pDepthSV.expired()) {
+    auto pDepthStencil = sh_reinterpretPCast<DX11Texture2D>(pDepthSV.lock());
     pDSV = pDepthStencil->m_pDepthSV;
   }
 
@@ -1186,21 +1147,23 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<SPtr<Texture2D>>& pRe
 }
 
 void
-DX11GraphicsManager::internalSetInputLayout(const SPtr<InputLayout>& pInput)
+DX11GraphicsManager::internalSetInputLayout(const WPtr<InputLayout> pInput)
 {
-  auto pInputLayout = sh_reinterpretPCast<DX11InputLayout>(pInput);
-
+  if (pInput.expired()) {
+    return;
+  }
+  auto pInputLayout = sh_reinterpretPCast<DX11InputLayout>(pInput.lock());
   m_pDeviceContext->m_pDeviceContext->IASetInputLayout(pInputLayout->m_pLayout);
 }
 
 void
-DX11GraphicsManager::internalSetVertexBuffers(const SPtr<VertexBuffer>& pVBuffer,
+DX11GraphicsManager::internalSetVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
                                               const uint32 startSlot,
                                               const uint32 numBuffers,
                                               const uint32 offset)
 {
-  if (pVBuffer != nullptr) {
-    auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer);
+  if (!pVBuffer.expired()) {
+    auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer.lock());
 
     m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
                                                            numBuffers,
@@ -1219,11 +1182,11 @@ DX11GraphicsManager::internalSetVertexBuffers(const SPtr<VertexBuffer>& pVBuffer
 }
 
 void
-DX11GraphicsManager::internalSetIndexBuffers(const SPtr<IndexBuffer>& pIBuffer,
+DX11GraphicsManager::internalSetIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
                                              const uint32 offset)
 {
-  if(pIBuffer != nullptr){
-    auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer);
+  if(!pIBuffer.expired()){
+    auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer.lock());
     
     m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
                                         static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
@@ -1236,11 +1199,11 @@ DX11GraphicsManager::internalSetIndexBuffers(const SPtr<IndexBuffer>& pIBuffer,
 }
 
 void
-DX11GraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+DX11GraphicsManager::internalVSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
-  if (pCBuffer == nullptr) {
+  if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
     m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
@@ -1251,7 +1214,7 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
     return;
   }
 
-  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
   m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
                                                            numBuffers,
@@ -1259,11 +1222,11 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
 }
 
 void
-DX11GraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+DX11GraphicsManager::internalPSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
-  if (pCBuffer == nullptr) {
+  if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
     m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,
@@ -1274,7 +1237,7 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
     return;
   }
 
-  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
   m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,
                                                            numBuffers,
@@ -1282,11 +1245,11 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
 }
 
 void
-DX11GraphicsManager::internalGSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+DX11GraphicsManager::internalGSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
-  if (pCBuffer == nullptr) {
+  if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
     m_pDeviceContext->m_pDeviceContext->GSSetConstantBuffers(startSlot,
@@ -1297,7 +1260,7 @@ DX11GraphicsManager::internalGSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
     return;
   }
 
-  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
   m_pDeviceContext->m_pDeviceContext->GSSetConstantBuffers(startSlot,
                                                            numBuffers,
@@ -1305,11 +1268,11 @@ DX11GraphicsManager::internalGSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
 }
 
 void
-DX11GraphicsManager::internalCSSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+DX11GraphicsManager::internalCSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
-  if (pCBuffer == nullptr) {
+  if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
     m_pDeviceContext->m_pDeviceContext->CSSetConstantBuffers(startSlot,
@@ -1320,7 +1283,7 @@ DX11GraphicsManager::internalCSSetConstantBuffers(const SPtr<ConstantBuffer>& pC
     return;
   }
 
-  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer);
+  auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
   m_pDeviceContext->m_pDeviceContext->CSSetConstantBuffers(startSlot,
                                                            numBuffers,
@@ -1335,11 +1298,14 @@ DX11GraphicsManager::internalSetPrimitiveTopology(uint32 primitive)
 }
 
 void
-DX11GraphicsManager::internalSetVertexShader(const SPtr<VertexShader>& pVShader,
+DX11GraphicsManager::internalSetVertexShader(const WPtr<VertexShader> pVShader,
                                              const void* ppClassInstances,
                                              const uint32 numClassInstances)
 {
-  auto pVS = sh_reinterpretPCast<DX11VertexShader>(pVShader);
+  if (pVShader.expired()) {
+    return;
+  }
+  auto pVS = sh_reinterpretPCast<DX11VertexShader>(pVShader.lock());
 
   m_pDeviceContext->m_pDeviceContext->VSSetShader(
                     pVS->m_pVertexShader,
@@ -1348,11 +1314,14 @@ DX11GraphicsManager::internalSetVertexShader(const SPtr<VertexShader>& pVShader,
 }
 
 void
-DX11GraphicsManager::internalSetPixelShader(const SPtr<PixelShader>& pPShader,
+DX11GraphicsManager::internalSetPixelShader(const WPtr<PixelShader> pPShader,
                                             const void* ppClassInstances,
                                             const uint32 numClassInstances)
 {
-  auto pPS = sh_reinterpretPCast<DX11PixelShader>(pPShader);
+  if (pPShader.expired()) {
+    return;
+  }
+  auto pPS = sh_reinterpretPCast<DX11PixelShader>(pPShader.lock());
 
   m_pDeviceContext->m_pDeviceContext->PSSetShader(
                     pPS->m_pPixelShader,
@@ -1361,11 +1330,14 @@ DX11GraphicsManager::internalSetPixelShader(const SPtr<PixelShader>& pPShader,
 }
 
 void
-DX11GraphicsManager::internalSetGeometryShader(const SPtr<GeometryShader>& pGShader,
+DX11GraphicsManager::internalSetGeometryShader(const WPtr<GeometryShader> pGShader,
                                                const void* ppClassInstances,
                                                const uint32 numClassInstances)
 {
-  auto pGS = sh_reinterpretPCast<DX11GeometryShader>(pGShader);
+  if (pGShader.expired()) {
+    return;
+  }
+  auto pGS = sh_reinterpretPCast<DX11GeometryShader>(pGShader.lock());
 
   m_pDeviceContext->m_pDeviceContext->GSSetShader(
                     pGS->m_pGeometryShader,
@@ -1374,11 +1346,14 @@ DX11GraphicsManager::internalSetGeometryShader(const SPtr<GeometryShader>& pGSha
 }
 
 void
-DX11GraphicsManager::internalSetComputeShader(const SPtr<ComputeShader>& pCShader,
+DX11GraphicsManager::internalSetComputeShader(const WPtr<ComputeShader> pCShader,
                                               const void* ppClassInstances,
                                               const uint32 numClassInstances)
 {
-  auto pCS = sh_reinterpretPCast<DX11ComputeShader>(pCShader);
+  if (pCShader.expired()) {
+    return;
+  }
+  auto pCS = sh_reinterpretPCast<DX11ComputeShader>(pCShader.lock());
 
   m_pDeviceContext->m_pDeviceContext->CSSetShader(
                     pCS->m_pComputeShader,
@@ -1387,11 +1362,11 @@ DX11GraphicsManager::internalSetComputeShader(const SPtr<ComputeShader>& pCShade
 }
 
 void
-DX11GraphicsManager::internalPSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                                                   const uint32 startSlot,
-                                                   const uint32 numViews)
+DX11GraphicsManager::internalPSSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+                                                     const uint32 startSlot,
+                                                     const uint32 numViews)
 {
-  if (pShaderRV == nullptr) {
+  if (pShaderRV.expired()) {
     ID3D11ShaderResourceView* dx11SRV = nullptr;
     m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
                                                              numViews,
@@ -1399,7 +1374,7 @@ DX11GraphicsManager::internalPSSetShaderResourceView(const SPtr<Texture2D>& pSha
     return;
   }
 
-  auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV);
+  auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV.lock());
 
   m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
                                                            numViews,
@@ -1407,11 +1382,11 @@ DX11GraphicsManager::internalPSSetShaderResourceView(const SPtr<Texture2D>& pSha
 }
 
 void
-DX11GraphicsManager::internalCSSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+DX11GraphicsManager::internalCSSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
                                                      const uint32 startSlot,
                                                      const uint32 numViews)
 {
-  if (pShaderRV == nullptr) {
+  if (pShaderRV.expired()) {
     ID3D11ShaderResourceView* dx11SRV = nullptr;
     m_pDeviceContext->m_pDeviceContext->CSSetShaderResources(startSlot,
                                                              numViews,
@@ -1419,7 +1394,7 @@ DX11GraphicsManager::internalCSSetShaderResourceView(const SPtr<Texture2D>& pSha
     return;
   }
 
-  auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV);
+  auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV.lock());
 
   m_pDeviceContext->m_pDeviceContext->CSSetShaderResources(startSlot,
                                                            numViews,
@@ -1427,13 +1402,13 @@ DX11GraphicsManager::internalCSSetShaderResourceView(const SPtr<Texture2D>& pSha
 }
 
 void
-DX11GraphicsManager::internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+DX11GraphicsManager::internalSetUnorderedAccessView(const WPtr<Texture2D> pUAV,
                                                     const uint32 startSlot,
                                                     const uint32 numViews,
                                                     const uint32* count)
 {
   SH_UNREFERENCED_PARAMETER(count);
-  if (pUAV == nullptr) {
+  if (pUAV.expired()) {
     ID3D11UnorderedAccessView* dx11UAV = nullptr;
     m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
                                                                   numViews,
@@ -1442,7 +1417,7 @@ DX11GraphicsManager::internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
     return;
   }
 
-  auto pUAVTexture = sh_reinterpretPCast<DX11Texture2D>(pUAV);
+  auto pUAVTexture = sh_reinterpretPCast<DX11Texture2D>(pUAV.lock());
   m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
                                                                 numViews,
                                                                 &pUAVTexture->m_pUnorderedAV,
@@ -1450,12 +1425,12 @@ DX11GraphicsManager::internalSetUnorderedAccessView(const SPtr<Texture2D>& pUAV,
 }
 
 void
-DX11GraphicsManager::internalPSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+DX11GraphicsManager::internalPSSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
                                                const uint32 startSlot,
                                                const uint32 numSamplers)
 {
-  if (pSamplerLinear) {
-    auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear);
+  if (!pSamplerLinear.expired()) {
+    auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear.lock());
 
     m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
                                                       numSamplers,
@@ -1468,12 +1443,12 @@ DX11GraphicsManager::internalPSSetSamplerState(const SPtr<SamplerState>& pSample
 }
 
 void
-DX11GraphicsManager::internalCSSetSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+DX11GraphicsManager::internalCSSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
                                                const uint32 startSlot,
                                                const uint32 numSamplers)
 {
-  if (pSamplerLinear) {
-    auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear);
+  if (!pSamplerLinear.expired()) {
+    auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear.lock());
 
     m_pDeviceContext->m_pDeviceContext->CSSetSamplers(startSlot,
                                                       numSamplers,
@@ -1486,32 +1461,37 @@ DX11GraphicsManager::internalCSSetSamplerState(const SPtr<SamplerState>& pSample
 }
 
 void
-DX11GraphicsManager::internalSetBlendState(const SPtr<BlendState>& pBlendState)
+DX11GraphicsManager::internalSetBlendState(const WPtr<BlendState> pBlendState)
 {
-  auto pBS = sh_reinterpretPCast<DX11BlendState>(pBlendState);
-
+  if (pBlendState.expired()) {
+    return;
+  }
+  auto pBS = sh_reinterpretPCast<DX11BlendState>(pBlendState.lock());
   FLOAT bf[4] = { pBS->m_blendFactor.r,
                   pBS->m_blendFactor.g,
                   pBS->m_blendFactor.b,
                   pBS->m_blendFactor.a };
-  
   m_pDeviceContext->m_pDeviceContext->OMSetBlendState(pBS->m_pBlendS, bf, 0xFFFFFFFF);
 }
 
 void
-DX11GraphicsManager::internalSetRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
+DX11GraphicsManager::internalSetRasterizerState(const WPtr<RasterizerState> pRasterizerState)
 {
-  auto pRS = sh_reinterpretPCast<DX11RasterizerState>(pRasterizerState);
-
+  if (pRasterizerState.expired()) {
+    return;
+  }
+  auto pRS = sh_reinterpretPCast<DX11RasterizerState>(pRasterizerState.lock());
   m_pDeviceContext->m_pDeviceContext->RSSetState(pRS->m_pRasterS);
 }
 
 void
-DX11GraphicsManager::internalSetDepthStencilState(const SPtr<DepthStencilState>& pDepthSState,
+DX11GraphicsManager::internalSetDepthStencilState(const WPtr<DepthStencilState> pDepthSState,
                                                   const uint8 stencilRef)
 {
-  auto pDepthSS = sh_reinterpretPCast<DX11DepthStencilState>(pDepthSState);
-
+  if (pDepthSState.expired()) {
+    return;
+  }
+  auto pDepthSS = sh_reinterpretPCast<DX11DepthStencilState>(pDepthSState.lock());
   m_pDeviceContext->m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS,
                                                              stencilRef);
 }

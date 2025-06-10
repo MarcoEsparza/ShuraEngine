@@ -148,6 +148,8 @@ BaseApp::initManagers()
 void
 BaseApp::handleScreenEvents(const Event& wndEvent)
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
   // Resize event
   if (wndEvent.type == EVENT_TYPE::kResize) {
     const auto& rszData = wndEvent.data.resize;
@@ -157,7 +159,8 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
     m_screenDesc.width = rszData.width;
     m_screenDesc.height = rszData.height;
 
-    g_graphicsMan().updateScreenSize(m_mainScreen);
+    graphMan.updateScreenSize(Vector2(static_cast<float>(rszData.width),
+                                      static_cast<float>(rszData.height)));
 
     onResize(rszData);
   }

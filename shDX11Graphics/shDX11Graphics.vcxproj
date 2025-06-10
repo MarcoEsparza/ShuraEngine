@@ -28,7 +28,6 @@
     <ClInclude Include="include\shDX11RasterizerState.h" />
     <ClInclude Include="include\shDX11SamplerState.h" />
     <ClInclude Include="include\shDX11Shader.h" />
-    <ClInclude Include="include\shDX11SwapChain.h" />
     <ClInclude Include="include\shDX11Texture.h" />
     <ClInclude Include="include\shPrerequisitesDX11Graphics.h" />
     <ClInclude Include="include\shDX11GraphicsManager.h" />

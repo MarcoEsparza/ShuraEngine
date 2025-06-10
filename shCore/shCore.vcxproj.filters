@@ -141,9 +141,6 @@
     <ClInclude Include="include\shShader.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>
-    <ClInclude Include="include\shSwapChain.h">
-      <Filter>Header Files\GraphicsManager</Filter>
-    </ClInclude>
     <ClInclude Include="include\shGraphicTypes.h">
       <Filter>Header Files\GraphicsManager</Filter>
     </ClInclude>

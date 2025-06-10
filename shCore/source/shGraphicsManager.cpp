@@ -23,7 +23,7 @@
 
 namespace shEngineSDK {
 void
-GraphicsManager::initManager(const SPtr<Screen> screen,
+GraphicsManager::initManager(const WPtr<Screen> screen,
                              const bool bAntiliasing,
                              const SampleDesc& sample)
 {
@@ -31,14 +31,14 @@ GraphicsManager::initManager(const SPtr<Screen> screen,
 }
 
 void
-GraphicsManager::clearRenderTarget(const SPtr<Texture2D>& pTarget,
+GraphicsManager::clearRenderTarget(const WPtr<Texture2D> pTarget,
                                    const LinearColor& color)
 {
   internalClearRenderTarget(pTarget, color);
 }
 
 void
-GraphicsManager::clearDepthStencil(const SPtr<Texture2D>& pDepthSV,
+GraphicsManager::clearDepthStencil(const WPtr<Texture2D> pDepthSV,
                                    uint32 flags,
                                    float depth,
                                    uint8 stencil)
@@ -66,13 +66,13 @@ GraphicsManager::getMainDepthStencil() const
 
 SPtr<InputLayout>
 GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
-                                   const SPtr<VertexShader>& pShader)
+                                   const WPtr<VertexShader> pShader)
 {
   return internalCreateInputLayout(desc, pShader);
 }
 
 SPtr<InputLayout>
-GraphicsManager::createInputLayoutFromShader(const SPtr<VertexShader>& pShader)
+GraphicsManager::createInputLayoutFromShader(const WPtr<VertexShader> pShader)
 {
   return internalCreateInputLayoutFromShader(pShader);
 }
@@ -196,13 +196,13 @@ GraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
 }
 
 void
-GraphicsManager::generateMips(const WPtr<Texture2D>& pTexture)
+GraphicsManager::generateMips(const WPtr<Texture2D> pTexture)
 {
   internalGenerateMips(pTexture);
 }
 
 void
-GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
+GraphicsManager::updateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
                                       const void* pData,
                                       const uint32 dataSize)
 {
@@ -210,7 +210,7 @@ GraphicsManager::updateConstantBuffer(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
-GraphicsManager::updateTexture2D(SPtr<Texture2D>& pTexture,
+GraphicsManager::updateTexture2D(WPtr<Texture2D> pTexture,
                                  uint8* pData,
                                  uint32 width,
                                  uint32 bpp)
@@ -222,13 +222,13 @@ GraphicsManager::updateTexture2D(SPtr<Texture2D>& pTexture,
 }
 
 void
-GraphicsManager::updateScreenSize(const SPtr<Screen>& pScreen)
+GraphicsManager::updateScreenSize(const Vector2& size)
 {
-  internalUpdateScreenSize(pScreen);
+  internalUpdateScreenSize(size);
 }
 
 void
-GraphicsManager::saveTextureToDDS(const SPtr<Texture2D>& pTexture,
+GraphicsManager::saveTextureToDDS(const WPtr<Texture2D> pTexture,
                                   const String& filePath)
 {
   internalSaveTextureToDDS(pTexture, filePath);
@@ -241,20 +241,20 @@ GraphicsManager::setViewport(const Viewport& vp)
 }
 
 void
-GraphicsManager::setRenderTargets(const Vector<SPtr<Texture2D>>& pRenderTVs,
-                                  const SPtr<Texture2D>& pDepthSV)
+GraphicsManager::setRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+                                  const WPtr<Texture2D> pDepthSV)
 {
   internalSetRenderTargets(pRenderTVs, pDepthSV);
 }
 
 void
-GraphicsManager::setInputLayout(const SPtr<InputLayout>& pInput)
+GraphicsManager::setInputLayout(const WPtr<InputLayout> pInput)
 {
   internalSetInputLayout(pInput);
 }
 
 void
-GraphicsManager::setVertexBuffers(const SPtr<VertexBuffer>& pVBuffer,
+GraphicsManager::setVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
                                   const uint32 startSlot,
                                   const uint32 numBuffers,
                                   const uint32 offset)
@@ -263,13 +263,13 @@ GraphicsManager::setVertexBuffers(const SPtr<VertexBuffer>& pVBuffer,
 }
 
 void
-GraphicsManager::setIndexBuffers(const SPtr<IndexBuffer>& pIBuffer, const uint32 offset)
+GraphicsManager::setIndexBuffers(const WPtr<IndexBuffer> pIBuffer, const uint32 offset)
 {
   internalSetIndexBuffers(pIBuffer, offset);
 }
 
 void
-GraphicsManager::vsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+GraphicsManager::vsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                       const uint32 startSlot,
                                       const uint32 numBuffers)
 {
@@ -277,7 +277,7 @@ GraphicsManager::vsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
-GraphicsManager::psSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+GraphicsManager::psSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                       const uint32 startSlot,
                                       const uint32 numBuffers)
 {
@@ -285,7 +285,7 @@ GraphicsManager::psSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
-GraphicsManager::gsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+GraphicsManager::gsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                       const uint32 startSlot,
                                       const uint32 numBuffers)
 {
@@ -293,7 +293,7 @@ GraphicsManager::gsSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
 }
 
 void
-GraphicsManager::csSetConstantBuffers(const SPtr<ConstantBuffer>& pCBuffer,
+GraphicsManager::csSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                       const uint32 startSlot,
                                       const uint32 numBuffers)
 {
@@ -315,7 +315,7 @@ GraphicsManager::setPrimitiveTopology(const uint32 primitive)
 //}
 
 void
-GraphicsManager::setVertexShader(const SPtr<VertexShader>& pVShader,
+GraphicsManager::setVertexShader(const WPtr<VertexShader> pVShader,
                                  const void* ppClassInstances,
                                  const uint32 numClassInstances)
 {
@@ -323,7 +323,7 @@ GraphicsManager::setVertexShader(const SPtr<VertexShader>& pVShader,
 }
 
 void
-GraphicsManager::setPixelShader(const SPtr<PixelShader>& pPShader,
+GraphicsManager::setPixelShader(const WPtr<PixelShader> pPShader,
                                 const void* ppClassInstances,
                                 const uint32 numClassInstances)
 {
@@ -331,7 +331,7 @@ GraphicsManager::setPixelShader(const SPtr<PixelShader>& pPShader,
 }
 
 void
-GraphicsManager::setGeometryShader(const SPtr<GeometryShader>& pGShader,
+GraphicsManager::setGeometryShader(const WPtr<GeometryShader> pGShader,
                                    const void* ppClassInstances,
                                    const uint32 numClassInstances)
 {
@@ -339,7 +339,7 @@ GraphicsManager::setGeometryShader(const SPtr<GeometryShader>& pGShader,
 }
 
 void
-GraphicsManager::setComputeShader(const SPtr<ComputeShader>& pCShader,
+GraphicsManager::setComputeShader(const WPtr<ComputeShader> pCShader,
                                   const void* ppClassInstances,
                                   const uint32 numClassInstances)
 {
@@ -347,15 +347,15 @@ GraphicsManager::setComputeShader(const SPtr<ComputeShader>& pCShader,
 }
 
 void
-GraphicsManager::psSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
-                                       const uint32 startSlot,
-                                       const uint32 numViews)
+GraphicsManager::psSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+                                         const uint32 startSlot,
+                                         const uint32 numViews)
 {
   internalPSSetShaderResourceView(pShaderRV, startSlot, numViews);
 }
 
 void
-GraphicsManager::csSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
+GraphicsManager::csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
                                          const uint32 startSlot,
                                          const uint32 numViews)
 {
@@ -363,7 +363,7 @@ GraphicsManager::csSetShaderResourceView(const SPtr<Texture2D>& pShaderRV,
 }
 
 void
-GraphicsManager::setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
+GraphicsManager::setUnorderedAccessView(const WPtr<Texture2D> pUAV,
                                         const uint32 startSlot,
                                         const uint32 numViews,
                                         const uint32* count)
@@ -372,7 +372,7 @@ GraphicsManager::setUnorderedAccessView(const SPtr<Texture2D>& pUAV,
 }
 
 void
-GraphicsManager::setPSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+GraphicsManager::setPSSamplerState(const WPtr<SamplerState> pSamplerLinear,
                                  const uint32 startSlot,
                                  const uint32 numSamplers)
 {
@@ -380,7 +380,7 @@ GraphicsManager::setPSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
 }
 
 void
-GraphicsManager::setCSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
+GraphicsManager::setCSSamplerState(const WPtr<SamplerState> pSamplerLinear,
                                    const uint32 startSlot,
                                    const uint32 numSamplers)
 {
@@ -388,19 +388,19 @@ GraphicsManager::setCSSamplerState(const SPtr<SamplerState>& pSamplerLinear,
 }
 
 void
-GraphicsManager::setBlendState(const SPtr<BlendState>& pBlendState)
+GraphicsManager::setBlendState(const WPtr<BlendState> pBlendState)
 {
   internalSetBlendState(pBlendState);
 }
 
 void
-GraphicsManager::setRasterizerState(const SPtr<RasterizerState>& pRasterizerState)
+GraphicsManager::setRasterizerState(const WPtr<RasterizerState> pRasterizerState)
 {
   internalSetRasterizerState(pRasterizerState);
 }
 
 void
-GraphicsManager::setDepthStencilState(const SPtr<DepthStencilState>& pDepthStencilState,
+GraphicsManager::setDepthStencilState(const WPtr<DepthStencilState> pDepthStencilState,
                                       const uint8 stencilRef)
 {
   internalSetDepthStencilState(pDepthStencilState, stencilRef);
