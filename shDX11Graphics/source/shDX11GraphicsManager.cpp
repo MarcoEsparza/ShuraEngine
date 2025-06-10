@@ -1117,21 +1117,19 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRe
                                               const WPtr<Texture2D> pDepthSV)
 {
   Vector<ID3D11RenderTargetView*> pRTVs;
-  uint32 count = 0;
 
   for (auto& pRenderTarget : pRenderTVs) {
-    if (pRenderTarget.expired()) {
-      pRTVs.push_back(nullptr);
-    }
-    else {
-      auto pRTV = sh_reinterpretPCast<DX11Texture2D>(pRenderTarget.lock());
+    ID3D11RenderTargetView* pD3D11RTV = nullptr;
 
-      pRTVs.push_back(pRTV->m_pRenderTV);
+    if (!pRenderTarget.expired()) {
+      auto pRT = pRenderTarget.lock();
+      pD3D11RTV = reinterpret_cast<DX11Texture2D*>(pRT.get())->m_pRenderTV;
     }
-    ++count;
+    
+    pRTVs.push_back(pD3D11RTV);
   }
 
-  for (uint32 i = count; i < 8; ++i) {
+  for (uint32 i = pRTVs.size(); i < 8; ++i) {
     pRTVs.push_back(nullptr);
   }
 
@@ -1162,22 +1160,25 @@ DX11GraphicsManager::internalSetVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
                                               const uint32 numBuffers,
                                               const uint32 offset)
 {
+  SH_ASSERT(m_pDeviceContext && m_pDeviceContext->m_pDeviceContext);
+  auto& pDC = m_pDeviceContext->m_pDeviceContext;
+
   if (!pVBuffer.expired()) {
     auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer.lock());
 
-    m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
-                                                           numBuffers,
-                                                           &pVertexBuffer->m_pBuffer,
-                                                           &pVertexBuffer->m_stride,
-                                                           &offset);
+    pDC->IASetVertexBuffers(startSlot,
+                            numBuffers,
+                            &pVertexBuffer->m_pBuffer,
+                            &pVertexBuffer->m_stride,
+                            &offset);
   }
   else {
     ID3D11Buffer* pVB = nullptr;
-    m_pDeviceContext->m_pDeviceContext->IASetVertexBuffers(startSlot,
-                                                           numBuffers,
-                                                           &pVB,
-                                                           0,
-                                                           &offset);
+    pDC->IASetVertexBuffers(startSlot,
+                            numBuffers,
+                            &pVB,
+                            0,
+                            &offset);
   }
 }
 
@@ -1185,16 +1186,19 @@ void
 DX11GraphicsManager::internalSetIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
                                              const uint32 offset)
 {
+  SH_ASSERT(m_pDeviceContext && m_pDeviceContext->m_pDeviceContext);
+  auto& pDC = m_pDeviceContext->m_pDeviceContext;
+
   if(!pIBuffer.expired()){
     auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer.lock());
     
-    m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
-                                        static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
-                                        offset);
+    pDC->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
+                          static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
+                          offset);
   }
   else {
     ID3D11Buffer* pIB = nullptr;
-    m_pDeviceContext->m_pDeviceContext->IASetIndexBuffer(pIB, DXGI_FORMAT_UNKNOWN, offset);
+    pDC->IASetIndexBuffer(pIB, DXGI_FORMAT_UNKNOWN, offset);
   }
 }
 

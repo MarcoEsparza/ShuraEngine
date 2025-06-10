@@ -21,6 +21,12 @@
 #include "shModule.h"
 #include "shVector2.h"
 #include "shLinearColor.h"
+#include "shGraphicTypes.h"
+
+#define MAX_CONSTANT_BUFFER_SLOTS 14
+#define MAX_SHADER_RESOURCE_VIEW_SLOTS 128
+
+#define DEFAULT_SHADOW_MAP_SIZE 2048.0f
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -37,10 +43,26 @@ class SceneGraph;
 
 struct RenderTargetInfo
 {
+  RenderTargetInfo() = default;
+  RenderTargetInfo(const String& name,
+    uint32 format = TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+    uint32 bFlags = BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource,
+    uint32 usage = USAGE::kDefault,
+    float width = 1.0f,
+    float height = 1.0f,
+    bool bUseScaledSize = true)
+      : name(name), format(format), usage(usage), bFlags(bFlags),
+    width(width), height(height), bUseScaledSize(bUseScaledSize)
+  {}
+
   String name;
   uint32 format = 0;
   uint32 usage = 0;
   uint32 bFlags = 0;
+  float width = 1.0f;
+  float height = 1.0f;
+  bool bUseScaledSize = true;
+  SPtr<Texture2D> pTexture;
 };
 
 /**
@@ -70,15 +92,6 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   onShutDown() override;
-
-  /**
-  *  @brief Adds a render target to the render manager.
-  * 
-  *  @param SPtr<Texture2D>& pRTV
-  *  @param String& name
-  */
-  void
-  addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name);
 
   /**
   *  @brief Creates all textures for the render pipeline.
@@ -131,58 +144,58 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   /**
   *  @brief Clean the PS shader resource view slots.
   *
-  *  @param uint32 numSRV = 128
+  *  @param uint32 numSRV = MAX_SHADER_RESOURCE_VIEW_SLOTS
   */
   void
-  cleanPSShaderResourceView(uint32 numSRV = 128);
+  cleanPSShaderResourceView(uint32 numSRV = MAX_SHADER_RESOURCE_VIEW_SLOTS);
 
   /**
   *  @brief Clean the CS shader resource view slots.
   *
-  *  @param uint32 numSRV = 128
+  *  @param uint32 numSRV = MAX_SHADER_RESOURCE_VIEW_SLOTS
   */
   void
-  cleanCSShaderResourceView(uint32 numSRV = 128);
+  cleanCSShaderResourceView(uint32 numSRV = MAX_SHADER_RESOURCE_VIEW_SLOTS);
 
   /**
   *  @brief Clean the CS unordered access view slots.
   *
-  *  @param uint32 numSRV = 128
+  *  @param uint32 numSRV = MAX_SHADER_RESOURCE_VIEW_SLOTS
   */
   void
-  cleanCSUAView(uint32 numSRV = 128);
+  cleanCSUAView(uint32 numSRV = MAX_SHADER_RESOURCE_VIEW_SLOTS);
 
   /**
   *  @brief Clean the vertex shader constant buffer slots.
   *
-  *  @param uint32 numCB = 14
+  *  @param uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS
   */
   void
-  cleanVSConstantBuffers(uint32 numCB = 14);
+  cleanVSConstantBuffers(uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS);
 
   /**
   *  @brief Clean the pixel shader constant buffer slots.
   *
-  *  @param uint32 numCB = 14
+  *  @param uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS
   */
   void
-  cleanPSConstantBuffers(uint32 numCB = 14);
+  cleanPSConstantBuffers(uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS);
 
   /**
   *  @brief Clean the geometry shader constant buffer slots.
   *
-  *  @param uint32 numCB = 14
+  *  @param uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS
   */
   void
-  cleanGSConstantBuffers(uint32 numCB = 14);
+  cleanGSConstantBuffers(uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS);
 
   /**
   *  @brief Clean the compute shader constant buffer slots.
   *
-  *  @param uint32 numCB = 14
+  *  @param uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS
   */
   void
-  cleanCSConstantBuffers(uint32 numCB = 14);
+  cleanCSConstantBuffers(uint32 numCB = MAX_CONSTANT_BUFFER_SLOTS);
 
   /**
   *  @brief Call the other clean functions.
@@ -215,7 +228,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   /**
   *  @brief Map to save targets.
   */
-  UMap<uint32, SPtr<Texture2D>> m_targets;
+  UMap<uint32, RenderTargetInfo> m_renderTargetMap;
 
   /**
   *  @brief Blend state for basic geometry.
@@ -235,17 +248,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   /**
   *  @brief Shadow map texture size.
   */
-  float m_sMapSize = 0.0f;
+  float m_shadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
 
   /**
   *  @brief Screen size.
   */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
-
-  /**
-  *  @brief Storage information for all screen size dependent textures information.
-  */
-  Vector<RenderTargetInfo> m_targetInfoVec;
 };
 
 /**

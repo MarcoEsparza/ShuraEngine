@@ -73,88 +73,64 @@ RenderManager::onStartUp()
   Matrix4 identity = Matrix4::IDENTITY;
   graphMan.updateConstantBuffer(m_pModelTransform, &identity, sizeof(Matrix4));
 
-  // Textures info
-  m_targetInfoVec.push_back({ "DepthMap",
-                              TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget |
-                              BIND_FLAGS::kShaderResource});
-  m_targetInfoVec.push_back({ "NormalMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget |
-                              BIND_FLAGS::kShaderResource });
-  m_targetInfoVec.push_back({ "ColorMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget |
-                              BIND_FLAGS::kShaderResource });
-  m_targetInfoVec.push_back({ "PropMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget |
-                              BIND_FLAGS::kShaderResource });
-  m_targetInfoVec.push_back({ "AOMap",
-                              TEXTURE_FORMAT::kR16_FLOAT,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget |
-                              BIND_FLAGS::kShaderResource });
-  m_targetInfoVec.push_back({ "HBlurMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
-  m_targetInfoVec.push_back({ "VBlurMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
-  m_targetInfoVec.push_back({ "LightCMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
-  m_targetInfoVec.push_back({ "SkyBoxMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kRenderTarget |
-                              BIND_FLAGS::kShaderResource });
-  m_targetInfoVec.push_back({ "BrightMap",
-                              TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
-  m_targetInfoVec.push_back({ "TempMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
-  m_targetInfoVec.push_back({ "ToneMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
-  m_targetInfoVec.push_back({ "PPMap",
-                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                              USAGE::kDefault,
-                              BIND_FLAGS::kShaderResource |
-                              BIND_FLAGS::kUnorderedAccess });
+  auto fullUAVBindFlags = BIND_FLAGS::kRenderTarget |
+                          BIND_FLAGS::kShaderResource |
+                          BIND_FLAGS::kUnorderedAccess;
 
+  // Textures info
+  m_renderTargetMap[StringID("DepthMap").getID()] = RenderTargetInfo("DepthMap",
+                                                    TEXTURE_FORMAT::kR32G32B32A32_FLOAT);
+  m_renderTargetMap[StringID("NormalMap").getID()] = RenderTargetInfo("NormalMap");
+  m_renderTargetMap[StringID("ColorMap").getID()] = RenderTargetInfo("ColorMap");
+  m_renderTargetMap[StringID("PropMap").getID()] = RenderTargetInfo("PropMap");
+  m_renderTargetMap[StringID("AOMap").getID()] = RenderTargetInfo("AOMap",
+                                                                  TEXTURE_FORMAT::kR16_FLOAT);
+  m_renderTargetMap[StringID("HBlurMap").getID()] = RenderTargetInfo("HBlurMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
+  m_renderTargetMap[StringID("VBlurMap").getID()] = RenderTargetInfo("VBlurMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
+  m_renderTargetMap[StringID("LightCMap").getID()] = RenderTargetInfo("LightCMap",
+    TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
+
+  m_renderTargetMap[StringID("SkyBoxMap").getID()] = RenderTargetInfo("SkyBoxMap");
+  m_renderTargetMap[StringID("BrightMap").getID()] = RenderTargetInfo("BrightMap",
+    TEXTURE_FORMAT::kR16G16B16A16_FLOAT, fullUAVBindFlags);
+
+  m_renderTargetMap[StringID("TempMap").getID()] = RenderTargetInfo("TempMap",
+    TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
+
+  m_renderTargetMap[StringID("ToneMap").getID()] = RenderTargetInfo("ToneMap",
+    TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
+
+  m_renderTargetMap[StringID("PPMap").getID()] = RenderTargetInfo("PPMap",
+    TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
+
+  m_renderTargetMap[StringID("ShadowMap").getID()] = RenderTargetInfo("ShadowMap",
+    TEXTURE_FORMAT::kR32_TYPELESS,
+    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault,
+    m_shadowMapSize, m_shadowMapSize, false);
+
+  m_renderTargetMap[StringID("ShadowTemp").getID()] = RenderTargetInfo("ShadowTemp",
+    TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+    BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource, USAGE::kDefault,
+    m_shadowMapSize, m_shadowMapSize, false);
+
+  m_renderTargetMap[StringID("LuminanceMap").getID()] = RenderTargetInfo("LuminanceMap",
+    TEXTURE_FORMAT::kR32_FLOAT,
+    fullUAVBindFlags, USAGE::kDefault,
+    512, 512, false);
+
+  m_renderTargetMap[StringID("HistogramMap").getID()] = RenderTargetInfo("HistogramMap",
+    TEXTURE_FORMAT::kR32_FLOAT,
+    fullUAVBindFlags, USAGE::kDefault,
+    256, 3, false);
 }
 
 void
 RenderManager::onShutDown()
 {
   m_passes.clear();
-  m_targets.clear();
   cleanShaderObjects();
-}
-
-void
-RenderManager::addRenderTarget(const SPtr<Texture2D>& pRTV, const String& name)
-{
-  StringID strID(name);
-  m_targets[strID.getID()] = pRTV;
 }
 
 void
@@ -162,51 +138,24 @@ RenderManager::createRenderTextures()
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  if (!m_targets.empty()) {
-    m_targets.clear();
+  for (auto& rti : m_renderTargetMap) {
+    RenderTargetInfo& rtiInfo = rti.second;
+
+    auto widthSize = rtiInfo.width;
+    auto heightSize = rtiInfo.height;
+    if (rtiInfo.bUseScaledSize)
+    {
+      widthSize *= m_screenDimension.x;
+      heightSize *= m_screenDimension.y;
+    }
+
+    auto pTex = graphMan.createTexture2D(static_cast<uint32>(widthSize),
+                                         static_cast<uint32>(heightSize),
+                                         rtiInfo.format,
+                                         rtiInfo.usage,
+                                         rtiInfo.bFlags);
+    m_renderTargetMap[StringID(rtiInfo.name).getID()].pTexture = pTex;
   }
-
-  for (auto& rti : m_targetInfoVec) {
-    auto pTex = graphMan.createTexture2D(static_cast<uint32>(m_screenDimension.x),
-                                         static_cast<uint32>(m_screenDimension.y),
-                                         rti.format,
-                                         rti.usage,
-                                         rti.bFlags);
-    m_targets[StringID(rti.name).getID()] = pTex;
-  }
-
-  auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_sMapSize),
-                                              static_cast<uint32>(m_sMapSize),
-                                              TEXTURE_FORMAT::kR32_TYPELESS,
-                                              USAGE::kDefault,
-                                              BIND_FLAGS::kDepthStencil |
-                                              BIND_FLAGS::kShaderResource);
-
-  auto pShadowTempTarget = graphMan.createTexture2D(static_cast<uint32>(m_sMapSize),
-                                                    static_cast<uint32>(m_sMapSize),
-                                                    TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-                                                    USAGE::kDefault,
-                                                    BIND_FLAGS::kRenderTarget |
-                                                    BIND_FLAGS::kShaderResource);
-
-  auto pLuminance = graphMan.createTexture2D(512,
-                                             512,
-                                             TEXTURE_FORMAT::kR32_FLOAT,
-                                             USAGE::kDefault,
-                                             BIND_FLAGS::kShaderResource |
-                                             BIND_FLAGS::kUnorderedAccess);
-
-  auto pHistogramMap = graphMan.createTexture2D(256,
-                                                3,
-                                                TEXTURE_FORMAT::kR32_UINT,
-                                                USAGE::kDefault,
-                                                BIND_FLAGS::kShaderResource |
-                                                BIND_FLAGS::kUnorderedAccess);
-
-  m_targets[StringID("ShadowMap").getID()] = pSMapTarget;
-  m_targets[StringID("ShadowTemp").getID()] = pShadowTempTarget;
-  m_targets[StringID("LuminanceMap").getID()] = pLuminance;
-  m_targets[StringID("HistogramMap").getID()] = pHistogramMap;
 }
 
 void
@@ -566,22 +515,22 @@ RenderManager::renderScene()
 
   // Get render targets
   auto pMainTarget = graphMan.getMainRenderTargetView();
-  auto& pShadowMap = m_targets[StringID("ShadowMap").getID()];
-  auto& pShadowTemp = m_targets[StringID("ShadowTemp").getID()];
-  auto& pDepthMap = m_targets[StringID("DepthMap").getID()];
-  auto& pNormalMap = m_targets[StringID("NormalMap").getID()];
-  auto& pColorMap = m_targets[StringID("ColorMap").getID()];
-  auto& pPropMap = m_targets[StringID("PropMap").getID()];
-  auto& pAOMap = m_targets[StringID("AOMap").getID()];
-  auto& pHBlurMap = m_targets[StringID("HBlurMap").getID()];
-  auto& pVBlurMap = m_targets[StringID("VBlurMap").getID()];
-  auto& pSkyBoxMap = m_targets[StringID("SkyBoxMap").getID()];
-  auto& pLightCMap = m_targets[StringID("LightCMap").getID()];
-  auto& pHistogramMap = m_targets[StringID("HistogramMap").getID()];
-  auto& pToneMap = m_targets[StringID("ToneMap").getID()];
-  auto& pTempMap = m_targets[StringID("TempMap").getID()];
-  auto& pLuminance = m_targets[StringID("LuminanceMap").getID()];
-  auto& pPPMap = m_targets[StringID("PPMap").getID()];
+  auto& pShadowMap = m_renderTargetMap[StringID("ShadowMap").getID()];
+  auto& pShadowTemp = m_renderTargetMap[StringID("ShadowTemp").getID()];
+  auto& pDepthMap = m_renderTargetMap[StringID("DepthMap").getID()];
+  auto& pNormalMap = m_renderTargetMap[StringID("NormalMap").getID()];
+  auto& pColorMap = m_renderTargetMap[StringID("ColorMap").getID()];
+  auto& pPropMap = m_renderTargetMap[StringID("PropMap").getID()];
+  auto& pAOMap = m_renderTargetMap[StringID("AOMap").getID()];
+  auto& pHBlurMap = m_renderTargetMap[StringID("HBlurMap").getID()];
+  auto& pVBlurMap = m_renderTargetMap[StringID("VBlurMap").getID()];
+  auto& pSkyBoxMap = m_renderTargetMap[StringID("SkyBoxMap").getID()];
+  auto& pLightCMap = m_renderTargetMap[StringID("LightCMap").getID()];
+  auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
+  auto& pToneMap = m_renderTargetMap[StringID("ToneMap").getID()];
+  auto& pTempMap = m_renderTargetMap[StringID("TempMap").getID()];
+  auto& pLuminance = m_renderTargetMap[StringID("LuminanceMap").getID()];
+  auto& pPPMap = m_renderTargetMap[StringID("PPMap").getID()];
 
   uint32 dispatchX = static_cast<uint32>((m_screenDimension.x + 32.0f) / 32.0f);
   uint32 dispatchY = static_cast<uint32>((m_screenDimension.y + 32.0f) / 32.0f);
@@ -591,8 +540,8 @@ RenderManager::renderScene()
   /*          Shadow Mapping           */
   /*************************************/
   Viewport shadowVP = {};
-  shadowVP.width = m_sMapSize;
-  shadowVP.height = m_sMapSize;
+  shadowVP.width = m_shadowMapSize;
+  shadowVP.height = m_shadowMapSize;
   shadowVP.minDepth = 0.0f;
   shadowVP.maxDepth = 1.0f;
   shadowVP.topLeftX = 0.0f;
@@ -600,9 +549,9 @@ RenderManager::renderScene()
 
   graphMan.setViewport(shadowVP);
 
-  graphMan.clearDepthStencil(pShadowMap);
-  graphMan.clearRenderTarget(pShadowTemp, LinearColor::BLACK);
-  graphMan.setRenderTargets({ pShadowTemp }, pShadowMap);
+  graphMan.clearDepthStencil(pShadowMap.pTexture);
+  graphMan.clearRenderTarget(pShadowTemp.pTexture, LinearColor::BLACK);
+  graphMan.setRenderTargets({ pShadowTemp.pTexture }, pShadowMap.pTexture);
   m_passes[StringID("SMapShader").getID()]->setPass();
   drawStaticMeshOnScene();
 
@@ -621,13 +570,13 @@ RenderManager::renderScene()
 
   graphMan.setViewport(normalVP);
 
-  graphMan.clearRenderTarget(pDepthMap, LinearColor::BLACK);
-  graphMan.clearRenderTarget(pNormalMap, LinearColor::BLACK);
-  graphMan.clearRenderTarget(pColorMap, LinearColor::BLACK);
-  graphMan.clearRenderTarget(pPropMap, LinearColor::BLACK);
+  graphMan.clearRenderTarget(pDepthMap.pTexture, LinearColor::BLACK);
+  graphMan.clearRenderTarget(pNormalMap.pTexture, LinearColor::BLACK);
+  graphMan.clearRenderTarget(pColorMap.pTexture, LinearColor::BLACK);
+  graphMan.clearRenderTarget(pPropMap.pTexture, LinearColor::BLACK);
   graphMan.clearDepthStencil(pDepthSV);
 
-  graphMan.setRenderTargets({ pDepthMap, pNormalMap, pColorMap, pPropMap }, pDepthSV);
+  graphMan.setRenderTargets({ pDepthMap.pTexture, pNormalMap.pTexture, pColorMap.pTexture, pPropMap.pTexture }, pDepthSV);
   m_passes[StringID("GBufferShader").getID()]->setPass();
   drawStaticMeshOnScene();
 
@@ -636,13 +585,13 @@ RenderManager::renderScene()
   /*************************************/
   /*         Ambient Occlusion         */
   /*************************************/
-  graphMan.clearRenderTarget(pAOMap, LinearColor::BLACK);
-  graphMan.setRenderTargets({ pAOMap }, pDepthSV);
+  graphMan.clearRenderTarget(pAOMap.pTexture, LinearColor::BLACK);
+  graphMan.setRenderTargets({ pAOMap.pTexture }, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("AOShader").getID()]->setPass();
 
-  graphMan.psSetShaderResourceView(pDepthMap, 0);
-  graphMan.psSetShaderResourceView(pNormalMap, 1);
+  graphMan.psSetShaderResourceView(pDepthMap.pTexture, 0);
+  graphMan.psSetShaderResourceView(pNormalMap.pTexture, 1);
 
   graphMan.draw(3, 0);
 
@@ -654,8 +603,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HBlurShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pAOMap, 0);
-  graphMan.setUnorderedAccessView(pHBlurMap, 0);
+  graphMan.csSetShaderResourceView(pAOMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pHBlurMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -667,8 +616,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("VBlurShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pHBlurMap, 0);
-  graphMan.setUnorderedAccessView(pVBlurMap, 0);
+  graphMan.csSetShaderResourceView(pHBlurMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pVBlurMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -680,13 +629,13 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LightCS").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pDepthMap, 0);
-  graphMan.csSetShaderResourceView(pNormalMap, 1);
-  graphMan.csSetShaderResourceView(pColorMap, 2);
-  graphMan.csSetShaderResourceView(pPropMap, 3);
-  graphMan.csSetShaderResourceView(pVBlurMap, 4);
-  graphMan.csSetShaderResourceView(pShadowMap, 5);
-  graphMan.setUnorderedAccessView(pLightCMap, 0);
+  graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
+  graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
+  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
+  graphMan.csSetShaderResourceView(pShadowMap.pTexture, 5);
+  graphMan.setUnorderedAccessView(pLightCMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -695,11 +644,11 @@ RenderManager::renderScene()
   /*************************************/
   /*              Sky Box              */
   /*************************************/
-  graphMan.clearRenderTarget(pSkyBoxMap, LinearColor::BLACK);
-  graphMan.setRenderTargets({ pSkyBoxMap }, pDepthSV);
+  graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
+  graphMan.setRenderTargets({ pSkyBoxMap.pTexture }, pDepthSV);
   m_passes[StringID("SkyBoxShader").getID()]->setPass();
 
-  SPtr<Texture2D> pSbTex = nullptr;
+  WPtr<Texture2D> pSbTex;
 
   for (auto& gameObject : scene.getGameObjectList()) {
     for (auto& component : gameObject->components) {
@@ -724,10 +673,10 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ASBShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pLightCMap, 0);
-  graphMan.csSetShaderResourceView(pNormalMap, 1);
-  graphMan.csSetShaderResourceView(pSkyBoxMap, 2);
-  graphMan.setUnorderedAccessView(pTempMap, 0);
+  graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
+  graphMan.setUnorderedAccessView(pTempMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -750,8 +699,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LuminanceShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pTempMap, 0);
-  graphMan.setUnorderedAccessView(pLuminance, 0);
+  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pLuminance.pTexture, 0);
 
   uint32 dSize = static_cast<uint32>(512.0f / 32.0f);
 
@@ -775,8 +724,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ToneMapShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pTempMap, 0);
-  graphMan.setUnorderedAccessView(pToneMap, 0);
+  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pToneMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -788,8 +737,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HBlurShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pLuminance, 0);
-  graphMan.setUnorderedAccessView(pHBlurMap, 0);
+  graphMan.csSetShaderResourceView(pLuminance.pTexture, 0);
+  graphMan.setUnorderedAccessView(pHBlurMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -801,8 +750,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("VBlurShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pHBlurMap, 0);
-  graphMan.setUnorderedAccessView(pVBlurMap, 0);
+  graphMan.csSetShaderResourceView(pHBlurMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pVBlurMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -814,9 +763,9 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("AddMixShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pToneMap, 0);
-  graphMan.csSetShaderResourceView(pVBlurMap, 1);
-  graphMan.setUnorderedAccessView(pTempMap, 0);
+  graphMan.csSetShaderResourceView(pToneMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 1);
+  graphMan.setUnorderedAccessView(pTempMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -829,8 +778,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("PPShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pTempMap, 0);
-  graphMan.setUnorderedAccessView(pPPMap, 0);
+  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pPPMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -843,7 +792,7 @@ RenderManager::renderScene()
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("FinalShader").getID()]->setPass();
 
-  graphMan.psSetShaderResourceView(pPPMap, 0);
+  graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
 
   graphMan.draw(3, 0);
 
@@ -855,8 +804,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HistogramShader").getID()]->setPass();
 
-  graphMan.csSetShaderResourceView(pPPMap, 0);
-  graphMan.setUnorderedAccessView(pHistogramMap, 0);
+  graphMan.csSetShaderResourceView(pPPMap.pTexture, 0);
+  graphMan.setUnorderedAccessView(pHistogramMap.pTexture, 0);
 
   uint32 dx = static_cast<uint32>((256.0f + 32.0f) / 32.0f);
   uint32 dy = 3;
@@ -959,7 +908,7 @@ RenderManager::cleanShaderObjects()
 void
 RenderManager::setShadowMapSize(const float size)
 {
-  m_sMapSize = size;
+  m_shadowMapSize = size;
 }
 
 void
