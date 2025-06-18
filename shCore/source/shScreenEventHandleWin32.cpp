@@ -682,7 +682,7 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     width = static_cast<uint32>(static_cast<UINT64>(lParam) & 0xFFFF);
     height = static_cast<uint32>(static_cast<UINT64>(lParam) >> 16);
 
-    currentEvent = Event(width, height, false);
+    //currentEvent = Event(width, height, false);
 
     break;
   }
@@ -702,8 +702,18 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                  nullptr,
                  RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 
-    currentEvent = Event(width, height, true);
+    //currentEvent = Event(width, height, true);
     result = WVR_REDRAW;
+    break;
+  }
+  case WM_EXITSIZEMOVE:
+  {
+    RECT rect;
+    GetWindowRect(hwnd, &rect);
+    currenScreenRect = rect;
+    uint32 width = static_cast<uint32>(rect.right - rect.left);
+    uint32 height = static_cast<uint32>(rect.bottom - rect.top);
+    currentEvent = Event(width, height, false);
     break;
   }
   case WM_DPICHANGED:

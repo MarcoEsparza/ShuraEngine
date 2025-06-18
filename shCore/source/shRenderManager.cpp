@@ -190,15 +190,15 @@ RenderManager::createPasses()
 
   // HBlur
   auto pHBlurShader = sh_makeShared<Pass>();
-  pHBlurShader->setCShaderInfo("resources/shaders/HBlurShader.hlsl",
-                               "CSMain",
+  pHBlurShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                               "HBlurCS",
                                "cs_5_0");
   pHBlurShader->compileShader();
 
   // VBlur
   auto pVBlurShader = sh_makeShared<Pass>();
-  pVBlurShader->setCShaderInfo("resources/shaders/VBlurShader.hlsl",
-                               "CSMain",
+  pVBlurShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                               "VBlurCS",
                                "cs_5_0");
   pVBlurShader->compileShader();
 
@@ -257,7 +257,7 @@ RenderManager::createPasses()
                                    "cs_5_0");
   pLuminanceShader->compileShader();
 
-  // Luminance shader
+  // Bright shader
   auto pBrightShader = sh_makeShared<Pass>();
   pBrightShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
                                 "BrightCS",
@@ -266,22 +266,22 @@ RenderManager::createPasses()
 
   // ToneMap shader
   auto pToneMapShader = sh_makeShared<Pass>();
-  pToneMapShader->setCShaderInfo("resources/shaders/ToneMappingShader.hlsl",
-                                 "CSMain",
+  pToneMapShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                                 "ToneMapCS",
                                  "cs_5_0");
   pToneMapShader->compileShader();
 
-  // PostProcess shader
+  // AddMix shader
   auto pAddMixShader = sh_makeShared<Pass>();
-  pAddMixShader->setCShaderInfo("resources/shaders/AdditiveMixShader.hlsl",
-                                "CSMain",
+  pAddMixShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
+                                "AddMixCS",
                                 "cs_5_0");
   pAddMixShader->compileShader();
 
   // PostProcess shader
   auto pPPShader = sh_makeShared<Pass>();
   pPPShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "CSMain",
+                            "PostProcessCS",
                             "cs_5_0");
   pPPShader->compileShader();
 
@@ -402,6 +402,7 @@ RenderManager::createPasses()
   m_passes[StringID("HistogramShader").getID()] = pHistogramShader;
   m_passes[StringID("ASBShader").getID()] = pASBShader;
   m_passes[StringID("LuminanceShader").getID()] = pLuminanceShader;
+  m_passes[StringID("BrightShader").getID()] = pBrightShader;
   m_passes[StringID("ToneMapShader").getID()] = pToneMapShader;
   m_passes[StringID("PPShader").getID()] = pPPShader;
   m_passes[StringID("AddMixShader").getID()] = pAddMixShader;

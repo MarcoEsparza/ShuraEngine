@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/06/11
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -35,6 +35,9 @@
 #include "shDepthStencilState.h"
 #include "shPass.h"
 
+#define VertexBufferMaxSize                        5000
+#define IndexBufferMaxSize                         10000
+
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
@@ -51,8 +54,8 @@ struct ImGui_ImplShura_RendererData
   ImGui_ImplShura_RendererData()
   { 
      memset((void*)this, 0, sizeof(this));
-     vertexBufferSize = 5000;
-     indexBufferSize = 10000;
+     vertexBufferSize = VertexBufferMaxSize;
+     indexBufferSize = IndexBufferMaxSize;
   }
 };
 
@@ -65,8 +68,20 @@ ImGuiImplShura_BackendRendererData()
 }
 
 bool
-ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle)
+ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle)
 {
+  if(screenHandle.expired()) {
+    SH_ASSERT(false && "Screen handle is expired!");
+    return false;
+  }
+
+  if (ImGui::GetCurrentContext() == nullptr) {
+    SH_ASSERT(false && "ImGui context is not initialized!");
+    return false;
+  }
+
+  auto pScreen = screenHandle.lock();
+
   ImGuiIO& io = ImGui::GetIO();
   IMGUI_CHECKVERSION();
   IM_ASSERT(io.BackendPlatformUserData == nullptr && "Already initialized a platform backend");
@@ -80,27 +95,26 @@ ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle)
   io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
   io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
   
-  io.DisplaySize.x = static_cast<float>(screenHandle->getWidth());
-  io.DisplaySize.y = static_cast<float>(screenHandle->getHeight());
+  io.DisplaySize.x = static_cast<float>(pScreen->getWidth());
+  io.DisplaySize.y = static_cast<float>(pScreen->getHeight());
   ImGuiViewport* viewport = ImGui::GetMainViewport();
-  viewport->PlatformHandle = reinterpret_cast<void*>(screenHandle->getPlatformHandler());
-  viewport->Size.x = static_cast<float>(screenHandle->getWidth());
-  viewport->Size.y = static_cast<float>(screenHandle->getHeight());
+  viewport->PlatformHandle = reinterpret_cast<void*>(pScreen->getPlatformHandler());
+  viewport->Size.x = static_cast<float>(pScreen->getWidth());
+  viewport->Size.y = static_cast<float>(pScreen->getHeight());
 
   return true;
 }
 
 void
-ImGui_ImplShura_Resize(const SPtr<Screen>& screenHandle)
+ImGui_ImplShura_Resize(const Vector2& newSize)
 {
   ImGuiIO& io = ImGui::GetIO();
-
-  io.DisplaySize.x = static_cast<float>(screenHandle->getWidth());
-  io.DisplaySize.y = static_cast<float>(screenHandle->getHeight());
+  io.DisplaySize.x = newSize.x;
+  io.DisplaySize.y = newSize.y;
 
   ImGuiViewport* viewport = ImGui::GetMainViewport();
-  viewport->Size.x = static_cast<float>(screenHandle->getWidth());
-  viewport->Size.y = static_cast<float>(screenHandle->getHeight());
+  viewport->Size.x = newSize.x;
+  viewport->Size.y = newSize.y;
 }
 
 static void

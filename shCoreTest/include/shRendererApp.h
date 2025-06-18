@@ -66,31 +66,6 @@ struct InvVP
   Matrix4 invV;
 };
 
-struct ToneMap
-{
-  float index = 0.0f;
-  float lutSize = 0.0f;
-  float whitePoint = 0.0f;
-  float exposure = 0.0f;
-};
-
-struct BrightMap
-{
-  float brightThreshold = 0.0f;
-  Vector3 unused = Vector3::ZERO;
-};
-
-struct PostProcessValues
-{
-  float minR = 0.0f;
-  float maxR = 0.0f;
-  float minG = 0.0f;
-  float maxG = 0.0f;
-  float minB = 0.0f;
-  float maxB = 0.0f;
-  Vector2 unused = Vector2(0.0f, 0.0f);
-};
-
 /**
 *  @brief App for render testing.
 */
@@ -257,6 +232,12 @@ class RendererApp : public BaseApp
   void
   setRenderTargets();
 
+  void
+  updateMainBuffer();
+
+  void
+  updateShaderDataBuffer();
+
   /**
   *  @brief Sets the graphic interface.
   */
@@ -292,6 +273,16 @@ class RendererApp : public BaseApp
   /*************************************/
 
   /**
+  *  @brief Main Constant Buffer.
+  */
+  SPtr<ConstantBuffer> m_pMainBuffer;
+
+  /**
+  *  @brief Shader Data Constant Buffer.
+  */
+  SPtr<ConstantBuffer> m_pShaderDataBuffer;
+
+  /**
   *  @brief Constant Buffer for view-projection.
   */
   SPtr<ConstantBuffer> m_pVP;
@@ -300,16 +291,6 @@ class RendererApp : public BaseApp
   *  @brief Constant Buffer for inverse view-projection
   */
   SPtr<ConstantBuffer> m_pInvVP;
-
-  /**
-  *  @brief Constant Buffer for pistol transform.
-  */
-  SPtr<ConstantBuffer> m_pModelTransform;
-
-  /**
-  *  @brief Constant Buffer for sponza transform.
-  */
-  SPtr<ConstantBuffer> m_pSponzaTransform;
 
   /**
   *  @brief Constant Buffer for camera position.
@@ -327,11 +308,6 @@ class RendererApp : public BaseApp
   SPtr<ConstantBuffer> m_pViewportBuffer;
 
   /**
-  *  @brief Constant buffer for ao data.
-  */
-  SPtr<ConstantBuffer> m_pAOBuffer;
-
-  /**
   *  @brief Constant buffer for light camera.
   */
   SPtr<ConstantBuffer> m_pLCBuffer;
@@ -340,11 +316,6 @@ class RendererApp : public BaseApp
   *  @brief Constant buffer for light size.
   */
   SPtr<ConstantBuffer> m_pLSizeBuffer;
-
-
-  SPtr<ConstantBuffer> m_pToneMapBuffer;
-  SPtr<ConstantBuffer> m_pLuminanceBuffer;
-  SPtr<ConstantBuffer> m_pPPBuffer;
 
   /*************************************/
   /*              Camera               */

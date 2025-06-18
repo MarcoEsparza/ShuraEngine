@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/20
+*  @date    2025/06/11
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -30,10 +30,10 @@ namespace shEngineSDK {
 *  @brief Initialize ImGui implementation for Shura Engine.
 */
 bool
-ImGui_ImplShura_Init(const SPtr<Screen>& screenHandle);
+ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle);
 
 void
-ImGui_ImplShura_Resize(const SPtr<Screen>& screenHandle);
+ImGui_ImplShura_Resize(const Vector2& newSize);
 
 /**
 *  @brief Render call ImGui implementation for Shura Engine.

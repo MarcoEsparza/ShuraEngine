@@ -159,10 +159,12 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
     m_screenDesc.width = rszData.width;
     m_screenDesc.height = rszData.height;
 
-    graphMan.updateScreenSize(Vector2(static_cast<float>(rszData.width),
-                                      static_cast<float>(rszData.height)));
+    if (!rszData.resizing) {
+      graphMan.updateScreenSize(Vector2(static_cast<float>(rszData.width),
+                                        static_cast<float>(rszData.height)));
 
-    onResize(rszData);
+      onResize(rszData);
+    }
   }
 
   // Keyboard events

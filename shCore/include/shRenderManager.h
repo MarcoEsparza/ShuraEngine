@@ -22,11 +22,11 @@
 #include "shVector2.h"
 #include "shLinearColor.h"
 #include "shGraphicTypes.h"
+#include "shMatrix4.h"
 
-#define MAX_CONSTANT_BUFFER_SLOTS 14
-#define MAX_SHADER_RESOURCE_VIEW_SLOTS 128
-
-#define DEFAULT_SHADOW_MAP_SIZE 2048.0f
+#define MAX_CONSTANT_BUFFER_SLOTS                             14
+#define MAX_SHADER_RESOURCE_VIEW_SLOTS                        128
+#define DEFAULT_SHADOW_MAP_SIZE                               2048.0f
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -41,6 +41,9 @@ class Texture2D;
 class ConstantBuffer;
 class SceneGraph;
 
+/**
+*  @brief Render target information structure.
+*/
 struct RenderTargetInfo
 {
   RenderTargetInfo() = default;
@@ -64,6 +67,68 @@ struct RenderTargetInfo
   bool bUseScaledSize = true;
   SPtr<Texture2D> pTexture;
 };
+
+/**
+*  @brief Main buffer data structure.
+*/
+MS_ALIGN(64)
+struct MainBufferData
+{
+  // View matrix data from the camera.
+  Matrix4 viewMatrix = Matrix4::IDENTITY;
+  Matrix4 transposeViewMatrix = Matrix4::IDENTITY;
+  Matrix4 inverseViewMatrix = Matrix4::IDENTITY;
+  Matrix4 inverseTransposeViewMatrix = Matrix4::IDENTITY;
+
+  // Projection matrix data from the camera.
+  Matrix4 projectionMatrix = Matrix4::IDENTITY;
+  Matrix4 transposeProjectionMatrix = Matrix4::IDENTITY;
+  Matrix4 inverseProjectionMatrix = Matrix4::IDENTITY;
+  Matrix4 inverseTransposeProjectionMatrix = Matrix4::IDENTITY;
+
+  // Viewport dimensions.
+  Vector2 screenSize = { 0.0f, 0.0f };
+  float nearPlane = 0.0f;
+  float farPlane = 0.0f;
+
+  // Camera settings.
+  Vector4 cameraPosition = { 0.0f, 0.0f, 0.0f, 0.0f };
+  Vector4 cameraDirection = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+  // Time data.
+  float time = 0.0f;
+  float deltaTime = 0.0f;
+  float cosTime = 0.0f;
+  float sinTime = 0.0f;
+}; GCC_ALIGN(64);
+
+/**
+*  @brief Shader data structure.
+*/
+MS_ALIGN(16)
+struct ShaderData {
+  // Ambient occlusion data.
+  float randSize = 0.0f;
+  float sampleRadius = 0.0f;
+  float aoScale = 0.0f;
+  float aoBias = 0.0f;
+  float aoIntensity = 0.0f;
+
+  // Tone mapping data.
+  float toneMappingIndex = 0.0f;
+  float lutSize = 0.0f;
+  float whitePoint = 0.0f;
+  float exposure = 0.0f;
+  float brightThreshold = 0.0f;
+
+  // Post-processing data.
+  float minR = 0.0f;
+  float maxR = 0.0f;
+  float minG = 0.0f;
+  float maxG = 0.0f;
+  float minB = 0.0f;
+  float maxB = 0.0f;
+}; GCC_ALIGN(16);
 
 /**
 *  @brief Render module.

@@ -43,18 +43,6 @@
 #include "shSound.h"
 
 namespace shEngineSDK {
-/**
-*  @brief Structure for ambient occlusion buffer.
-*/
-struct AOBuffer {
-  Vector2 viewport = { 0.0f, 0.0f };
-  float samplerRad = 0.0f;
-  float scale = 0.0f;
-  float bias = 0.0f;
-  float intensity = 0.0f;
-  Vector2 unused = { 0.0f, 0.0f };
-};
-
 void
 RendererApp::onCreate()
 {
@@ -112,26 +100,6 @@ RendererApp::onCreate()
   auto pBasicShader = renderMan.getPass("GBufferShader");
   pBasicShader->addVSConstantBuffer(m_pVP, 0);
 
-  // Ambient occlusion buffers
-  AOBuffer aoBuffer;
-  aoBuffer.viewport.x = m_screenSize.x;
-  aoBuffer.viewport.y = m_screenSize.y;
-  aoBuffer.samplerRad = m_aoSamplerRad = 1.0f;
-  aoBuffer.scale = m_aoScale = 1.0f;
-  aoBuffer.bias = m_aoBias = 0.01f;
-  aoBuffer.intensity = m_aoIntensity = 1.0f;
-
-  auto pAOShader = renderMan.getPass("AOShader");
-  m_pAOBuffer = graphMan.createConstantBuffer(sizeof(AOBuffer));
-  graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
-  pAOShader->addPSConstantBuffer(m_pAOBuffer, 0);
-
-  // Blur buffers
-  auto pHBlurShader = renderMan.getPass("HBlurShader");
-  auto pVBlurShader = renderMan.getPass("VBlurShader");
-  pHBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-  pVBlurShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-
   // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
   pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
@@ -157,59 +125,57 @@ RendererApp::onCreate()
   auto pHistogramShader = renderMan.getPass("HistogramShader");
   pHistogramShader->addCSConstantBuffer(m_pViewportBuffer, 0);
 
-  // ToneMap
-  ToneMap tm = {};
-  tm.lutSize = 1.0f;
-  tm.index = static_cast<float>(m_toneMapIndex);
-  tm.whitePoint = m_whitePt;
-  tm.exposure = m_exposure;
-
-  m_pToneMapBuffer = graphMan.createConstantBuffer(sizeof(ToneMap));
-  graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
-
-  auto pToneMapShader = renderMan.getPass("ToneMapShader");
-  pToneMapShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-  pToneMapShader->addCSConstantBuffer(m_pToneMapBuffer, 1);
-
   // Add skybox
   auto pASBShader = renderMan.getPass("ASBShader");
   pASBShader->addCSConstantBuffer(m_pViewportBuffer, 0);
 
-  // Luminance
-  BrightMap bm = {};
-  bm.brightThreshold = m_brightT;
-  m_pLuminanceBuffer = graphMan.createConstantBuffer(sizeof(BrightMap));
-  graphMan.updateConstantBuffer(m_pLuminanceBuffer, &bm, sizeof(BrightMap));
-
-  auto pLuminanceShader = renderMan.getPass("LuminanceShader");
-  pLuminanceShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-  pLuminanceShader->addCSConstantBuffer(m_pLuminanceBuffer, 1);
-
-  // Post Process
-  PostProcessValues ppV = {};
-  ppV.minR = m_minR / 255.0f;
-  ppV.maxR = m_maxR / 255.0f;
-  ppV.minG = m_minG / 255.0f;
-  ppV.maxG = m_maxG / 255.0f;
-  ppV.minB = m_minB / 255.0f;
-  ppV.maxB = m_maxB / 255.0f;
-
-  m_pPPBuffer = graphMan.createConstantBuffer(sizeof(PostProcessValues));
-  graphMan.updateConstantBuffer(m_pPPBuffer, &ppV, sizeof(PostProcessValues));
-
-  auto pPPShader = renderMan.getPass("PPShader");
-  pPPShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-  pPPShader->addCSConstantBuffer(m_pPPBuffer, 1);
-
-  // AddMix
-  auto pAddMix = renderMan.getPass("AddMixShader");
-  pAddMix->addCSConstantBuffer(m_pViewportBuffer, 0);
-
   // Create audio
   Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
-  if(m_testSound)
+  if (m_testSound) {
     m_testSound->m_channel = CHANNEL_TYPE::kUI;
+  }
+
+  m_aoSamplerRad = 1.0f;
+  m_aoScale = 1.0f;
+  m_aoBias = 0.01f;
+  m_aoIntensity = 1.0f;
+  m_toneMapIndex = 0;
+  m_whitePt = 1.0f;
+  m_exposure = 1.0f;
+  m_brightT = 1.0f;
+  updateShaderDataBuffer();
+  updateMainBuffer();
+
+  // Ambient occlusion buffers
+  auto pAOShader = renderMan.getPass("AOShader");
+  pAOShader->addPSConstantBuffer(m_pMainBuffer, 0);
+  pAOShader->addPSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Post process buffers
+  auto pPPShader = renderMan.getPass("PPShader");
+  pPPShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pPPShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Tone map buffers
+  auto pToneMapShader = renderMan.getPass("ToneMapShader");
+  pToneMapShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pToneMapShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Luminance buffers
+  auto pLuminanceShader = renderMan.getPass("LuminanceShader");
+  pLuminanceShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pLuminanceShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Bright buffers
+  auto pBrightShader = renderMan.getPass("BrightShader");
+  pBrightShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pBrightShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  // AddMix buffers
+  auto pAddMix = renderMan.getPass("AddMixShader");
+  pAddMix->addCSConstantBuffer(m_pMainBuffer, 0);
+  pAddMix->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Blur buffers
+  auto pHBlurShader = renderMan.getPass("HBlurShader");
+  auto pVBlurShader = renderMan.getPass("VBlurShader");
+  pHBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pVBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
 }
 
 void
@@ -301,17 +267,6 @@ RendererApp::onUpdate()
     graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
   }
 
-  // Update ambient occlusion
-  AOBuffer aoBuffer;
-  aoBuffer.viewport.x = static_cast<float>(getScreenDescription().width);
-  aoBuffer.viewport.y = static_cast<float>(getScreenDescription().height);
-  aoBuffer.samplerRad = m_aoSamplerRad;
-  aoBuffer.scale = m_aoScale;
-  aoBuffer.bias = m_aoBias;
-  aoBuffer.intensity = m_aoIntensity;
-
-  graphMan.updateConstantBuffer(m_pAOBuffer, &aoBuffer, sizeof(AOBuffer));
-
   // Update camera
   if (m_bRightClick) {
     rotateCamera();
@@ -339,35 +294,15 @@ RendererApp::onUpdate()
   
   updateCamera();
 
+  updateShaderDataBuffer();
+  updateMainBuffer();
+
   // Update audio
   if (bIsSoundPlaying) {
     audioMan.playSound(m_testSound);
     bIsSoundPlaying = false;
   }
   audioMan.update();
-
-  // Update tone map
-  ToneMap tm = {};
-  tm.lutSize = 1.0f;
-  tm.index = static_cast<float>(m_toneMapIndex);
-  tm.whitePoint = m_whitePt;
-  tm.exposure = m_exposure;
-
-  graphMan.updateConstantBuffer(m_pToneMapBuffer, &tm, sizeof(ToneMap));
-
-  BrightMap bm = {};
-  bm.brightThreshold = m_brightT;
-  graphMan.updateConstantBuffer(m_pLuminanceBuffer, &bm, sizeof(BrightMap));
-
-  // Post Process
-  PostProcessValues ppV = {};
-  ppV.minR = m_minR / 255.0f;
-  ppV.maxR = m_maxR / 255.0f;
-  ppV.minG = m_minG / 255.0f;
-  ppV.maxG = m_maxG / 255.0f;
-  ppV.minB = m_minB / 255.0f;
-  ppV.maxB = m_maxB / 255.0f;
-  graphMan.updateConstantBuffer(m_pPPBuffer, &ppV, sizeof(PostProcessValues));
 }
 
 void
@@ -409,7 +344,7 @@ RendererApp::onResize(const ResizeData& rszData)
                    m_camera.getNear());
   graphMan.updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
 
-  ImGui_ImplShura_Resize(getScreen());
+  ImGui_ImplShura_Resize(m_screenSize);
 }
 
 void
@@ -577,6 +512,16 @@ RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
 void
 RendererApp::onDestroy()
 {
+  m_pMainBuffer.reset();
+  m_pShaderDataBuffer.reset();
+  m_pVP.reset();
+  m_pInvVP.reset();
+  m_pCameraPosition.reset();
+  m_pLCBuffer.reset();
+  m_pLightBuffer.reset();
+  m_pLSizeBuffer.reset();
+  m_pViewportBuffer.reset();
+  m_pModel.reset();
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
 }
@@ -1109,6 +1054,74 @@ RendererApp::setRenderTargets()
   //renderMan.addRenderTarget(pLuminance, "LuminanceMap");
   //renderMan.addRenderTarget(pToneMap, "ToneMap");
   //renderMan.addRenderTarget(pPPMap, "PPMap");
+}
+
+void
+RendererApp::updateMainBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  Time& time = g_time();
+
+  MainBufferData mbd = {};
+  mbd.viewMatrix = m_camera.getView();
+  mbd.transposeViewMatrix = mbd.viewMatrix;
+  mbd.transposeViewMatrix.getTransposed();
+  mbd.inverseViewMatrix = m_camera.getView().getInversed();
+  mbd.inverseTransposeViewMatrix = mbd.inverseViewMatrix * mbd.transposeViewMatrix;
+
+  mbd.projectionMatrix = m_camera.getProjection();
+  mbd.transposeProjectionMatrix = mbd.projectionMatrix;
+  mbd.transposeProjectionMatrix.getTransposed();
+  mbd.inverseProjectionMatrix = m_camera.getView().getInversed();
+  mbd.inverseTransposeProjectionMatrix = mbd.inverseProjectionMatrix *
+                                         mbd.transposeProjectionMatrix;
+
+  mbd.screenSize = m_screenSize;
+  mbd.nearPlane = m_camera.getNear();
+  mbd.farPlane = m_camera.getFar();
+
+  mbd.cameraPosition = Vector4(m_camera.getPosition(), 0.0f);
+  mbd.cameraDirection = Vector4(m_camera.getTarget(), 0.0f);
+
+  mbd.time = time.getTime();
+  mbd.deltaTime = time.getFrameDeltaTime();
+  mbd.cosTime = Math::cos(Radian(mbd.time));
+  mbd.sinTime = Math::sin(Radian(mbd.time));
+
+  if (!m_pMainBuffer) {
+    m_pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
+  }
+  graphMan.updateConstantBuffer(m_pMainBuffer, &mbd, sizeof(MainBufferData));
+}
+
+void
+RendererApp::updateShaderDataBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  ShaderData sd = {};
+  sd.randSize = 1.0f;
+  sd.sampleRadius = m_aoSamplerRad;
+  sd.aoScale = m_aoScale;
+  sd.aoBias = m_aoBias;
+  sd.aoIntensity = m_aoIntensity;
+  sd.toneMappingIndex = m_toneMapIndex;
+  sd.lutSize = 0.0f;
+  sd.whitePoint = m_whitePt;
+  sd.exposure = m_exposure;
+  sd.brightThreshold = m_brightT;
+  float normChannel = 1.0f / 255.0f;
+  sd.minR = m_minR * normChannel;
+  sd.maxR = m_maxR * normChannel;
+  sd.minG = m_minG * normChannel;
+  sd.maxG = m_maxG * normChannel;
+  sd.minB = m_minB * normChannel;
+  sd.maxB = m_maxB * normChannel;
+
+  if (!m_pShaderDataBuffer) {
+    m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
+  }
+  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &sd, sizeof(ShaderData));
 }
 
 void
