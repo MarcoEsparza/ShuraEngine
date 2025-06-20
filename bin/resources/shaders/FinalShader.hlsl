@@ -1,14 +1,16 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 SamplerState textureSampler : register(s0);
 //Texture2D t_normalMap : register(t0);
 //Texture2D t_skybox : register(t1);
 //Texture2D t_colorMap : register(t2);
 Texture2D t_inputMap : register(t0);
 
-cbuffer Viewport : register(b0)
-{
-  float2 Dimensions;
-  float2 unused;
-}
+//cbuffer Viewport : register(b0)
+//{
+//  float2 Dimensions;
+//  float2 unused;
+//}
 
 struct PS_INPUT
 {
@@ -25,7 +27,7 @@ struct PS_INPUT
 
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
-  float2 screenUV = input.Position.xy / Dimensions;
+  float2 screenUV = input.Position.xy / screenSize;
    
   //float4 color = t_colorMap.Sample(textureSampler, screenUV);
   //float4 normal = t_normalMap.Sample(textureSampler, screenUV);

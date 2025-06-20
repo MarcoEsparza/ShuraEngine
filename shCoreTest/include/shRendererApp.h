@@ -58,15 +58,6 @@ struct VP
 };
 
 /**
-*  @brief Structure for inverse view-projection.
-*/
-struct InvVP
-{
-  Matrix4 invVP;
-  Matrix4 invV;
-};
-
-/**
 *  @brief App for render testing.
 */
 class RendererApp : public BaseApp
@@ -196,17 +187,6 @@ class RendererApp : public BaseApp
   */
   /***************************************************************************/
  private:
-  /**
-  *  @brief Initialize the shaders.
-  */
-  void
-  initShaders();
-
-  /**
-  *  @brief Initialize the app camera.
-  */
-  void
-  initCamera();
 
   /**
   *  @brief Rotate the camera.
@@ -215,26 +195,20 @@ class RendererApp : public BaseApp
   rotateCamera();
 
   /**
-  *  @brief Update the camera and the camera buffers.
-  */
-  void
-  updateCamera();
-
-  /**
   *  @brief Initialize light orthographic camera.
   */
   void
   initLightCamera();
 
   /**
-  *  @brief Set render targets information.
+  *  @brief Updates the main buffer data.
   */
-  void
-  setRenderTargets();
-
   void
   updateMainBuffer();
 
+  /**
+  *  @brief Updates the shader buffer data.
+  */
   void
   updateShaderDataBuffer();
 
@@ -283,39 +257,14 @@ class RendererApp : public BaseApp
   SPtr<ConstantBuffer> m_pShaderDataBuffer;
 
   /**
-  *  @brief Constant Buffer for view-projection.
-  */
-  SPtr<ConstantBuffer> m_pVP;
-
-  /**
-  *  @brief Constant Buffer for inverse view-projection
-  */
-  SPtr<ConstantBuffer> m_pInvVP;
-
-  /**
-  *  @brief Constant Buffer for camera position.
-  */
-  SPtr<ConstantBuffer> m_pCameraPosition;
-
-  /**
   *  @brief Constant Buffer for light struct.
   */
   SPtr<ConstantBuffer> m_pLightBuffer;
 
   /**
-  *  @brief Constant Buffer for viewport.
-  */
-  SPtr<ConstantBuffer> m_pViewportBuffer;
-
-  /**
   *  @brief Constant buffer for light camera.
   */
   SPtr<ConstantBuffer> m_pLCBuffer;
-
-  /**
-  *  @brief Constant buffer for light size.
-  */
-  SPtr<ConstantBuffer> m_pLSizeBuffer;
 
   /*************************************/
   /*              Camera               */

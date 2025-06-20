@@ -1,3 +1,5 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 Texture2D t_inputMap : register(t0);
 RWTexture2D<uint> t_outputMap : register(u0);
 
@@ -5,18 +7,18 @@ RWTexture2D<uint> t_outputMap : register(u0);
 #define NUM_BINS 256
 #endif
 
-cbuffer Viewport : register(b0)
-{
-  float2 Dimensions;
-  float unused;
-  float unused1;
-}
+//cbuffer Viewport : register(b0)
+//{
+//  float2 Dimensions;
+//  float unused;
+//  float unused1;
+//}
 
 [numthreads(32, 32, 1)]
 void
 CSMain(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
+  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
     return;
   }
 

@@ -1,3 +1,5 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 SamplerState textureSampler : register(s0);
 Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
@@ -17,39 +19,15 @@ RWTexture2D<float4> t_outputMap : register(u0);
 #define PI 3.14159265359
 #endif
 
-cbuffer InvVP : register(b0)
-{
-  float4x4 InvViewProj;
-  float4x4 InvView;
-}
-
-cbuffer ViewDir : register(b1)
-{
-  float4 ViewPos;
-}
-
 cbuffer Light : register(b2)
 {
   float4 LightPos[12];
 }
 
-cbuffer Viewport : register(b3)
-{
-  float2 Dimensions;
-  float FarClip;
-  float NearClip;
-}
-
-cbuffer LightCam : register(b4)
+cbuffer LightCam : register(b3)
 {
   float4x4 lightView;
   float4x4 lightProj;
-}
-
-cbuffer LightCamDimension : register(b5)
-{
-  float shadowMapSize;
-  float3 unused;
 }
 
 struct PS_INPUT
@@ -160,11 +138,11 @@ float3 cookTorrenceSpecular(float3 normal,
 [numthreads(32, 32, 1)]
 void CSMain(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= Dimensions.x || dtID.y >= Dimensions.y) {
+  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
     return;
   }
   
-  float2 screenUV = dtID.xy / Dimensions;
+  float2 screenUV = dtID.xy / screenSize;
   
   float4 depth = t_depthMap.Load(int3(dtID.xy, 0));
   float4 normalMap = t_normalMap.Load(int3(dtID.xy, 0));
@@ -193,7 +171,7 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 posWorld = depth;
   
   float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
-  float3 viewDirection = normalize(ViewPos.xyz - posWorld.xyz);
+  float3 viewDirection = normalize(viewPos.xyz - posWorld.xyz);
   float NdL = saturate(dot(normal, lightDir));
   
   float3 F0 = lerp(0.04, albedo, metalness);

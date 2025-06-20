@@ -1,19 +1,21 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 Texture2D t_colorMap : register(t0);
 Texture2D t_normalMap : register(t1);
 Texture2D t_skyboxlMap : register(t2);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-cbuffer Viewport : register(b0)
-{
-  float2 ScreenSize;
-  float2 unused;
-}
+//cbuffer Viewport : register(b0)
+//{
+//  float2 ScreenSize;
+//  float2 unused;
+//}
 
 [numthreads(32, 32, 1)]
 void
 CSMain(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= ScreenSize.x || dtID.y >= ScreenSize.y) {
+  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
     return;
   }
 

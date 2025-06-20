@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/26
+*  @date    2025/06/19
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -62,13 +62,19 @@ RendererApp::onCreate()
 
   // Initialize graphics
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
-  //initShaders();
-  //setRenderTargets();
   renderMan.createPasses();
   renderMan.setScreenSize(m_screenSize);
   renderMan.setShadowMapSize(m_shadowTexSize);
   renderMan.createRenderTextures();
-  initCamera();
+  
+  m_camera = Camera(Vector3(0.0f, 0.0f, -3.0f),
+                    Vector3(0.0f, 0.0f, 0.0f),
+                    Vector3::UP,
+                    30.0f * Math::DEG2RAD,
+                    m_screenSize.x,
+                    m_screenSize.y,
+                    0.1f,
+                    2000.0f);
 
   // Imgui initialize
   IMGUI_CHECKVERSION();
@@ -96,46 +102,6 @@ RendererApp::onCreate()
   m_pLightBuffer = graphMan.createConstantBuffer(sizeof(lights));
   graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
 
-  // GBuffer constant buffers
-  auto pBasicShader = renderMan.getPass("GBufferShader");
-  pBasicShader->addVSConstantBuffer(m_pVP, 0);
-
-  // Shadow shader buffers
-  auto pSMapShader = renderMan.getPass("SMapShader");
-  pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
-
-  // Lightning shader buffers
-  auto pLightCS = renderMan.getPass("LightCS");
-  pLightCS->addCSConstantBuffer(m_pInvVP, 0);
-  pLightCS->addCSConstantBuffer(m_pCameraPosition, 1);
-  pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
-  pLightCS->addCSConstantBuffer(m_pViewportBuffer, 3);
-  pLightCS->addCSConstantBuffer(m_pLCBuffer, 4);
-  pLightCS->addCSConstantBuffer(m_pLSizeBuffer, 5);
-
-  // Skybox shader buffers
-  auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
-  pSkyBoxShader->addVSConstantBuffer(m_pVP, 0);
-
-  // Final shader buffers
-  auto pFinalShader = renderMan.getPass("FinalShader");
-  pFinalShader->addPSConstantBuffer(m_pViewportBuffer, 0);
-
-  // Histogram
-  auto pHistogramShader = renderMan.getPass("HistogramShader");
-  pHistogramShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-
-  // Add skybox
-  auto pASBShader = renderMan.getPass("ASBShader");
-  pASBShader->addCSConstantBuffer(m_pViewportBuffer, 0);
-
-  // Create audio
-  Path audioPath("resources/cat.wav");
-  m_testSound = audioMan.createSound(audioPath);
-  if (m_testSound) {
-    m_testSound->m_channel = CHANNEL_TYPE::kUI;
-  }
-
   m_aoSamplerRad = 1.0f;
   m_aoScale = 1.0f;
   m_aoBias = 0.01f;
@@ -147,6 +113,22 @@ RendererApp::onCreate()
   updateShaderDataBuffer();
   updateMainBuffer();
 
+  // GBuffer constant buffers
+  auto pBasicShader = renderMan.getPass("GBufferShader");
+  pBasicShader->addVSConstantBuffer(m_pMainBuffer, 0);
+  pBasicShader->addVSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Shadow shader buffers
+  auto pSMapShader = renderMan.getPass("SMapShader");
+  pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
+  // Skybox shader buffers
+  auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
+  pSkyBoxShader->addVSConstantBuffer(m_pMainBuffer, 0);
+  // Lightning shader buffers
+  auto pLightCS = renderMan.getPass("LightCS");
+  pLightCS->addCSConstantBuffer(m_pMainBuffer, 0);
+  pLightCS->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
+  pLightCS->addCSConstantBuffer(m_pLCBuffer, 3);
   // Ambient occlusion buffers
   auto pAOShader = renderMan.getPass("AOShader");
   pAOShader->addPSConstantBuffer(m_pMainBuffer, 0);
@@ -175,7 +157,25 @@ RendererApp::onCreate()
   auto pHBlurShader = renderMan.getPass("HBlurShader");
   auto pVBlurShader = renderMan.getPass("VBlurShader");
   pHBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pHBlurShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
   pVBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pVBlurShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  // Final shader buffers
+  auto pFinalShader = renderMan.getPass("FinalShader");
+  pFinalShader->addPSConstantBuffer(m_pMainBuffer, 0);
+  // Histogram
+  auto pHistogramShader = renderMan.getPass("HistogramShader");
+  pHistogramShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  // Add skybox
+  auto pASBShader = renderMan.getPass("ASBShader");
+  pASBShader->addCSConstantBuffer(m_pMainBuffer, 0);
+
+  // Create audio
+  Path audioPath("resources/cat.wav");
+  m_testSound = audioMan.createSound(audioPath);
+  if (m_testSound) {
+    m_testSound->m_channel = CHANNEL_TYPE::kUI;
+  }
 }
 
 void
@@ -264,7 +264,6 @@ RendererApp::onUpdate()
     renderMan.setShadowMapSize(m_lcamSize);
 
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
-    graphMan.updateConstantBuffer(m_pLSizeBuffer, &camSize, sizeof(Vector4));
   }
 
   // Update camera
@@ -291,8 +290,6 @@ RendererApp::onUpdate()
   if (m_bDown) {
     m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * camSpeed);
   }
-  
-  updateCamera();
 
   updateShaderDataBuffer();
   updateMainBuffer();
@@ -320,7 +317,6 @@ RendererApp::onRender()
 void
 RendererApp::onResize(const ResizeData& rszData)
 {
-  GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
 
   m_screenSize.x = static_cast<float>(rszData.width);
@@ -328,7 +324,6 @@ RendererApp::onResize(const ResizeData& rszData)
 
   renderMan.setScreenSize(Vector2(m_screenSize.x, m_screenSize.y));
   renderMan.createRenderTextures();
-  //setRenderTargets();
 
   m_camera.setPerspectiveData(m_camera.getHalfFOV(),
                               m_screenSize.x,
@@ -336,13 +331,10 @@ RendererApp::onResize(const ResizeData& rszData)
                               m_camera.getNear(),
                               m_camera.getFar());
 
-  updateCamera();
-
   Vector4 viewport(m_screenSize.x,
                    m_screenSize.y,
                    m_camera.getFar(),
                    m_camera.getNear());
-  graphMan.updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
 
   ImGui_ImplShura_Resize(m_screenSize);
 }
@@ -514,325 +506,11 @@ RendererApp::onDestroy()
 {
   m_pMainBuffer.reset();
   m_pShaderDataBuffer.reset();
-  m_pVP.reset();
-  m_pInvVP.reset();
-  m_pCameraPosition.reset();
   m_pLCBuffer.reset();
   m_pLightBuffer.reset();
-  m_pLSizeBuffer.reset();
-  m_pViewportBuffer.reset();
   m_pModel.reset();
   ImGui_ImplShura_Shutdown();
   ImGui::DestroyContext();
-}
-
-void
-RendererApp::initShaders()
-{
-  setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
-  GraphicsManager& graphMan = g_graphicsMan();
-  RenderManager& renderMan = g_renderMan();
-
-  // Init pass shaders
-  // GBuffer
-  auto pGbufferShader = sh_makeShared<Pass>();
-  pGbufferShader->setVShaderInfo("resources/shaders/GBufferShader.hlsl",
-                                 "main",
-                                 "vs_5_0");
-  pGbufferShader->setPShaderInfo("resources/shaders/GBufferShader.hlsl",
-                                 "mainPS",
-                                 "ps_5_0");
-  pGbufferShader->compileShader();
-
-  // Lightning
-  auto pLightCS = sh_makeShared<Pass>();
-  pLightCS->setCShaderInfo("resources/shaders/LightCShader.hlsl",
-                           "CSMain",
-                           "cs_5_0");
-  pLightCS->compileShader();
-
-  // AO
-  auto pAOShader = sh_makeShared<Pass>();
-  pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
-                            "mainPS",
-                            "ps_5_0");
-  pAOShader->compileShader();
-
-  // HBlur
-  auto pHBlurShader = sh_makeShared<Pass>();
-  pHBlurShader->setCShaderInfo("resources/shaders/HBlurShader.hlsl",
-                               "CSMain",
-                               "cs_5_0");
-  pHBlurShader->compileShader();
-
-  // VBlur
-  auto pVBlurShader = sh_makeShared<Pass>();
-  pVBlurShader->setCShaderInfo("resources/shaders/VBlurShader.hlsl",
-                               "CSMain",
-                               "cs_5_0");
-  pVBlurShader->compileShader();
-
-  // Shadow map
-  auto pSMapShader = sh_makeShared<Pass>();
-  pSMapShader->setVShaderInfo("resources/shaders/SMapShader.hlsl",
-                              "main",
-                              "vs_5_0");
-  pSMapShader->setPShaderInfo("resources/shaders/SMapShader.hlsl",
-                              "mainPS",
-                              "ps_5_0");
-  pSMapShader->compileShader();
-
-  // Skybox
-  auto pSkyBoxShader = sh_makeShared<Pass>();
-  pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                                "main",
-                                "vs_5_0");
-  pSkyBoxShader->setPShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                                "mainPS",
-                                "ps_5_0");
-  pSkyBoxShader->compileShader();
-
-  // Final shader
-  auto pFinalShader = sh_makeShared<Pass>();
-  pFinalShader->setPShaderInfo("resources/shaders/FinalShader.hlsl",
-                               "mainPS",
-                               "ps_5_0");
-  pFinalShader->compileShader();
-
-  // Plane Vertex shader
-  auto pPlaneVS = sh_makeShared<Pass>();
-  pPlaneVS->setVShaderInfo("resources/shaders/PlaneVertexShader.hlsl",
-                           "main",
-                           "vs_5_0");
-  pPlaneVS->compileShader();
-
-  // Histogram shader
-  auto pHistogramShader = sh_makeShared<Pass>();
-  pHistogramShader->setCShaderInfo("resources/shaders/HistogramShader.hlsl",
-                                   "CSMain",
-                                   "cs_5_0");
-  pHistogramShader->compileShader();
-
-  // Add skybox shader
-  auto pASBShader = sh_makeShared<Pass>();
-  pASBShader->setCShaderInfo("resources/shaders/AddSkyboxShader.hlsl",
-                             "CSMain",
-                             "cs_5_0");
-  pASBShader->compileShader();
-
-  // Luminance shader
-  auto pLuminanceShader = sh_makeShared<Pass>();
-  pLuminanceShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                   "LuminanceCS",
-                                   "cs_5_0");
-  pLuminanceShader->compileShader();
-
-  // Luminance shader
-  auto pBrightShader = sh_makeShared<Pass>();
-  pBrightShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                "BrightCS",
-                                "cs_5_0");
-  pBrightShader->compileShader();
-
-  // ToneMap shader
-  auto pToneMapShader = sh_makeShared<Pass>();
-  pToneMapShader->setCShaderInfo("resources/shaders/ToneMappingShader.hlsl",
-                                 "CSMain",
-                                 "cs_5_0");
-  pToneMapShader->compileShader();
-
-  // PostProcess shader
-  auto pAddMixShader = sh_makeShared<Pass>();
-  pAddMixShader->setCShaderInfo("resources/shaders/AdditiveMixShader.hlsl",
-                                "CSMain",
-                                "cs_5_0");
-  pAddMixShader->compileShader();
-
-  // PostProcess shader
-  auto pPPShader = sh_makeShared<Pass>();
-  pPPShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "CSMain",
-                            "cs_5_0");
-  pPPShader->compileShader();
-
-  // Raster state
-  RasterizerDesc rasterDesc = {};
-  rasterDesc.fillMode = FILL_MODE::kSolid;
-  rasterDesc.cullMode = CULL_MODE::kNone;
-  rasterDesc.frontCounterClockwise = false;
-  rasterDesc.depthBias = 0;
-  rasterDesc.depthBiasClamp = 0.0f;
-  rasterDesc.slopeScaledDepthBias = 0.0f;
-  rasterDesc.depthClipEnable = true;
-  rasterDesc.scissorEnable = false;
-  rasterDesc.multisampleEnable = false;
-  rasterDesc.antialiasedLineEnable = false;
-
-  // Blend state
-  BlendDesc blendDesc = {};
-  blendDesc.renderTarget[0].blendEnable = true;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-
-  // Basic depth stencil state
-  DepthStencilDesc depthSDesc = {};
-  depthSDesc.depthEnable = true;
-  depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
-  depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
-  depthSDesc.stencilEnable = true;
-  depthSDesc.stencilReadMask = 0xFF;
-  depthSDesc.stencilWriteMask = 0xFF;
-  depthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
-  depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
-  depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
-
-  // Depth stencil state for sky box
-  DepthStencilDesc skyBoxDepth = {};
-  skyBoxDepth.depthEnable = false;
-  skyBoxDepth.depthWriteMask = DEPTH_WRITE_MASK::kZero;
-  skyBoxDepth.depthFunc = COMPARISON_FUNC::kLessEqual;
-  skyBoxDepth.stencilEnable = true;
-  skyBoxDepth.stencilReadMask = 0xFF;
-  skyBoxDepth.stencilWriteMask = 0xFF;
-  skyBoxDepth.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  skyBoxDepth.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  skyBoxDepth.frontFace.stencilPassOp = STENCIL_OP::kReplace;
-  skyBoxDepth.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  skyBoxDepth.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  skyBoxDepth.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  skyBoxDepth.backFace.stencilPassOp = STENCIL_OP::kReplace;
-  skyBoxDepth.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
-
-  // Dpeth stencil state for planes
-  DepthStencilDesc planeDepthSDesc = depthSDesc;
-  planeDepthSDesc.depthEnable = false;
-  planeDepthSDesc.stencilEnable = false;
-
-  // States creation
-  auto pSamplerLinear = graphMan.createSamplerState();
-  auto pRasterState = graphMan.createRasterizerState(rasterDesc);
-  auto pBlendState = graphMan.createBlendState(blendDesc);
-  auto pDepthStencil = graphMan.createDepthStencilState(depthSDesc);
-
-  // Fill pass info
-  // GBuffer
-  pGbufferShader->generateInputLayout();
-  pGbufferShader->setSamplerState(pSamplerLinear);
-  pGbufferShader->setRasterizerState(pRasterState);
-  pGbufferShader->setBlendState(pBlendState);
-  pGbufferShader->setDepthStencilState(pDepthStencil);
-
-  // AO
-  pAOShader->setSamplerState(pSamplerLinear);
-
-  // Shadow Map
-  pSMapShader->generateInputLayout();
-  pSMapShader->setSamplerState(pSamplerLinear);
-  pSMapShader->setRasterizerState(pRasterState);
-  pSMapShader->setBlendState(pBlendState);
-  pSMapShader->setDepthStencilState(pDepthStencil);
-
-  // SkyBox Map
-  pSkyBoxShader->generateInputLayout();
-  pSkyBoxShader->setSamplerState(pSamplerLinear);
-  pSkyBoxShader->setRasterizerState(pRasterState);
-  pSkyBoxShader->setBlendState(pBlendState);
-  pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
-
-  // Final
-  pFinalShader->setSamplerState(pSamplerLinear);
-
-  // Plane vs
-  pPlaneVS->generateInputLayout();
-  pPlaneVS->setDepthStencilStateFromDesc(planeDepthSDesc);
-
-  // ToneMap
-  pToneMapShader->setSamplerState(pSamplerLinear);
-
-  // Save passes on render manager
-  //renderMan.addPass(pGbufferShader, "GBufferShader");
-  //renderMan.addPass(pAOShader, "AOShader");
-  //renderMan.addPass(pHBlurShader, "HBlurShader");
-  //renderMan.addPass(pVBlurShader, "VBlurShader");
-  //renderMan.addPass(pLightCS, "LightCS");
-  //renderMan.addPass(pSMapShader, "SMapShader");
-  //renderMan.addPass(pSkyBoxShader, "SkyBoxShader");
-  //renderMan.addPass(pFinalShader, "FinalShader");
-  //renderMan.addPass(pPlaneVS, "PlaneShader");
-  //renderMan.addPass(pHistogramShader, "HistogramShader");
-  //renderMan.addPass(pASBShader, "ASBShader");
-  //renderMan.addPass(pLuminanceShader, "LuminanceShader");
-  //renderMan.addPass(pToneMapShader, "ToneMapShader");
-  //renderMan.addPass(pPPShader, "PPShader");
-  //renderMan.addPass(pAddMixShader, "AddMixShader");
-}
-
-void
-RendererApp::initCamera()
-{
-  // Init camera and its constant buffer
-  m_pVP = g_graphicsMan().createConstantBuffer(sizeof(VP));
-
-  VP vp = {};
-
-  m_camera = Camera(Vector3(0.0f, 0.0f, -3.0f),
-                    Vector3(0.0f, 0.0f, 0.0f),
-                    Vector3::UP,
-                    30.0f * Math::DEG2RAD,
-                    m_screenSize.x,
-                    m_screenSize.y,
-                    0.1f,
-                    2000.0f);
-
-  vp.proj = m_camera.getProjection();
-  vp.view = m_camera.getView();
-
-  vp.proj.getTransposed();
-  vp.view.getTransposed();
-
-  g_graphicsMan().updateConstantBuffer(m_pVP, &vp, sizeof(vp));
-
-  // Init constant buffer of camera position
-  Vector4 foward(m_camera.getPosition(), 0.0f);
-  
-  m_pCameraPosition = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
-
-  g_graphicsMan().updateConstantBuffer(m_pCameraPosition,
-                                       &foward,
-                                       sizeof(Vector4));
-
-  // Init buffer for inverse view and projection
-  InvVP invVP = {};
-
-  m_pInvVP = g_graphicsMan().createConstantBuffer(sizeof(InvVP));
-
-  invVP.invVP = (m_camera.getProjection() * m_camera.getView()).getInversed();
-  invVP.invV = m_camera.getView().getInversed();
-
-  invVP.invVP.getTransposed();
-  invVP.invV.getTransposed();
-
-  g_graphicsMan().updateConstantBuffer(m_pInvVP,
-                                       &invVP,
-                                       sizeof(InvVP));
-
-  // Init buffer for viewport
-  Vector4 viewport(m_screenSize.x,
-                   m_screenSize.y,
-                   m_camera.getFar(),
-                   m_camera.getNear());
-  m_pViewportBuffer = g_graphicsMan().createConstantBuffer(sizeof(Vector4));
-  g_graphicsMan().updateConstantBuffer(m_pViewportBuffer, &viewport, sizeof(Vector4));
 }
 
 void
@@ -846,35 +524,7 @@ RendererApp::rotateCamera()
   if (m_lastMousePos.x != m_currentMousePos.x ||
       m_lastMousePos.y != m_currentMousePos.y) {
     m_camera.rotate(dx * Math::DEG2RAD, dy * Math::DEG2RAD);
-    /*m_camera.orbitCamera(Radian(dx * Math::DEG2RAD),
-                         Radian(dy * Math::DEG2RAD),
-                         Vector3::ZERO);*/
   }
-}
-
-void
-RendererApp::updateCamera()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-
-  // Update camera buffer
-  VP vp = {};
-  vp.proj = m_camera.getProjection();
-  vp.view = m_camera.getView();
-  vp.proj.getTransposed();
-  vp.view.getTransposed();
-
-  graphMan.updateConstantBuffer(m_pVP, &vp, sizeof(vp));
-
-  // Update camera position buffer
-  Vector4 foward(m_camera.getPosition(), 0.0f);
-  graphMan.updateConstantBuffer(m_pCameraPosition, &foward, sizeof(Vector4));
-
-  // Update inverse view-projection buffer
-  InvVP invVP = {};
-  invVP.invVP = (vp.proj * vp.view).getInversed();
-  invVP.invV = vp.view.getInversed();
-  graphMan.updateConstantBuffer(m_pInvVP, &invVP, sizeof(InvVP));
 }
 
 void
@@ -903,157 +553,6 @@ RendererApp::initLightCamera()
 
   m_pLCBuffer = graphMan.createConstantBuffer(sizeof(VP));
   graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
-
-  Vector4 lightS = { m_lightCam.getWidth(), 0.0f,0.0f,0.f };
-  m_pLSizeBuffer = graphMan.createConstantBuffer(sizeof(Vector4));
-  graphMan.updateConstantBuffer(m_pLSizeBuffer, &lightS, sizeof(Vector4));
-}
-
-void
-RendererApp::setRenderTargets()
-{
-  //GraphicsManager& graphMan = g_graphicsMan();
-  //RenderManager& renderMan = g_renderMan();
-
-  //uint32 width = static_cast<uint32>(m_screenSize.x);
-  //uint32 height = static_cast<uint32>(m_screenSize.y);
-
-  //auto pDepthTarget = graphMan.createTexture2D(width,
-  //                                             height,
-  //                                             TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-  //                                             USAGE::kDefault,
-  //                                             BIND_FLAGS::kRenderTarget |
-  //                                             BIND_FLAGS::kShaderResource);
-
-  //auto pNormalTarget = graphMan.createTexture2D(width,
-  //                                              height,
-  //                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                              USAGE::kDefault,
-  //                                              BIND_FLAGS::kRenderTarget |
-  //                                              BIND_FLAGS::kShaderResource);
-
-  //auto pColorTarget = graphMan.createTexture2D(width,
-  //                                             height,
-  //                                             TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                             USAGE::kDefault,
-  //                                             BIND_FLAGS::kRenderTarget |
-  //                                             BIND_FLAGS::kShaderResource);
-
-  //auto pPropTarget = graphMan.createTexture2D(width,
-  //                                            height,
-  //                                            TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                            USAGE::kDefault,
-  //                                            BIND_FLAGS::kRenderTarget |
-  //                                            BIND_FLAGS::kShaderResource);
-
-  //auto pAoTarget = graphMan.createTexture2D(width,
-  //                                          height,
-  //                                          TEXTURE_FORMAT::kR16_FLOAT,
-  //                                          USAGE::kDefault,
-  //                                          BIND_FLAGS::kRenderTarget |
-  //                                          BIND_FLAGS::kShaderResource);
-
-  //auto pHbTarget = graphMan.createTexture2D(width,
-  //                                          height,
-  //                                          TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                          USAGE::kDefault,
-  //                                          BIND_FLAGS::kShaderResource |
-  //                                          BIND_FLAGS::kUnorderedAccess);
-
-  //auto pVbTarget = graphMan.createTexture2D(width,
-  //                                          height,
-  //                                          TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                          USAGE::kDefault,
-  //                                          BIND_FLAGS::kShaderResource |
-  //                                          BIND_FLAGS::kUnorderedAccess);
-
-  //auto pSMapTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
-  //                                            static_cast<uint32>(m_shadowTexSize),
-  //                                            TEXTURE_FORMAT::kR32_TYPELESS,
-  //                                            USAGE::kDefault,
-  //                                            BIND_FLAGS::kDepthStencil |
-  //                                            BIND_FLAGS::kShaderResource);
-
-  //auto pShadowTempTarget = graphMan.createTexture2D(static_cast<uint32>(m_shadowTexSize),
-  //                                                  static_cast<uint32>(m_shadowTexSize),
-  //                                                  TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                                  USAGE::kDefault,
-  //                                                  BIND_FLAGS::kRenderTarget |
-  //                                                  BIND_FLAGS::kShaderResource);
-
-  //auto pSkyBoxTarget = graphMan.createTexture2D(width,
-  //                                              height,
-  //                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                              USAGE::kDefault,
-  //                                              BIND_FLAGS::kRenderTarget |
-  //                                              BIND_FLAGS::kShaderResource);
-
-  //auto pComputeLight = graphMan.createTexture2D(width,
-  //                                              height,
-  //                                              TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                              USAGE::kDefault,
-  //                                              BIND_FLAGS::kShaderResource |
-  //                                              BIND_FLAGS::kUnorderedAccess);
-
-  //auto pHistogramMap = graphMan.createTexture2D(256,
-  //                                              3,
-  //                                              TEXTURE_FORMAT::kR32_UINT,
-  //                                              USAGE::kDefault,
-  //                                              BIND_FLAGS::kShaderResource |
-  //                                              BIND_FLAGS::kUnorderedAccess);
-
-  //auto pToneMap = graphMan.createTexture2D(width,
-  //                                         height,
-  //                                         TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                         USAGE::kDefault,
-  //                                         BIND_FLAGS::kShaderResource |
-  //                                         BIND_FLAGS::kUnorderedAccess);
-
-  //auto pTempMap = graphMan.createTexture2D(width,
-  //                                         height,
-  //                                         TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                         USAGE::kDefault,
-  //                                         BIND_FLAGS::kShaderResource |
-  //                                         BIND_FLAGS::kUnorderedAccess);
-
-  //auto pLuminance = graphMan.createTexture2D(512,
-  //                                           512,
-  //                                           TEXTURE_FORMAT::kR32_FLOAT,
-  //                                           USAGE::kDefault,
-  //                                           BIND_FLAGS::kShaderResource |
-  //                                           BIND_FLAGS::kUnorderedAccess);
-
-  //auto pBright = graphMan.createTexture2D(512,
-  //                                        512,
-  //                                        TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
-  //                                        USAGE::kDefault,
-  //                                        BIND_FLAGS::kShaderResource |
-  //                                        BIND_FLAGS::kUnorderedAccess);
-
-  //auto pPPMap = graphMan.createTexture2D(width,
-  //                                       height,
-  //                                       TEXTURE_FORMAT::kR8G8B8A8_UNORM,
-  //                                       USAGE::kDefault,
-  //                                       BIND_FLAGS::kShaderResource |
-  //                                       BIND_FLAGS::kUnorderedAccess);
-
-  //// Save targets on render manager
-  //renderMan.addRenderTarget(pDepthTarget, "DepthMap");
-  //renderMan.addRenderTarget(pNormalTarget, "NormalMap");
-  //renderMan.addRenderTarget(pColorTarget, "ColorMap");
-  //renderMan.addRenderTarget(pPropTarget, "PropMap");
-  //renderMan.addRenderTarget(pAoTarget, "AOMap");
-  //renderMan.addRenderTarget(pHbTarget, "HBlurMap");
-  //renderMan.addRenderTarget(pVbTarget, "VBlurMap");
-  //renderMan.addRenderTarget(pSMapTarget, "ShadowMap");
-  //renderMan.addRenderTarget(pShadowTempTarget, "ShadowTemp");
-  //renderMan.addRenderTarget(pComputeLight, "LightCMap");
-  //renderMan.addRenderTarget(pSkyBoxTarget, "SkyBoxMap");
-  //renderMan.addRenderTarget(pHistogramMap, "HistogramMap");
-  //renderMan.addRenderTarget(pTempMap, "TempMap");
-  //renderMan.addRenderTarget(pLuminance, "LuminanceMap");
-  //renderMan.addRenderTarget(pToneMap, "ToneMap");
-  //renderMan.addRenderTarget(pPPMap, "PPMap");
 }
 
 void
@@ -1064,13 +563,13 @@ RendererApp::updateMainBuffer()
 
   MainBufferData mbd = {};
   mbd.viewMatrix = m_camera.getView();
-  mbd.transposeViewMatrix = mbd.viewMatrix;
+  mbd.transposeViewMatrix = m_camera.getView();
   mbd.transposeViewMatrix.getTransposed();
   mbd.inverseViewMatrix = m_camera.getView().getInversed();
   mbd.inverseTransposeViewMatrix = mbd.inverseViewMatrix * mbd.transposeViewMatrix;
 
   mbd.projectionMatrix = m_camera.getProjection();
-  mbd.transposeProjectionMatrix = mbd.projectionMatrix;
+  mbd.transposeProjectionMatrix = m_camera.getProjection();
   mbd.transposeProjectionMatrix.getTransposed();
   mbd.inverseProjectionMatrix = m_camera.getView().getInversed();
   mbd.inverseTransposeProjectionMatrix = mbd.inverseProjectionMatrix *
@@ -1100,12 +599,12 @@ RendererApp::updateShaderDataBuffer()
   GraphicsManager& graphMan = g_graphicsMan();
 
   ShaderData sd = {};
-  sd.randSize = 1.0f;
+  sd.shadowMapSize = m_shadowTexSize;
   sd.sampleRadius = m_aoSamplerRad;
   sd.aoScale = m_aoScale;
   sd.aoBias = m_aoBias;
   sd.aoIntensity = m_aoIntensity;
-  sd.toneMappingIndex = m_toneMapIndex;
+  sd.toneMappingIndex = static_cast<float>(m_toneMapIndex);
   sd.lutSize = 0.0f;
   sd.whitePoint = m_whitePt;
   sd.exposure = m_exposure;

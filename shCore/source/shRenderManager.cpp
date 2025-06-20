@@ -435,13 +435,13 @@ RenderManager::drawStaticMeshOnScene()
   SceneGraph& scene = g_sceneGraph();
 
   if (m_pModelTransform) {
-    graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+    graphMan.vsSetConstantBuffers(m_pModelTransform, 2);
   }
   else {
     m_pModelTransform = graphMan.createConstantBuffer(sizeof(Matrix4));
     Matrix4 identity = Matrix4::IDENTITY;
     graphMan.updateConstantBuffer(m_pModelTransform, &identity, sizeof(Matrix4));
-    graphMan.vsSetConstantBuffers(m_pModelTransform, 1);
+    graphMan.vsSetConstantBuffers(m_pModelTransform, 2);
   }
 
   for (auto& gameObject : scene.getGameObjectList()) {

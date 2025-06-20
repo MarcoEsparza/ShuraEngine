@@ -1,3 +1,5 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 SamplerState textureSampler : register(s0);
 Texture2D t_baseColor : register(t0);
 Texture2D t_normal : register(t1);
@@ -5,13 +7,13 @@ Texture2D t_metallic : register(t2);
 Texture2D t_roughness : register(t3);
 Texture2D t_ambientO : register(t4);
 
-cbuffer VP : register(b0)
-{
-  float4x4 View;
-  float4x4 Proj;
-}
+//cbuffer VP : register(b0)
+//{
+//  float4x4 View;
+//  float4x4 Proj;
+//}
 
-cbuffer Model : register(b1)
+cbuffer Model : register(b2)
 {
   float4x4 ModelTransform;
 }
@@ -47,7 +49,8 @@ PS_INPUT main(VS_INPUT input)
 {
   PS_INPUT output = (PS_INPUT) 0;
   
-  float4x4 wvp = mul(ModelTransform, mul(View, Proj));
+  float4x4 wvp = mul(ModelTransform, mul(matViewTranspose, matProjectionTranspose));
+  //float4x4 wvp = mul(ModelTransform, mul(View, Proj));
 
   output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
   output.Tex = input.Tex;

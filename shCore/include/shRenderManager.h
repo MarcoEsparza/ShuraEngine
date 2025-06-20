@@ -71,7 +71,7 @@ struct RenderTargetInfo
 /**
 *  @brief Main buffer data structure.
 */
-MS_ALIGN(64)
+MS_ALIGN(16)
 struct MainBufferData
 {
   // View matrix data from the camera.
@@ -100,7 +100,7 @@ struct MainBufferData
   float deltaTime = 0.0f;
   float cosTime = 0.0f;
   float sinTime = 0.0f;
-}; GCC_ALIGN(64);
+}; GCC_ALIGN(16);
 
 /**
 *  @brief Shader data structure.
@@ -108,11 +108,13 @@ struct MainBufferData
 MS_ALIGN(16)
 struct ShaderData {
   // Ambient occlusion data.
-  float randSize = 0.0f;
   float sampleRadius = 0.0f;
   float aoScale = 0.0f;
   float aoBias = 0.0f;
   float aoIntensity = 0.0f;
+
+  // ShadowMap
+  float shadowMapSize = 0.0f;
 
   // Tone mapping data.
   float toneMappingIndex = 0.0f;

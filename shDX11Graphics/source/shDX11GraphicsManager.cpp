@@ -132,7 +132,7 @@ compileShaderFromFile(const String& fileName,
 
 DX11GraphicsManager::~DX11GraphicsManager()
 {
-
+  SafeRelease(m_pSwapChain);
 }
 
 void

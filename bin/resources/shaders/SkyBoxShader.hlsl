@@ -1,3 +1,5 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 SamplerState textureSampler : register(s0);
 Texture2D t_skybox : register(t0);
 
@@ -11,11 +13,11 @@ Texture2D t_skybox : register(t0);
 #define RECIPROCAL_2PI 1.0f / (2 * 3.14159265359)
 #endif
 
-cbuffer VP : register(b0)
-{
-  float4x4 matView;
-  float4x4 matProj;
-}
+//cbuffer VP : register(b0)
+//{
+//  float4x4 matView;
+//  float4x4 matProj;
+//}
 
 struct VS_INPUT
 {
@@ -39,14 +41,14 @@ PS_INPUT main(VS_INPUT input)
 {
   PS_INPUT output = (PS_INPUT) 0;
     
-  matrix newViewMatrix = matView;
+  matrix newViewMatrix = matViewTranspose;
   newViewMatrix[3] = float4(0.0f, 0.0f, 0.0f, 1.0f);
     
   float4 pos = float4(input.Position, 1.0f);
   pos = mul(pos, newViewMatrix);
   pos = float4(pos.xyz, 1.0f);
     
-  pos = mul(pos, matProj);
+  pos = mul(pos, matProjectionTranspose);
   pos.z = pos.w;
   output.Position = pos;
   output.Texcoord = input.Position.xyz;
