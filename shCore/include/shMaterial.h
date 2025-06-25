@@ -20,6 +20,8 @@
 #include "shPrerequisitesCore.h"
 #include "shTexture.h"
 #include "shShader.h"
+#include "shVector3.h"
+#include "shVector2.h"
 
 namespace shEngineSDK {
 namespace MATERIAL_TYPE {
@@ -42,6 +44,7 @@ struct MaterialProperties
   uint32 bHasMetalnessMap : 1;
   uint32 bHasRoughnessMap : 1;
   uint32 bHasAmbientOcclusionMap : 1;
+  uint32 bHasEmissiveMap : 1;
   uint32 bIsOpaque : 1;
   uint32 bHasAlphaTest : 1;
   uint32 bHasAlphaBlend : 1;
@@ -49,8 +52,8 @@ struct MaterialProperties
   uint32 bWireframeEnabled : 1;
   uint32 bCanCastShadows : 1;
   uint32 bCanReceiveShadows : 1;
-  uint32 Unused : 19;
-}; /*GCC_ALIGN(16)*/
+  uint32 Unused : 18;
+}; //GCC_ALIGN(16)
 
 /**
 *  @brief Matrial Base.
@@ -138,5 +141,8 @@ class SH_CORE_EXPORT Material
   *  @brief Path of the ao texture.
   */
   String aoPath;
+
+  Vector3 baseColorFactor = Vector3(1.0f, 1.0f, 1.0f);
+  Vector2 metallicRoughnessFactor = Vector2(1.0f, 1.0f);
 };
 }

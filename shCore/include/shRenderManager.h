@@ -312,6 +312,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   SPtr<ConstantBuffer> m_pModelTransform;
 
+  SPtr<ConstantBuffer> m_pPBRData;
+
   /**
   *  @brief Shadow map texture size.
   */

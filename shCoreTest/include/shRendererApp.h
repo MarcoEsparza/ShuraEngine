@@ -218,6 +218,9 @@ class RendererApp : public BaseApp
   void
   setImgui();
 
+  void
+  drawTransformComponent();
+
   /**
   *  @brief Load pistol model, materials and game object.
   */
@@ -530,5 +533,9 @@ class RendererApp : public BaseApp
   *  @brief Is audio playing?
   */
   bool bIsSoundPlaying = false;
+
+  //Vector4 m_texColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+  float m_texColor[3] = { 1.0f, 1.0f, 1.0f };
+  bool m_bTexColor = false;
 };
 }

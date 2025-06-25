@@ -26,6 +26,8 @@
 #include <Windows.h>
 
 #include <d3dcompiler.h>
+#include <dxgidebug.h>
+#pragma comment(lib, "dxguid.lib")
 #include "DDSTextureLoader11.h"
 
 using namespace DirectX;
@@ -133,6 +135,13 @@ compileShaderFromFile(const String& fileName,
 DX11GraphicsManager::~DX11GraphicsManager()
 {
   SafeRelease(m_pSwapChain);
+  m_pDeviceContext->ClearState();
+  m_pDeviceContext->Flush();
+  SafeRelease(m_pDeviceContext);
+  SafeRelease(m_pDevice);
+
+  m_pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+  SafeRelease(m_pDebug);
 }
 
 void
@@ -185,8 +194,8 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
   deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-  m_pDevice = sh_makeShared<DX11Device>();
-  m_pDeviceContext = sh_makeShared<DX11DeviceContext>();
+  //m_pDevice = sh_makeShared<DX11Device>();
+  //m_pDeviceContext = sh_makeShared<DX11DeviceContext>();
 
   //Create a device and immediate device context
   throwIfFailed(D3D11CreateDevice(vecAdapters[0],
@@ -196,9 +205,14 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
                                   &featureLevels[0],
                                   static_cast<UINT>(featureLevels.size()),
                                   D3D11_SDK_VERSION,
-                                  &m_pDevice->m_pDevice,
+                                  &m_pDevice,
                                   &selectedFeatureLevel,
-                                  &m_pDeviceContext->m_pDeviceContext));
+                                  &m_pDeviceContext));
+
+#if defined(SH_DEBUG_MODE)
+  throwIfFailed(m_pDevice->QueryInterface(__uuidof(ID3D11Debug),
+                                          reinterpret_cast<void**>(&m_pDebug)));
+#endif
 
   //Create a swap chain
   DXGI_SWAP_CHAIN_DESC scDesc;
@@ -233,8 +247,8 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
   scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
   IDXGIDevice* dxgiDevice = nullptr;
-  throwIfFailed(m_pDevice->m_pDevice->QueryInterface(__uuidof(IDXGIDevice),
-                                                     reinterpret_cast<void**>(&dxgiDevice)));
+  throwIfFailed(m_pDevice->QueryInterface(__uuidof(IDXGIDevice),
+                                          reinterpret_cast<void**>(&dxgiDevice)));
 
   IDXGIAdapter* dxgiAdapter = nullptr;
   dxgiDevice->GetAdapter(&dxgiAdapter);
@@ -245,7 +259,7 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
   
   //m_pSwapChain = sh_makeUnique<IDXGISwapChain>();
 
-  throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice->m_pDevice,
+  throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice,
                                              &scDesc,
                                              &m_pSwapChain));
 
@@ -258,9 +272,9 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
                               __uuidof(ID3D11Texture2D),
                               reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
-                                      nullptr,
-                                      &pBackbuffer->m_pRenderTV));
+  throwIfFailed(m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
+                                                  nullptr,
+                                                  &pBackbuffer->m_pRenderTV));
 
   m_pDepthStencil = internalCreateTexture2D(scDesc.BufferDesc.Width,
                                             scDesc.BufferDesc.Height,
@@ -268,8 +282,6 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
                                             D3D11_USAGE_DEFAULT,
                                             D3D11_BIND_DEPTH_STENCIL,
                                             1);
-  
-  m_pBackbuffer = pBackbuffer;
 
   //Setup the viewport
   Viewport viewPort;
@@ -280,6 +292,27 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
   viewPort.topLeftX = 0.0f;
   viewPort.topLeftY = 0.0f;
   internalSetViewport(viewPort);
+
+#if defined(SH_DEBUG_MODE)
+  String DeviceName = "Main Device";
+  m_pDevice->SetPrivateData(WKPDID_D3DDebugObjectName,
+                            static_cast<uint32>(DeviceName.size()),
+                            DeviceName.c_str());
+  String DeviceCtxName = "Main Device Ctx";
+  m_pDeviceContext->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                   static_cast<uint32>(DeviceCtxName.size()),
+                                   DeviceCtxName.c_str());
+  String SwapChainName = "My SwapChain";
+  m_pSwapChain->SetPrivateData(WKPDID_D3DDebugObjectName,
+                               static_cast<uint32>(SwapChainName.size()),
+                               SwapChainName.c_str());
+  String BBName = "My BackBuffer";
+  pBackbuffer->m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                            static_cast<uint32>(BBName.size()),
+                                            BBName.c_str());
+#endif
+
+  m_pBackbuffer = pBackbuffer;
 
   //Release all objects
   SafeRelease(pFactory);
@@ -304,8 +337,7 @@ DX11GraphicsManager::internalClearRenderTarget(const WPtr<Texture2D> pTarget,
   
   FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
-  m_pDeviceContext->m_pDeviceContext->ClearRenderTargetView(pRTV->m_pRenderTV,
-                                                            colorRGBA);
+  m_pDeviceContext->ClearRenderTargetView(pRTV->m_pRenderTV, colorRGBA);
 }
 
 void
@@ -319,10 +351,7 @@ DX11GraphicsManager::internalClearDepthStencil(const WPtr<Texture2D> pDepthSV,
   }
   auto pDTV = sh_reinterpretPCast<DX11Texture2D>(pDepthSV.lock());
   
-  m_pDeviceContext->m_pDeviceContext->ClearDepthStencilView(pDTV->m_pDepthSV,
-                                                            flags,
-                                                            depth,
-                                                            stencil);
+  m_pDeviceContext->ClearDepthStencilView(pDTV->m_pDepthSV, flags, depth, stencil);
 }
 
 void
@@ -334,13 +363,13 @@ DX11GraphicsManager::internalPresent(uint32 syncInterval, uint32 flags)
   m_pSwapChain->Present(syncInterval, flags);
 }
 
-SPtr<Texture2D>
+WPtr<Texture2D>
 DX11GraphicsManager::internalGetMainRenderTargetView() const
 {
   return m_pBackbuffer;
 }
 
-SPtr<Texture2D>
+WPtr<Texture2D>
 DX11GraphicsManager::internalGetMainDepthStencil() const
 {
   return m_pDepthStencil;
@@ -399,11 +428,11 @@ DX11GraphicsManager::internalCreateInputLayout(const Vector<InputDesc>& desc,
     }
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&dxInputDesc[0],
-                                      static_cast<UINT>(dxInputDesc.size()),
-                                      pVertexShader->m_pBlob->GetBufferPointer(),
-                                      pVertexShader->m_pBlob->GetBufferSize(),
-                                      &pInputLayout->m_pLayout));
+  throwIfFailed(m_pDevice->CreateInputLayout(&dxInputDesc[0],
+                           static_cast<UINT>(dxInputDesc.size()),
+                           pVertexShader->m_pBlob->GetBufferPointer(),
+                           pVertexShader->m_pBlob->GetBufferSize(),
+                           &pInputLayout->m_pLayout));
 
   return pInputLayout;
 }
@@ -494,11 +523,11 @@ DX11GraphicsManager::internalCreateInputLayoutFromShader(const WPtr<VertexShader
     ilDesc.push_back(element);
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateInputLayout(&ilDesc[0],
-                                      static_cast<UINT>(ilDesc.size()),
-                                      pVertexShader->m_pBlob->GetBufferPointer(),
-                                      pVertexShader->m_pBlob->GetBufferSize(),
-                                      &pInputLayout->m_pLayout));
+  throwIfFailed(m_pDevice->CreateInputLayout(&ilDesc[0],
+                           static_cast<UINT>(ilDesc.size()),
+                           pVertexShader->m_pBlob->GetBufferPointer(),
+                           pVertexShader->m_pBlob->GetBufferSize(),
+                           &pInputLayout->m_pLayout));
 
   SafeRelease(pReflector);
 
@@ -521,11 +550,17 @@ DX11GraphicsManager::internalCreateVertexShader(const String& fileName,
     return nullptr;
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateVertexShader(
-                                      pVertexShader->m_pBlob->GetBufferPointer(),
-                                      pVertexShader->m_pBlob->GetBufferSize(),
-                                      nullptr,
-                                      &pVertexShader->m_pVertexShader));
+  throwIfFailed(m_pDevice->CreateVertexShader(pVertexShader->m_pBlob->GetBufferPointer(),
+                                              pVertexShader->m_pBlob->GetBufferSize(),
+                                              nullptr,
+                                              &pVertexShader->m_pVertexShader));
+
+  SystemPath path(fileName);
+  path.extension() = ""; // Remove the extension for the name
+  String pathName = path.filename().string() + "_" + entryPoint;
+  pVertexShader->m_pVertexShader->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                                 static_cast<uint32>(pathName.size()),
+                                                 pathName.c_str());
 
   return pVertexShader;
 }
@@ -546,11 +581,17 @@ DX11GraphicsManager::internalCreatePixelShader(const String& fileName,
     return nullptr;
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreatePixelShader(
-                                      pPixelShader->m_pBlob->GetBufferPointer(),
-                                      pPixelShader->m_pBlob->GetBufferSize(),
-                                      nullptr,
-                                      &pPixelShader->m_pPixelShader));
+  throwIfFailed(m_pDevice->CreatePixelShader(pPixelShader->m_pBlob->GetBufferPointer(),
+                                             pPixelShader->m_pBlob->GetBufferSize(),
+                                             nullptr,
+                                             &pPixelShader->m_pPixelShader));
+
+  SystemPath path(fileName);
+  path.extension() = ""; // Remove the extension for the name
+  String pathName = path.filename().string() + "_" + entryPoint;
+  pPixelShader->m_pPixelShader->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                               static_cast<uint32>(pathName.size()),
+                                               pathName.c_str());
 
   return pPixelShader;
 }
@@ -571,11 +612,17 @@ DX11GraphicsManager::internalCreateGeometryShader(const String& fileName,
     return nullptr;
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateGeometryShader(
-                                      pGeometryShader->m_pBlob->GetBufferPointer(),
-                                      pGeometryShader->m_pBlob->GetBufferSize(),
-                                      nullptr,
-                                      &pGeometryShader->m_pGeometryShader));
+  throwIfFailed(m_pDevice->CreateGeometryShader(pGeometryShader->m_pBlob->GetBufferPointer(),
+                                                pGeometryShader->m_pBlob->GetBufferSize(),
+                                                nullptr,
+                                                &pGeometryShader->m_pGeometryShader));
+
+  SystemPath path(fileName);
+  path.extension() = ""; // Remove the extension for the name
+  String pathName = path.filename().string() + "_" + entryPoint;
+  pGeometryShader->m_pGeometryShader->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                                     static_cast<uint32>(pathName.size()),
+                                                     pathName.c_str());
 
   return pGeometryShader;
 }
@@ -596,11 +643,17 @@ DX11GraphicsManager::internalCreateComputeShader(const String& fileName,
     return nullptr;
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateComputeShader(
-                                      pComputeShader->m_pBlob->GetBufferPointer(),
-                                      pComputeShader->m_pBlob->GetBufferSize(),
-                                      nullptr,
-                                      &pComputeShader->m_pComputeShader));
+  throwIfFailed(m_pDevice->CreateComputeShader(pComputeShader->m_pBlob->GetBufferPointer(),
+                                               pComputeShader->m_pBlob->GetBufferSize(),
+                                               nullptr,
+                                               &pComputeShader->m_pComputeShader));
+
+  SystemPath path(fileName);
+  path.extension() = ""; // Remove the extension for the name
+  String pathName = path.filename().string() + "_" + entryPoint;
+  pComputeShader->m_pComputeShader->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                                   static_cast<uint32>(pathName.size()),
+                                                   pathName.c_str());
 
   return pComputeShader;
 }
@@ -626,8 +679,14 @@ DX11GraphicsManager::internalCreateVertexBuffer(const void* pData,
   initData.SysMemPitch = bufferSize;
   initData.SysMemSlicePitch = 0;
 
-  m_pDevice->m_pDevice->CreateBuffer(&desc, &initData, &pVBuffer->m_pBuffer);
+  m_pDevice->CreateBuffer(&desc, &initData, &pVBuffer->m_pBuffer);
   pVBuffer->m_stride = stride;
+
+  String name = "VertexBuffer_" + std::to_string(m_vertexBufferCount);
+  pVBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                      static_cast<uint32>(name.size()),
+                                      name.c_str());
+  ++m_vertexBufferCount;
 
   return pVBuffer;
 }
@@ -651,8 +710,14 @@ DX11GraphicsManager::internalCreateIndexBuffer(const Vector<uint32>& indices,
   initData.SysMemPitch = 0;
   initData.SysMemSlicePitch = 0;
 
-  m_pDevice->m_pDevice->CreateBuffer(&desc, &initData, &pIBuffer->m_pBuffer);
+  m_pDevice->CreateBuffer(&desc, &initData, &pIBuffer->m_pBuffer);
   pIBuffer->m_dataFormat = DXGI_FORMAT_R32_UINT;
+
+  String name = "IndexBuffer_" + std::to_string(m_indexBufferCount);
+  pIBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                      static_cast<uint32>(name.size()),
+                                      name.c_str());
+  ++m_indexBufferCount;
 
   return pIBuffer;
 }
@@ -680,9 +745,14 @@ DX11GraphicsManager::internalCreateConstantBuffer(const uint32 bufferSize,
     initData.SysMemSlicePitch = 0;
   }
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateBuffer(&desc,
+  throwIfFailed(m_pDevice->CreateBuffer(&desc,
                                                    pData ? &initData : nullptr,
                                                    &pCBuffer->m_pBuffer));
+  String name = "ConstantBuffer_" + std::to_string(m_constBufferCount);
+  pCBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                      static_cast<uint32>(name.size()),
+                                      name.c_str());
+  ++m_constBufferCount;
 
   return pCBuffer;
 }
@@ -702,8 +772,12 @@ DX11GraphicsManager::internalCreateSamplerState(const uint32 filter, const uint3
   sampDesc.MinLOD = 0;
   sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateSamplerState(&sampDesc,
-                                                         &pSampleLinear->m_pSamplerLinear));
+  throwIfFailed(m_pDevice->CreateSamplerState(&sampDesc, &pSampleLinear->m_pSamplerLinear));
+
+  String name = "SamplerState_" + std::to_string(m_samplerStateCount);
+  pSampleLinear->m_pSamplerLinear->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                                  static_cast<uint32>(name.size()),
+                                                  name.c_str());
 
   return pSampleLinear;
 }
@@ -724,12 +798,7 @@ DX11GraphicsManager::internalCreateTextureFromFile(const void* pData,
                                                      D3D11_BIND_SHADER_RESOURCE,
                                                      1));
 
-  m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D,
-                                                        0,
-                                                        nullptr,
-                                                        pData,
-                                                        pitch,
-                                                        0);
+  m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
   return pTexture;
 }
 
@@ -740,10 +809,10 @@ DX11GraphicsManager::internalCreateTextureFromDDS(const String& fileName)
 
   SystemPath path = fileName;
   
-  throwIfFailed(CreateDDSTextureFromFile(m_pDevice->m_pDevice,
-                          path.wstring().c_str(),
-                          reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D),
-                          &pTexture->m_pShaderRV));
+  throwIfFailed(CreateDDSTextureFromFile(m_pDevice,
+                path.wstring().c_str(),
+                reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D),
+                &pTexture->m_pShaderRV));
 
   return pTexture;
 }
@@ -772,9 +841,7 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   textureDesc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ?  D3D11_CPU_ACCESS_WRITE : 0;
   textureDesc.MiscFlags = 0;
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateTexture2D(&textureDesc,
-                                                      nullptr,
-                                                      &pTexture->m_pTexture2D));
+  throwIfFailed(m_pDevice->CreateTexture2D(&textureDesc, nullptr, &pTexture->m_pTexture2D));
 
   if ((bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
   {
@@ -791,9 +858,9 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     shaderRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     shaderRVDesc.Texture2D.MipLevels = textureDesc.MipLevels;
     shaderRVDesc.Texture2D.MostDetailedMip = 0;
-    throwIfFailed(m_pDevice->m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
-                                                                 &shaderRVDesc,
-                                                                 &pTexture->m_pShaderRV));
+    throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+                                                      &shaderRVDesc,
+                                                      &pTexture->m_pShaderRV));
   }
 
   if ((bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
@@ -810,9 +877,9 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     }
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
-    throwIfFailed(m_pDevice->m_pDevice->CreateDepthStencilView(pTexture->m_pTexture2D,
-                                                               &descDSV,
-                                                               &pTexture->m_pDepthSV));
+    throwIfFailed(m_pDevice->CreateDepthStencilView(pTexture->m_pTexture2D,
+                                                    &descDSV,
+                                                    &pTexture->m_pDepthSV));
   }
 
   if ((bindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET)
@@ -822,9 +889,9 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     descRTV.Format = textureDesc.Format;
     descRTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     descRTV.Texture2D.MipSlice = 0;
-    throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
-                                                               &descRTV,
-                                                               &pTexture->m_pRenderTV));
+    throwIfFailed(m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
+                                                    &descRTV,
+                                                    &pTexture->m_pRenderTV));
   }
 
   if ((bindFlags & D3D11_BIND_UNORDERED_ACCESS) == D3D11_BIND_UNORDERED_ACCESS)
@@ -834,9 +901,9 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     descUAV.Format = textureDesc.Format;
     descUAV.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
     descUAV.Texture2D.MipSlice = 0;
-    throwIfFailed(m_pDevice->m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
-                                                                  &descUAV,
-                                                                  &pTexture->m_pUnorderedAV));
+    throwIfFailed(m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
+                                                       &descUAV,
+                                                       &pTexture->m_pUnorderedAV));
   }
 
   return pTexture;
@@ -871,13 +938,11 @@ DX11GraphicsManager::internalCreateErrorTexture()
   initData.pSysMem = pixels.data();
   initData.SysMemPitch = errorSize * sizeof(uint32);
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateTexture2D(&desc,
-                                                      &initData,
-                                                      &pTexture->m_pTexture2D));
+  throwIfFailed(m_pDevice->CreateTexture2D(&desc, &initData, &pTexture->m_pTexture2D));
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
-                                                               nullptr,
-                                                               &pTexture->m_pShaderRV));
+  throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+                                                    nullptr,
+                                                    &pTexture->m_pShaderRV));
 
   return pTexture;
 }
@@ -905,9 +970,14 @@ DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
   d3d11BlendDesc.RenderTarget[0].RenderTargetWriteMask =
     blendDesc.renderTarget[0].renderTargetWriteMask;
 
-  m_pDevice->m_pDevice->CreateBlendState(&d3d11BlendDesc, &pBlendState->m_pBlendS);
+  m_pDevice->CreateBlendState(&d3d11BlendDesc, &pBlendState->m_pBlendS);
 
   pBlendState->m_blendFactor = blendFactor;
+
+  String name = "BlendState_" + std::to_string(m_blendStateCount);
+  pBlendState->m_pBlendS->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                         static_cast<uint32>(name.size()),
+                                          name.c_str());
 
   return pBlendState;
 }
@@ -929,7 +999,12 @@ DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasteri
   rasterDesc.MultisampleEnable = rasterizerDesc.multisampleEnable;
   rasterDesc.AntialiasedLineEnable = rasterizerDesc.antialiasedLineEnable;
 
-  m_pDevice->m_pDevice->CreateRasterizerState(&rasterDesc, &pRasterizerState->m_pRasterS);
+  m_pDevice->CreateRasterizerState(&rasterDesc, &pRasterizerState->m_pRasterS);
+
+  String name = "RasterizerState_" + std::to_string(m_rasterizerStateCount);
+  pRasterizerState->m_pRasterS->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                               static_cast<uint32>(name.size()),
+                                               name.c_str());
 
   return pRasterizerState;
 }
@@ -965,7 +1040,12 @@ DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& dep
   d3d11DepthDesc.FrontFace = frontFace;
   d3d11DepthDesc.BackFace = backFace;
 
-  m_pDevice->m_pDevice->CreateDepthStencilState(&d3d11DepthDesc, &pDepthSS->m_pDepthSS);
+  m_pDevice->CreateDepthStencilState(&d3d11DepthDesc, &pDepthSS->m_pDepthSS);
+
+  String name = "DepthStencilState_" + std::to_string(m_depthStencilStateCount);
+  pDepthSS->m_pDepthSS->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                       static_cast<uint32>(name.size()),
+                                       name.c_str());
 
   return pDepthSS;
 }
@@ -980,7 +1060,7 @@ DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D> pTexture)
   auto pTex = sh_reinterpretPCast<DX11Texture2D>(pTexture.lock());
 
   if (pTex->m_pShaderRV) {
-    m_pDeviceContext->m_pDeviceContext->GenerateMips(pTex->m_pShaderRV);
+    m_pDeviceContext->GenerateMips(pTex->m_pShaderRV);
   }
 }
 
@@ -994,12 +1074,12 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const WPtr<ConstantBuffer> pCB
   }
   auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
-  m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pConstantBuffer->m_pBuffer,
-                                                        0,
-                                                        nullptr,
-                                                        pData,
-                                                        dataSize,
-                                                        0);
+  m_pDeviceContext->UpdateSubresource(pConstantBuffer->m_pBuffer,
+                                      0,
+                                      nullptr,
+                                      pData,
+                                      dataSize,
+                                      0);
 }
 
 void
@@ -1014,12 +1094,7 @@ DX11GraphicsManager::internalUpdateTexture2D(WPtr<Texture2D> pTexture,
   auto pTex2D = sh_reinterpretPCast<DX11Texture2D>(pTexture.lock());
   int32 pitch = width * bpp;
 
-  m_pDeviceContext->m_pDeviceContext->UpdateSubresource(pTex2D->m_pTexture2D,
-                                                        0,
-                                                        nullptr,
-                                                        pData,
-                                                        pitch,
-                                                        0);
+  m_pDeviceContext->UpdateSubresource(pTex2D->m_pTexture2D, 0, nullptr, pData, pitch, 0);
 }
 
 void
@@ -1044,9 +1119,9 @@ DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
                 __uuidof(ID3D11Texture2D),
                 reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
-  throwIfFailed(m_pDevice->m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
-                                      nullptr,
-                                      &pBackbuffer->m_pRenderTV));
+  throwIfFailed(m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
+                                                  nullptr,
+                                                  &pBackbuffer->m_pRenderTV));
   m_pBackbuffer = pBackbuffer;
 
   m_pDepthStencil = internalCreateTexture2D(width,
@@ -1109,7 +1184,7 @@ DX11GraphicsManager::internalSetViewport(const Viewport& vp)
   viewPort.MaxDepth = vp.maxDepth;
   viewPort.TopLeftX = vp.topLeftX;
   viewPort.TopLeftY = vp.topLeftY;
-  m_pDeviceContext->m_pDeviceContext->RSSetViewports(1, &viewPort);
+  m_pDeviceContext->RSSetViewports(1, &viewPort);
 }
 
 void
@@ -1139,9 +1214,7 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRe
     pDSV = pDepthStencil->m_pDepthSV;
   }
 
-  m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(static_cast<UINT>(pRTVs.size()),
-                                                         pRTVs.data(),
-                                                         pDSV);
+  m_pDeviceContext->OMSetRenderTargets(static_cast<UINT>(pRTVs.size()), pRTVs.data(), pDSV);
 }
 
 void
@@ -1151,7 +1224,7 @@ DX11GraphicsManager::internalSetInputLayout(const WPtr<InputLayout> pInput)
     return;
   }
   auto pInputLayout = sh_reinterpretPCast<DX11InputLayout>(pInput.lock());
-  m_pDeviceContext->m_pDeviceContext->IASetInputLayout(pInputLayout->m_pLayout);
+  m_pDeviceContext->IASetInputLayout(pInputLayout->m_pLayout);
 }
 
 void
@@ -1160,25 +1233,20 @@ DX11GraphicsManager::internalSetVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
                                               const uint32 numBuffers,
                                               const uint32 offset)
 {
-  SH_ASSERT(m_pDeviceContext && m_pDeviceContext->m_pDeviceContext);
-  auto& pDC = m_pDeviceContext->m_pDeviceContext;
+  SH_ASSERT(m_pDeviceContext);
 
   if (!pVBuffer.expired()) {
     auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer.lock());
 
-    pDC->IASetVertexBuffers(startSlot,
-                            numBuffers,
-                            &pVertexBuffer->m_pBuffer,
-                            &pVertexBuffer->m_stride,
-                            &offset);
+    m_pDeviceContext->IASetVertexBuffers(startSlot,
+                                         numBuffers,
+                                         &pVertexBuffer->m_pBuffer,
+                                         &pVertexBuffer->m_stride,
+                                         &offset);
   }
   else {
     ID3D11Buffer* pVB = nullptr;
-    pDC->IASetVertexBuffers(startSlot,
-                            numBuffers,
-                            &pVB,
-                            0,
-                            &offset);
+    m_pDeviceContext->IASetVertexBuffers(startSlot, numBuffers, &pVB, 0, &offset);
   }
 }
 
@@ -1186,19 +1254,18 @@ void
 DX11GraphicsManager::internalSetIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
                                              const uint32 offset)
 {
-  SH_ASSERT(m_pDeviceContext && m_pDeviceContext->m_pDeviceContext);
-  auto& pDC = m_pDeviceContext->m_pDeviceContext;
+  SH_ASSERT(m_pDeviceContext);
 
   if(!pIBuffer.expired()){
     auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer.lock());
     
-    pDC->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
-                          static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
-                          offset);
+    m_pDeviceContext->IASetIndexBuffer(pIndexBuffer->m_pBuffer,
+                                       static_cast<DXGI_FORMAT>(pIndexBuffer->m_dataFormat),
+                                       offset);
   }
   else {
     ID3D11Buffer* pIB = nullptr;
-    pDC->IASetIndexBuffer(pIB, DXGI_FORMAT_UNKNOWN, offset);
+    m_pDeviceContext->IASetIndexBuffer(pIB, DXGI_FORMAT_UNKNOWN, offset);
   }
 }
 
@@ -1210,9 +1277,7 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
   if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
-    m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
-                                                             numBuffers,
-                                                             &pBuff);
+    m_pDeviceContext->VSSetConstantBuffers(startSlot, numBuffers, &pBuff);
 
     SafeRelease(pBuff);
     return;
@@ -1220,9 +1285,7 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 
   auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
-  m_pDeviceContext->m_pDeviceContext->VSSetConstantBuffers(startSlot,
-                                                           numBuffers,
-                                                           &pConstantBuffer->m_pBuffer);
+  m_pDeviceContext->VSSetConstantBuffers(startSlot, numBuffers, &pConstantBuffer->m_pBuffer);
 }
 
 void
@@ -1233,9 +1296,7 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
   if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
-    m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,
-                                                             numBuffers,
-                                                             &pBuff);
+    m_pDeviceContext->PSSetConstantBuffers(startSlot, numBuffers, &pBuff);
 
     SafeRelease(pBuff);
     return;
@@ -1243,9 +1304,7 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 
   auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
-  m_pDeviceContext->m_pDeviceContext->PSSetConstantBuffers(startSlot,
-                                                           numBuffers,
-                                                           &pConstantBuffer->m_pBuffer);
+  m_pDeviceContext->PSSetConstantBuffers(startSlot, numBuffers, &pConstantBuffer->m_pBuffer);
 }
 
 void
@@ -1256,9 +1315,7 @@ DX11GraphicsManager::internalGSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
   if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
-    m_pDeviceContext->m_pDeviceContext->GSSetConstantBuffers(startSlot,
-                                                             numBuffers,
-                                                             &pBuff);
+    m_pDeviceContext->GSSetConstantBuffers(startSlot, numBuffers, &pBuff);
 
     SafeRelease(pBuff);
     return;
@@ -1266,9 +1323,7 @@ DX11GraphicsManager::internalGSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 
   auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
-  m_pDeviceContext->m_pDeviceContext->GSSetConstantBuffers(startSlot,
-                                                           numBuffers,
-                                                           &pConstantBuffer->m_pBuffer);
+  m_pDeviceContext->GSSetConstantBuffers(startSlot, numBuffers, &pConstantBuffer->m_pBuffer);
 }
 
 void
@@ -1279,9 +1334,7 @@ DX11GraphicsManager::internalCSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
   if (pCBuffer.expired()) {
     ID3D11Buffer* pBuff = nullptr;
 
-    m_pDeviceContext->m_pDeviceContext->CSSetConstantBuffers(startSlot,
-                                                             numBuffers,
-                                                             &pBuff);
+    m_pDeviceContext->CSSetConstantBuffers(startSlot, numBuffers, &pBuff);
 
     SafeRelease(pBuff);
     return;
@@ -1289,16 +1342,13 @@ DX11GraphicsManager::internalCSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 
   auto pConstantBuffer = sh_reinterpretPCast<DX11ConstantBuffer>(pCBuffer.lock());
 
-  m_pDeviceContext->m_pDeviceContext->CSSetConstantBuffers(startSlot,
-                                                           numBuffers,
-                                                           &pConstantBuffer->m_pBuffer);
+  m_pDeviceContext->CSSetConstantBuffers(startSlot, numBuffers, &pConstantBuffer->m_pBuffer);
 }
 
 void
 DX11GraphicsManager::internalSetPrimitiveTopology(uint32 primitive)
 {
-  m_pDeviceContext->m_pDeviceContext->IASetPrimitiveTopology(
-                                      static_cast<D3D_PRIMITIVE_TOPOLOGY>(primitive));
+  m_pDeviceContext->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(primitive));
 }
 
 void
@@ -1311,8 +1361,7 @@ DX11GraphicsManager::internalSetVertexShader(const WPtr<VertexShader> pVShader,
   }
   auto pVS = sh_reinterpretPCast<DX11VertexShader>(pVShader.lock());
 
-  m_pDeviceContext->m_pDeviceContext->VSSetShader(
-                    pVS->m_pVertexShader,
+  m_pDeviceContext->VSSetShader(pVS->m_pVertexShader,
                     reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
                     numClassInstances);
 }
@@ -1327,8 +1376,7 @@ DX11GraphicsManager::internalSetPixelShader(const WPtr<PixelShader> pPShader,
   }
   auto pPS = sh_reinterpretPCast<DX11PixelShader>(pPShader.lock());
 
-  m_pDeviceContext->m_pDeviceContext->PSSetShader(
-                    pPS->m_pPixelShader,
+  m_pDeviceContext->PSSetShader(pPS->m_pPixelShader,
                     reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
                     numClassInstances);
 }
@@ -1343,8 +1391,7 @@ DX11GraphicsManager::internalSetGeometryShader(const WPtr<GeometryShader> pGShad
   }
   auto pGS = sh_reinterpretPCast<DX11GeometryShader>(pGShader.lock());
 
-  m_pDeviceContext->m_pDeviceContext->GSSetShader(
-                    pGS->m_pGeometryShader,
+  m_pDeviceContext->GSSetShader(pGS->m_pGeometryShader,
                     reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
                     numClassInstances);
 }
@@ -1359,8 +1406,7 @@ DX11GraphicsManager::internalSetComputeShader(const WPtr<ComputeShader> pCShader
   }
   auto pCS = sh_reinterpretPCast<DX11ComputeShader>(pCShader.lock());
 
-  m_pDeviceContext->m_pDeviceContext->CSSetShader(
-                    pCS->m_pComputeShader,
+  m_pDeviceContext->CSSetShader(pCS->m_pComputeShader,
                     reinterpret_cast<ID3D11ClassInstance* const*>(ppClassInstances),
                     numClassInstances);
 }
@@ -1372,17 +1418,13 @@ DX11GraphicsManager::internalPSSetShaderResourceView(const WPtr<Texture2D> pShad
 {
   if (pShaderRV.expired()) {
     ID3D11ShaderResourceView* dx11SRV = nullptr;
-    m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
-                                                             numViews,
-                                                             &dx11SRV);
+    m_pDeviceContext->PSSetShaderResources(startSlot, numViews, &dx11SRV);
     return;
   }
 
   auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV.lock());
 
-  m_pDeviceContext->m_pDeviceContext->PSSetShaderResources(startSlot,
-                                                           numViews,
-                                                           &pShaderTexture->m_pShaderRV);
+  m_pDeviceContext->PSSetShaderResources(startSlot, numViews, &pShaderTexture->m_pShaderRV);
 }
 
 void
@@ -1392,17 +1434,13 @@ DX11GraphicsManager::internalCSSetShaderResourceView(const WPtr<Texture2D> pShad
 {
   if (pShaderRV.expired()) {
     ID3D11ShaderResourceView* dx11SRV = nullptr;
-    m_pDeviceContext->m_pDeviceContext->CSSetShaderResources(startSlot,
-                                                             numViews,
-                                                             &dx11SRV);
+    m_pDeviceContext->CSSetShaderResources(startSlot, numViews, &dx11SRV);
     return;
   }
 
   auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV.lock());
 
-  m_pDeviceContext->m_pDeviceContext->CSSetShaderResources(startSlot,
-                                                           numViews,
-                                                           &pShaderTexture->m_pShaderRV);
+  m_pDeviceContext->CSSetShaderResources(startSlot, numViews, &pShaderTexture->m_pShaderRV);
 }
 
 void
@@ -1414,18 +1452,15 @@ DX11GraphicsManager::internalSetUnorderedAccessView(const WPtr<Texture2D> pUAV,
   SH_UNREFERENCED_PARAMETER(count);
   if (pUAV.expired()) {
     ID3D11UnorderedAccessView* dx11UAV = nullptr;
-    m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
-                                                                  numViews,
-                                                                  &dx11UAV,
-                                                                  nullptr);
+    m_pDeviceContext->CSSetUnorderedAccessViews(startSlot, numViews, &dx11UAV, nullptr);
     return;
   }
 
   auto pUAVTexture = sh_reinterpretPCast<DX11Texture2D>(pUAV.lock());
-  m_pDeviceContext->m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
-                                                                numViews,
-                                                                &pUAVTexture->m_pUnorderedAV,
-                                                                nullptr);
+  m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
+                                              numViews,
+                                              &pUAVTexture->m_pUnorderedAV,
+                                              nullptr);
 }
 
 void
@@ -1436,13 +1471,11 @@ DX11GraphicsManager::internalPSSetSamplerState(const WPtr<SamplerState> pSampler
   if (!pSamplerLinear.expired()) {
     auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear.lock());
 
-    m_pDeviceContext->m_pDeviceContext->PSSetSamplers(startSlot,
-                                                      numSamplers,
-                                                      &pSampler->m_pSamplerLinear);
+    m_pDeviceContext->PSSetSamplers(startSlot, numSamplers, &pSampler->m_pSamplerLinear);
   }
   else {
     ID3D11SamplerState* pSampler = nullptr;
-    m_pDeviceContext->m_pDeviceContext->PSSetSamplers(0, 1, &pSampler);
+    m_pDeviceContext->PSSetSamplers(0, 1, &pSampler);
   }
 }
 
@@ -1454,13 +1487,11 @@ DX11GraphicsManager::internalCSSetSamplerState(const WPtr<SamplerState> pSampler
   if (!pSamplerLinear.expired()) {
     auto pSampler = sh_reinterpretPCast<DX11SamplerState>(pSamplerLinear.lock());
 
-    m_pDeviceContext->m_pDeviceContext->CSSetSamplers(startSlot,
-                                                      numSamplers,
-                                                      &pSampler->m_pSamplerLinear);
+    m_pDeviceContext->CSSetSamplers(startSlot, numSamplers, &pSampler->m_pSamplerLinear);
   }
   else {
     ID3D11SamplerState* pSampler = nullptr;
-    m_pDeviceContext->m_pDeviceContext->CSSetSamplers(0, 1, &pSampler);
+    m_pDeviceContext->CSSetSamplers(0, 1, &pSampler);
   }
 }
 
@@ -1475,7 +1506,7 @@ DX11GraphicsManager::internalSetBlendState(const WPtr<BlendState> pBlendState)
                   pBS->m_blendFactor.g,
                   pBS->m_blendFactor.b,
                   pBS->m_blendFactor.a };
-  m_pDeviceContext->m_pDeviceContext->OMSetBlendState(pBS->m_pBlendS, bf, 0xFFFFFFFF);
+  m_pDeviceContext->OMSetBlendState(pBS->m_pBlendS, bf, 0xFFFFFFFF);
 }
 
 void
@@ -1485,7 +1516,7 @@ DX11GraphicsManager::internalSetRasterizerState(const WPtr<RasterizerState> pRas
     return;
   }
   auto pRS = sh_reinterpretPCast<DX11RasterizerState>(pRasterizerState.lock());
-  m_pDeviceContext->m_pDeviceContext->RSSetState(pRS->m_pRasterS);
+  m_pDeviceContext->RSSetState(pRS->m_pRasterS);
 }
 
 void
@@ -1496,8 +1527,7 @@ DX11GraphicsManager::internalSetDepthStencilState(const WPtr<DepthStencilState> 
     return;
   }
   auto pDepthSS = sh_reinterpretPCast<DX11DepthStencilState>(pDepthSState.lock());
-  m_pDeviceContext->m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS,
-                                                             stencilRef);
+  m_pDeviceContext->OMSetDepthStencilState(pDepthSS->m_pDepthSS, stencilRef);
 }
 
 void
@@ -1508,13 +1538,13 @@ DX11GraphicsManager::internalSetScissorRects(const Rect& scissorClip)
                          static_cast<LONG>(scissorClip.max.x),
                          static_cast<LONG>(scissorClip.max.y) };
 
-  m_pDeviceContext->m_pDeviceContext->RSSetScissorRects(1, &r);
+  m_pDeviceContext->RSSetScissorRects(1, &r);
 }
 
 void
 DX11GraphicsManager::internalDraw(const uint32 vertexCount, const uint32 startVertexLocation)
 {
-  m_pDeviceContext->m_pDeviceContext->Draw(vertexCount, startVertexLocation);
+  m_pDeviceContext->Draw(vertexCount, startVertexLocation);
 }
 
 void
@@ -1522,9 +1552,7 @@ DX11GraphicsManager::internalDrawIndexed(const uint32 indexCount,
                                          const uint32 startIndexLocation,
                                          const uint32 baseVertexLocation)
 {
-  m_pDeviceContext->m_pDeviceContext->DrawIndexed(indexCount,
-                                                  startIndexLocation,
-                                                  baseVertexLocation);
+  m_pDeviceContext->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
 }
 
 void
@@ -1532,8 +1560,6 @@ DX11GraphicsManager::internalDispatch(const uint32 threadGroupCountX,
                                       const uint32 threadGroupCountY,
                                       const uint32 threadGroupCountZ)
 {
-  m_pDeviceContext->m_pDeviceContext->Dispatch(threadGroupCountX,
-                                               threadGroupCountY,
-                                               threadGroupCountZ);
+  m_pDeviceContext->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 }
 }

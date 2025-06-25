@@ -21,7 +21,7 @@
 #include "shGraphicsManager.h"
 
 #include "shDX11Buffers.h"
-#include "shDX11Device.h"
+//#include "shDX11Device.h"
 #include "shDX11InputLayout.h"
 #include "shDX11Shader.h"
 #include "shDX11Texture.h"
@@ -105,7 +105,7 @@ class DX11GraphicsManager : public GraphicsManager
   * 
   *  @return SPtr<RenderTargetView>
   */
-  SPtr<Texture2D>
+  WPtr<Texture2D>
   internalGetMainRenderTargetView() const override;
 
   /**
@@ -113,7 +113,7 @@ class DX11GraphicsManager : public GraphicsManager
   * 
   *  @return SPtr<DepthStencilView>
   */
-  SPtr<Texture2D>
+  WPtr<Texture2D>
   internalGetMainDepthStencil() const override;
 
   /********************
@@ -705,12 +705,14 @@ class DX11GraphicsManager : public GraphicsManager
   /**
   *  @brief GPU Device.
   */
-  SPtr<DX11Device> m_pDevice;
+  //SPtr<DX11Device> m_pDevice;
+  ID3D11Device* m_pDevice = nullptr;
 
   /**
   *  @brief GPU Device Context.
   */
-  SPtr<DX11DeviceContext> m_pDeviceContext;
+  //SPtr<DX11DeviceContext> m_pDeviceContext;
+  ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
   /**
   *  @brief The SwapChain for the front and back buffers.
@@ -726,5 +728,17 @@ class DX11GraphicsManager : public GraphicsManager
   *  @brief The main Depth Stencil.
   */
   SPtr<Texture2D> m_pDepthStencil;
+
+#if defined(SH_DEBUG_MODE)
+  ID3D11Debug* m_pDebug = nullptr;
+#endif
+
+  uint32 m_vertexBufferCount = 0;
+  uint32 m_indexBufferCount = 0;
+  uint32 m_constBufferCount = 0;
+  uint32 m_rasterizerStateCount = 0;
+  uint32 m_blendStateCount = 0;
+  uint32 m_depthStencilStateCount = 0;
+  uint32 m_samplerStateCount = 0;
 };
 }

@@ -28,6 +28,8 @@
 #include "shMatrix4.h"
 #include "shStringID.h"
 
+#define PBRBufferSize 32 // Size of the PBR material constant buffer
+
 namespace shEngineSDK {
 RenderManager::~RenderManager()
 {
@@ -76,6 +78,8 @@ RenderManager::onStartUp()
   auto fullUAVBindFlags = BIND_FLAGS::kRenderTarget |
                           BIND_FLAGS::kShaderResource |
                           BIND_FLAGS::kUnorderedAccess;
+
+  m_pPBRData = graphMan.createConstantBuffer(PBRBufferSize);
 
   // Textures info
   m_renderTargetMap[StringID("DepthMap").getID()] = RenderTargetInfo("DepthMap",
@@ -129,7 +133,6 @@ RenderManager::onStartUp()
 void
 RenderManager::onShutDown()
 {
-  m_passes.clear();
   cleanShaderObjects();
 }
 
@@ -459,8 +462,35 @@ RenderManager::drawStaticMeshOnScene()
         uint32 vertexCount = 0;
         auto& meshResource = meshComponent->m_mesh;
         for (auto& mesh : meshResource->m_meshes) {
-          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
-          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+          if (!meshResource->m_materials[mesh.materialIndex]->m_properties.bHasAlphaTest) {
+            setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+            graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+          }
+          indexCount += mesh.numIndices;
+          vertexCount += mesh.numVertices;
+        }
+      }
+    }
+  }
+  for (auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
+        auto meshComponent = sh_reinterpretPCast<StaticMeshComponent>(component);
+
+        graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
+        graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+
+        Transform modelT = gameObject->transform.getTransform();
+        graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+
+        uint32 indexCount = 0;
+        uint32 vertexCount = 0;
+        auto& meshResource = meshComponent->m_mesh;
+        for (auto& mesh : meshResource->m_meshes) {
+          if (meshResource->m_materials[mesh.materialIndex]->m_properties.bHasAlphaTest) {
+            setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+            graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+          }
           indexCount += mesh.numIndices;
           vertexCount += mesh.numVertices;
         }
@@ -476,6 +506,29 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
 
   if (pMat->m_type != MATERIAL_TYPE::kPBR) {
     return;
+  }
+
+  struct PBRMaterialData {
+    Vector3 baseColorFactor;
+    float unused0; // Padding to align to 16 bytes
+    Vector2 metallicRoughnessFactor;
+    MaterialProperties properties;
+    float unused1; // Padding to align to 16 bytes
+  };
+
+  PBRMaterialData pbrData = {};
+  pbrData.baseColorFactor = pMat->baseColorFactor;
+  pbrData.metallicRoughnessFactor = pMat->metallicRoughnessFactor;
+  pbrData.properties = pMat->m_properties;
+
+  /*if (m_pPBRData == nullptr) {
+    graphMan.createConstantBuffer(sizeof(PBRMaterialData));
+  }*/
+  graphMan.updateConstantBuffer(m_pPBRData, &pbrData, sizeof(PBRMaterialData));
+  graphMan.psSetConstantBuffers(m_pPBRData, 3);
+
+  if (!pbrData.properties.bHasDiffuseMap) {
+    int a = 10; // This is a placeholder to avoid unused variable warning
   }
 
   if (pMat->baseColor) {
@@ -802,7 +855,7 @@ RenderManager::renderScene()
   /*************************************/
   /*             Histogram             */
   /*************************************/
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  /*graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HistogramShader").getID()]->setPass();
 
   graphMan.csSetShaderResourceView(pPPMap.pTexture, 0);
@@ -814,7 +867,7 @@ RenderManager::renderScene()
 
   graphMan.dispatch(dx, dy, dz);
 
-  cleanShaderObjects();
+  cleanShaderObjects();*/
 }
 
 void

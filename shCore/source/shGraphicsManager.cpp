@@ -52,13 +52,13 @@ GraphicsManager::present(uint32 syncInterval, uint32 flags)
   internalPresent(syncInterval, flags);
 }
 
-SPtr<Texture2D>
+WPtr<Texture2D>
 GraphicsManager::getMainRenderTargetView() const
 {
   return internalGetMainRenderTargetView();
 }
 
-SPtr<Texture2D>
+WPtr<Texture2D>
 GraphicsManager::getMainDepthStencil() const
 {
   return internalGetMainDepthStencil();

@@ -49,7 +49,7 @@ class SH_CORE_EXPORT BaseApp
   /**
   *  @brief Default destructor.
   */
-  ~BaseApp() = default;
+  virtual ~BaseApp();
 
   /***************************************************************************/
   /*

@@ -668,100 +668,73 @@ RendererApp::setImgui()
                ImGuiWindowFlags_NoCollapse |
                ImGuiWindowFlags_NoResize);
   if (scene.getGameObjectList().size() > 0) {
-    if (ImGui::CollapsingHeader("Transform")) {
-      // Position
-      ImGui::Text("Position:");
-      // Position X
-      ImGui::SameLine(80.0f);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
-      ImGui::PopStyleColor(3);
-      // Position Y
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
-      ImGui::PopStyleColor(3);
-      // Position Z
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
-      ImGui::PopStyleColor(3);
-
-      // Rotation
-      ImGui::Text("Rotation:");
-      // Rotation X
-      ImGui::SameLine(80.0f);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.1f);
-      ImGui::PopStyleColor(3);
-      // Rotation Y
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.1f);
-      ImGui::PopStyleColor(3);
-      // Rotation Z
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.1f);
-      ImGui::PopStyleColor(3);
-
-      // Scale
-      ImGui::Text("Scale:");
-      // Rotation X
-      ImGui::SameLine(80.0f);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.1f);
-      ImGui::PopStyleColor(3);
-      // Rotation Y
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.1f);
-      ImGui::PopStyleColor(3);
-      // Rotation Z
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.1f);
-      ImGui::PopStyleColor(3);
-
-      ImGui::Spacing();
-      ImGui::Spacing();
-      ImGui::SetNextItemWidth(60.0f);
-      ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
-      if (ImGui::Button("Reset")) {
-        m_modelPos = { 0.0f, 0.0f, 0.0f };
-        m_modelRot = { 0.0f, 0.0f, 0.0f };
-        m_modelScale = { 1.0f, 1.0f, 1.0f };
+    drawTransformComponent();
+    if(m_pModel){
+      for (uint32 i = 0; i < m_pModel->components.size(); ++i) {
+        auto& pComponent = m_pModel->components[i];
+        if (pComponent->getType() == COMPONENT_TYPE::kStaticMesh) {
+          auto pMesh = sh_reinterpretPCast<StaticMeshComponent>(pComponent);
+          if (ImGui::CollapsingHeader("Static Mesh Component")) {
+            ImGui::Text("Material Count: %d",
+              static_cast<uint32>(pMesh->m_mesh->m_materials.size()));
+            uint32 vertexCount = 0;
+            uint32 indexCount = 0;
+            for (uint32 j = 0; j < pMesh->m_mesh->m_meshes.size(); ++j) {
+              vertexCount += pMesh->m_mesh->m_meshes[j].numVertices;
+              indexCount += pMesh->m_mesh->m_meshes[j].numIndices;
+            }
+            ImGui::Text("Vertex Count: %d", vertexCount);
+            ImGui::Text("Index Count: %d", indexCount);
+            for (uint32 j = 0; j < pMesh->m_mesh->m_materials.size(); ++j) {
+              auto& currentMat = pMesh->m_mesh->m_materials[j];
+              String matName = "Material:" + currentMat->name;
+              ImGui::Text(matName.c_str());
+              auto& pBaseColor = currentMat->baseColor;
+              auto& pNormal = currentMat->normal;
+              auto& pMetallic = currentMat->metallic;
+              auto& pRoughness = currentMat->roughness;
+              ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
+              ImGui::SameLine();
+              String buttonID = "##ColorButton" + currentMat->name;
+              Vector3& baseColor = currentMat->baseColorFactor;
+              if (ImGui::ColorButton(buttonID.c_str(), ImVec4(baseColor.x,
+                                                              baseColor.y,
+                                                              baseColor.z,
+                                                              1.0f)))
+              {
+                m_bTexColor = m_bTexColor ? false : true;
+              }
+              ImGui::SameLine();
+              bool bHasDiffuseMap = currentMat->m_properties.bHasDiffuseMap;
+              ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
+              currentMat->m_properties.bHasDiffuseMap = bHasDiffuseMap;
+              
+              if (m_bTexColor) {
+                ImGui::Begin("Color Picker", 0, ImGuiWindowFlags_NoTitleBar);
+                m_texColor[0] = baseColor.x;
+                m_texColor[1] = baseColor.y;
+                m_texColor[2] = baseColor.z;
+                ImGui::ColorPicker3("TexColor", m_texColor);
+                baseColor.x = m_texColor[0];
+                baseColor.y = m_texColor[1];
+                baseColor.z = m_texColor[2];
+                ImGui::End();
+              }
+              ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
+              //ImGui::SameLine();
+              ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
+              //ImGui::SameLine();
+              ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
+            }
+          }
+        }
       }
-      ImGui::PopStyleColor(3);
+      /*else if (pComponent->getType() == ComponentType::kSkyBox) {
+        auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(pComponent);
+        if (ImGui::CollapsingHeader("SkyBox Component")) {
+          ImGui::Text("SkyBox Name: %s", pSkyBox->getSkyBoxName().c_str());
+        }
+      }*/
     }
   }
   ImGui::End();
@@ -858,7 +831,10 @@ RendererApp::setImgui()
     bIsSoundPlaying = true;
   }
 
-  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pTex), ImVec2(160, 80));
+  //auto& pComponent = scene.getGameObjectList()[0]->components[0];
+  //auto pMesh = sh_reinterpretPCast<StaticMeshComponent>(pComponent);
+  //auto& pTex = pMesh->m_mesh->m_materials[0]->baseColor;
+  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pTex), ImVec2(256, 256));
 
   ImGui::Combo("ToneMapping", &m_toneMapIndex, "Reinhard\0ACES\0Uncharted2\0AgX\0LUT\0");
   ImGui::Spacing();
@@ -888,6 +864,106 @@ RendererApp::setImgui()
   ImGui::Text(text.c_str());
 
   ImGui::End();
+}
+
+void
+RendererApp::drawTransformComponent()
+{
+  if (ImGui::CollapsingHeader("Transform")) {
+    // Position
+    ImGui::Text("Position:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##PosX", &m_modelPos.x, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##PosY", &m_modelPos.y, 0.01f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##PosZ", &m_modelPos.z, 0.01f);
+    ImGui::PopStyleColor(3);
+
+    // Rotation
+    ImGui::Text("Rotation:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##RotX", &m_modelRot.x, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##RotY", &m_modelRot.y, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##RotZ", &m_modelRot.z, 0.1f);
+    ImGui::PopStyleColor(3);
+
+    // Scale
+    ImGui::Text("Scale:");
+    // Rotation X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##SclX", &m_modelScale.x, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Rotation Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##SclY", &m_modelScale.y, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Rotation Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##SclZ", &m_modelScale.z, 0.1f);
+    ImGui::PopStyleColor(3);
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(60.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
+    if (ImGui::Button("Reset")) {
+      m_modelPos = { 0.0f, 0.0f, 0.0f };
+      m_modelRot = { 0.0f, 0.0f, 0.0f };
+      m_modelScale = { 1.0f, 1.0f, 1.0f };
+    }
+    ImGui::PopStyleColor(3);
+  }
 }
 
 void

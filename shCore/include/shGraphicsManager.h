@@ -119,7 +119,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<RenderTargetView>
   */
-  SPtr<Texture2D>
+  WPtr<Texture2D>
   getMainRenderTargetView() const;
 
   /**
@@ -127,7 +127,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<DepthStencilView>
   */
-  SPtr<Texture2D>
+  WPtr<Texture2D>
   getMainDepthStencil() const;
 
   /********************
@@ -760,7 +760,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   * 
   *  @return SPtr<RenderTargetView>
   */
-  virtual SPtr<Texture2D>
+  virtual WPtr<Texture2D>
   internalGetMainRenderTargetView() const = 0;
 
   /**
@@ -768,7 +768,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   * 
   *  @return SPtr<DepthStencilView>
   */
-  virtual SPtr<Texture2D>
+  virtual WPtr<Texture2D>
   internalGetMainDepthStencil() const = 0;
 
   /********************

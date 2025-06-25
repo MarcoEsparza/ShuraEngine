@@ -30,6 +30,12 @@
 #include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
+BaseApp::~BaseApp()
+{
+  //onDestroy();
+  //destroyManagers();
+}
+
 void
 BaseApp::run()
 {
