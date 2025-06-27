@@ -55,3 +55,43 @@ cbuffer ShaderData : register(b1)
   float minB;
   float maxB;
 }
+
+struct MaterialProperties
+{
+  bool bHasBaseColor; // true if base color texture is used
+  bool bHasSpecular; // true if specular texture is used
+  bool bHasNormalMap; // true if normal map is used
+  bool bHasMetallicMap; // true if metallic map is used
+  bool bHasRoughnessMap; // true if roughness map is used
+  bool bHasAmbientOcclusion; // true if ambient occlusion map is used
+  bool bHasEmissiveMap; // true if emissive map is used
+  bool bIsOpaque; // true if material is opaque
+  bool bHasAlphaTest; // true if material uses alpha test
+  bool bHasAlphaBlend; // true if material uses alpha blending
+  bool bIsDoubleSided; // true if material is double sided
+  bool bWireframeEnabled; // true if wireframe rendering is enabled
+  bool bCanCastShadow; // true if material can cast shadows
+  bool bCanReceiveShadow; // true if material can receive shadows
+};
+
+MaterialProperties
+getMaterialProperties(int materialProps)
+{
+  MaterialProperties props = (MaterialProperties) 0;
+  props.bHasBaseColor = (materialProps & 1) == 0; // bit 0
+  props.bHasSpecular = (materialProps & 2) == 0; // bit 1
+  props.bHasNormalMap = (materialProps & 4) == 0; // bit 2
+  props.bHasMetallicMap = (materialProps & 8) == 0; // bit 3
+  props.bHasRoughnessMap = (materialProps & 16) == 0; // bit 4
+  props.bHasAmbientOcclusion = (materialProps & 32) == 0; // bit 5
+  props.bHasEmissiveMap = (materialProps & 64) == 0; // bit 6
+  props.bIsOpaque = (materialProps & 128) == 0; // bit 7
+  props.bHasAlphaTest = (materialProps & 256) == 0; // bit 8
+  props.bHasAlphaBlend = (materialProps & 512) == 0; // bit 9
+  props.bIsDoubleSided = (materialProps & 1024) == 0; // bit10
+  props.bWireframeEnabled = (materialProps & 2048) == 0; // bit11
+  props.bCanCastShadow = (materialProps & 4096) == 0; // bit12
+  props.bCanReceiveShadow = (materialProps & 8192) == 0; // bit13
+    
+  return props;
+}

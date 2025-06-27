@@ -1,3 +1,5 @@
+#include "resources/shaders/ShaderConstants.hlsl"
+
 SamplerState textureSampler : register(s0);
 Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
@@ -5,6 +7,7 @@ Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
 Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
+Texture2D t_skyMap : register(t6);
 
 #ifndef PCF_KERNEL_SIZE
 #define PCF_KERNEL_SIZE 5
@@ -16,39 +19,15 @@ Texture2D t_shadowMap : register(t5);
 #define PI 3.14159265359
 #endif
 
-cbuffer InvVP : register(b0)
-{
-  float4x4 InvViewProj;
-  float4x4 InvView;
-}
-
-cbuffer ViewDir : register(b1)
-{
-  float4 ViewPos;
-}
-
 cbuffer Light : register(b2)
 {
   float4 LightPos[12];
 }
 
-cbuffer Viewport : register(b3)
-{
-  float2 Dimensions;
-  float FarClip;
-  float NearClip;
-}
-
-cbuffer LightCam : register(b4)
+cbuffer LightCam : register(b3)
 {
   float4x4 lightView;
   float4x4 lightProj;
-}
-
-cbuffer LightCamDimension : register(b5)
-{
-  float shadowMapSize;
-  float3 unused;
 }
 
 struct PS_INPUT
@@ -157,7 +136,7 @@ float3 cookTorrenceSpecular(float3 normal,
 
 float4 mainPS(PS_INPUT input) : SV_Target
 {
-  float2 screenUV = input.Position.xy / Dimensions;
+  float2 screenUV = input.Position.xy / screenSize;
   
   float4 depth = t_depthMap.Sample(textureSampler, screenUV);
   float4 normalMap = t_normalMap.Sample(textureSampler, screenUV);
@@ -167,20 +146,22 @@ float4 mainPS(PS_INPUT input) : SV_Target
   float4 shadows = t_shadowMap.Sample(textureSampler, screenUV);
     
   float3 albedo = color.rgb;
-  //float metalness = color.a;
-  float metalness = propMap.r;
   float3 normal = normalMap.xyz;
-  //float roughness = normalMap.a;
+  float metalness = propMap.r;
   float roughness = propMap.b;
     
   if(color.a < 0.5f)
   {
     discard;
   }
-  if (normalMap.w == 0)
-  {
-    return float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float normalLen = length(normalMap.xyz);
+  if(normalLen < 0.001f) {
+    color = t_skyMap.Sample(textureSampler, screenUV);
   }
+  //if (normalMap.w == 0)
+  //{
+  //  return float4(0.0f, 0.0f, 0.0f, 0.0f);
+  //}
   
   normal = normal * 2.0f - 1.0f;
   //normal = mul(float4(normal, 0.0f), InvView);

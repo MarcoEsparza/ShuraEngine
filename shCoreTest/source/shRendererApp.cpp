@@ -693,7 +693,14 @@ RendererApp::setImgui()
               auto& pNormal = currentMat->normal;
               auto& pMetallic = currentMat->metallic;
               auto& pRoughness = currentMat->roughness;
+
+              // Base Color
               ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
+              /*if(ImGui::ImageButton("##BaseColorSelection",
+                                    reinterpret_cast<ImTextureID*>(&pBaseColor),
+                                    ImVec2(64, 64))) {
+                
+              }*/
               ImGui::SameLine();
               String buttonID = "##ColorButton" + currentMat->name;
               Vector3& baseColor = currentMat->baseColorFactor;
@@ -710,21 +717,52 @@ RendererApp::setImgui()
               currentMat->m_properties.bHasDiffuseMap = bHasDiffuseMap;
               
               if (m_bTexColor) {
+                float texColor[3] = { baseColor.x, baseColor.y, baseColor.z };
                 ImGui::Begin("Color Picker", 0, ImGuiWindowFlags_NoTitleBar);
-                m_texColor[0] = baseColor.x;
-                m_texColor[1] = baseColor.y;
-                m_texColor[2] = baseColor.z;
-                ImGui::ColorPicker3("TexColor", m_texColor);
-                baseColor.x = m_texColor[0];
-                baseColor.y = m_texColor[1];
-                baseColor.z = m_texColor[2];
+                texColor[0] = baseColor.x;
+                texColor[1] = baseColor.y;
+                texColor[2] = baseColor.z;
+                ImGui::ColorPicker3("TexColor", texColor);
+                baseColor.x = texColor[0];
+                baseColor.y = texColor[1];
+                baseColor.z = texColor[2];
                 ImGui::End();
               }
+
+              // Normal
               ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
-              //ImGui::SameLine();
+              ImGui::SameLine();
+              bool bHasNormalMap = currentMat->m_properties.bHasNormalMap;
+              ImGui::Checkbox("Normal", &bHasNormalMap);
+              currentMat->m_properties.bHasNormalMap = bHasNormalMap;
+
+              // Metallic
               ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
-              //ImGui::SameLine();
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(50.0f);
+              ImGui::DragFloat("##Metallic Factor",
+                               &currentMat->metallicRoughnessFactor.x,
+                               0.01f,
+                               0.0f,
+                               1.0f);
+              ImGui::SameLine();
+              bool bHasMetallicMap = currentMat->m_properties.bHasMetalnessMap;
+              ImGui::Checkbox("Metallic", &bHasMetallicMap);
+              currentMat->m_properties.bHasMetalnessMap = bHasMetallicMap;
+
+              // Roughness
               ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(50.0f);
+              ImGui::DragFloat("##Roughness Factor",
+                               &currentMat->metallicRoughnessFactor.y,
+                               0.01f,
+                               0.0f,
+                               1.0f);
+              ImGui::SameLine();
+              bool bHasRoughnessMap = currentMat->m_properties.bHasRoughnessMap;
+              ImGui::Checkbox("Roughness", &bHasRoughnessMap);
+              currentMat->m_properties.bHasRoughnessMap = bHasRoughnessMap;
             }
           }
         }
@@ -978,6 +1016,7 @@ RendererApp::loadPistol()
   auto model = sh_makeShared<GameObject>();
   model->name = "DrakeFire";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
+  modelRes->m_materials[0]->m_properties.bHasRoughnessMap = true;
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);

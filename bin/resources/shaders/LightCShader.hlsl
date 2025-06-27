@@ -7,6 +7,7 @@ Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
 Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
+Texture2D t_skyMap : register(t6);
 RWTexture2D<float4> t_outputMap : register(u0);
 
 #ifndef PCF_KERNEL_SIZE
@@ -161,6 +162,10 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
     return;
   }
+  //float normalLen = length(normalMap.xyz);
+  //if(normalLen < 0.001f) {
+  //  t_outputMap[dtID.xy] = float4(t_skyMap.Load(uint3(dtID.xy, 0)).rgb, 1.0f);
+  //}
   if (normalMap.w == 0)
   {
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);

@@ -23,33 +23,9 @@ cbuffer MaterialData : register(b3)
   float3 baseColorFactor; // RGB base color factor
   float unused0; // padding to 16 bytes
   float2 metallicRoughnessFactors; // x = metallic, y = roughness
-  int materialProperties; // bitfield for material properties
+  int materialBitfield; // bitfield for material properties
   float unused1; // padding to 16 bytes
-    
-    
-  //bool bHasBaseColor; // true if base color texture is used
-  //bool bHasSpecular; // true if specular texture is used
-  //bool bHasNormalMap; // true if normal map is used
-  //bool bHasMetallicMap; // true if metallic map is used
-  //bool bHasRoughnessMap; // true if roughness map is used
-  //bool bHasAmbientOcclusion; // true if ambient occlusion map is used
-  //bool bHasEmissiveMap; // true if emissive map is used
-  //bool bIsOpaque; // true if material is opaque
-  //bool bHasAlphaTest; // true if material uses alpha test
-  //bool bHasAlphaBlend; // true if material uses alpha blending
-  //bool bIsDoubleSided; // true if material is double sided
-  //bool bWireframeEnabled; // true if wireframe rendering is enabled
-  //bool bCanCastShadow; // true if material can cast shadows
-  //bool bCanReceiveShadow; // true if material can receive shadows
-  //int unused2 : 18; // padding to 16 bytes
 };
-
-//cbuffer ColorFactors : register(b4)
-//{
-//  float3 baseColorFactor;
-//  float2 metallicRoughnessFactors; // x = metallic, y = roughness
-//  float3 unused; // padding to 16 bytes
-//};
 
 struct VS_INPUT
 {
@@ -100,26 +76,53 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
 {
   GBUFFER_OUTPUT output = (GBUFFER_OUTPUT)0;
     
-  bool bHasBaseColor = (materialProperties & 0x1) == 0; // bit 0
+  MaterialProperties materialProps = getMaterialProperties(materialBitfield);
     
-  if (!bHasBaseColor)
-  {
-    output.Color = t_baseColor.Sample(textureSampler, input.Tex);
-    //output.Color = output.Color * float4(baseColorFactor, 1.0f);
-  }
-  else
+  if (materialProps.bHasBaseColor)
   {
     output.Color = float4(baseColorFactor, 1.0f);
   }
+  else
+  {
+    output.Color = t_baseColor.Sample(textureSampler, input.Tex);
+    //output.Color = output.Color * float4(baseColorFactor, 1.0f);
+    if(materialProps.bHasAlphaTest)
+    {
+      if(output.Color.a < 0.5f)
+      {
+        discard;
+      }
+    }
+  }
     
-  float3 fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f; 
+  //float3 fvNormal = float3(0.0f, 0.0f, 0.0f);
+  //if (materialProps.bHasNormalMap)
+  //{
+  //  fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
+  //}
+  float3 fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
   fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
   output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+    
   output.Depth = float4(input.Depth.xyz, 1.0f);
-  //output.Color.a = t_metallic.Sample(textureSampler, input.Tex);
-  //output.Normal.a = t_roughness.Sample(textureSampler, input.Tex);
-  output.Properties.r = t_metallic.Sample(textureSampler, input.Tex);
-  output.Properties.b = t_roughness.Sample(textureSampler, input.Tex);
+    
+  if (materialProps.bHasMetallicMap)
+  {
+    output.Properties.r = t_metallic.Sample(textureSampler, input.Tex);
+  }
+  else
+  {
+    output.Properties.r = metallicRoughnessFactors.x; // metallic factor
+  }
+  
+  if(materialProps.bHasRoughnessMap)
+  {
+    output.Properties.b = t_roughness.Sample(textureSampler, input.Tex);
+  }
+  else
+  {
+    output.Properties.b = metallicRoughnessFactors.y; // roughness factor
+  }
   
   return output;
 }

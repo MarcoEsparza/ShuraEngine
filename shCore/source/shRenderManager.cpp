@@ -527,10 +527,6 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
   graphMan.updateConstantBuffer(m_pPBRData, &pbrData, sizeof(PBRMaterialData));
   graphMan.psSetConstantBuffers(m_pPBRData, 3);
 
-  if (!pbrData.properties.bHasDiffuseMap) {
-    int a = 10; // This is a placeholder to avoid unused variable warning
-  }
-
   if (pMat->baseColor) {
     graphMan.psSetShaderResourceView(pMat->baseColor);
   }
@@ -580,11 +576,11 @@ RenderManager::renderScene()
   auto& pVBlurMap = m_renderTargetMap[StringID("VBlurMap").getID()];
   auto& pSkyBoxMap = m_renderTargetMap[StringID("SkyBoxMap").getID()];
   auto& pLightCMap = m_renderTargetMap[StringID("LightCMap").getID()];
-  auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
   auto& pToneMap = m_renderTargetMap[StringID("ToneMap").getID()];
   auto& pTempMap = m_renderTargetMap[StringID("TempMap").getID()];
   auto& pLuminance = m_renderTargetMap[StringID("LuminanceMap").getID()];
   auto& pPPMap = m_renderTargetMap[StringID("PPMap").getID()];
+  auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
   uint32 dispatchX = static_cast<uint32>((m_screenDimension.x + 32.0f) / 32.0f);
   uint32 dispatchY = static_cast<uint32>((m_screenDimension.y + 32.0f) / 32.0f);
@@ -689,6 +685,7 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
   graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
   graphMan.csSetShaderResourceView(pShadowMap.pTexture, 5);
+  //graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 6);
   graphMan.setUnorderedAccessView(pLightCMap.pTexture, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
@@ -726,14 +723,14 @@ RenderManager::renderScene()
   /*************************************/
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ASBShader").getID()]->setPass();
-
+  
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
   graphMan.setUnorderedAccessView(pTempMap.pTexture, 0);
-
+  
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-
+  
   cleanShaderObjects();
   //graphMan.setUnorderedAccessView(nullptr, 0);
 
