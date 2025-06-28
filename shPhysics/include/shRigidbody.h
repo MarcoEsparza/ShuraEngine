@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shRigidbody.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/30
-*  @brief
+*  @date    2025/06/27
+*  @brief   Rigidbody class for physics simulation.
 *
-*
+*  Rigidbody class for physics simulation.
 *
 * @bug      No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesPhysics.h"
 #include "shVector3.h"
 
@@ -32,18 +32,82 @@ enum E
 };
 }
 
+/**
+*  @brief Rigidbody class for physics simulation.
+*/
 class SH_PHYSICS_EXPORT Rigidbody
 {
  public:
+  /**
+  *  @brief Default constructor for the rigidbody.
+  */
   Rigidbody() = default;
+
+  /**
+  *  @brief Default destructor for the rigidbody.
+  */
   ~Rigidbody() = default;
 
+  /***************************************************************************/
+  /*
+  *  Variables
+  */
+  /***************************************************************************/
+ public:
+
+  /**
+  *  @brief Integration type for the rigidbody (Euler or Verlet).
+  */
   INTEGRATION::E m_integrationType;
-  Vector3 m_velocity;
+
+  /**
+  *  @brief Linear velocity of the rigidbody in world space.
+  */
+  Vector3 m_linearVelocity;
+
+  /**
+  *  @brief Angular velocity of the rigidbody in world space.
+  */
+  Vector3 m_angularVelocity;
+
+  /**
+  *  @brief Previous position of the rigidbody in world space.
+  */
   Vector3 m_prevPosition;
+
+  /**
+  *  @brief Position of the rigidbody in world space.
+  */
   Vector3 m_position;
+
+  /**
+  *  @brief Linear acceleration of the rigidbody.
+  */
   Vector3 m_accel;
-  float gravityScale;
-  float mass;
+
+  /**
+  *  @brief Angular acceleration of the rigidbody
+  */
+  Vector3 m_angularAccel;
+
+  /**
+  *  @brief Scale of gravity applied to the rigidbody
+  */
+  float m_gravityScale;
+
+  /**
+  *  @brief Mass of the rigidbody
+  */
+  float m_mass;
+
+  /**
+  *  @brief Coefficient of restitution
+  */
+  float m_elasticity;
+
+  /**
+  *  @brief Friction coefficient for the rigidbody
+  */
+  float m_friction;
 };
 }
