@@ -19,6 +19,10 @@
 /*****************************************************************************/
 #include "shPrerequisitesPhysics.h"
 #include "shVector3.h"
+#include "shMatrix3.h"
+#include "shGameObject.h"
+#include "shQuaternion.h"
+#include "shOBBox.h"
 
 namespace shEngineSDK {
 /**
@@ -47,6 +51,22 @@ class SH_PHYSICS_EXPORT Rigidbody
   *  @brief Default destructor for the rigidbody.
   */
   ~Rigidbody() = default;
+
+  /***************************************************************************/
+  /*
+  *  Functions
+  */
+  /***************************************************************************/
+public:
+
+  Matrix3
+  getInvInertiaWorld();
+
+  void
+  applyImpulse(const Vector3& impulse, const Vector3& point);
+
+  Matrix3
+  getInertiaTensor(OBBox box) const;
 
   /***************************************************************************/
   /*
@@ -100,6 +120,8 @@ class SH_PHYSICS_EXPORT Rigidbody
   */
   float m_mass;
 
+  float m_invMass;
+
   /**
   *  @brief Coefficient of restitution
   */
@@ -109,5 +131,11 @@ class SH_PHYSICS_EXPORT Rigidbody
   *  @brief Friction coefficient for the rigidbody
   */
   float m_friction;
+
+  Matrix3 m_invAngularInertia;
+
+  SPtr<GameObject> m_owner;
+
+  Quaternion m_rotation;
 };
 }

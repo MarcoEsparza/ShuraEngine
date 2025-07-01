@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2025/06/30
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -21,6 +21,8 @@
 #include "shVector3.h"
 
 namespace shEngineSDK {
+class Matrix3;
+
 /**
 *  @brief Quaternion for rotations
 * 
@@ -230,6 +232,9 @@ class SH_UTILITY_EXPORT Quaternion
   Quaternion
   slerp(const Quaternion& other, const float _time) const;
 
+  Matrix3
+  toMatrix3() const;
+
   /*************************************************************/
   /*
   *  Operator overload
@@ -290,6 +295,17 @@ class SH_UTILITY_EXPORT Quaternion
   */
   FORCEINLINE Vector3
   operator*(const Vector3& axis) const;
+
+  /**
+  *  @brief Quaternion multiplication with a Matrix3.
+  *
+  *  @param lValue-Quaternion.
+  *  @param rValue-Matrix3.
+  *
+  *  @return Matrix3
+  */
+  Matrix3
+  operator*(const Matrix3& mat) const;
 
   /**
   *  @brief Operator to sum a Quaternion values and other Quaternion values and

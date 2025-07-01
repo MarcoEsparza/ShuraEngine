@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/06/30
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -19,6 +19,7 @@
 #include "shQuaternion.h"
 #include "shMath.h"
 #include "shRadian.h"
+#include "shMatrix3.h"
 
 namespace shEngineSDK {
 Quaternion::Quaternion(const Vector3& vec)
@@ -40,6 +41,25 @@ Quaternion::Quaternion(const Quaternion& other)
   x = other.x;
   y = other.y;
   z = other.z;
+}
+
+Matrix3
+Quaternion::operator*(const Matrix3& mat) const
+{
+  // Convert Quaternion to Matrix3
+  const float p00 = 1.0f - (2.0f * (y * y)) - (2.0f * (z * z));
+  const float p01 = (2.0f * (x * y)) + (2.0f * (w * z));
+  const float p02 = (2.0f * (x * z)) - (2.0f * (w * y));
+  const float p10 = (2.0f * (x * y)) - (2.0f * (w * z));
+  const float p11 = 1.0f - (2.0f * (x * x)) - (2.0f * (z * z));
+  const float p12 = (2.0f * (y * z)) + (2.0f * (w * x));
+  const float p20 = (2.0f * (x * z)) + (2.0f * (w * y));
+  const float p21 = (2.0f * (y * z)) - (2.0f * (w * x));
+  const float p22 = 1.0f - (2.0f * (x * x)) - (2.0f * (y * y));
+  return Matrix3(p00, p01, p02,
+                 p10, p11, p12,
+                 p20, p21, p22) *
+         mat;
 }
 
 /*************************************************************/
@@ -174,10 +194,7 @@ Quaternion::dot(const Quaternion& other) const
 Quaternion
 Quaternion::conjugate() const
 {
-  return Quaternion(w,
-                    -x,
-                    -y,
-                    -z);
+  return Quaternion(w, -x, -y, -z);
 }
 
 Quaternion
@@ -263,5 +280,11 @@ Quaternion::slerp(const Quaternion& other, const float time) const
                     y * ratioA + other.y * ratioB,
                     z * ratioA + other.z * ratioB,
                     w * ratioA + other.w * ratioB);
+}
+
+Matrix3
+Quaternion::toMatrix3() const
+{
+  
 }
 }

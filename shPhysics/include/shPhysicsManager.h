@@ -46,6 +46,9 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
   /***************************************************************************/
  public:
 
+  void
+  onUpdate();
+
   /**
   *  @brief Sweep and Prune algorithm for broad-phase collision detection.
   * 

@@ -17,12 +17,18 @@
 */
 /*************************************************************/
 #include "shPhysicsManager.h"
+#include "shPlatformPhysics.h"
 
 // Temporary include for sorting
 using std::sort;
 
-namespace shEngineSDK
+namespace shEngineSDK {
+void
+PhysicsManager::onUpdate()
 {
+  
+}
+
 Vector<Pair<Rigidbody*, Rigidbody*>>
 PhysicsManager::sweepAndPrune(const Vector<Rigidbody*>& rigidbodies)
 {
