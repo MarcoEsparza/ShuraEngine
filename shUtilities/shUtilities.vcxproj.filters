@@ -48,10 +48,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\shAABBox.h">
+    <ClInclude Include="Include\shBoxAAB.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
-    <ClInclude Include="Include\shOBBox.h">
+    <ClInclude Include="Include\shBoxOBB.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
     <ClInclude Include="Include\shCapsule.h">
@@ -146,7 +146,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shOBBox.cpp">
+    <ClCompile Include="Source\shBoxOBB.cpp">
       <Filter>Source\Figures</Filter>
     </ClCompile>
     <ClCompile Include="Source\shCapsule.cpp">
@@ -161,7 +161,7 @@
     <ClCompile Include="Source\shSphere.cpp">
       <Filter>Source\Figures</Filter>
     </ClCompile>
-    <ClCompile Include="Source\shAABBox.cpp">
+    <ClCompile Include="Source\shBoxAAB.cpp">
       <Filter>Source\Figures</Filter>
     </ClCompile>
     <ClCompile Include="Source\shMatrix4.cpp">

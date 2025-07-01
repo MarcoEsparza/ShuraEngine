@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/09
+*  @date    2025/03/06
 *  @brief   App for physics simulation.
 *
 *  App for physics simulation.
@@ -26,7 +26,6 @@
 #include "shBoxAAB.h"
 #include "shBall.h"
 #include "shSpringBall.h"
-#include "shKinematicBall.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -190,70 +189,22 @@ class PhysicsApp : public BaseApp
   initCamera();
 
   /**
-  *  @brief Sets the graphic interface.
-  */
-  void
-  manageImgui();
-
-  /**
   *  @brief Spawns balls and adds them to the scene.
   */
   void
   spawnBall();
 
-  /**
-  *  @brief Initialize the pivot for the simulation.
-  */
-  void
-  initPivot();
-
-  /**
-  *  @brief Initialize the hookes law spring ball.
-  */
   void
   initSpringBall();
 
-  /**
-  *  @brief Initialize the ik simulation.
-  */
-  void
-  initKinematicArm();
-
-  /**
-  *  @brief Checks if the mouse is hovering an object.
-  * 
-  *  @param Vector2& point
-  *  @param float radius
-  */
   bool
-  containsMouse(const Vector2& point, const float radius);
+  mouseOnObject(const Vector2& min, const Vector2& max);
 
-  /**
-  *  @brief Move springball
-  */
   void
   dragSpringBall();
 
-  /**
-  *  @brief Move the pivot
-  */
   void
   dragPivot();
-
-  /**
-  *  @brief Fabrik algorithm.
-  */
-  void
-  fabrik(Vector<Vector2>& points,
-         const Vector<float>& lenghts,
-         const Vector2& target,
-         const float tolerance = 0.001f);
-
-  void
-  ccd(Vector<Vector2>& points,
-      const Vector2& target,
-      const uint32 maxIter = 20,
-      const float tolerance = 0.001f);
 
  private:
   /**
@@ -277,9 +228,14 @@ class PhysicsApp : public BaseApp
   SPtr<ConstantBuffer> m_pVP;
 
   /**
-  *  @brief Constant buffer for pivot.
+  *  @brief Constant buffer for turret base.
   */
   SPtr<ConstantBuffer> m_pBase;
+
+  /**
+  *  @brief Constant buffer for turret.
+  */
+  SPtr<ConstantBuffer> m_pTurret;
 
   /**
   *  @brief Turret base transform.
@@ -310,16 +266,6 @@ class PhysicsApp : public BaseApp
   *  @brief Ball sprite.
   */
   SPtr<Sprite> m_pSpriteBall;
-
-  /**
-  *  @brief Ball bone sprite.
-  */
-  SPtr<Sprite> m_pSpriteBone;
-
-  /**
-  *  @brief Spring ball sprite.
-  */
-  SPtr<Sprite> m_pSbSprite;
 
   /**
   *  @brief App Camera.
@@ -377,93 +323,18 @@ class PhysicsApp : public BaseApp
   INTEGRATION::E m_integration = INTEGRATION::kEuler;
 
   /**
-  *  @brief Which algorithm is using.
-  */
-  IK_ALGORITHM::E m_ikAlgorithm = IK_ALGORITHM::kFabrik;
-
-  /**
-  *  @brief Which movement type is using.
-  */
-  MOVEMENT_TYPE::E m_moveType = MOVEMENT_TYPE::kFoward;
-
-  /**
   *  @brief Index for integration selection.
   */
   int32 m_intIndex = 0;
 
   /**
-  *  @brief Index for algorithm selection.
+  *  @brief Strings to use integration on gui.
   */
-  int32 m_ikIndex = 0;
+  Vector<String> m_intList;
 
-  /**
-  *  @brief Index for movement type selection.
-  */
-  int32 m_mtIndex = 0;
-
-  /**
-  *  @brief Spring ball.
-  */
+  SPtr<Sprite> m_pSbSprite;
   SPtr<SpringBall> m_springBall;
-  
-  /**
-  *  @brief Spring constant for hookes law simulaiton.
-  */
-  float m_springC = 0.0f;
-
-  /**
-  *  @brief Drag constant for hookes law simulaiton.
-  */
-  float m_dragC = 0.0f;
-
-  /**
-  *  @brief Mass for hookes law simulaiton.
-  */
-  float m_mass = 0.0f;
-
-  /**
-  *  @brief Gravity for hookes law simulaiton.
-  */
-  float m_gravity = 0.0f;
-
-  /**
-  *  @brief Initial lenght for hookes law simulaiton.
-  */
-  float m_iniLenght = 0.0f;
-
-  /**
-  *  @brief Maximum length for hookes law simulaiton.
-  */
-  float m_maxLenght = 0.0f;
-
-  /**
-  *  @brief Minimum lenght for hookes law simulaiton.
-  */
-  float m_minLenght = 0.0f;
-
-  /**
-  *  @brief Pivot position.
-  */
-  Vector2 m_pivotPos = { 0.0f, 0.0f };
-
-  /**
-  *  @brief Is pivot grabbed?
-  */
-  bool m_bPivotGrabbed = false;
-
-  /**
-  *  @brief IK Ball.
-  */
-  SPtr<KinematicBall> m_ikBase;
-
-  /**
-  *  @brief Final bone position.
-  */
-  Vector2 m_lastBallPos = { 0.0f, 0.0f };
-
-  /**
-  *  @brief Slected bone.
-  */
-  int32 m_selectedIndex = -1;
+  Vector2 m_pivotPos;
+  bool m_bPivotGrabbed;
 };
 }

@@ -120,29 +120,6 @@ class SH_UTILITY_EXPORT Vector3
   lerp(const Vector3& other, const float time) const;
 
   /**
-  *  @brief Clamp this Vector with other 2 Vectors as min and max.
-  *
-  *  @param Vector3 min: Max value.
-  *  @param Vector3 max: Min value.
-  *
-  *  @return Vector3 Interpolated Vector3.
-  */
-  Vector3
-  clamp(const Vector3& min, const Vector3& max) const;
-
-  /**
-  *  @brief Vector3 lenght.
-  */
-  float
-  lenght() const;
-
-  /**
-  *  @brief Vector3 squared lenght.
-  */
-  float
-  lenghtSq() const;
-
-  /**
   *  @brief Rotate Vector3 in X axis.
   *
   *  @param Radian angle
@@ -194,13 +171,12 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  @brief Computes the closest point betwwen two given Vector3 to this.
   * 
-  *  @param Vector3& A
-  *  @param Vector3& B
+  *  @param Vector3& other
   * 
   *  @return Vector3
   */
   Vector3
-  closestPointOnSegment(const Vector3& A, const Vector3& B) const;
+  closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const;
 
   /*
   *  @brief Returns true if all components are zero.
@@ -256,14 +232,6 @@ class SH_UTILITY_EXPORT Vector3
   */
   FORCEINLINE Vector3
   operator-(const Vector3& other) const;
-
-  /**
-  *  @brief Change Vector3 values sign.
-  *
-  *  @return Vector3
-  */
-  FORCEINLINE Vector3
-  operator-() const;
 
   /**
   *  @brief Operator to multiply the values of a Vector3 with a float.
@@ -377,12 +345,6 @@ FORCEINLINE Vector3
 Vector3::operator-(const Vector3& other) const
 {
   return Vector3(x - other.x, y - other.y, z - other.z);
-}
-
-FORCEINLINE Vector3
-Vector3::operator-() const
-{
-  return Vector3(-x, -y, -z);
 }
 
 FORCEINLINE Vector3

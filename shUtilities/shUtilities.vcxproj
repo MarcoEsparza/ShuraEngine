@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\shAABBox.h" />
-    <ClInclude Include="Include\shOBBox.h" />
+    <ClInclude Include="Include\shBoxAAB.h" />
+    <ClInclude Include="Include\shBoxOBB.h" />
     <ClInclude Include="Include\shCapsule.h" />
     <ClInclude Include="include\shCollisionInfo.h" />
     <ClInclude Include="include\shColor.h" />
@@ -53,8 +53,8 @@
     <ClInclude Include="Include\shVector4.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shAABBox.cpp" />
-    <ClCompile Include="Source\shOBBox.cpp" />
+    <ClCompile Include="Source\shBoxAAB.cpp" />
+    <ClCompile Include="Source\shBoxOBB.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
     <ClCompile Include="source\shColor.cpp" />
     <ClCompile Include="source\shDegree.cpp" />

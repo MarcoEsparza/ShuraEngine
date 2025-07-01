@@ -72,9 +72,6 @@ class SH_UTILITY_EXPORT  Vector2
   float
   dot(const Vector2& other) const;
 
-  float
-  cross(const Vector2& other);
-
   /**
   *  @brief Calculates the magnitude of the Vector2.
   * 

@@ -29,20 +29,4 @@ enum E
   kVerlet
 };
 }
-
-namespace IK_ALGORITHM {
-enum E
-{
-  kFabrik = 0,
-  kCCD
-};
-}
-
-namespace MOVEMENT_TYPE {
-enum E
-{
-  kFoward = 0,
-  kInverse
-};
-}
 }

@@ -14,12 +14,12 @@
 *  Includes
 */
 /*************************************************************/
-#include "shAABBox.h"
+#include "shBoxAAB.h"
 #include "shMath.h"
 
 namespace shEngineSDK {
 
-AABBox::AABBox(const Vector3& _min, const Vector3& _max)
+BoxAAB::BoxAAB(const Vector3& _min, const Vector3& _max)
 {
   min = _min;
   max = _max;
@@ -32,30 +32,30 @@ AABBox::AABBox(const Vector3& _min, const Vector3& _max)
 /*************************************************************/
 
 void
-AABBox::setPosition(const Vector3& pos)
+BoxAAB::setPosition(const Vector3& pos)
 {
   min = pos;
 }
 
 void
-AABBox::setSize(const Vector3& size)
+BoxAAB::setSize(const Vector3& size)
 {
   max = min + size;
 }
 
 Vector3
-AABBox::getMinPosition() const
+BoxAAB::getMinPosition() const
 {
   return min;
 }
 
 Vector3
-AABBox::getMaxPosition() const
+BoxAAB::getMaxPosition() const
 {
   return max;
 }
 Array<Vector3, 8>
-AABBox::getVertices() const
+BoxAAB::getVertices() const
 {
   return { min,
            Vector3(min.x, min.y, max.z),
@@ -68,7 +68,7 @@ AABBox::getVertices() const
 }
 
 Array<uint32, 36>
-AABBox::getIndices() const
+BoxAAB::getIndices() const
 {
   static Array<uint32, 36> ret{
     0, 1, 2,
@@ -89,7 +89,7 @@ AABBox::getIndices() const
 }
 
 void
-AABBox::projectOnAxis(const Vector3& axis, float& _min, float& _max) const
+BoxAAB::projectOnAxis(const Vector3& axis, float& _min, float& _max) const
 {
   _min = _max = axis.dot(min);
 

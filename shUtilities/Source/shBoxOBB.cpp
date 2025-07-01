@@ -14,7 +14,7 @@
 *  Includes
 */
 /*************************************************************/
-#include "shOBBox.h"
+#include "shBoxOBB.h"
 
 namespace shEngineSDK {
 
@@ -25,43 +25,43 @@ namespace shEngineSDK {
 /*************************************************************/
 
 void
-OBBox::setCenter(const Vector3& _center)
+BoxOBB::setCenter(const Vector3& _center)
 {
   center = _center;
 }
 
 void
-OBBox::setRotation(const Quaternion& _rotation)
+BoxOBB::setRotation(const Quaternion& _rotation)
 {
   rotation = _rotation;
 }
 
 void
-OBBox::setExtent(const Vector3& _extent)
+BoxOBB::setExtent(const Vector3& _extent)
 {
   extent = _extent;
 }
 
 Vector3
-OBBox::getCenter() const
+BoxOBB::getCenter() const
 {
   return center;
 }
 
 Quaternion
-OBBox::getRotation() const
+BoxOBB::getRotation() const
 {
   return rotation;
 }
 
 Vector3
-OBBox::getExtent() const
+BoxOBB::getExtent() const
 {
   return extent;
 }
 
 void
-OBBox::projectOnAxis(const Vector3& axis, float& min, float& max) const
+BoxOBB::projectOnAxis(const Vector3& axis, float& min, float& max) const
 {
   min = max = center.dot(axis);
 
@@ -77,13 +77,13 @@ OBBox::projectOnAxis(const Vector3& axis, float& min, float& max) const
 }
 
 bool
-OBBox::overlapOnProjection(float min1, float max1, float min2, float max2) const
+BoxOBB::overlapOnProjection(float min1, float max1, float min2, float max2) const
 {
   return !(max1 < min2 || max2 < min1);
 }
 
 Array<Vector3, 8>
-OBBox::getCorners() const
+BoxOBB::getCorners() const
 {
   Array<Vector3, 8> corners;
   Vector<Vector3> axes = { Vector3(extent.x, 0.0f, 0.0f),

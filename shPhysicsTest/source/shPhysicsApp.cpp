@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/09
+*  @date    2025/03/06
 *  @brief   App for physics simulation.
 *
 *  App for physics simulation.s
@@ -41,53 +41,60 @@ PhysicsApp::onCreate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  // Graphic init
   initGraphicAssets();
-  m_targets.push_back(graphMan.getMainRenderTargetView());
-  setBackgroundColor(LinearColor(0.5f, 1.0f, 0.5f));
   initCamera();
 
-  // Imgui init
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGui_ImplShura_Init(getScreen());
+
   ImGui::StyleColorsDark();
 
-  // Objects for simulation init
-  Vector2 minSpriteSize(-25.0f, 25.0f);
-  Vector2 maxSpriteSize(25.0f, -25.0f);
-  Vector2 minBoneSpriteSize(-15.0f, 15.0f);
-  Vector2 maxBoneSpriteSize(15.0f, -15.0f);
+  //m_rotSpeed = 25.0f;
 
-  m_pSpriteBase = make_shared<Sprite>(Path("resources/Tower.png"),
-                                      minSpriteSize,
-                                      maxSpriteSize);
-  
+  Vector2 minPlayerSize(-25.0f, 25.0f);
+  Vector2 maxPlayerSize(25.0f, -25.0f);
+  float spawnPointY = 100.0f;
 
-  m_pSpriteBall = make_shared<Sprite>(Path("resources/egball.png"),
-                                      minSpriteSize,
-                                      maxSpriteSize);
+  Path basePath("resources/Tower.png");
+  //Path turretPath("resources/Cannon3.png");
+  m_pSpriteBase = make_shared<Sprite>(basePath, minPlayerSize, maxPlayerSize);
+  //m_pSpriteCannon = make_shared<Sprite>(turretPath, minPlayerSize, maxPlayerSize);
+  m_pBase = graphMan.createConstantBuffer(sizeof(Matrix4));
+  //m_pTurret = g_graphicsMan().createConstantBuffer(sizeof(Matrix4));
 
-  m_pSbSprite = make_shared<Sprite>(Path("resources/ttgl.png"),
-                                    minSpriteSize,
-                                    maxSpriteSize);
+  //Path ballPath("resources/egball.png");
+  //m_pSpriteBall = make_shared<Sprite>(ballPath, minPlayerSize, maxPlayerSize);
 
-  m_pSpriteBone = make_shared<Sprite>(Path("resources/cannonball.png"),
-                                      minBoneSpriteSize,
-                                      maxBoneSpriteSize);
+  m_baseTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 10.0f));
+  //m_turretTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 0.0f));
+
+  Path spballPath("resources/ttgl.png");
+  m_pSbSprite = make_shared<Sprite>(spballPath, minPlayerSize, maxPlayerSize);
+
+  graphMan.updateConstantBuffer(m_pBase,
+                                &m_baseTransform,
+                                sizeof(Matrix4));
+  /*graphMan.updateConstantBuffer(m_pTurret,
+                                       &m_turretTransform,
+                                       sizeof(Matrix4));*/
+
+  m_targets.push_back(graphMan.getMainRenderTargetView());
+
+  m_intList.push_back("Euler");
+  m_intList.push_back("Verlet");
 
   m_integration = INTEGRATION::kVerlet;
+  setBackgroundColor(LinearColor(0.5f, 1.0f, 0.5f));
   m_intIndex = 1;
+  m_pivotPos = { 0.0f, spawnPointY };
 
-  initPivot();
   initSpringBall();
-  initKinematicArm();
 }
 
 void
 PhysicsApp::onUpdate()
 {
-  // Imgui
   ImGui_ImplShura_NewFrame(m_mousePosition,
                            m_bLeftClick,
                            m_delta,
@@ -95,9 +102,23 @@ PhysicsApp::onUpdate()
                            false,
                            KEY::kKeysMax);
   ImGui::NewFrame();
-  manageImgui();
 
-  // Check if simulation types are changed
+  //ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImVec2(300.0f, 150.0f));
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
+  ImGui::Begin("Physics", 0);
+  ImGui::PopStyleColor();
+
+  const char* items = "Euler\0Verlet";
+  const char* text = "Integration";
+
+  ImGui::Combo(text,
+               &m_intIndex,
+               items,
+               static_cast<int32>(m_intList.size()));
+
+  ImGui::End();
+
   if (m_intIndex != static_cast<int32>(m_integration)) {
     m_integration = static_cast<INTEGRATION::E>(m_intIndex);
 
@@ -111,130 +132,75 @@ PhysicsApp::onUpdate()
     //m_activeBalls.clear();
     initSpringBall();
   }
-  if (m_ikIndex != static_cast<int32>(m_ikAlgorithm)) {
-    m_ikAlgorithm = static_cast<IK_ALGORITHM::E>(m_ikIndex);
-  }
-  if (m_mtIndex != static_cast<int32>(m_moveType)) {
-    m_moveType = static_cast<MOVEMENT_TYPE::E>(m_mtIndex);
+
+  //Vector2 direction(0.0f, 0.0f);
+  //const float rotAngle = m_rotSpeed * g_time().getFrameDeltaTime() * Math::DEG2RAD;
+
+  /*if (m_bRotLeft) {
+    if (m_rotAccumulator > -(90.0f * Math::DEG2RAD)) {
+      m_turretTransform *= MatrixRotationAxis(Vector3::FORWARD, -rotAngle);
+      g_graphicsMan().updateConstantBuffer(m_pTurret,
+                                           &m_turretTransform,
+                                           sizeof(Matrix4));
+      m_rotAccumulator -= rotAngle;
+    }
   }
 
-  // Sets the new values
-  m_springBall->m_springC = m_springC;
-  m_springBall->m_drag = m_dragC;
-  m_springBall->m_mass = m_mass;
-  m_springBall->m_gravity = m_gravity;
-  m_springBall->m_iniLenght = m_iniLenght;
-  m_springBall->m_maxLenght = m_maxLenght;
-  m_springBall->m_minLenght = m_minLenght;
+  if (m_bRotRight) {
+    if (m_rotAccumulator < (90.0f * Math::DEG2RAD)) {
+      m_turretTransform *= MatrixRotationAxis(Vector3::FORWARD, rotAngle);
+      g_graphicsMan().updateConstantBuffer(m_pTurret,
+                                           &m_turretTransform,
+                                           sizeof(Matrix4));
+      m_rotAccumulator += rotAngle;
+    }
+  }
+
+  if (m_bShot) {
+    m_bShot = false;
+    spawnBall();
+  }*/
 
   if (m_bLeftClick) {
-    // Check if mouse can move pivot
-    if (containsMouse(m_pivotPos, 50.0f)) {
-      if (m_moveType == MOVEMENT_TYPE::kFoward) {
-        Vector2 tempPos = m_pivotPos;
-        dragPivot();
-        Vector2 newPos = tempPos - m_pivotPos;
-        m_ikBase->foward(Vector2(-newPos.x, -newPos.y));
-        auto& pLastBall = m_ikBase->m_child->m_child;
-        m_lastBallPos = pLastBall->m_position;
-      }
+    
+
+    Vector2 pivotBoxMin = m_pivotPos;
+    pivotBoxMin.x -= 25.0f;
+    pivotBoxMin.y -= 25.0f;
+    Vector2 pivotBoxMax = m_pivotPos;
+    pivotBoxMax.x += 25.0f;
+    pivotBoxMax.y += 25.0f;
+
+    Vector2 ballBoxMin = m_springBall->m_position;
+    ballBoxMin.x -= 25.0f;
+    ballBoxMin.y -= 25.0f;
+    Vector2 ballBoxMax = m_springBall->m_position;
+    ballBoxMax.x += 25.0f;
+    ballBoxMax.y += 25.0f;
+
+    if (mouseOnObject(pivotBoxMin, pivotBoxMax)) {
+      dragPivot();
     }
-    // Check if mouse can move springball
-    else if (containsMouse(m_springBall->m_position, 50.0f)) {
-      m_springBall->m_bGrabbed = true;
+    else if (mouseOnObject(ballBoxMin, ballBoxMax)) {
       dragSpringBall();
+      m_springBall->m_bGrabbed = true;
     }
 
-    // Do ik
-    if (m_moveType == MOVEMENT_TYPE::kInverse) {
-      auto& pChild = m_ikBase->m_child;
-      auto& pChild1 = pChild->m_child;
-      if (containsMouse(m_ikBase->m_position, 20.0f)) {
-        m_selectedIndex = 1;
-      }
-      else if (containsMouse(pChild->m_position, 20.0f)) {
-        m_selectedIndex = 2;
-      }
-      else if (containsMouse(pChild1->m_position, 20.0f)) {
-        m_selectedIndex = 3;
-      }
-
-      Vector<Vector2> points;
-      points.push_back(m_pivotPos);
-      points.push_back(m_ikBase->m_position);
-      points.push_back(pChild->m_position);
-      points.push_back(pChild1->m_position);
-
-      Vector<float> lenghts;
-      lenghts.push_back(m_ikBase->m_lenght);
-      lenghts.push_back(m_ikBase->m_lenght);
-      lenghts.push_back(pChild->m_lenght);
-      lenghts.push_back(pChild1->m_lenght);
-
-      // Use fabrik
-      if (m_ikAlgorithm == IK_ALGORITHM::kFabrik) {
-        if (m_selectedIndex != -1) {
-          points[m_selectedIndex].x = m_mousePosition.x - (m_desc.width * 0.5f);
-          points[m_selectedIndex].y = -m_mousePosition.y + (m_desc.height * 0.5f);
-
-          if (m_selectedIndex < points.size() - 1) {
-            Vector<Vector2> subPoints(points.begin() + m_selectedIndex, points.end());
-            Vector<float> subLenghts(lenghts.begin() + m_selectedIndex, lenghts.end());
-
-            fabrik(subPoints, subLenghts, points.back());
-
-            for (uint32 i = 1; i < subPoints.size(); ++i) {
-              points[m_selectedIndex + i] = subPoints[i];
-            }
-          }
-        }
-
-        if (m_selectedIndex > 0) {
-          Vector<Vector2> subPoints(points.begin(), points.begin() + m_selectedIndex);
-          Vector<float> subLenghts(lenghts.begin(), lenghts.begin() + m_selectedIndex);
-
-          std::reverse(subPoints.begin(), subPoints.end());
-          std::reverse(subLenghts.begin(), subLenghts.end());
-
-          fabrik(subPoints, subLenghts, points[0]);
-
-          std::reverse(subPoints.begin(), subPoints.end());
-          for (int32 i = 0; i < m_selectedIndex; ++i) {
-            points[i] = subPoints[i];
-          }
-        }
-      }
-      // Use CCD
-      else if (m_ikAlgorithm == IK_ALGORITHM::kCCD) {
-        Vector2 mousePosToWorld = m_mousePosition;
-        mousePosToWorld.x -= (m_desc.width * 0.5f);
-        mousePosToWorld.y = -mousePosToWorld.y + (m_desc.width * 0.5f);
-        ccd(points, mousePosToWorld);
-      }
-
-      m_pivotPos = points[0];
-      m_ikBase->m_position = points[1];
-      pChild->m_position = points[2];
-      pChild1->m_position = points[3];
-      m_lastBallPos = pChild1->m_position;
-
-      m_baseTransform = TranslationMatrix(Vector3(m_pivotPos.x,
-                                          m_pivotPos.y,
-                                          0.0f));
-      g_graphicsMan().updateConstantBuffer(m_pBase, &m_baseTransform, sizeof(Matrix4));
-
-      m_ikBase->update();
-      pChild->update();
-      pChild1->update();
-
-      m_selectedIndex = -1;
-      m_springBall->m_bGrabbed = false;
-    }
+    m_springBall->m_bGrabbed = false;
   }
 
   if (m_integration == INTEGRATION::kEuler) {
-    m_springBall->update(m_lastBallPos, m_integration);
-    m_springBall->m_bGrabbed = false;
+    /*for (auto& ball : m_activeBalls) {
+      if (ball) {
+        checkBallCollision(ball);
+
+        ball->update(m_integration);
+        if (ball->m_bDestroy) {
+          m_activeBalls.erase(m_activeBalls.begin());
+        }
+      }
+    }*/
+    m_springBall->update(m_pivotPos, m_integration);
   }
 }
 
@@ -242,8 +208,17 @@ void
 PhysicsApp::onFixedUpdate()
 {
   if (m_integration == INTEGRATION::kVerlet) {
-    m_springBall->update(m_lastBallPos, m_integration);
-    m_springBall->m_bGrabbed = false;
+    /*for (auto& ball : m_activeBalls) {
+      if (ball) {
+        checkBallCollision(ball);
+    
+        ball->update(m_integration);
+        if (ball->m_bDestroy) {
+          m_activeBalls.erase(m_activeBalls.begin());
+        }
+      }
+    }*/
+    m_springBall->update(m_pivotPos, m_integration);
   }
 }
 
@@ -256,25 +231,34 @@ PhysicsApp::onRender()
   
   m_pPhysicsShader->setPass();
   graphMan.vsSetConstantBuffers(m_pVP);
+  graphMan.setPrimitiveTopology();
 
-  // Render base
+  /*graphMan.vsSetConstantBuffers(m_pTurret, 1);
+  graphMan.setVertexBuffers(m_pSpriteCannon->m_pVB);
+  graphMan.setIndexBuffers(m_pSpriteCannon->m_pIB);
+  graphMan.setShaderResourceView(m_pSpriteCannon->m_pTexture);
+  graphMan.drawIndexed(static_cast<uint32>(m_pSpriteCannon->m_indices.size()), 0, 0);*/
+
   graphMan.vsSetConstantBuffers(m_pBase, 1);
   graphMan.setVertexBuffers(m_pSpriteBase->m_pVB);
   graphMan.setIndexBuffers(m_pSpriteBase->m_pIB);
   graphMan.psSetShaderResourceView(m_pSpriteBase->m_pTexture);
   graphMan.drawIndexed(static_cast<uint32>(m_pSpriteBase->m_indices.size()), 0, 0);
 
-  // Render spring ball
   graphMan.vsSetConstantBuffers(m_springBall->m_ballBuffer, 1);
   graphMan.setVertexBuffers(m_springBall->m_sprite->m_pVB);
   graphMan.setIndexBuffers(m_springBall->m_sprite->m_pIB);
   graphMan.psSetShaderResourceView(m_springBall->m_sprite->m_pTexture);
   graphMan.drawIndexed(static_cast<uint32>(m_springBall->m_sprite->m_indices.size()), 0, 0);
 
-  // Render ik nodes
-  m_ikBase->drawSprite();
+  /*for (auto& ball : m_activeBalls) {
+    graphMan.vsSetConstantBuffers(ball->m_buffer, 1);
+    graphMan.setVertexBuffers(ball->m_sprite->m_pVB);
+    graphMan.setIndexBuffers(ball->m_sprite->m_pIB);
+    graphMan.setShaderResourceView(ball->m_sprite->m_pTexture);
+    graphMan.drawIndexed(static_cast<uint32>(ball->m_sprite->m_indices.size()), 0, 0);
+  }*/
 
-  // Imgui
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
@@ -484,65 +468,6 @@ PhysicsApp::initCamera()
 }
 
 void
-PhysicsApp::manageImgui()
-{
-  ImGui::SetNextWindowSize(ImVec2(350.0f, 500.0f));
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(242, 128, 5, 0xff));
-  ImGui::Begin("Physics", 0);
-  ImGui::PopStyleColor();
-
-  if (ImGui::CollapsingHeader("Transformations:")) {
-    if (ImGui::CollapsingHeader("Pivot:")) {
-
-    }
-  }
-
-  if (ImGui::CollapsingHeader("Simulation:")) {
-    const char* integrationItems = "Euler\0Verlet";
-    const char* integrationText = "Integration";
-
-    ImGui::Combo(integrationText,
-                 &m_intIndex,
-                 integrationItems,
-                 2);
-
-    const char* ikItems = "Fabrik\0CCD";
-    const char* ikText = "IK Algorithm";
-
-    ImGui::Combo(ikText,
-                 &m_ikIndex,
-                 ikItems,
-                 2);
-
-    const char* moveItems = "Foward\0Inverse";
-    const char* moveText = "Movement type";
-
-    ImGui::Combo(moveText,
-                 &m_mtIndex,
-                 moveItems,
-                 2);
-
-    if (ImGui::Button("Reset")) {
-      initPivot();
-      initSpringBall();
-      initKinematicArm();
-    }
-  }
-
-  if (ImGui::CollapsingHeader("Hookes constants:")) {
-    ImGui::DragFloat("Spring Constant", &m_springC, 0.01f);
-    ImGui::DragFloat("Drag Constant", &m_dragC, 0.01f);
-    ImGui::DragFloat("Mass", &m_mass, 0.1f);
-    ImGui::DragFloat("Gravity", &m_gravity, 0.1f);
-    ImGui::DragFloat("Ini Lenght", &m_iniLenght, 1.0f);
-    ImGui::DragFloat("Max Lenght", &m_maxLenght, 1.0f);
-    ImGui::DragFloat("Min Lenght", &m_minLenght, 1.0f);
-  }
-
-  ImGui::End();
-}
-
-void
 PhysicsApp::spawnBall()
 {
   auto newBall = make_shared<Ball>();
@@ -584,24 +509,6 @@ PhysicsApp::spawnBall()
 }
 
 void
-PhysicsApp::initPivot()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-
-  if (!m_pBase) {
-    m_pBase = graphMan.createConstantBuffer(sizeof(Matrix4));
-  }
-
-  float spawnPointY = 100.0f;
-  m_baseTransform = TranslationMatrix(Vector3(0.0f, spawnPointY, 10.0f));
-  graphMan.updateConstantBuffer(m_pBase,
-                                &m_baseTransform,
-                                sizeof(Matrix4));
-
-  m_pivotPos = { 0.0f, spawnPointY };
-}
-
-void
 PhysicsApp::initSpringBall()
 {
   if (m_springBall != nullptr) {
@@ -609,88 +516,39 @@ PhysicsApp::initSpringBall()
   }
 
   if(m_integration == INTEGRATION::kVerlet) {
-    m_springC = 0.11f;
-    m_dragC = 0.840f;
-    m_mass = 2.5f;
-    m_gravity = -2.7f;
-    m_iniLenght = 80.0f;
-    m_maxLenght = 180.0f;
-    m_minLenght = 50.0f;
-
-    /**
-    * Spring C = 0.110
-    * Drag C = 0.840
-    * Mass = 2.5
-    * Gravity = -2.7
-    * Ini lenght = 80
-    * Max = 180
-    * Min = 50
-    */
-
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
-                                           m_lastBallPos + Vector2(0.0f, -m_iniLenght), // Pos
+                                           Vector2(0.0f, 0.0f),   // Position
                                            Vector2(0.0f, 0.0f),   // Velocity
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
-                                           m_springC,                  // SpringConstant
-                                           m_gravity,                // Gravity
-                                           m_iniLenght,                // Ini
-                                           m_maxLenght,                // Max
-                                           m_minLenght,                // Min
-                                           m_dragC);                // Drag
+                                           0.1f,                  // SpringConstant
+                                           -50.0f,                // Gravity
+                                           250.0f,                // Limit
+                                           0.001f,                // Elasticity
+                                           0.001);                // Drag
   }
   else if(m_integration == INTEGRATION::kEuler) {
-    m_springC = 0.4f;
-    m_dragC = 0.85f;
-    m_mass = 3.0f;
-    m_gravity = -60.0f;
-    m_iniLenght = 100.0f;
-    m_maxLenght = 200.0f;
-    m_minLenght = 50.0f;
-
     m_springBall = make_shared<SpringBall>(m_pSbSprite,           // Sprite
-                                           m_lastBallPos + Vector2(0.0f, -m_iniLenght), // Pos
+                                           Vector2(0.0f, 0.0f),   // Position
                                            Vector2(0.0f, 0.0f),   // Velocity
                                            Vector2(0.0f, 0.0f),   // Accel
                                            25.0f,                 // Radius
-                                           m_springC,                  // SpringConstant
-                                           m_gravity,                // Gravity
-                                           m_iniLenght,                // Ini
-                                           m_maxLenght,                // Max
-                                           m_minLenght,                // Min
-                                           m_dragC);                // Drag
+                                           0.5f,                  // SpringConstant
+                                           -50.0f,                // Gravity
+                                           250.0f,                // Limit
+                                           0.2f,                // Elasticity
+                                           0.2);                // Drag
   }
-}
-
-void
-PhysicsApp::initKinematicArm()
-{
-  if (m_ikBase) {
-    m_ikBase.reset();
-  }
-
-  float radius = 15.0f;
-  //float lenght = 75.0f;
-  Vector2 offset(75.0f, 75.0f);
-  offset.normalize();
-  Vector2 ball = m_pivotPos + (offset * 100.0f);
-  Vector2 ball1 = ball + (offset * 100.0f);
-  m_lastBallPos = ball1 + (offset * 100.0f);
-
-  m_ikBase = make_shared<KinematicBall>(m_pSpriteBone, ball, radius);
-  m_ikBase->setChild(KinematicBall(m_pSpriteBone, ball1, radius));
-
-  auto& pChild1 = m_ikBase->m_child;
-  pChild1->setChild(KinematicBall(m_pSpriteBone, m_lastBallPos, radius));
 }
 
 bool
-PhysicsApp::containsMouse(const Vector2& point, const float radius)
+PhysicsApp::mouseOnObject(const Vector2& min, const Vector2& max)
 {
-  Vector2 mouse = m_mousePosition;
-  mouse.x = mouse.x - (m_desc.width * 0.5f);
-  mouse.y = -mouse.y + (m_desc.height * 0.5f);
-  return ((mouse - point).mag() < radius);
+  float screenOffset = -400.0f;
+  return (screenOffset + m_mousePosition.x > min.x) &&
+         (screenOffset + m_mousePosition.x < max.x) &&
+         (-screenOffset - m_mousePosition.y > min.y) &&
+         (-screenOffset - m_mousePosition.y < max.y);
 }
 
 void
@@ -712,93 +570,5 @@ PhysicsApp::dragPivot()
                                               m_pivotPos.y,
                                               0.0f));
   g_graphicsMan().updateConstantBuffer(m_pBase, &m_baseTransform, sizeof(Matrix4));
-}
-
-void
-PhysicsApp::fabrik(Vector<Vector2>& points,
-                   const Vector<float>& lenghts,
-                   const Vector2& target,
-                   const float tolerance)
-{
-  uint32 numBones = static_cast<uint32>(points.size());
-  Vector2 rootPos = points[0];
-
-  float totalLenght = 0.0f;
-  for (float lenght : lenghts) {
-    totalLenght += lenght;
-  }
-
-  if ((target - rootPos).mag() > totalLenght) {
-    // Target is out of reach, so it moves on a straight line
-    for (uint32 i = 1; i < numBones; ++i) {
-      Vector2 dir = (target - points[i]).getNormalized();
-      points[i] = points[i - 1] + dir * lenghts[i - 1];
-    }
-    return;
-  }
-
-  for (uint32 iter = 0; iter < 10; ++iter) {
-    points[numBones - 1] = target;
-
-    // Foward reaching
-    for (int32 i = numBones - 2; i >= 0; --i) {
-      Vector2 dir = (points[i] - points[i + 1]).getNormalized();
-      points[i] = points[i + 1] + dir * lenghts[i];
-    }
-
-    // Backward reaching
-    points[0] = rootPos;
-    for (uint32 i = 1; i < numBones; ++i) {
-      Vector2 dir = (points[i] - points[i - 1]).getNormalized();
-      points[i] = points[i - 1] + dir * lenghts[i - 1];
-    }
-
-    if ((points[numBones - 1] - target).mag() < tolerance) {
-      break;
-    }
-  }
-}
-
-void
-PhysicsApp::ccd(Vector<Vector2>& points,
-                const Vector2& target,
-                const uint32 maxIter,
-                const float tolerance)
-{
-  for (uint32 iter = 0; iter < maxIter; ++iter) {
-    for (int32 i = m_selectedIndex - 1; i >= 0; --i) {
-      Vector2 toEnd = points.back() - points[i];
-      Vector2 toTarget = target - points[i];
-
-      float lenght1 = toEnd.mag();
-      float lenght2 = toTarget.mag();
-
-      if (lenght1 == 0 || lenght2 == 0) {
-        continue;
-      }
-
-      float cosAngle = toEnd.dot(toTarget) / (lenght1 * lenght2);
-      cosAngle = Math::clamp(cosAngle, -1.0f, 1.0f);
-      float angle = Math::acos(Radian(cosAngle));
-
-      float cross = toEnd.cross(toTarget);
-      if (cross < 0) {
-        angle = -angle;
-      }
-
-      float sinA = Math::sin(Radian(angle));
-      float cosA = Math::cos(Radian(angle));
-
-      for (uint32 j = i + 1; j < points.size(); ++j) {
-        Vector2 rel = points[j] - points[i];
-        Vector2 rotated(cosA * rel.x - sinA * rel.y,
-                        sinA * rel.x + cosA * rel.y);
-        points[j] = points[i] + rotated;
-      }
-    }
-    if ((points.back() - target).mag() < tolerance) {
-      break;
-    }
-  }
 }
 }

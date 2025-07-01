@@ -459,12 +459,12 @@ TEST_CASE("BoxAAB") {
   Vector3 point(4.5f, 2.5f, 2.0f);
   Quaternion quat(1.0f, 0.3f, 1.5f, 0.3f);
 
-  AABBox box1(pos1, size1);
-  AABBox box2;
+  BoxAAB box1(pos1, size1);
+  BoxAAB box2;
   box2.setPosition(pos2);
   box2.setSize(size2);
 
-  OBBox obb(Vector3(3.1f, 1.3f, 2.0f), quat, Vector3(1.1f, 2.3f, 1.0f));
+  BoxOBB obb(Vector3(3.1f, 1.3f, 2.0f), quat, Vector3(1.1f, 2.3f, 1.0f));
   Capsule cap1(2.0f,Vector3(3.1f, 4.3f, 2.0f), Vector3(3.1f,1.8f, 2.0f));
   Plane plane(Vector3(0.0f, 2.0f, 0.0f), -3.2f);
   Rect rect(Vector2(2.8f, 1.7f), Vector2(1.0f, 1.0f));
@@ -485,10 +485,10 @@ TEST_CASE("BoxAAB") {
 */
 /*************************************************************/
 TEST_CASE("BoxOBB") {
-  OBBox box1(Vector3(3.0f, 0.5f, 0.0f),
+  BoxOBB box1(Vector3(3.0f, 0.5f, 0.0f),
                 Quaternion(0.707f, 0.0f, 0.707f, 0.0f),
                 Vector3(2.5f, 1.6f, 1.0f));
-  OBBox box2(Vector3(2.5f, 0.4f, 0.2f),
+  BoxOBB box2(Vector3(2.5f, 0.4f, 0.2f),
                 Quaternion(0.0f, 0.707f, 0.0f, 0.707f),
                 Vector3(1.8f, 2.0f, 1.0f));
   Vector3 point(4.5f, 1.5f, 0.5f);

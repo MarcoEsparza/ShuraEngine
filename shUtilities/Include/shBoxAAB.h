@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxAAB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/30
+*  @date    2024/10/23
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
@@ -22,24 +22,24 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for Axis-Aligned Bounding-Box.
 */
-class SH_UTILITY_EXPORT AABBox
+class SH_UTILITY_EXPORT BoxAAB
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  AABBox() = default;
+  BoxAAB() = default;
   /**
   *  @brief Constructor to initialize box values.
   * 
   *  @param const Vector3& _min
   *  @param const Vector3& _max
   */
-  AABBox(const Vector3& _min, const Vector3& _max);
+  BoxAAB(const Vector3& _min, const Vector3& _max);
   /**
   *  @brief Default destructor.
   */
-  ~AABBox() = default;
+  ~BoxAAB() = default;
 
   /*************************************************************/
   /*
