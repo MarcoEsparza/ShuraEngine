@@ -40,6 +40,7 @@ class BlendState;
 class Texture2D;
 class ConstantBuffer;
 class SceneGraph;
+class SamplerState;
 
 /**
 *  @brief Render target information structure.
@@ -51,10 +52,11 @@ struct RenderTargetInfo
     uint32 format = TEXTURE_FORMAT::kR8G8B8A8_UNORM,
     uint32 bFlags = BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource,
     uint32 usage = USAGE::kDefault,
+    uint32 mipLevels = 1,
     float width = 1.0f,
     float height = 1.0f,
     bool bUseScaledSize = true)
-      : name(name), format(format), usage(usage), bFlags(bFlags),
+    : name(name), format(format), usage(usage), bFlags(bFlags), mipLevels(mipLevels),
     width(width), height(height), bUseScaledSize(bUseScaledSize)
   {}
 
@@ -62,6 +64,7 @@ struct RenderTargetInfo
   uint32 format = 0;
   uint32 usage = 0;
   uint32 bFlags = 0;
+  uint32 mipLevels = 1;
   float width = 1.0f;
   float height = 1.0f;
   bool bUseScaledSize = true;
@@ -130,6 +133,11 @@ struct ShaderData {
   float maxG = 0.0f;
   float minB = 0.0f;
   float maxB = 0.0f;
+
+  // Mip levels for texture sampling.
+  float mipLevel0 = 0.0f;
+  float mipLevel1 = 0.0f;
+  Vector2 unused0 = { 0.0f, 0.0f };
 }; GCC_ALIGN(16);
 
 /**
@@ -286,6 +294,18 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   setScreenSize(const Vector2& screenSize);
 
+  FORCEINLINE MainBufferData&
+  getMainBufferData();
+
+  FORCEINLINE ShaderData&
+  getShaderData();
+
+  FORCEINLINE SPtr<ConstantBuffer>&
+  getMainBuffer();
+
+  FORCEINLINE SPtr<ConstantBuffer>&
+  getShaderDataBuffer();
+
  private:
   /**
   *  @brief Map to save passes.
@@ -315,6 +335,22 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   SPtr<ConstantBuffer> m_pPBRData;
 
   /**
+  *  @brief Main Constant Buffer.
+  */
+  SPtr<ConstantBuffer> m_pMainBuffer;
+
+  /**
+  *  @brief Shader Data Constant Buffer.
+  */
+  SPtr<ConstantBuffer> m_pShaderDataBuffer;
+
+  MainBufferData m_mainBufferData;
+
+  ShaderData m_shaderData;
+
+  SPtr<SamplerState> m_pSamplerClamp;
+
+  /**
   *  @brief Shadow map texture size.
   */
   float m_shadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
@@ -324,6 +360,30 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
 };
+
+FORCEINLINE MainBufferData&
+RenderManager::getMainBufferData()
+{
+  return m_mainBufferData;
+}
+
+FORCEINLINE ShaderData&
+RenderManager::getShaderData()
+{
+  return m_shaderData;
+}
+
+FORCEINLINE SPtr<ConstantBuffer>&
+RenderManager::getMainBuffer()
+{
+  return m_pMainBuffer;
+}
+
+FORCEINLINE SPtr<ConstantBuffer>&
+RenderManager::getShaderDataBuffer()
+{
+  return m_pShaderDataBuffer;
+}
 
 /**
 *  @brief Easier way to access the RendererManager module.

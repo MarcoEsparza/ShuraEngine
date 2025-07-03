@@ -143,6 +143,9 @@ public:
   static float
   abs(const float value);
 
+  static float
+  log2(const float value);
+
   /**
   *  @brief Computes the min element of two given arrays.
   * 

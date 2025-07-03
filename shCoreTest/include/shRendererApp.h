@@ -252,12 +252,12 @@ class RendererApp : public BaseApp
   /**
   *  @brief Main Constant Buffer.
   */
-  SPtr<ConstantBuffer> m_pMainBuffer;
+  //SPtr<ConstantBuffer> m_pMainBuffer;
 
   /**
   *  @brief Shader Data Constant Buffer.
   */
-  SPtr<ConstantBuffer> m_pShaderDataBuffer;
+  //SPtr<ConstantBuffer> m_pShaderDataBuffer;
 
   /**
   *  @brief Constant Buffer for light struct.

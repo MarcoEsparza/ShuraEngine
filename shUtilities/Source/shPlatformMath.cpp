@@ -98,6 +98,12 @@ PlatformMath::abs(const float value)
   return std::abs(value);
 }
 
+float PlatformMath::log2(const float value)
+{
+  // Temporary workaround for platforms that do not support log2 directly
+  return std::log2(value);
+}
+
 Array<float, 4>::iterator
 PlatformMath::min_element(const Array<float, 4>::iterator first,
                           const Array<float, 4>::iterator last)

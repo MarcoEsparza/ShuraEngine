@@ -113,62 +113,67 @@ RendererApp::onCreate()
   updateShaderDataBuffer();
   updateMainBuffer();
 
+  auto& pMainBuffer = renderMan.getMainBuffer();
+  auto& pShaderDataBuffer = renderMan.getShaderDataBuffer();
+
   // GBuffer constant buffers
   auto pBasicShader = renderMan.getPass("GBufferShader");
-  pBasicShader->addVSConstantBuffer(m_pMainBuffer, 0);
-  pBasicShader->addVSConstantBuffer(m_pShaderDataBuffer, 1);
+  pBasicShader->addVSConstantBuffer(pMainBuffer, 0);
+  pBasicShader->addVSConstantBuffer(pShaderDataBuffer, 1);
   // Shadow shader buffers
   auto pSMapShader = renderMan.getPass("SMapShader");
-  pSMapShader->addVSConstantBuffer(m_pLCBuffer, 0);
+  pSMapShader->addCSConstantBuffer(pMainBuffer, 0);
+  pSMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  pSMapShader->addVSConstantBuffer(m_pLCBuffer, 3);
   // Skybox shader buffers
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
-  pSkyBoxShader->addVSConstantBuffer(m_pMainBuffer, 0);
+  pSkyBoxShader->addVSConstantBuffer(pMainBuffer, 0);
   // Lightning shader buffers
   auto pLightCS = renderMan.getPass("LightCS");
-  pLightCS->addCSConstantBuffer(m_pMainBuffer, 0);
-  pLightCS->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pLightCS->addCSConstantBuffer(pMainBuffer, 0);
+  pLightCS->addCSConstantBuffer(pShaderDataBuffer, 1);
   pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
   pLightCS->addCSConstantBuffer(m_pLCBuffer, 3);
   // Ambient occlusion buffers
   auto pAOShader = renderMan.getPass("AOShader");
-  pAOShader->addPSConstantBuffer(m_pMainBuffer, 0);
-  pAOShader->addPSConstantBuffer(m_pShaderDataBuffer, 1);
+  pAOShader->addPSConstantBuffer(pMainBuffer, 0);
+  pAOShader->addPSConstantBuffer(pShaderDataBuffer, 1);
   // Post process buffers
   auto pPPShader = renderMan.getPass("PPShader");
-  pPPShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pPPShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pPPShader->addCSConstantBuffer(pMainBuffer, 0);
+  pPPShader->addCSConstantBuffer(pShaderDataBuffer, 1);
   // Tone map buffers
   auto pToneMapShader = renderMan.getPass("ToneMapShader");
-  pToneMapShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pToneMapShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pToneMapShader->addCSConstantBuffer(pMainBuffer, 0);
+  pToneMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
   // Luminance buffers
   auto pLuminanceShader = renderMan.getPass("LuminanceShader");
-  pLuminanceShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pLuminanceShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pLuminanceShader->addCSConstantBuffer(pMainBuffer, 0);
+  pLuminanceShader->addCSConstantBuffer(pShaderDataBuffer, 1);
   // Bright buffers
   auto pBrightShader = renderMan.getPass("BrightShader");
-  pBrightShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pBrightShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pBrightShader->addCSConstantBuffer(pMainBuffer, 0);
+  pBrightShader->addCSConstantBuffer(pShaderDataBuffer, 1);
   // AddMix buffers
   auto pAddMix = renderMan.getPass("AddMixShader");
-  pAddMix->addCSConstantBuffer(m_pMainBuffer, 0);
-  pAddMix->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pAddMix->addCSConstantBuffer(pMainBuffer, 0);
+  pAddMix->addCSConstantBuffer(pShaderDataBuffer, 1);
   // Blur buffers
   auto pHBlurShader = renderMan.getPass("HBlurShader");
   auto pVBlurShader = renderMan.getPass("VBlurShader");
-  pHBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pHBlurShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
-  pVBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pVBlurShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pHBlurShader->addCSConstantBuffer(pMainBuffer, 0);
+  pHBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  pVBlurShader->addCSConstantBuffer(pMainBuffer, 0);
+  pVBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
   // Final shader buffers
   auto pFinalShader = renderMan.getPass("FinalShader");
-  pFinalShader->addPSConstantBuffer(m_pMainBuffer, 0);
+  pFinalShader->addPSConstantBuffer(pMainBuffer, 0);
   // Histogram
   auto pHistogramShader = renderMan.getPass("HistogramShader");
-  pHistogramShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pHistogramShader->addCSConstantBuffer(pMainBuffer, 0);
   // Add skybox
   auto pASBShader = renderMan.getPass("ASBShader");
-  pASBShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pASBShader->addCSConstantBuffer(pMainBuffer, 0);
 
   // Create audio
   Path audioPath("resources/cat.wav");
@@ -504,8 +509,8 @@ RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
 void
 RendererApp::onDestroy()
 {
-  m_pMainBuffer.reset();
-  m_pShaderDataBuffer.reset();
+  //m_pMainBuffer.reset();
+  //m_pShaderDataBuffer.reset();
   m_pLCBuffer.reset();
   m_pLightBuffer.reset();
   m_pModel.reset();
@@ -559,9 +564,11 @@ void
 RendererApp::updateMainBuffer()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
   Time& time = g_time();
 
-  MainBufferData mbd = {};
+  auto& pMainBuffer = renderMan.getMainBuffer();
+  auto& mbd = renderMan.getMainBufferData();
   mbd.viewMatrix = m_camera.getView();
   mbd.transposeViewMatrix = m_camera.getView();
   mbd.transposeViewMatrix.getTransposed();
@@ -587,18 +594,20 @@ RendererApp::updateMainBuffer()
   mbd.cosTime = Math::cos(Radian(mbd.time));
   mbd.sinTime = Math::sin(Radian(mbd.time));
 
-  if (!m_pMainBuffer) {
-    m_pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
+  if (!pMainBuffer) {
+    pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
   }
-  graphMan.updateConstantBuffer(m_pMainBuffer, &mbd, sizeof(MainBufferData));
+  graphMan.updateConstantBuffer(pMainBuffer, &mbd, sizeof(MainBufferData));
 }
 
 void
 RendererApp::updateShaderDataBuffer()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
 
-  ShaderData sd = {};
+  auto& pShaderDataBuffer = renderMan.getShaderDataBuffer();
+  auto& sd = renderMan.getShaderData();
   sd.shadowMapSize = m_shadowTexSize;
   sd.sampleRadius = m_aoSamplerRad;
   sd.aoScale = m_aoScale;
@@ -617,10 +626,10 @@ RendererApp::updateShaderDataBuffer()
   sd.minB = m_minB * normChannel;
   sd.maxB = m_maxB * normChannel;
 
-  if (!m_pShaderDataBuffer) {
-    m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
+  if (!pShaderDataBuffer) {
+    pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
   }
-  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &sd, sizeof(ShaderData));
+  graphMan.updateConstantBuffer(pShaderDataBuffer, &sd, sizeof(ShaderData));
 }
 
 void

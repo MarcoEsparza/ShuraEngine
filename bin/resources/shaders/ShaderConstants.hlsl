@@ -54,6 +54,11 @@ cbuffer ShaderData : register(b1)
   float maxG;
   float minB;
   float maxB;
+    
+  // Mipmap settings
+  float mipLevel0;
+  float mipLevel1;
+  float2 unusedMip; // padding to align to 16 bytes
 }
 
 struct MaterialProperties

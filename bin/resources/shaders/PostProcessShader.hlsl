@@ -1,9 +1,16 @@
 #include "resources/shaders/ShaderConstants.hlsl"
 
 SamplerState textureSampler : register(s0);
+SamplerState samplerLinearClamp : register(s1);
 Texture2D t_inputMap : register(t0);
-Texture3D<float4> lutTex : register(t1);
+Texture2D t_texture1 : register(t1);
+Texture2D t_texture2 : register(t2);
+Texture3D<float4> lutTex : register(t3);
 RWTexture2D<float4> t_outputMap : register(u0);
+
+#ifndef DELTA
+#define DELTA 0.00000001
+#endif
 
 /**
 *  @brief Reinhard filmic tone mapping
@@ -134,33 +141,46 @@ ToneMapCS(uint3 dtID : SV_DispatchThreadID)
     return;
   }
 
-  float4 color = t_inputMap.Load(uint3(dtID.xy, 0));
-  color *= exposure;
+  float3 color = t_inputMap.Load(uint3(dtID.xy, 0)).rgb;
+  float3 bloom = t_texture1.Load(uint3(dtID.xy, 0)).rgb;
+  //color *= exposure;
+    
+  float3 texDimensions;
+  t_texture2.GetDimensions(0, texDimensions.x, texDimensions.y, texDimensions.z);
+  float avgLogLum = t_texture2.SampleLevel(samplerLinearClamp,
+                                           float2(0.5f, 0.5f),
+                                           texDimensions.z).r;
+  float avgLum = exp(avgLogLum);
+    
+  float exposed = color * exposure / (avgLum + DELTA);
+  float3 mapped;
   
   if(toneMapIndex == 0.0f)
   {
-    color.rgb = reinhard(color.rgb);
+    mapped = reinhard(color);
   }
   else if(toneMapIndex == 1.0f)
   {
-    color.rgb = aces(color.rgb);
+    mapped = aces(color);
   }
   else if(toneMapIndex == 2.0f)
   {
-    color.rgb = uncharted2(color.rgb);
+    mapped = uncharted2(color);
   }
   else if(toneMapIndex == 3.0f)
   {
-    color.rgb = agx(color.rgb);
+    mapped = agx(color);
   }
   else if(toneMapIndex == 4.0f)
   {
-    color.rgb = lutToneMap(color.rgb);
+    mapped = lutToneMap(color);
   }
     
-  color = pow(color, 1.0 / 2.2);
+  mapped = pow(mapped, 1.0f / 2.2f);
+  float bloomMultiplier = 1.0f;
+  mapped += bloom * bloomMultiplier;
     
-  t_outputMap[dtID.xy] = float4(color.rgb, 1.0f);
+  t_outputMap[dtID.xy] = float4(saturate(mapped), 1.0f);
 }
 
 [numthreads(32, 32, 1)]

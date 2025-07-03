@@ -1,10 +1,12 @@
-cbuffer VP : register(b0)
+#include "resources/shaders/ShaderConstants.hlsl"
+
+cbuffer VP : register(b3)
 {
   float4x4 View;
   float4x4 Proj;
 }
 
-cbuffer Model : register(b1)
+cbuffer Model : register(b2)
 {
   float4x4 ModelTransform;
 }
@@ -31,5 +33,6 @@ PS_INPUT main(VS_INPUT input)
 
 float4 mainPS(PS_INPUT input) : SV_Target
 {
-  return 1.0f;
+  float depth = input.Position.z / input.Position.w;
+  return float4(depth.xxx, 1.0f);
 }

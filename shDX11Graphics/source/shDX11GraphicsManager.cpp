@@ -21,6 +21,7 @@
 #include "shScreen.h"
 #include "shLinearColor.h"
 #include "shException.h"
+//#include "shMath.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -826,12 +827,13 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
                                              const uint32 mipLevels)
 {
   auto pTexture = std::make_shared<DX11Texture2D>();
+  uint32 texMipLevels = mipLevels;
 
   D3D11_TEXTURE2D_DESC textureDesc;
   memset(&textureDesc, 0, sizeof(textureDesc));
   textureDesc.Width = width;
   textureDesc.Height = height;
-  textureDesc.MipLevels = mipLevels;
+  textureDesc.MipLevels = texMipLevels;
   textureDesc.ArraySize = 1;
   textureDesc.Format = static_cast<DXGI_FORMAT>(format);
   textureDesc.SampleDesc.Count = 1;
@@ -841,26 +843,37 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
   textureDesc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ?  D3D11_CPU_ACCESS_WRITE : 0;
   textureDesc.MiscFlags = 0;
 
+  bool autoGenMipMaps = false;
+  if (texMipLevels != 1 && usage != D3D11_USAGE_STAGING) {
+    // Check if the format supports mipmaps
+    uint32 fmtSupport = 0;
+    HRESULT hr = m_pDevice->CheckFormatSupport(static_cast<DXGI_FORMAT>(format), &fmtSupport);
+    if(SUCCEEDED(hr) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN)) {
+      // If the format supports mipmaps, we need to make sure it is binded as render target
+      textureDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+      textureDesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+      if(texMipLevels == 0) {
+        // If mipLevels is 0, we will auto-generate mipmaps
+        /*texMipLevels = static_cast<uint32>(Math::log2(Math::max(static_cast<float>(width),
+                                                      static_cast<float>(height)))) + 1;*/
+        texMipLevels = std::log2(max(width, height)) + 1;
+        autoGenMipMaps = true;
+      }
+    }
+  }
+
   throwIfFailed(m_pDevice->CreateTexture2D(&textureDesc, nullptr, &pTexture->m_pTexture2D));
 
-  if ((bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
+  if ((bindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET)
   {
-    D3D11_SHADER_RESOURCE_VIEW_DESC shaderRVDesc;
-    memset(&shaderRVDesc, 0, sizeof(shaderRVDesc));
-    if (textureDesc.Format == DXGI_FORMAT_R32_TYPELESS ||
-        textureDesc.Format == DXGI_FORMAT_D32_FLOAT) {
-      textureDesc.Format = DXGI_FORMAT_R32_FLOAT;
-      shaderRVDesc.Format = textureDesc.Format;
-    }
-    else {
-      shaderRVDesc.Format = textureDesc.Format;
-    }
-    shaderRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    shaderRVDesc.Texture2D.MipLevels = textureDesc.MipLevels;
-    shaderRVDesc.Texture2D.MostDetailedMip = 0;
-    throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
-                                                      &shaderRVDesc,
-                                                      &pTexture->m_pShaderRV));
+    D3D11_RENDER_TARGET_VIEW_DESC descRTV;
+    memset(&descRTV, 0, sizeof(descRTV));
+    descRTV.Format = textureDesc.Format;
+    descRTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    descRTV.Texture2D.MipSlice = 0;
+    throwIfFailed(m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
+                                                    &descRTV,
+                                                    &pTexture->m_pRenderTV));
   }
 
   if ((bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
@@ -882,18 +895,6 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
                                                     &pTexture->m_pDepthSV));
   }
 
-  if ((bindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET)
-  {
-    D3D11_RENDER_TARGET_VIEW_DESC descRTV;
-    memset(&descRTV, 0, sizeof(descRTV));
-    descRTV.Format = textureDesc.Format;
-    descRTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    descRTV.Texture2D.MipSlice = 0;
-    throwIfFailed(m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
-                                                    &descRTV,
-                                                    &pTexture->m_pRenderTV));
-  }
-
   if ((bindFlags & D3D11_BIND_UNORDERED_ACCESS) == D3D11_BIND_UNORDERED_ACCESS)
   {
     D3D11_UNORDERED_ACCESS_VIEW_DESC descUAV;
@@ -904,6 +905,30 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     throwIfFailed(m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
                                                        &descUAV,
                                                        &pTexture->m_pUnorderedAV));
+  }
+
+  if ((bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
+  {
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderRVDesc;
+    memset(&shaderRVDesc, 0, sizeof(shaderRVDesc));
+    if (textureDesc.Format == DXGI_FORMAT_R32_TYPELESS ||
+        textureDesc.Format == DXGI_FORMAT_D32_FLOAT) {
+      textureDesc.Format = DXGI_FORMAT_R32_FLOAT;
+      shaderRVDesc.Format = textureDesc.Format;
+    }
+    else {
+      shaderRVDesc.Format = textureDesc.Format;
+    }
+    shaderRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderRVDesc.Texture2D.MostDetailedMip = 0;
+    shaderRVDesc.Texture2D.MipLevels = texMipLevels == 1 ? 1 : -1; // -1 means all mip levels
+    throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+                                                      &shaderRVDesc,
+                                                      &pTexture->m_pShaderRV));
+  }
+
+  if(autoGenMipMaps) {
+    generateMips(pTexture);
   }
 
   return pTexture;
