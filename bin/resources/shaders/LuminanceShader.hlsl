@@ -45,18 +45,24 @@ BrightCS( uint3 dtID : SV_DispatchThreadID )
   
   // Sample the color texture
   float2 uv = (float2(dtID.x, dtID.y) + 0.5f) / float2(dimensions.x, dimensions.y);
-  uint2 inputDimensions;
-  t_inputMap.GetDimensions(inputDimensions.x, inputDimensions.y);
-  uint2 inputID = uint2(uv * float2(inputDimensions.x, inputDimensions.y));
+  uint2 colorDimensions;
+  t_inputMap.GetDimensions(colorDimensions.x, colorDimensions.y);
+  uint2 colorUV = uint2(uv * float2(colorDimensions.x, colorDimensions.y));
   
   // Sample the luminance texture
   uint2 luminanceDimensions;
   t_texture1.GetDimensions(luminanceDimensions.x, luminanceDimensions.y);
-  uint2 luminanceID = uint2(uv * float2(luminanceDimensions.x, luminanceDimensions.y));
+  uint2 luminanceUV = uint2(uv * float2(luminanceDimensions.x, luminanceDimensions.y));
   
-  float4 color = t_inputMap.Load(int3(inputID, 0));
-  float luminance = t_texture1.Load(uint3(luminanceID, 0)).r;
-    
+  float4 color = t_inputMap.Load(int3(colorUV, 0));
+  float luminance = t_texture1.Load(uint3(luminanceUV, 0)).r;
+  
+  //float3 color = t_inputMap.SampleLevel(samplerLinear, colorUV, 0).rgb;
+  //float luminance = t_texture1.SampleLevel(samplerLinear, luminanceUV, 0).r;
+  
+  //t_outputMap[dtID.xy] = float4(luminance.xxx, 1.0f);
+  //return;
+  
   float3 brightColor = max(color - brightThreshold, 0.0f);
   brightColor *= step(brightThreshold, luminance);
     
@@ -67,17 +73,16 @@ BrightCS( uint3 dtID : SV_DispatchThreadID )
 void
 AddMixCS( uint3 dtID : SV_DispatchThreadID )
 {
-  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
+  uint2 dimensions;
+  t_outputMap.GetDimensions(dimensions.x, dimensions.y);
+  if (dtID.x >= dimensions.x || dtID.y >= dimensions.y) {
     return;
   }
-    
-  t_outputMap[dtID.xy] = float4(0.5f * (t_inputMap.SampleLevel(samplerClamp, dtID.xy, mipLevel0).rgb +
-                                       t_texture1.SampleLevel(samplerClamp, dtID.xy, mipLevel1).rgb), 1.0f);
-    
-  //float4 color = t_inputMap.Load(uint3(dtID.xy, 0));
-  //float4 bloom = t_texture1.Load(uint3(dtID.xy, 0));
-  //  
-  //float4 finalColor = float4(0.5f * (color.rgb + bloom.rgb), 1.0f);
-  //  
-  //t_outputMap[dtID.xy] = finalColor;
+  
+  //t_outputMap[dtID.xy] = float4(0.5f * (t_inputMap.Load(int3(dtID.xy, 0)) +
+  //                                      t_texture1.Load(uint3(dtID.xy, 0))));
+  
+  t_outputMap[dtID.xy] = 0.5f * (t_inputMap.Load(float3(dtID.xy, mipLevel0)) +
+                         t_texture1.SampleLevel(samplerLinear, (dtID.xy + 0.5f) /
+                         float2(dimensions.x, dimensions.y), mipLevel1));
 }

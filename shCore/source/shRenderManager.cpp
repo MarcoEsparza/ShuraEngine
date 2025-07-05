@@ -32,7 +32,12 @@
 #define LUMINANCE_MAP_SIZE 512.0f // Size of the luminance map
 #define HISTOGRAM_MAP_SIZE 256.0f // Size of the histogram map
 #define DEFAULT_THREADS 32 // Default threads for compute shaders
-#define NUM_MIP_LEVELS 4 // Number of mip levels for textures
+#define DEFAULT_NUM_MIP_LEVELS 4 // Number of mip levels for textures
+
+#define BLURH_THREADS_X 4
+#define BLURH_THREADS_Y 64
+#define BLURV_THREADS_X 64
+#define BLURV_THREADS_Y 4
 
 namespace shEngineSDK {
 RenderManager::~RenderManager()
@@ -98,11 +103,11 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("HBlurMap").getID()] = RenderTargetInfo("HBlurMap",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, NUM_MIP_LEVELS);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
 
   m_renderTargetMap[StringID("VBlurMap").getID()] = RenderTargetInfo("VBlurMap",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, NUM_MIP_LEVELS);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
 
   m_renderTargetMap[StringID("LightCMap").getID()] = RenderTargetInfo("LightCMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
@@ -135,12 +140,22 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("BrightMap").getID()] = RenderTargetInfo("BrightMap",
     TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, NUM_MIP_LEVELS,
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
     0.5f, 0.5f);
 
   m_renderTargetMap[StringID("AdditiveMap").getID()] = RenderTargetInfo("AdditiveMap",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
     fullUAVBindFlags);
+
+  m_renderTargetMap[StringID("BHBlur").getID()] = RenderTargetInfo("BHBlur",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
+    0.5f, 0.5f);
+
+  m_renderTargetMap[StringID("BVBlur").getID()] = RenderTargetInfo("BVBlur",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
+    0.5f, 0.5f);
 
   m_renderTargetMap[StringID("HistogramMap").getID()] = RenderTargetInfo("HistogramMap",
     TEXTURE_FORMAT::kR32_FLOAT,
@@ -223,6 +238,20 @@ RenderManager::createPasses()
                                "VBlurCS",
                                "cs_5_0");
   pVBlurShader->compileShader();
+
+  // HBlur
+  auto pHBlurCS = sh_makeShared<Pass>();
+  pHBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                           "HBlur_CS",
+                           "cs_5_0");
+  pHBlurCS->compileShader();
+
+  // VBlur
+  auto pVBlurCS = sh_makeShared<Pass>();
+  pVBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                            "VBlur_CS",
+                            "cs_5_0");
+  pVBlurCS->compileShader();
 
   // Shadow map
   auto pSMapShader = sh_makeShared<Pass>();
@@ -386,6 +415,9 @@ RenderManager::createPasses()
   pGbufferShader->setBlendState(pBlendState);
   pGbufferShader->setDepthStencilState(pDepthStencil);
 
+  // Lightning
+  pLightCS->setSamplerState(pSamplerLinear);
+
   // AO
   pAOShader->setSamplerState(pSamplerLinear);
 
@@ -421,6 +453,8 @@ RenderManager::createPasses()
   m_passes[StringID("AOShader").getID()] = pAOShader;
   m_passes[StringID("HBlurShader").getID()] = pHBlurShader;
   m_passes[StringID("VBlurShader").getID()] = pVBlurShader;
+  m_passes[StringID("HBlurCS").getID()] = pVBlurShader;
+  m_passes[StringID("VBlurCS").getID()] = pVBlurShader;
   m_passes[StringID("LightCS").getID()] = pLightCS;
   m_passes[StringID("SMapShader").getID()] = pSMapShader;
   m_passes[StringID("SkyBoxShader").getID()] = pSkyBoxShader;
@@ -579,6 +613,12 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
   }
 }
 
+static uint32
+threadGroups(uint32 size, uint32 threads)
+{
+  return (size + threads - 1) / threads;
+}
+
 void
 RenderManager::renderScene()
 {
@@ -609,12 +649,15 @@ RenderManager::renderScene()
   auto& pBrightMap = m_renderTargetMap[StringID("BrightMap").getID()];
   auto& pPPMap = m_renderTargetMap[StringID("PPMap").getID()];
   auto& pAdditiveMap = m_renderTargetMap[StringID("AdditiveMap").getID()];
+  auto& pBHBlur = m_renderTargetMap[StringID("BHBlur").getID()];
+  auto& pBVBlur = m_renderTargetMap[StringID("BVBlur").getID()];
   auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
-  uint32 dispatchX = static_cast<uint32>((m_screenDimension.x + DEFAULT_THREADS) /
-                                          DEFAULT_THREADS);
-  uint32 dispatchY = static_cast<uint32>((m_screenDimension.y + DEFAULT_THREADS) /
-                                          DEFAULT_THREADS);
+  uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
+  uint32 screenHeight = static_cast<uint32>(m_screenDimension.y);
+
+  uint32 dispatchX = threadGroups(screenWidth, DEFAULT_THREADS);
+  uint32 dispatchY = threadGroups(screenHeight, DEFAULT_THREADS);
   uint32 dispatchZ = 1;
 
   Viewport normalVP = {};
@@ -670,7 +713,10 @@ RenderManager::renderScene()
   graphMan.clearRenderTarget(pColorMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pPropMap.pTexture, LinearColor::BLACK);
   graphMan.clearDepthStencil(pDepthSV);
-  graphMan.setRenderTargets({ pDepthMap.pTexture, pNormalMap.pTexture, pColorMap.pTexture, pPropMap.pTexture }, pDepthSV);
+  graphMan.setRenderTargets({ pDepthMap.pTexture,
+                              pNormalMap.pTexture,
+                              pColorMap.pTexture,
+                              pPropMap.pTexture }, pDepthSV);
   m_passes[StringID("GBufferShader").getID()]->setPass();
   drawStaticMeshOnScene();
   cleanShaderObjects();
@@ -691,12 +737,17 @@ RenderManager::renderScene()
   /*************************************/
   /*        AO Horizontal Blur         */
   /*************************************/
+  m_shaderData.mipLevel0 = 1;
+  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
   pInput = pAOMap.pTexture;
   pOutput = pHBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HBlurShader").getID()]->setPass();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView(pOutput, 0);
+  /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
+                    threadGroups(screenHeight, BLURH_THREADS_Y),
+                    1);*/
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
 
@@ -709,6 +760,9 @@ RenderManager::renderScene()
   m_passes[StringID("VBlurShader").getID()]->setPass();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView(pOutput, 0);
+  /*graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
+                    threadGroups(screenHeight, BLURV_THREADS_Y),
+                    1);*/
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
 
@@ -783,6 +837,9 @@ RenderManager::renderScene()
   /*************************************/
   /*               Bright              */
   /*************************************/
+  //m_mainBufferData.screenSize.x = static_cast<float>(screenWidth * 0.5f);
+  //m_mainBufferData.screenSize.y = static_cast<float>(screenHeight * 0.5f);
+  //graphMan.updateConstantBuffer(m_pMainBuffer, &m_mainBufferData, sizeof(MainBufferData));
   pInput = pLuminance.pTexture;
   pOutput = pBrightMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
@@ -790,9 +847,9 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pInput, 1);
   graphMan.setUnorderedAccessView(pOutput, 0);
-  graphMan.dispatch(static_cast<uint32>(dispatchX * 0.5f),
-                    static_cast<uint32>(dispatchY * 0.5f),
-                    dispatchZ);
+  graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
+                    threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+                    1);
   cleanShaderObjects();
   graphMan.generateMips(pOutput);
 
@@ -805,20 +862,20 @@ RenderManager::renderScene()
     int32 mipLevel0 = startMip + i;
     int32 mipLevel1 = mipLevel0 + 1;
     
-    int32 width = static_cast<int32>(static_cast<int32>(normalVP.width) >> (mipLevel0 + 1));
-    int32 height = static_cast<int32>(static_cast<int32>(normalVP.height) >> (mipLevel0 + 1));
+    int32 width = static_cast<int32>(static_cast<int32>(screenWidth) >> (mipLevel0 + 1));
+    int32 height = static_cast<int32>(static_cast<int32>(screenHeight) >> (mipLevel0 + 1));
 
-    Viewport blurVP = {};
-    blurVP.width = static_cast<float>(width);
-    blurVP.height = static_cast<float>(height);
-    blurVP.minDepth = 0.0f;
-    blurVP.maxDepth = 1.0f;
-    blurVP.topLeftX = 0.0f;
-    blurVP.topLeftY = 0.0f;
-    graphMan.setViewport(blurVP);
+    //Viewport blurVP = {};
+    //blurVP.width = static_cast<float>(width);
+    //blurVP.height = static_cast<float>(height);
+    //blurVP.minDepth = 0.0f;
+    //blurVP.maxDepth = 1.0f;
+    //blurVP.topLeftX = 0.0f;
+    //blurVP.topLeftY = 0.0f;
+    //graphMan.setViewport(blurVP);
 
-    uint32 blurDispatchX = static_cast<uint32>((width + DEFAULT_THREADS) / DEFAULT_THREADS);
-    uint32 blurDispatchY = static_cast<uint32>((height + DEFAULT_THREADS) / DEFAULT_THREADS);
+    //uint32 blurDispatchX = threadGroups(width, DEFAULT_THREADS);
+    //uint32 blurDispatchY = threadGroups(height, DEFAULT_THREADS);
 
     // Update buffers
     m_mainBufferData.screenSize.x = static_cast<float>(width);
@@ -838,31 +895,48 @@ RenderManager::renderScene()
       m_passes[StringID("AddMixShader").getID()]->setPass();
       graphMan.setCSSamplerState(m_pSamplerClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
-      graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 1);
+      graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
       graphMan.setUnorderedAccessView(pAdditiveMap.pTexture, 0);
-      graphMan.dispatch(blurDispatchX, blurDispatchY, 1);
+      graphMan.dispatch(threadGroups(width, DEFAULT_THREADS),
+                        threadGroups(height, DEFAULT_THREADS),
+                        1);
       cleanShaderObjects();
+      graphMan.generateMips(pAdditiveMap.pTexture);
     }
 
     /*************************************/
     /*          Horizontal Blur          */
     /*************************************/
     graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-    m_passes[StringID("HBlurShader").getID()]->setPass();
+    //m_passes[StringID("HBlurShader").getID()]->setPass();
+    //m_passes[StringID("HBlurCS").getID()]->setPass();
     graphMan.csSetShaderResourceView(pInput, 0);
-    graphMan.setUnorderedAccessView(pHBlurMap.pTexture, 0);
-    graphMan.dispatch(blurDispatchX, blurDispatchY, 1);
+    graphMan.setUnorderedAccessView(pBHBlur.pTexture, 0);
+    graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
+                      threadGroups(screenHeight, BLURH_THREADS_Y),
+                      1);
+    /*graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
+                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+                      1);*/
     cleanShaderObjects();
+    graphMan.generateMips(pBHBlur.pTexture);
 
     /*************************************/
     /*            Vetical Blur           */
     /*************************************/
     graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-    m_passes[StringID("VBlurShader").getID()]->setPass();
-    graphMan.csSetShaderResourceView(pHBlurMap.pTexture, 0);
-    graphMan.setUnorderedAccessView(pVBlurMap.pTexture, 0);
-    graphMan.dispatch(blurDispatchX, blurDispatchY, 1);
+    //m_passes[StringID("VBlurShader").getID()]->setPass();
+    m_passes[StringID("VBlurCS").getID()]->setPass();
+    graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
+    graphMan.setUnorderedAccessView(pBVBlur.pTexture, 0);
+    graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
+                      threadGroups(screenHeight, BLURH_THREADS_Y),
+                      1);
+    /*graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
+                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+                      1);*/
     cleanShaderObjects();
+    graphMan.generateMips(pBVBlur.pTexture);
   }
 
   /*************************************/
@@ -879,7 +953,7 @@ RenderManager::renderScene()
   m_passes[StringID("ToneMapShader").getID()]->setPass();
   graphMan.setCSSamplerState(m_pSamplerClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
-  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
   graphMan.csSetShaderResourceView(pLuminance.pTexture, 2);
   graphMan.setUnorderedAccessView(pToneMap.pTexture, 0);
 

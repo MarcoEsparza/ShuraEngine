@@ -13,6 +13,10 @@ Texture2D t_ambientO : register(t4);
 //  float4x4 Proj;
 //}
 
+#ifndef ALPHA_TEST_THRESHOLD
+#define ALPHA_TEST_THRESHOLD 0.5f
+#endif
+
 cbuffer Model : register(b2)
 {
   float4x4 ModelTransform;
@@ -78,23 +82,24 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
     
   MaterialProperties materialProps = getMaterialProperties(materialBitfield);
     
-  if (materialProps.bHasBaseColor)
+  if (!materialProps.bHasBaseColor)
   {
     output.Color = float4(baseColorFactor, 1.0f);
   }
   else
   {
     output.Color = t_baseColor.Sample(textureSampler, input.Tex);
-    //output.Color = output.Color * float4(baseColorFactor, 1.0f);
-    if(materialProps.bHasAlphaTest)
-    {
-      if(output.Color.a < 0.5f)
-      {
-        discard;
-      }
-    }
+    output.Color = output.Color * float4(baseColorFactor, 1.0f);
   }
     
+  if(materialProps.bHasAlphaTest)
+  {
+    if (output.Color.a < ALPHA_TEST_THRESHOLD)
+    {
+      discard;
+    }
+  }
+
   //float3 fvNormal = float3(0.0f, 0.0f, 0.0f);
   //if (materialProps.bHasNormalMap)
   //{

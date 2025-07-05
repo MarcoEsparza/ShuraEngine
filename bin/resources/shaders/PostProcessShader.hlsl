@@ -12,6 +12,13 @@ RWTexture2D<float4> t_outputMap : register(u0);
 #define DELTA 0.00000001
 #endif
 
+#define BLURH_THREADS_X 4
+#define BLURH_THREADS_Y 64
+#define BLURV_THREADS_X 64
+#define BLURV_THREADS_Y 4
+#define BLUR_WIDTH 9
+#define HALF_BLUR_WIDTH 4
+
 /**
 *  @brief Reinhard filmic tone mapping
 *
@@ -114,11 +121,33 @@ lutToneMap(float3 color)
   return lutTex.SampleLevel(textureSampler, coord, 0).rgb;
 }
 
+float3
+getSelectedToneMap(float3 color, float toneMapIndex)
+{
+  if (toneMapIndex == 0.0f) {
+    return reinhard(color);
+  }
+  else if (toneMapIndex == 1.0f) {
+    return aces(color);
+  }
+  else if (toneMapIndex == 2.0f) {
+    return uncharted2(color);
+  }
+  else if (toneMapIndex == 3.0f) {
+    return agx(color);
+  }
+  else if (toneMapIndex == 4.0f) {
+    return lutToneMap(color);
+  }
+  
+  return color; // Default case, no tone mapping
+}
+
 [numthreads(32, 32, 1)]
 void
 PostProcessCS(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
+  if (dtID.x >= uint(screenSize.x) || dtID.y >= uint(screenSize.y)) {
     return;
   }
 
@@ -130,6 +159,8 @@ PostProcessCS(uint3 dtID : SV_DispatchThreadID)
   color.g = lerp(minG, maxG, color.g);
   color.b = lerp(minB, maxB, color.b);
     
+  color = pow(color, 1.0f / 2.2f);
+  
   t_outputMap[dtID.xy] = color;
 }
 
@@ -137,12 +168,20 @@ PostProcessCS(uint3 dtID : SV_DispatchThreadID)
 void
 ToneMapCS(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
+  uint2 dimensions;
+  t_outputMap.GetDimensions(dimensions.x, dimensions.y);
+  if (dtID.x >= dimensions.x || dtID.y >= dimensions.y)
+  {
     return;
   }
+  float2 uv = (float2(dtID.x, dtID.y) + 0.5f) / float2(dimensions.x, dimensions.y);
 
   float3 color = t_inputMap.Load(uint3(dtID.xy, 0)).rgb;
-  float3 bloom = t_texture1.Load(uint3(dtID.xy, 0)).rgb;
+  
+  uint2 bloomDimensions;
+  t_texture1.GetDimensions(bloomDimensions.x, bloomDimensions.y);
+  uint2 bloomUV = uint2(uv.x * bloomDimensions.x, uv.y * bloomDimensions.y);
+  float3 bloom = t_texture1.Load(uint3(bloomUV, 0)).rgb;
   //color *= exposure;
     
   float3 texDimensions;
@@ -152,47 +191,102 @@ ToneMapCS(uint3 dtID : SV_DispatchThreadID)
                                            texDimensions.z).r;
   float avgLum = exp(avgLogLum);
     
-  float exposed = color * exposure / (avgLum + DELTA);
-  float3 mapped;
-  
-  if(toneMapIndex == 0.0f)
-  {
-    mapped = reinhard(color);
-  }
-  else if(toneMapIndex == 1.0f)
-  {
-    mapped = aces(color);
-  }
-  else if(toneMapIndex == 2.0f)
-  {
-    mapped = uncharted2(color);
-  }
-  else if(toneMapIndex == 3.0f)
-  {
-    mapped = agx(color);
-  }
-  else if(toneMapIndex == 4.0f)
-  {
-    mapped = lutToneMap(color);
-  }
+  float3 exposed = color * middleGrey / (avgLum + DELTA);
+  float3 mapped = getSelectedToneMap(exposed, toneMapIndex);
     
-  mapped = pow(mapped, 1.0f / 2.2f);
+  //mapped = pow(mapped, 1.0f / 2.2f);
   float bloomMultiplier = 1.0f;
   mapped += bloom * bloomMultiplier;
     
   t_outputMap[dtID.xy] = float4(saturate(mapped), 1.0f);
 }
 
+[numthreads(1, BLURH_THREADS_Y, 1)]
+void
+HBlur_CS(uint3 gID : SV_GroupID,
+         uint3 dtID : SV_DispatchThreadID,
+         uint3 gtID : SV_GroupThreadID,
+         uint GI : SV_GroupIndex)
+{
+  //int2 outputDimensions;
+  //t_outputMap.GetDimensions(outputDimensions.x, outputDimensions.y);
+  //if (dtID.x >= outputDimensions.x || dtID.y >= outputDimensions.y) {
+  //  return;
+  //}
+    
+  static const float g_blurWeights[] = {
+    0.004815026f,
+    0.028716039f,
+    0.102818575f,
+    0.221024189f,
+    0.28525234f,
+    0.221024189f,
+    0.102818575f,
+    0.028716039f,
+    0.004815026f
+  };
+  int3 base = int3(dtID.x * BLURH_THREADS_X, dtID.y, mipLevel0);
+  float4 input[BLUR_WIDTH + BLURH_THREADS_X];
+  
+  [unroll]for(int i = 0; i < BLUR_WIDTH + BLURH_THREADS_X; i++) {
+    input[i] = t_inputMap.Load(base, int2(i - HALF_BLUR_WIDTH, 0));
+  }
+  
+  [unroll]for(int x = 0; x < BLURH_THREADS_X; x++) {
+    float4 output = 0.0f;
+    [unroll]for(int i = 0; i < BLUR_WIDTH; i++) {
+      output += input[(x + i)] * g_blurWeights[i];
+    }
+    t_outputMap[base.xy + int2(x, 0)] = output;
+  }
+}
+
+[numthreads(BLURV_THREADS_X, 1, 1)]
+void
+VBlur_CS(uint3 gID : SV_GroupID,
+         uint3 dtID : SV_DispatchThreadID,
+         uint3 gtID : SV_GroupThreadID,
+         uint GI : SV_GroupIndex)
+{
+  static const float g_blurWeights[] = {
+    0.004815026f,
+    0.028716039f,
+    0.102818575f,
+    0.221024189f,
+    0.28525234f,
+    0.221024189f,
+    0.102818575f,
+    0.028716039f,
+    0.004815026f
+  };
+  int3 base = int3(dtID.x, dtID.y * BLURV_THREADS_Y, mipLevel0);
+  float4 input[BLUR_WIDTH + BLURV_THREADS_Y];
+  
+  [unroll]for (int i = 0; i < BLUR_WIDTH + BLURV_THREADS_Y; i++) {
+    input[i] = t_inputMap.Load(base, int2(0, i - HALF_BLUR_WIDTH));
+  }
+  
+  [unroll]for(int y = 0; y < BLURV_THREADS_Y; y++) {
+    float4 output = 0.0f;
+    [unroll]for(int i = 0; i < BLUR_WIDTH; i++) {
+      output += input[(y + i)] * g_blurWeights[i];
+    }
+    t_outputMap[base.xy + int2(0, y)] = output;
+  }
+}
+
 [numthreads(32, 32, 1)]
 void
 HBlurCS(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
+  uint2 dimensions;
+  t_outputMap.GetDimensions(dimensions.x, dimensions.y);
+  if (dtID.x >= dimensions.x || dtID.y >= dimensions.y) {
     return;
   }
 
-  float2 coord = dtID.xy / screenSize;
-  float2 texelSize = float2(1.0f / screenSize.x, 1.0f / screenSize.y);
+  float2 coord = dtID.xy / dimensions;
+  float2 texelSize = float2(1.0f / dimensions.x, 1.0f / dimensions.y);
 
   float2 offsets[5] =
   {
@@ -220,12 +314,15 @@ HBlurCS(uint3 dtID : SV_DispatchThreadID)
 void
 VBlurCS(uint3 dtID : SV_DispatchThreadID)
 {
-  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) {
+  uint2 dimensions;
+  t_outputMap.GetDimensions(dimensions.x, dimensions.y);
+  if (dtID.x >= dimensions.x || dtID.y >= dimensions.y)
+  {
     return;
   }
 
-  float2 coord = dtID.xy / screenSize;
-  float2 texelSize = float2(1.0f / screenSize.x, 1.0f / screenSize.y);
+  float2 coord = dtID.xy / dimensions;
+  float2 texelSize = float2(1.0f / dimensions.x, 1.0f / dimensions.y);
 
   float2 offsets[5] =
   {

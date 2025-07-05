@@ -44,7 +44,7 @@ pcFiltering(float2 uv,
             float shadowBias)
 {
   float shadow = 0.0f;
-  int sampleCount = 0;
+  //int sampleCount = 0;
 
   for (int y = -PCF_KERNEL_SIZE; y <= PCF_KERNEL_SIZE; ++y)
   {
@@ -53,16 +53,22 @@ pcFiltering(float2 uv,
     
       float2 offset = float2(x, y) * texelSize;
       //float sampledDepth = t_shadowMap.Sample(textureSampler, uv + offset).r;
-      float sampledDepth = t_shadowMap.Load(uint3(uv, 0));
+      float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
 
-      if (depth - shadowBias > sampledDepth)
-      {
-        shadow += 1.0f;
-      }
-      ++sampleCount;
+      sampledDepth = sampledDepth * 0.5f + 0.5f;
+      float shadowIntensity = 0.8f; // Change to a variable in constant buffer
+      shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
+      //if (depth - shadowBias > sampledDepth)
+      //{
+      //  shadow += 1.0f;
+      //}
+      //++sampleCount;
     }
   }
-  return 1.0f - (shadow / sampleCount);
+    
+  shadow /= PCF_KERNEL_SIZE * PCF_KERNEL_SIZE;
+  return saturate(shadow);
+  //return 1.0f - (shadow / sampleCount);
 }
 
 float3 fresnelSchlick(float3 F0, float cosTheta)
@@ -128,8 +134,8 @@ float3 cookTorrenceSpecular(float3 normal,
   float alpha = roughness * roughness;
   float D = D_Beckmann(nDotH, alpha);
   //float D = D_BlinnPhong(nDotH, roughness);
-  //float G = geometrySmith(nDotV, nDotL, roughness);
-  float G = geomSmith(nDotV, nDotL, roughness);
+  float G = geometrySmith(nDotV, nDotL, roughness);
+  //float G = geomSmith(nDotV, nDotL, roughness);
   float F = fresnelSchlick(F0, vDotH);
     
   float denominator = 4.0f * nDotV * nDotL + 1e-5f;
@@ -175,6 +181,7 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   normal = normal * 2.0f - 1.0f;
   float4 posWorld = depth;
   
+  // Light calculations
   float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
   float3 viewDirection = normalize(viewPos.xyz - posWorld.xyz);
   float NdL = saturate(dot(normal, lightDir));
@@ -184,20 +191,18 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float3 ambientLight = 0.15f * albedo;
   
   float3 specular = cookTorrenceSpecular(normal, viewDirection, lightDir, roughness, F0);
-  float3 finalColor = pow(((((albedo + specular) * NdL) + ambientLight) * ao.r), 1.0f / 2.2f);
+  float3 finalColor = ((((albedo + specular) * lightIntensity * NdL) + ambientLight) * ao.r);
   
+  // Shadow calculation
   float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
   lightWorldPos.xyz /= lightWorldPos.w;
+  lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
   
-  float2 shadowCoord = lightWorldPos.xy * 0.5f + 0.5f;
+  float2 shadowCoord = lightWorldPos.xy;
   shadowCoord.y = 1.0f - shadowCoord.y;
-  
-  bool inShadow = false;
   float shadowFactor = 1.0f;
   if(shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
-    shadowCoord.y < 0.0f || shadowCoord.x > 1.0f) {
-    inShadow = true;
-
+     shadowCoord.y < 0.0f || shadowCoord.x > 1.0f) {
     t_outputMap[dtID.xy] = float4(ambientLight, 1.0f);
     return;
   }

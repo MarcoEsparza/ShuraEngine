@@ -856,6 +856,7 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
         // If mipLevels is 0, we will auto-generate mipmaps
         /*texMipLevels = static_cast<uint32>(Math::log2(Math::max(static_cast<float>(width),
                                                       static_cast<float>(height)))) + 1;*/
+        // Temporary fix for log2, later we should use a proper log2 function
         texMipLevels = std::log2(max(width, height)) + 1;
         autoGenMipMaps = true;
       }

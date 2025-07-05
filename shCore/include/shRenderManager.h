@@ -137,7 +137,9 @@ struct ShaderData {
   // Mip levels for texture sampling.
   float mipLevel0 = 0.0f;
   float mipLevel1 = 0.0f;
-  Vector2 unused0 = { 0.0f, 0.0f };
+  
+  float lightIntensity = 0.0f;
+  float middleGrey = 0.0f;
 }; GCC_ALIGN(16);
 
 /**

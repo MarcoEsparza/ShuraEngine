@@ -165,6 +165,15 @@ RendererApp::onCreate()
   pHBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
   pVBlurShader->addCSConstantBuffer(pMainBuffer, 0);
   pVBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+
+  // Blur buffers
+  auto pHBlurCS = renderMan.getPass("HBlurCS");
+  auto pVBlurCS = renderMan.getPass("VBlurCS");
+  pHBlurCS->addCSConstantBuffer(pMainBuffer, 0);
+  pHBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
+  pVBlurCS->addCSConstantBuffer(pMainBuffer, 0);
+  pVBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
+
   // Final shader buffers
   auto pFinalShader = renderMan.getPass("FinalShader");
   pFinalShader->addPSConstantBuffer(pMainBuffer, 0);
@@ -625,6 +634,8 @@ RendererApp::updateShaderDataBuffer()
   sd.maxG = m_maxG * normChannel;
   sd.minB = m_minB * normChannel;
   sd.maxB = m_maxB * normChannel;
+  sd.lightIntensity = m_lightIntensity;
+  sd.middleGrey = m_middleGrey;
 
   if (!pShaderDataBuffer) {
     pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
@@ -872,6 +883,8 @@ RendererApp::setImgui()
     ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
     ImGui::Spacing();
     ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
+    ImGui::Spacing();
+    ImGui::DragFloat("Light Intensity:", &m_lightIntensity, 0.01f, 0.0f, 10.0f);
   }
 
   if (ImGui::Button("Play Sound")) {
@@ -901,6 +914,8 @@ RendererApp::setImgui()
   ImGui::DragFloat("WhitePoint:", &m_whitePt, 0.01f, 0.5f, 11.2f);
   ImGui::Spacing();
   ImGui::DragFloat("Exposure:", &m_exposure, 0.01f, 0.5f, 2.0f);
+  ImGui::Spacing();
+  ImGui::DragFloat("MiddleGrey:", &m_middleGrey, 0.01f, 0.5f, 2.0f);
   ImGui::Spacing();
 
   if (m_fpsTimer >= 1.0f) {
@@ -1048,6 +1063,10 @@ RendererApp::loadSponza()
   auto model = sh_makeShared<GameObject>();
   model->name = "Sponza";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
+
+  sponzaModelRes->m_materials[0]->m_properties.bHasAlphaTest = true;
+  sponzaModelRes->m_materials[1]->m_properties.bHasAlphaTest = true;
+  sponzaModelRes->m_materials[20]->m_properties.bHasAlphaTest = true;
 
   modelMC->setMeshData(sponzaModelRes);
   model->addComponent(modelMC);

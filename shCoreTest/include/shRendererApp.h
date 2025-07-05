@@ -537,5 +537,9 @@ class RendererApp : public BaseApp
   //Vector4 m_texColor = { 1.0f, 1.0f, 1.0f, 1.0f };
   //float m_texColor[3] = { 1.0f, 1.0f, 1.0f };
   bool m_bTexColor = false;
+
+  float m_lightIntensity = 1.0f;
+
+  float m_middleGrey = 1.0f;
 };
 }

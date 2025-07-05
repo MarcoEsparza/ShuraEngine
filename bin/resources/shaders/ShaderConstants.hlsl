@@ -58,7 +58,10 @@ cbuffer ShaderData : register(b1)
   // Mipmap settings
   float mipLevel0;
   float mipLevel1;
-  float2 unusedMip; // padding to align to 16 bytes
+  
+  
+  float lightIntensity; // Global light intensity
+  float middleGrey; // Middle grey value for tone mapping
 }
 
 struct MaterialProperties
@@ -83,20 +86,20 @@ MaterialProperties
 getMaterialProperties(int materialProps)
 {
   MaterialProperties props = (MaterialProperties) 0;
-  props.bHasBaseColor = (materialProps & 1) == 0; // bit 0
-  props.bHasSpecular = (materialProps & 2) == 0; // bit 1
-  props.bHasNormalMap = (materialProps & 4) == 0; // bit 2
-  props.bHasMetallicMap = (materialProps & 8) == 0; // bit 3
-  props.bHasRoughnessMap = (materialProps & 16) == 0; // bit 4
-  props.bHasAmbientOcclusion = (materialProps & 32) == 0; // bit 5
-  props.bHasEmissiveMap = (materialProps & 64) == 0; // bit 6
-  props.bIsOpaque = (materialProps & 128) == 0; // bit 7
-  props.bHasAlphaTest = (materialProps & 256) == 0; // bit 8
-  props.bHasAlphaBlend = (materialProps & 512) == 0; // bit 9
-  props.bIsDoubleSided = (materialProps & 1024) == 0; // bit10
-  props.bWireframeEnabled = (materialProps & 2048) == 0; // bit11
-  props.bCanCastShadow = (materialProps & 4096) == 0; // bit12
-  props.bCanReceiveShadow = (materialProps & 8192) == 0; // bit13
+  props.bHasBaseColor = (materialProps & 1) == 1; // bit 0
+  props.bHasSpecular = (materialProps & 2) == 2; // bit 1
+  props.bHasNormalMap = (materialProps & 4) == 4; // bit 2
+  props.bHasMetallicMap = (materialProps & 8) == 8; // bit 3
+  props.bHasRoughnessMap = (materialProps & 16) == 16; // bit 4
+  props.bHasAmbientOcclusion = (materialProps & 32) == 32; // bit 5
+  props.bHasEmissiveMap = (materialProps & 64) == 64; // bit 6
+  props.bIsOpaque = (materialProps & 128) == 128; // bit 7
+  props.bHasAlphaTest = (materialProps & 256) == 256; // bit 8
+  props.bHasAlphaBlend = (materialProps & 512) == 512; // bit 9
+  props.bIsDoubleSided = (materialProps & 1024) == 1024; // bit10
+  props.bWireframeEnabled = (materialProps & 2048) == 2048; // bit11
+  props.bCanCastShadow = (materialProps & 4096) == 4096; // bit12
+  props.bCanReceiveShadow = (materialProps & 8192) == 8192; // bit13
     
   return props;
 }
