@@ -897,27 +897,27 @@ RenderManager::renderScene()
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
       graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
       graphMan.setUnorderedAccessView(pAdditiveMap.pTexture, 0);
-      graphMan.dispatch(threadGroups(width, DEFAULT_THREADS),
-                        threadGroups(height, DEFAULT_THREADS),
+      graphMan.dispatch(threadGroups(screenWidth, DEFAULT_THREADS),
+                        threadGroups(screenHeight, DEFAULT_THREADS),
                         1);
       cleanShaderObjects();
-      graphMan.generateMips(pAdditiveMap.pTexture);
+      //graphMan.generateMips(pAdditiveMap.pTexture);
     }
 
     /*************************************/
     /*          Horizontal Blur          */
     /*************************************/
     graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-    //m_passes[StringID("HBlurShader").getID()]->setPass();
+    m_passes[StringID("HBlurShader").getID()]->setPass();
     //m_passes[StringID("HBlurCS").getID()]->setPass();
     graphMan.csSetShaderResourceView(pInput, 0);
     graphMan.setUnorderedAccessView(pBHBlur.pTexture, 0);
-    graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
+    /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
                       threadGroups(screenHeight, BLURH_THREADS_Y),
-                      1);
-    /*graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
-                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
                       1);*/
+    graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
+                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+                      1);
     cleanShaderObjects();
     graphMan.generateMips(pBHBlur.pTexture);
 
@@ -925,16 +925,16 @@ RenderManager::renderScene()
     /*            Vetical Blur           */
     /*************************************/
     graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-    //m_passes[StringID("VBlurShader").getID()]->setPass();
-    m_passes[StringID("VBlurCS").getID()]->setPass();
+    m_passes[StringID("VBlurShader").getID()]->setPass();
+    //m_passes[StringID("VBlurCS").getID()]->setPass();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
     graphMan.setUnorderedAccessView(pBVBlur.pTexture, 0);
-    graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
+    /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
                       threadGroups(screenHeight, BLURH_THREADS_Y),
-                      1);
-    /*graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
-                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
                       1);*/
+    graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
+                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+                      1);
     cleanShaderObjects();
     graphMan.generateMips(pBVBlur.pTexture);
   }
