@@ -103,7 +103,7 @@ struct MainBufferData
   float deltaTime = 0.0f;
   float cosTime = 0.0f;
   float sinTime = 0.0f;
-}; GCC_ALIGN(16);
+} GCC_ALIGN(16);
 
 /**
 *  @brief Shader data structure.
@@ -123,7 +123,7 @@ struct ShaderData {
   float toneMappingIndex = 0.0f;
   float lutSize = 0.0f;
   float whitePoint = 0.0f;
-  float exposure = 0.0f;
+  float bloomMultiplier = 0.0f;
   float brightThreshold = 0.0f;
 
   // Post-processing data.
@@ -140,7 +140,7 @@ struct ShaderData {
   
   float lightIntensity = 0.0f;
   float middleGrey = 0.0f;
-}; GCC_ALIGN(16);
+} GCC_ALIGN(16);
 
 /**
 *  @brief Render module.

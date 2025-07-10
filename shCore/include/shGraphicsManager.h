@@ -430,7 +430,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<DepthStencilView>& pDepthSV
   */
   void
-  setRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+  setRenderTargets(const Vector<RenderTarget>& pRenderTVs,
                    const WPtr<Texture2D> pDepthSV);
 
   /**
@@ -606,10 +606,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32* count = nullptr
   */
   void
-  setUnorderedAccessView(const WPtr<Texture2D> pUAV,
-                         const uint32 startSlot = 0,
-                         const uint32 numViews = 1,
-                         const uint32* count = nullptr);
+  setUnorderedAccessView(const UnorderedAccess& pUAVs,
+                         const uint32 startSlot = 0);
 
   /**
   *  @brief Sets the Sampler State to the pixel shader.
@@ -1068,7 +1066,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32 numViews
   */
   virtual void
-  internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+  internalSetRenderTargets(const Vector<RenderTarget>& pRenderTVs,
                            const WPtr<Texture2D> pDepthSV) = 0;
 
   /**
@@ -1240,10 +1238,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param uint32* count
   */
   virtual void
-  internalSetUnorderedAccessView(const WPtr<Texture2D> pUAV,
-                                 const uint32 startSlot,
-                                 const uint32 numViews,
-                                 const uint32* count) = 0;
+  internalSetUnorderedAccessView(const UnorderedAccess& pUAVs,
+                                 const uint32 startSlot) = 0;
 
   /**
   *  @brief Calls the selected API overrided function.

@@ -108,7 +108,7 @@ RendererApp::onCreate()
   m_aoIntensity = 1.0f;
   m_toneMapIndex = 0;
   m_whitePt = 1.0f;
-  m_exposure = 1.0f;
+  m_bloomMultiplier = 1.0f;
   m_brightT = 1.0f;
   updateShaderDataBuffer();
   updateMainBuffer();
@@ -625,7 +625,7 @@ RendererApp::updateShaderDataBuffer()
   sd.toneMappingIndex = static_cast<float>(m_toneMapIndex);
   sd.lutSize = 0.0f;
   sd.whitePoint = m_whitePt;
-  sd.exposure = m_exposure;
+  sd.bloomMultiplier = m_bloomMultiplier;
   sd.brightThreshold = m_brightT;
   float normChannel = 1.0f / 255.0f;
   sd.minR = m_minR * normChannel;
@@ -705,84 +705,20 @@ RendererApp::setImgui()
             }
             ImGui::Text("Vertex Count: %d", vertexCount);
             ImGui::Text("Index Count: %d", indexCount);
+
             for (uint32 j = 0; j < pMesh->m_mesh->m_materials.size(); ++j) {
               auto& currentMat = pMesh->m_mesh->m_materials[j];
               String matName = "Material:" + currentMat->name;
-              ImGui::Text(matName.c_str());
-              auto& pBaseColor = currentMat->baseColor;
-              auto& pNormal = currentMat->normal;
-              auto& pMetallic = currentMat->metallic;
-              auto& pRoughness = currentMat->roughness;
-
-              // Base Color
-              ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
-              /*if(ImGui::ImageButton("##BaseColorSelection",
-                                    reinterpret_cast<ImTextureID*>(&pBaseColor),
-                                    ImVec2(64, 64))) {
-                
-              }*/
-              ImGui::SameLine();
-              String buttonID = "##ColorButton" + currentMat->name;
-              Vector3& baseColor = currentMat->baseColorFactor;
-              if (ImGui::ColorButton(buttonID.c_str(), ImVec4(baseColor.x,
-                                                              baseColor.y,
-                                                              baseColor.z,
-                                                              1.0f)))
-              {
-                m_bTexColor = m_bTexColor ? false : true;
-              }
-              ImGui::SameLine();
-              bool bHasDiffuseMap = currentMat->m_properties.bHasDiffuseMap;
-              ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
-              currentMat->m_properties.bHasDiffuseMap = bHasDiffuseMap;
-              
-              if (m_bTexColor) {
-                float texColor[3] = { baseColor.x, baseColor.y, baseColor.z };
-                ImGui::Begin("Color Picker", 0, ImGuiWindowFlags_NoTitleBar);
-                texColor[0] = baseColor.x;
-                texColor[1] = baseColor.y;
-                texColor[2] = baseColor.z;
-                ImGui::ColorPicker3("TexColor", texColor);
-                baseColor.x = texColor[0];
-                baseColor.y = texColor[1];
-                baseColor.z = texColor[2];
-                ImGui::End();
+              //ImGui::Text(matName.c_str());
+              if (ImGui::Button(matName.c_str())) {
+                m_selectedMat = j;
+                m_bTexColor = false;
               }
 
-              // Normal
-              ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
-              ImGui::SameLine();
-              bool bHasNormalMap = currentMat->m_properties.bHasNormalMap;
-              ImGui::Checkbox("Normal", &bHasNormalMap);
-              currentMat->m_properties.bHasNormalMap = bHasNormalMap;
-
-              // Metallic
-              ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
-              ImGui::SameLine();
-              ImGui::SetNextItemWidth(50.0f);
-              ImGui::DragFloat("##Metallic Factor",
-                               &currentMat->metallicRoughnessFactor.x,
-                               0.01f,
-                               0.0f,
-                               1.0f);
-              ImGui::SameLine();
-              bool bHasMetallicMap = currentMat->m_properties.bHasMetalnessMap;
-              ImGui::Checkbox("Metallic", &bHasMetallicMap);
-              currentMat->m_properties.bHasMetalnessMap = bHasMetallicMap;
-
-              // Roughness
-              ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
-              ImGui::SameLine();
-              ImGui::SetNextItemWidth(50.0f);
-              ImGui::DragFloat("##Roughness Factor",
-                               &currentMat->metallicRoughnessFactor.y,
-                               0.01f,
-                               0.0f,
-                               1.0f);
-              ImGui::SameLine();
-              bool bHasRoughnessMap = currentMat->m_properties.bHasRoughnessMap;
-              ImGui::Checkbox("Roughness", &bHasRoughnessMap);
-              currentMat->m_properties.bHasRoughnessMap = bHasRoughnessMap;
+              if (m_selectedMat >= 0 && m_selectedMat == j) {
+                //m_bTexColor = false;
+                showMaterialInspector(currentMat);
+              }
             }
           }
         }
@@ -909,11 +845,11 @@ RendererApp::setImgui()
   ImGui::Spacing();
 
   ImGui::Spacing();
-  ImGui::DragFloat("BrightThreshold:", &m_brightT, 0.01f, 0.0f, 1.0f);
+  ImGui::DragFloat("Bright Threshold:", &m_brightT, 0.01f, 0.0f, 1.0f);
   ImGui::Spacing();
-  ImGui::DragFloat("WhitePoint:", &m_whitePt, 0.01f, 0.5f, 11.2f);
+  ImGui::DragFloat("White Point:", &m_whitePt, 0.01f, 0.5f, 11.2f);
   ImGui::Spacing();
-  ImGui::DragFloat("Exposure:", &m_exposure, 0.01f, 0.5f, 2.0f);
+  ImGui::DragFloat("Bloom Multiplier:", &m_bloomMultiplier, 0.01f, 0.5f, 2.0f);
   ImGui::Spacing();
   ImGui::DragFloat("MiddleGrey:", &m_middleGrey, 0.01f, 0.5f, 2.0f);
   ImGui::Spacing();
@@ -1026,6 +962,90 @@ RendererApp::drawTransformComponent()
     }
     ImGui::PopStyleColor(3);
   }
+}
+
+void
+RendererApp::showMaterialInspector(const WPtr<Material> pMat)
+{
+  if (pMat.expired()) {
+    return;
+  }
+  auto currentMat = pMat.lock();
+
+  auto& pBaseColor = currentMat->baseColor;
+  auto& pNormal = currentMat->normal;
+  auto& pMetallic = currentMat->metallic;
+  auto& pRoughness = currentMat->roughness;
+
+  // Base Color
+  ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
+  /*if(ImGui::ImageButton("##BaseColorSelection",
+                        reinterpret_cast<ImTextureID*>(&pBaseColor),
+                        ImVec2(64, 64))) {
+
+  }*/
+  ImGui::SameLine();
+  String buttonID = "##ColorButton" + currentMat->name;
+  Vector3& baseColor = currentMat->baseColorFactor;
+  if (ImGui::ColorButton(buttonID.c_str(), ImVec4(baseColor.x,
+    baseColor.y,
+    baseColor.z,
+    1.0f)))
+  {
+    m_bTexColor = m_bTexColor ? false : true;
+  }
+  ImGui::SameLine();
+  bool bHasDiffuseMap = currentMat->m_properties.bHasDiffuseMap;
+  ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
+  currentMat->m_properties.bHasDiffuseMap = bHasDiffuseMap;
+
+  if (m_bTexColor) {
+    float texColor[3] = { baseColor.x, baseColor.y, baseColor.z };
+    ImGui::Begin("Color Picker", 0, ImGuiWindowFlags_NoTitleBar);
+    texColor[0] = baseColor.x;
+    texColor[1] = baseColor.y;
+    texColor[2] = baseColor.z;
+    ImGui::ColorPicker3("TexColor", texColor);
+    baseColor.x = texColor[0];
+    baseColor.y = texColor[1];
+    baseColor.z = texColor[2];
+    ImGui::End();
+  }
+
+  // Normal
+  ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
+  ImGui::SameLine();
+  bool bHasNormalMap = currentMat->m_properties.bHasNormalMap;
+  ImGui::Checkbox("Normal", &bHasNormalMap);
+  currentMat->m_properties.bHasNormalMap = bHasNormalMap;
+
+  // Metallic
+  ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat("##Metallic Factor",
+                   &currentMat->metallicRoughnessFactor.x,
+                   0.01f,
+                   0.0f,
+                   1.0f);
+  ImGui::SameLine();
+  bool bHasMetallicMap = currentMat->m_properties.bHasMetalnessMap;
+  ImGui::Checkbox("Metallic", &bHasMetallicMap);
+  currentMat->m_properties.bHasMetalnessMap = bHasMetallicMap;
+
+  // Roughness
+  ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat("##Roughness Factor",
+                   &currentMat->metallicRoughnessFactor.y,
+                   0.01f,
+                   0.0f,
+                   1.0f);
+  ImGui::SameLine();
+  bool bHasRoughnessMap = currentMat->m_properties.bHasRoughnessMap;
+  ImGui::Checkbox("Roughness", &bHasRoughnessMap);
+  currentMat->m_properties.bHasRoughnessMap = bHasRoughnessMap;
 }
 
 void

@@ -24,6 +24,8 @@
 #include "shMatrix4.h"
 
 namespace shEngineSDK {
+class Texture2D;
+
 /**
 *  @brief Sample descriptor.
 */
@@ -498,5 +500,27 @@ struct SH_CORE_EXPORT ShaderMacro
 {
   String name;
   String definition;
+};
+
+struct SH_CORE_EXPORT RenderTarget
+{
+  RenderTarget() = default;
+  RenderTarget(const WPtr<Texture2D>& pRT, uint32 mipLevel = 0)
+    : pRenderTarget(pRT), mipLevel(mipLevel)
+  {}
+
+  WPtr<Texture2D> pRenderTarget;
+  uint32 mipLevel = 0;
+};
+
+struct SH_CORE_EXPORT UnorderedAccess
+{
+  UnorderedAccess() = default;
+  UnorderedAccess(const WPtr<Texture2D>& pUA, int32 mipLevel = 0)
+    : pUAccess(pUA), mipLevel(mipLevel)
+  {}
+
+  WPtr<Texture2D> pUAccess;
+  int32 mipLevel = 0;
 };
 }

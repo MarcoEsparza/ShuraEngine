@@ -241,7 +241,7 @@ GraphicsManager::setViewport(const Viewport& vp)
 }
 
 void
-GraphicsManager::setRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+GraphicsManager::setRenderTargets(const Vector<RenderTarget>& pRenderTVs,
                                   const WPtr<Texture2D> pDepthSV)
 {
   internalSetRenderTargets(pRenderTVs, pDepthSV);
@@ -363,12 +363,10 @@ GraphicsManager::csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
 }
 
 void
-GraphicsManager::setUnorderedAccessView(const WPtr<Texture2D> pUAV,
-                                        const uint32 startSlot,
-                                        const uint32 numViews,
-                                        const uint32* count)
+GraphicsManager::setUnorderedAccessView(const UnorderedAccess& pUAVs,
+                                        const uint32 startSlot)
 {
-  internalSetUnorderedAccessView(pUAV, startSlot, numViews, count);
+  internalSetUnorderedAccessView(pUAVs, startSlot);
 }
 
 void

@@ -39,8 +39,20 @@ class ShaderInclude : public ID3DInclude
  public:
   HRESULT __stdcall Open(D3D_INCLUDE_TYPE, LPCSTR pFileName,
     LPCVOID, LPCVOID* ppData, UINT* pBytes) override {
-    std::ifstream file(pFileName, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) return E_FAIL;
+    String workingDirectory;
+    workingDirectory.resize(MAX_PATH);
+    GetCurrentDirectoryA(MAX_PATH, &workingDirectory[0]);
+    workingDirectory.resize(strlen(workingDirectory.c_str()));
+    if (workingDirectory.back() != '\\' && workingDirectory.back() != '/') {
+      workingDirectory.append("\\");
+    }
+    workingDirectory.append("resources/shaders/");
+    workingDirectory.append(pFileName);
+
+    std::ifstream file(workingDirectory.c_str(), std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+      return E_FAIL;
+    }
 
     size_t size = file.tellg();
     file.seekg(0, std::ios::beg);
@@ -273,9 +285,10 @@ DX11GraphicsManager::internalInit(const WPtr<Screen> pScreen,
                               __uuidof(ID3D11Texture2D),
                               reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
+  pBackbuffer->m_pRenderTV.resize(1);
   throwIfFailed(m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
                                                   nullptr,
-                                                  &pBackbuffer->m_pRenderTV));
+                                                  &pBackbuffer->m_pRenderTV[0]));
 
   m_pDepthStencil = internalCreateTexture2D(scDesc.BufferDesc.Width,
                                             scDesc.BufferDesc.Height,
@@ -338,7 +351,7 @@ DX11GraphicsManager::internalClearRenderTarget(const WPtr<Texture2D> pTarget,
   
   FLOAT colorRGBA[4] = { color.r, color.g, color.b, color.a };
 
-  m_pDeviceContext->ClearRenderTargetView(pRTV->m_pRenderTV, colorRGBA);
+  m_pDeviceContext->ClearRenderTargetView(pRTV->m_pRenderTV[0], colorRGBA);
 }
 
 void
@@ -871,10 +884,13 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     memset(&descRTV, 0, sizeof(descRTV));
     descRTV.Format = textureDesc.Format;
     descRTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    descRTV.Texture2D.MipSlice = 0;
-    throwIfFailed(m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
-                                                    &descRTV,
-                                                    &pTexture->m_pRenderTV));
+    pTexture->m_pRenderTV.resize(texMipLevels);
+    for (uint32 i = 0; i < texMipLevels; ++i) {
+      descRTV.Texture2D.MipSlice = i;
+      throwIfFailed(m_pDevice->CreateRenderTargetView(pTexture->m_pTexture2D,
+                                                      &descRTV,
+                                                      &pTexture->m_pRenderTV[i]));
+    }
   }
 
   if ((bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
@@ -902,10 +918,13 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
     memset(&descUAV, 0, sizeof(descUAV));
     descUAV.Format = textureDesc.Format;
     descUAV.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-    descUAV.Texture2D.MipSlice = 0;
-    throwIfFailed(m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
-                                                       &descUAV,
-                                                       &pTexture->m_pUnorderedAV));
+    pTexture->m_pUnorderedAV.resize(texMipLevels);
+    for (uint32 i = 0; i < texMipLevels; ++i) {
+      descUAV.Texture2D.MipSlice = i;
+      throwIfFailed(m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
+                                                         &descUAV,
+                                                         &pTexture->m_pUnorderedAV[i]));
+    }
   }
 
   if ((bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
@@ -1145,9 +1164,10 @@ DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
                 __uuidof(ID3D11Texture2D),
                 reinterpret_cast<LPVOID*>(&pBackbuffer->m_pTexture2D)));
 
+  pBackbuffer->m_pRenderTV.resize(1);
   throwIfFailed(m_pDevice->CreateRenderTargetView(pBackbuffer->m_pTexture2D,
                                                   nullptr,
-                                                  &pBackbuffer->m_pRenderTV));
+                                                  &pBackbuffer->m_pRenderTV[0]));
   m_pBackbuffer = pBackbuffer;
 
   m_pDepthStencil = internalCreateTexture2D(width,
@@ -1214,7 +1234,7 @@ DX11GraphicsManager::internalSetViewport(const Viewport& vp)
 }
 
 void
-DX11GraphicsManager::internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+DX11GraphicsManager::internalSetRenderTargets(const Vector<RenderTarget>& pRenderTVs,
                                               const WPtr<Texture2D> pDepthSV)
 {
   Vector<ID3D11RenderTargetView*> pRTVs;
@@ -1222,9 +1242,9 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRe
   for (auto& pRenderTarget : pRenderTVs) {
     ID3D11RenderTargetView* pD3D11RTV = nullptr;
 
-    if (!pRenderTarget.expired()) {
-      auto pRT = pRenderTarget.lock();
-      pD3D11RTV = reinterpret_cast<DX11Texture2D*>(pRT.get())->m_pRenderTV;
+    if (!pRenderTarget.pRenderTarget.expired()) {
+      auto pRT = pRenderTarget.pRenderTarget.lock();
+      pD3D11RTV = reinterpret_cast<DX11Texture2D*>(pRT.get())->m_pRenderTV[pRenderTarget.mipLevel];
     }
     
     pRTVs.push_back(pD3D11RTV);
@@ -1470,22 +1490,19 @@ DX11GraphicsManager::internalCSSetShaderResourceView(const WPtr<Texture2D> pShad
 }
 
 void
-DX11GraphicsManager::internalSetUnorderedAccessView(const WPtr<Texture2D> pUAV,
-                                                    const uint32 startSlot,
-                                                    const uint32 numViews,
-                                                    const uint32* count)
+DX11GraphicsManager::internalSetUnorderedAccessView(const UnorderedAccess& pUAVs,
+                                                    const uint32 startSlot)
 {
-  SH_UNREFERENCED_PARAMETER(count);
-  if (pUAV.expired()) {
+  if (pUAVs.pUAccess.expired()) {
     ID3D11UnorderedAccessView* dx11UAV = nullptr;
-    m_pDeviceContext->CSSetUnorderedAccessViews(startSlot, numViews, &dx11UAV, nullptr);
+    m_pDeviceContext->CSSetUnorderedAccessViews(startSlot, 1, &dx11UAV, nullptr);
     return;
   }
 
-  auto pUAVTexture = sh_reinterpretPCast<DX11Texture2D>(pUAV.lock());
+  auto pUAVTexture = sh_reinterpretPCast<DX11Texture2D>(pUAVs.pUAccess.lock());
   m_pDeviceContext->CSSetUnorderedAccessViews(startSlot,
-                                              numViews,
-                                              &pUAVTexture->m_pUnorderedAV,
+                                              1,
+                                              &pUAVTexture->m_pUnorderedAV[pUAVs.mipLevel],
                                               nullptr);
 }
 

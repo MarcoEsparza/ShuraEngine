@@ -1,4 +1,4 @@
-#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 SamplerState textureSampler : register(s0);
 Texture2D t_baseColor : register(t0);
@@ -52,10 +52,10 @@ struct PS_INPUT
 
 struct GBUFFER_OUTPUT
 {
-  float4 Depth : COLOR0;
-  float4 Normal : COLOR1;
-  float4 Color : COLOR2;
-  float4 Properties : COLOR2;
+  float4 Depth : SV_Target0;
+  float4 Normal : SV_Target1;
+  float4 Color : SV_Target2;
+  float4 Properties : SV_Target3;
 };
 
 PS_INPUT main(VS_INPUT input)

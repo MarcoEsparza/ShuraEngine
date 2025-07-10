@@ -1,4 +1,4 @@
-#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 Texture2D t_inputMap : register(t0);
 RWTexture2D<uint> t_outputMap : register(u0);

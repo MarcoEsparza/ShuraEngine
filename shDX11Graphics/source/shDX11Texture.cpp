@@ -11,8 +11,12 @@ namespace shEngineSDK
   {
     SafeRelease(m_pShaderRV);
     SafeRelease(m_pDepthSV);
-    SafeRelease(m_pRenderTV);
+    for(auto& it : m_pRenderTV) {
+      SafeRelease(it);
+    }
+    for(auto& it : m_pUnorderedAV) {
+      SafeRelease(it);
+    }
     SafeRelease(m_pTexture2D);
-    SafeRelease(m_pUnorderedAV);
   }
 }

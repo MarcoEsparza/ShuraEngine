@@ -44,7 +44,7 @@ cbuffer ShaderData : register(b1)
   float toneMapIndex;
   float lutSize;
   float whitePoint;
-  float exposure;
+  float bloomMultiplier;
   float brightThreshold;
     
   // Post-processing settings

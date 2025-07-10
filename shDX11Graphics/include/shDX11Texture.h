@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Texture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/07/08
 *  @brief   DirectX11 Texture and Texture2D class wrappers.
 *
 *  DirectX11 Texture and Texture2D class wrappers.
@@ -76,6 +76,11 @@ class DX11Texture2D final : public Texture2D
   /*************************************************************/
  protected:
   /**
+  *  @brief DirectX11 Texture2D pointer.
+  */
+  ID3D11Texture2D* m_pTexture2D = nullptr;
+
+  /**
   *  @brief DirectX11 Shader Resource View pointer.
   */
   ID3D11ShaderResourceView* m_pShaderRV = nullptr;
@@ -88,17 +93,12 @@ class DX11Texture2D final : public Texture2D
   /**
   *  @brief DirectX11 Render Target View pointer.
   */
-  ID3D11RenderTargetView* m_pRenderTV = nullptr;
-
-  /**
-  *  @brief DirectX11 Texture2D pointer.
-  */
-  ID3D11Texture2D* m_pTexture2D = nullptr;
+  Vector<ID3D11RenderTargetView*> m_pRenderTV;
 
   /**
   *  @brief DirectX11 Unordered Access View pointer.
   */
-  ID3D11UnorderedAccessView* m_pUnorderedAV = nullptr;
+  Vector<ID3D11UnorderedAccessView*> m_pUnorderedAV;
 };
 
 }

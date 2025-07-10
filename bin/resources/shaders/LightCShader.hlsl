@@ -1,4 +1,4 @@
-#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 SamplerState textureSampler : register(s0);
 Texture2D t_depthMap : register(t0);
@@ -132,10 +132,10 @@ float3 cookTorrenceSpecular(float3 normal,
   float vDotH = saturate(dot(viewDirection, H));
     
   float alpha = roughness * roughness;
-  float D = D_Beckmann(nDotH, alpha);
-  //float D = D_BlinnPhong(nDotH, roughness);
-  float G = geometrySmith(nDotV, nDotL, roughness);
-  //float G = geomSmith(nDotV, nDotL, roughness);
+  //float D = D_Beckmann(nDotH, alpha);
+  float D = D_BlinnPhong(nDotH, roughness);
+  //float G = geometrySmith(nDotV, nDotL, roughness);
+  float G = geomSmith(nDotV, nDotL, roughness);
   float F = fresnelSchlick(F0, vDotH);
     
   float denominator = 4.0f * nDotV * nDotL + 1e-5f;

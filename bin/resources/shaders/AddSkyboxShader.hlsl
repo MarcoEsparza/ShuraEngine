@@ -1,4 +1,4 @@
-#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 Texture2D t_colorMap : register(t0);
 Texture2D t_normalMap : register(t1);

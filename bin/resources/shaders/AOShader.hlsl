@@ -1,4 +1,4 @@
-#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 SamplerState textureSampler : register(s0);
 Texture2D t_posMap : register(t0);

@@ -145,17 +145,15 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("AdditiveMap").getID()] = RenderTargetInfo("AdditiveMap",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
 
   m_renderTargetMap[StringID("BHBlur").getID()] = RenderTargetInfo("BHBlur",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
-    0.5f, 0.5f);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
 
   m_renderTargetMap[StringID("BVBlur").getID()] = RenderTargetInfo("BVBlur",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
-    0.5f, 0.5f);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
 
   m_renderTargetMap[StringID("HistogramMap").getID()] = RenderTargetInfo("HistogramMap",
     TEXTURE_FORMAT::kR32_FLOAT,
@@ -616,7 +614,11 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
 static uint32
 threadGroups(uint32 size, uint32 threads)
 {
-  return (size + threads - 1) / threads;
+  uint32 groups = size / threads;
+  if (size % threads > 0) {
+    groups++;
+  }
+  return groups;
 }
 
 void
@@ -651,7 +653,7 @@ RenderManager::renderScene()
   auto& pAdditiveMap = m_renderTargetMap[StringID("AdditiveMap").getID()];
   auto& pBHBlur = m_renderTargetMap[StringID("BHBlur").getID()];
   auto& pBVBlur = m_renderTargetMap[StringID("BVBlur").getID()];
-  auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
+  //auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
   uint32 screenHeight = static_cast<uint32>(m_screenDimension.y);
@@ -699,7 +701,7 @@ RenderManager::renderScene()
   graphMan.setViewport(shadowVP);
   graphMan.clearDepthStencil(pOutput);
   graphMan.clearRenderTarget(pShadowTemp.pTexture, LinearColor::BLACK);
-  graphMan.setRenderTargets({ pShadowTemp.pTexture }, pOutput);
+  graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pOutput);
   m_passes[StringID("SMapShader").getID()]->setPass();
   drawStaticMeshOnScene();
   cleanShaderObjects();
@@ -713,10 +715,10 @@ RenderManager::renderScene()
   graphMan.clearRenderTarget(pColorMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pPropMap.pTexture, LinearColor::BLACK);
   graphMan.clearDepthStencil(pDepthSV);
-  graphMan.setRenderTargets({ pDepthMap.pTexture,
-                              pNormalMap.pTexture,
-                              pColorMap.pTexture,
-                              pPropMap.pTexture }, pDepthSV);
+  graphMan.setRenderTargets({{pDepthMap.pTexture},
+                             {pNormalMap.pTexture},
+                             {pColorMap.pTexture},
+                             {pPropMap.pTexture }}, pDepthSV);
   m_passes[StringID("GBufferShader").getID()]->setPass();
   drawStaticMeshOnScene();
   cleanShaderObjects();
@@ -726,7 +728,7 @@ RenderManager::renderScene()
   /*************************************/
   pOutput = pAOMap.pTexture;
   graphMan.clearRenderTarget(pOutput, LinearColor::BLACK);
-  graphMan.setRenderTargets({ pOutput }, pDepthSV);
+  graphMan.setRenderTargets({{ pOutput }}, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("AOShader").getID()]->setPass();
   graphMan.psSetShaderResourceView(pDepthMap.pTexture, 0);
@@ -744,7 +746,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HBlurShader").getID()]->setPass();
   graphMan.csSetShaderResourceView(pInput, 0);
-  graphMan.setUnorderedAccessView(pOutput, 0);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
   /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
                     threadGroups(screenHeight, BLURH_THREADS_Y),
                     1);*/
@@ -759,7 +761,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("VBlurShader").getID()]->setPass();
   graphMan.csSetShaderResourceView(pInput, 0);
-  graphMan.setUnorderedAccessView(pOutput, 0);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
   /*graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
                     threadGroups(screenHeight, BLURV_THREADS_Y),
                     1);*/
@@ -779,7 +781,7 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
   graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 5);
   //graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 6);
-  graphMan.setUnorderedAccessView(pOutput, 0);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
 
@@ -787,7 +789,7 @@ RenderManager::renderScene()
   /*              Sky Box              */
   /*************************************/
   graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
-  graphMan.setRenderTargets({ pSkyBoxMap.pTexture }, pDepthSV);
+  graphMan.setRenderTargets({{ pSkyBoxMap.pTexture }}, pDepthSV);
   m_passes[StringID("SkyBoxShader").getID()]->setPass();
 
   WPtr<Texture2D> pSbTex;
@@ -817,7 +819,7 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
-  graphMan.setUnorderedAccessView(pOutput, 0);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
 
@@ -826,10 +828,10 @@ RenderManager::renderScene()
   /*************************************/
   pInput = pTempMap.pTexture;
   pOutput = pLuminance.pTexture;
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LuminanceShader").getID()]->setPass();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
-  graphMan.setUnorderedAccessView(pOutput, 0);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
   graphMan.generateMips(pOutput);
@@ -837,18 +839,15 @@ RenderManager::renderScene()
   /*************************************/
   /*               Bright              */
   /*************************************/
-  //m_mainBufferData.screenSize.x = static_cast<float>(screenWidth * 0.5f);
-  //m_mainBufferData.screenSize.y = static_cast<float>(screenHeight * 0.5f);
-  //graphMan.updateConstantBuffer(m_pMainBuffer, &m_mainBufferData, sizeof(MainBufferData));
   pInput = pLuminance.pTexture;
   pOutput = pBrightMap.pTexture;
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("BrightShader").getID()]->setPass();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pInput, 1);
-  graphMan.setUnorderedAccessView(pOutput, 0);
-  graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
-                    threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
+  graphMan.dispatch(threadGroups(static_cast<uint32>(screenWidth * 0.5f), DEFAULT_THREADS),
+                    threadGroups(static_cast<uint32>(screenHeight * 0.5f), DEFAULT_THREADS),
                     1);
   cleanShaderObjects();
   graphMan.generateMips(pOutput);
@@ -859,29 +858,17 @@ RenderManager::renderScene()
   int32 startMip = 3;
   int32 mipCount = 4;
   for (int32 i = 0; i < mipCount; ++i) {
-    int32 mipLevel0 = startMip + i;
+    int32 mipLevel0 = startMip - i;
     int32 mipLevel1 = mipLevel0 + 1;
     
     int32 width = static_cast<int32>(static_cast<int32>(screenWidth) >> (mipLevel0 + 1));
     int32 height = static_cast<int32>(static_cast<int32>(screenHeight) >> (mipLevel0 + 1));
 
-    //Viewport blurVP = {};
-    //blurVP.width = static_cast<float>(width);
-    //blurVP.height = static_cast<float>(height);
-    //blurVP.minDepth = 0.0f;
-    //blurVP.maxDepth = 1.0f;
-    //blurVP.topLeftX = 0.0f;
-    //blurVP.topLeftY = 0.0f;
-    //graphMan.setViewport(blurVP);
-
-    //uint32 blurDispatchX = threadGroups(width, DEFAULT_THREADS);
-    //uint32 blurDispatchY = threadGroups(height, DEFAULT_THREADS);
-
     // Update buffers
     m_mainBufferData.screenSize.x = static_cast<float>(width);
     m_mainBufferData.screenSize.y = static_cast<float>(height);
-    m_shaderData.mipLevel0 = mipLevel0;
-    m_shaderData.mipLevel1 = mipLevel1;
+    m_shaderData.mipLevel0 = static_cast<float>(mipLevel0);
+    m_shaderData.mipLevel1 = static_cast<float>(mipLevel1);
     graphMan.updateConstantBuffer(m_pMainBuffer, &m_mainBufferData, sizeof(MainBufferData));
     graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
 
@@ -891,14 +878,14 @@ RenderManager::renderScene()
     pInput = pBrightMap.pTexture;
     if (i > 0) {
       pInput = pAdditiveMap.pTexture;
-      graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+      //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
       m_passes[StringID("AddMixShader").getID()]->setPass();
       graphMan.setCSSamplerState(m_pSamplerClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
       graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
-      graphMan.setUnorderedAccessView(pAdditiveMap.pTexture, 0);
-      graphMan.dispatch(threadGroups(screenWidth, DEFAULT_THREADS),
-                        threadGroups(screenHeight, DEFAULT_THREADS),
+      graphMan.setUnorderedAccessView({ pAdditiveMap.pTexture, mipLevel0 }, 0);
+      graphMan.dispatch(threadGroups(width, DEFAULT_THREADS),
+                        threadGroups(height, DEFAULT_THREADS),
                         1);
       cleanShaderObjects();
       //graphMan.generateMips(pAdditiveMap.pTexture);
@@ -907,36 +894,34 @@ RenderManager::renderScene()
     /*************************************/
     /*          Horizontal Blur          */
     /*************************************/
-    graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+    //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     m_passes[StringID("HBlurShader").getID()]->setPass();
     //m_passes[StringID("HBlurCS").getID()]->setPass();
     graphMan.csSetShaderResourceView(pInput, 0);
-    graphMan.setUnorderedAccessView(pBHBlur.pTexture, 0);
-    /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
-                      threadGroups(screenHeight, BLURH_THREADS_Y),
+    graphMan.setUnorderedAccessView({ pBHBlur.pTexture, mipLevel0 }, 0);
+    /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
+                      threadGroups(height, BLURH_THREADS_Y),
                       1);*/
-    graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
-                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+    graphMan.dispatch(threadGroups(screenWidth, DEFAULT_THREADS),
+                      threadGroups(screenHeight, DEFAULT_THREADS),
                       1);
     cleanShaderObjects();
-    graphMan.generateMips(pBHBlur.pTexture);
 
     /*************************************/
     /*            Vetical Blur           */
     /*************************************/
-    graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+    //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     m_passes[StringID("VBlurShader").getID()]->setPass();
     //m_passes[StringID("VBlurCS").getID()]->setPass();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
-    graphMan.setUnorderedAccessView(pBVBlur.pTexture, 0);
-    /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
-                      threadGroups(screenHeight, BLURH_THREADS_Y),
+    graphMan.setUnorderedAccessView({ pBVBlur.pTexture, mipLevel0 }, 0);
+    /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
+                      threadGroups(height, BLURH_THREADS_Y),
                       1);*/
-    graphMan.dispatch(threadGroups(screenWidth * 0.5f, DEFAULT_THREADS),
-                      threadGroups(screenHeight * 0.5f, DEFAULT_THREADS),
+    graphMan.dispatch(threadGroups(screenWidth, DEFAULT_THREADS),
+                      threadGroups(screenHeight, DEFAULT_THREADS),
                       1);
     cleanShaderObjects();
-    graphMan.generateMips(pBVBlur.pTexture);
   }
 
   /*************************************/
@@ -949,13 +934,13 @@ RenderManager::renderScene()
   //pOutput = pToneMap.pTexture;
   graphMan.setViewport(normalVP);
 
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ToneMapShader").getID()]->setPass();
   graphMan.setCSSamplerState(m_pSamplerClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
   graphMan.csSetShaderResourceView(pLuminance.pTexture, 2);
-  graphMan.setUnorderedAccessView(pToneMap.pTexture, 0);
+  graphMan.setUnorderedAccessView({ pToneMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -966,11 +951,11 @@ RenderManager::renderScene()
   /*************************************/
   //pInput = pTempMap.pTexture;
   //pOutput = pPPMap.pTexture;
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("PPShader").getID()]->setPass();
 
   graphMan.csSetShaderResourceView(pToneMap.pTexture, 0);
-  graphMan.setUnorderedAccessView(pPPMap.pTexture, 0);
+  graphMan.setUnorderedAccessView({ pPPMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
@@ -979,7 +964,7 @@ RenderManager::renderScene()
   /*************************************/
   /*         Add to backbuffer         */
   /*************************************/
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  graphMan.setRenderTargets({{ pMainTarget }}, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("FinalShader").getID()]->setPass();
 
@@ -1036,7 +1021,7 @@ RenderManager::cleanCSUAView(uint32 numSRV)
 
   for (uint32 i = 0; i < numSRV; ++i) {
     SPtr<Texture2D> pSRV = nullptr;
-    graphMan.setUnorderedAccessView(pSRV, i);
+    graphMan.setUnorderedAccessView({pSRV}, i);
   }
 }
 

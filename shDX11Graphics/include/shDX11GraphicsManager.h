@@ -413,7 +413,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numViews
   */
   void
-  internalSetRenderTargets(const Vector<WPtr<Texture2D>>& pRenderTVs,
+  internalSetRenderTargets(const Vector<RenderTarget>& pRenderTVs,
                            const WPtr<Texture2D> pDepthSV) override;
 
   /**
@@ -589,10 +589,8 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32* count
   */
   void
-  internalSetUnorderedAccessView(const WPtr<Texture2D> pUAV,
-                                 const uint32 startSlot,
-                                 const uint32 numViews,
-                                 const uint32* count) override;
+  internalSetUnorderedAccessView(const UnorderedAccess& pUAVs,
+                                 const uint32 startSlot) override;
 
   /**
   *  @brief Sets the Sampler State to the pixel shader.

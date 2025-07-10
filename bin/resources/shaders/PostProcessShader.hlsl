@@ -1,4 +1,4 @@
-#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 SamplerState textureSampler : register(s0);
 SamplerState samplerLinearClamp : register(s1);
@@ -195,7 +195,7 @@ ToneMapCS(uint3 dtID : SV_DispatchThreadID)
   float3 mapped = getSelectedToneMap(exposed, toneMapIndex);
     
   //mapped = pow(mapped, 1.0f / 2.2f);
-  float bloomMultiplier = 1.0f;
+  //float bloomMultiplier = 1.0f;
   mapped += bloom * bloomMultiplier;
     
   t_outputMap[dtID.xy] = float4(saturate(mapped), 1.0f);

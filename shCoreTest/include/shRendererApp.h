@@ -47,6 +47,7 @@ class PBRMaterial;
 class GameObject;
 class Texture2D;
 class Sound;
+class Material;
 
 /**
 *  @brief Structure for view-projection.
@@ -220,6 +221,9 @@ class RendererApp : public BaseApp
 
   void
   drawTransformComponent();
+
+  void
+  showMaterialInspector(const WPtr<Material> pMat);
 
   /**
   *  @brief Load pistol model, materials and game object.
@@ -493,7 +497,7 @@ class RendererApp : public BaseApp
   /**
   *  @brief
   */
-  float m_exposure = 1.0f;
+  float m_bloomMultiplier = 1.0f;
 
   /**
   *  @brief
@@ -541,5 +545,7 @@ class RendererApp : public BaseApp
   float m_lightIntensity = 1.0f;
 
   float m_middleGrey = 1.0f;
+
+  int32 m_selectedMat = -1;
 };
 }
