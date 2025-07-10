@@ -66,6 +66,9 @@
     <ClCompile Include="source\shSpringBall.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\shKinematicBall.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shPhysicsApp.h">
@@ -105,9 +108,9 @@
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
     <ClInclude Include="include\shPhysicsTestUsage.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="include\shPhysicsTetsUsage.h">
+    <ClInclude Include="include\shKinematicBall.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
   </ItemGroup>

@@ -176,6 +176,7 @@
     <ClCompile Include="source\imgui_tables.cpp" />
     <ClCompile Include="source\imgui_widgets.cpp" />
     <ClCompile Include="source\shBall.cpp" />
+    <ClCompile Include="source\shKinematicBall.cpp" />
     <ClCompile Include="source\shPlayer.cpp" />
     <ClCompile Include="source\shPhysicsApp.cpp" />
     <ClCompile Include="source\shPhysicsTestMain.cpp" />
@@ -191,8 +192,8 @@
     <ClInclude Include="include\imstb_textedit.h" />
     <ClInclude Include="include\imstb_truetype.h" />
     <ClInclude Include="include\shBall.h" />
+    <ClInclude Include="include\shKinematicBall.h" />
     <ClInclude Include="include\shPhysicsTestUsage.h" />
-    <ClInclude Include="include\shPhysicsTetsUsage.h" />
     <ClInclude Include="include\shPlayer.h" />
     <ClInclude Include="include\shPhysicsApp.h" />
     <ClInclude Include="include\shSpringBall.h" />
