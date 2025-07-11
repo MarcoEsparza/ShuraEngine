@@ -144,6 +144,9 @@
     <ClInclude Include="include\shCollisionInfo.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
+    <ClInclude Include="include\shBivector.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shOBBox.cpp">
@@ -213,6 +216,9 @@
       <Filter>Source\Debug</Filter>
     </ClCompile>
     <ClCompile Include="source\shMatrix3.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shBivector.cpp">
       <Filter>Source\Math</Filter>
     </ClCompile>
   </ItemGroup>

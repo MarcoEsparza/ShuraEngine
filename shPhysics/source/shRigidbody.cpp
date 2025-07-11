@@ -51,5 +51,18 @@ Rigidbody::applyImpulse(const Vector3& impulse, const Vector3& point)
   m_angularVelocity += getInvInertiaWorld() * point.cross(impulse);
 }
 
+void
+Rigidbody::applyPositinalImpulse(const Vector3& impulse, const Vector3& point)
+{
+  if(m_invMass == 0.0f) {
+    return; // No impulse applied if mass is zero
+  }
+  // Calculate the point in world space
+  Vector3 worldPoint = point + getWorldPosition();
+  // Apply linear impulse
+  m_position += impulse * m_invMass;
+  //m_rotation += getInvInertiaWorld() * point.cross(impulse);
+}
+
 
 }

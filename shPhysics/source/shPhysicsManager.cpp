@@ -201,6 +201,19 @@ PhysicsManager::resolveCollision(Rigidbody* rb1, Rigidbody* rb2, CollisionInfo& 
 
   rb1->applyImpulse(frictionTangent, info.contactPoint1);
   rb2->applyImpulse(-frictionTangent, info.contactPoint2);
+
+  // Position correction (split projection)
+  if(info.penetrationDepth <= 0.0f) {
+    return; // No penetration, no need to correct
+  }
+
+  float effectiveMass = getEffectiveMass(info.normal,
+                                         rb1,
+                                         rb2,
+                                         info.contactPoint1,
+                                         info.contactPoint2);
+  float biasImpulse = info.penetrationDepth / effectiveMass;
+  float penetration = Math::max(0.0f, info.penetrationDepth - biasImpulse);
 }
 
 void

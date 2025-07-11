@@ -71,6 +71,9 @@ public:
   void
   applyImpulse(const Vector3& impulse, const Vector3& point);
 
+  void
+  applyPositinalImpulse(const Vector3& impulse, const Vector3& point);
+
   /***************************************************************************/
   /*
   *  Variables

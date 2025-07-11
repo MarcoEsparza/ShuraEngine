@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shAABBox.h" />
+    <ClInclude Include="include\shBivector.h" />
     <ClInclude Include="Include\shOBBox.h" />
     <ClInclude Include="Include\shCapsule.h" />
     <ClInclude Include="include\shCollisionInfo.h" />
@@ -54,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shAABBox.cpp" />
+    <ClCompile Include="source\shBivector.cpp" />
     <ClCompile Include="source\shMatrix3.cpp" />
     <ClCompile Include="Source\shOBBox.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
