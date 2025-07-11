@@ -98,5 +98,8 @@ class SH_PHYSICS_EXPORT PlatformPhysics
 
   bool
   EPA(const OBBox& obb1, const OBBox& obb2, Vector<Vector3>& simplex, CollisionInfo& info);
+
+  static const float SLOP;
+  static const float BETA;
 };
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shRigidbody.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/27
+*  @date    2025/07/11
 *  @brief   Rigidbody class for physics simulation.
 *
 *  Rigidbody class for physics simulation.
@@ -59,9 +59,9 @@ Rigidbody::applyPositinalImpulse(const Vector3& impulse, const Vector3& point)
   }
   // Calculate the point in world space
   Vector3 worldPoint = point + getWorldPosition();
-  // Apply linear impulse
+
   m_position += impulse * m_invMass;
-  //m_rotation += getInvInertiaWorld() * point.cross(impulse);
+  m_rotation += m_rotation.fromBivector(getInvInertiaWorld() * worldPoint.cross(impulse));
 }
 
 

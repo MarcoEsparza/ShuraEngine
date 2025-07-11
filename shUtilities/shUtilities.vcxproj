@@ -41,6 +41,7 @@
     <ClInclude Include="Include\shQuaternion.h" />
     <ClInclude Include="include\shRadian.h" />
     <ClInclude Include="Include\shRect.h" />
+    <ClInclude Include="include\shRotor.h" />
     <ClInclude Include="include\shScriptManager.h" />
     <ClInclude Include="include\shScriptVector3.h" />
     <ClInclude Include="Include\shSphere.h" />
@@ -70,6 +71,7 @@
     <ClCompile Include="Source\shQuaternion.cpp" />
     <ClCompile Include="source\shRadian.cpp" />
     <ClCompile Include="Source\shRect.cpp" />
+    <ClCompile Include="source\shRotor.cpp" />
     <ClCompile Include="source\shScriptManager.cpp" />
     <ClCompile Include="Source\shSphere.cpp" />
     <ClCompile Include="source\shTime.cpp" />

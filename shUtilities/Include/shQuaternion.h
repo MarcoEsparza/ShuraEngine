@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/30
+*  @date    2025/07/11
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -64,6 +64,8 @@ class SH_UTILITY_EXPORT Quaternion
   *  @param float angle
   */
   Quaternion(const Vector3& axis, const float angle);
+
+  Quaternion(const Vector3& from, const Vector3& to);
 
   /**
   *  @brief Copy constructor
@@ -146,6 +148,9 @@ class SH_UTILITY_EXPORT Quaternion
   */
   float
   lenght() const;
+
+  float
+  lenghtSquared() const;
 
   /**
   *  @brief Normalize Quaternion values.
@@ -232,8 +237,16 @@ class SH_UTILITY_EXPORT Quaternion
   Quaternion
   slerp(const Quaternion& other, const float _time) const;
 
+  /**
+  *  @brief Transform this Quaternion to a Matrix3 rotation matrix.
+  *
+  *  @return Matrix3 The rotation matrix from this Quaternion.
+  */
   Matrix3
   toMatrix3() const;
+
+  Quaternion
+  fromBivector(const Vector3& vector);
 
   /*************************************************************/
   /*

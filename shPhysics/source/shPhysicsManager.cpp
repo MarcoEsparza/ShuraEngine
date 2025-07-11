@@ -202,7 +202,7 @@ PhysicsManager::resolveCollision(Rigidbody* rb1, Rigidbody* rb2, CollisionInfo& 
   rb1->applyImpulse(frictionTangent, info.contactPoint1);
   rb2->applyImpulse(-frictionTangent, info.contactPoint2);
 
-  // Position correction (split projection)
+  // Positional correction (split projection)
   if(info.penetrationDepth <= 0.0f) {
     return; // No penetration, no need to correct
   }
@@ -213,7 +213,12 @@ PhysicsManager::resolveCollision(Rigidbody* rb1, Rigidbody* rb2, CollisionInfo& 
                                          info.contactPoint1,
                                          info.contactPoint2);
   float biasImpulse = info.penetrationDepth / effectiveMass;
-  float penetration = Math::max(0.0f, info.penetrationDepth - biasImpulse);
+
+  float penetration = Math::max(0.0f, info.penetrationDepth - PlatformPhysics::SLOP);
+  Vector3 correction = info.normal * ((penetration / effectiveMass) * PlatformPhysics::BETA);
+
+  rb1->applyPositinalImpulse(-correction, info.contactPoint1);
+  rb2->applyPositinalImpulse(correction, info.contactPoint2);
 }
 
 void

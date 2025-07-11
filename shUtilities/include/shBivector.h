@@ -155,17 +155,17 @@ class SH_UTILITY_EXPORT Bivector
  public:
 
   /**
-  *  @brief Component on YZ plane
+  *  @brief Component on YZ plane (x)
   */
   float yz = 0.0f;
 
   /**
-  *  @brief Component on ZX plane
+  *  @brief Component on ZX plane (y)
   */
   float zx = 0.0f;
 
   /**
-  *  @brief Component on XY plane
+  *  @brief Component on XY plane (z)
   */
   float xy = 0.0f;
 };

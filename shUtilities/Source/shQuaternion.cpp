@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/30
+*  @date    2025/07/11
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -56,10 +56,21 @@ Quaternion::Quaternion(const Vector3& vec)
 
 Quaternion::Quaternion(const Vector3& axis, const float angle)
 {
-  w = angle;
-  x = axis.x;
-  y = axis.y;
-  z = axis.z;
+  float sina = Math::sin(Radian(angle * 0.5f));
+  w = Math::cos(Radian(angle * 0.5f));
+  x = sina * axis.x;
+  y = sina * axis.y;
+  z = sina * axis.z;
+}
+
+Quaternion::Quaternion(const Vector3& from, const Vector3& to)
+{
+  w = 1.0f + to.dot(from);
+  Vector3 cross = from.cross(to);
+  x = cross.x;
+  y = cross.y;
+  z = cross.z;
+  normalize();
 }
 
 Quaternion::Quaternion(const Quaternion& other)
@@ -111,14 +122,20 @@ Quaternion::toEulerAngles() const
 Vector3
 Quaternion::rotate(const Vector3& vec) const
 {
-  /*Quaternion qv(0.0f, vec.x, vec.y, vec.z);
-  Quaternion res = (*this * qv) * conjugate();*/
+  const Quaternion& P = *this;
+  Quaternion q;
+  q.x = P.w * vec.x + P.y * vec.z - P.z * vec.y;
+  q.y = P.w * vec.y + P.z * vec.x - P.x * vec.z;
+  q.z = P.w * vec.z + P.x * vec.y - P.y * vec.x;
+  q.w = -P.x * vec.x - P.y * vec.y - P.z * vec.z;
 
-  //return Vector3(res.x, res.y, res.z);
+  // Now we need to convert q to a vector3
+  Vector3 result = Vector3::ZERO;
+  result.x = q.w * -P.x + P.w * q.x - q.y * P.z + q.z * P.y;
+  result.y = q.w * -P.y + P.w * q.y - q.z * P.x + q.x * P.z;
+  result.z = q.w * -P.z + P.w * q.z - q.x * P.y + q.y * P.x;
 
-  Vector3 qv(x, y, z);
-  Vector3 t = qv.cross(vec) * 2.0f;
-  return vec + t * w + qv.cross(t);
+  return result;
 }
 
 Vector3
@@ -173,7 +190,13 @@ Quaternion::fromAngle(Vector3 vec)
 float
 Quaternion::lenght() const
 {
-  return Math::sqrt(x * x + y * y + z * z + w * w);
+  return Math::sqrt(lenghtSquared());
+}
+
+float
+Quaternion::lenghtSquared() const
+{
+  return (Math::sqrt(w) + Math::sqrt(x) + Math::sqrt(y) + Math::sqrt(z));
 }
 
 void
@@ -197,19 +220,9 @@ Quaternion::normalize()
 Quaternion
 Quaternion::getNormalized() const
 {
-  const float invLenght = 1 / lenght();
-  if (invLenght != 0.0f) {
-    return Quaternion(w * invLenght,
-                      x * invLenght,
-                      y * invLenght,
-                      z * invLenght);
-  }
-  else {
-    return Quaternion(0.0f,
-                      0.0f,
-                      0.0f,
-                      0.0f);
-  }
+  Quaternion result = *this;
+  result.normalize();
+  return result;
 }
 
 float
@@ -312,7 +325,7 @@ Quaternion::slerp(const Quaternion& other, const float time) const
 Matrix3
 Quaternion::toMatrix3() const
 {
-  const float p00 = 1.0f - (2.0f * (y * y)) - (2.0f * (z * z));
+  /*const float p00 = 1.0f - (2.0f * (y * y)) - (2.0f * (z * z));
   const float p01 = (2.0f * (x * y)) + (2.0f * (w * z));
   const float p02 = (2.0f * (x * z)) - (2.0f * (w * y));
   const float p10 = (2.0f * (x * y)) - (2.0f * (w * z));
@@ -323,6 +336,28 @@ Quaternion::toMatrix3() const
   const float p22 = 1.0f - (2.0f * (x * x)) - (2.0f * (y * y));
   return Matrix3(p00, p01, p02,
                  p10, p11, p12,
-                 p20, p21, p22);
+                 p20, p21, p22);*/
+
+  Vector3 right = rotate(Vector3::RIGHT);
+  Vector3 up = rotate(Vector3::UP);
+  Vector3 forward = rotate(Vector3::FORWARD);
+
+  return Matrix3(right, up, forward);
+}
+
+Quaternion
+Quaternion::fromBivector(const Vector3& vector)
+{
+  float angle = vector.mag();
+  if (angle < Math::SMALL_NUMBER) {
+    return Quaternion::IDENTITY;
+  }
+
+  Vector3 axis = vector / angle;
+  float halfAngle = angle * 0.5f;
+  float sina = Math::sin(Radian(halfAngle));
+  float cosa = Math::cos(Radian(halfAngle));
+
+  return Quaternion(cosa, axis.x * sina, axis.y * sina, axis.z * sina);
 }
 }
