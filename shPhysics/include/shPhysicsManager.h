@@ -57,7 +57,7 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
   *  @return Vector of pairs of rigidbodies that are potentially colliding.
   */
   Vector<Pair<Rigidbody*, Rigidbody*>>
-  sweepAndPrune(const Vector<Rigidbody*>& rigidbodies);
+  sweepAndPrune(Vector<Rigidbody*>& rigidbodies);
 };
 
 /**

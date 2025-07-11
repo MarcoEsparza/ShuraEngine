@@ -20,11 +20,13 @@
 #include "shPrerequisitesPhysics.h"
 #include "shVector3.h"
 #include "shMatrix3.h"
-#include "shGameObject.h"
+//#include "shGameObject.h"
 #include "shQuaternion.h"
 #include "shOBBox.h"
 
 namespace shEngineSDK {
+class GameObject;
+
 /**
 *  @brief Integration type.
 */

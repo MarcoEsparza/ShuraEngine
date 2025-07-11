@@ -240,6 +240,15 @@
     <ClInclude Include="include\shOCLManager.h">
       <Filter>Header Files\OpenCL</Filter>
     </ClInclude>
+    <ClInclude Include="include\shRigidbodyComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shColliderComponent.h">
+      <Filter>Header Files\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shGizmos.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -301,6 +310,12 @@
     </ClCompile>
     <ClCompile Include="source\shOCLManager.cpp">
       <Filter>Source Files\OpenCL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shRigidbodyComponent.cpp">
+      <Filter>Source Files\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shGizmos.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

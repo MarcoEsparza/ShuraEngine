@@ -20,13 +20,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shCircleCollision.h" />
+    <ClInclude Include="include\shCollider.h" />
+    <ClInclude Include="include\shPhysicsManager.h" />
     <ClInclude Include="include\shPlatformPhysics.h" />
     <ClInclude Include="include\shPrerequisitesPhysics.h" />
     <ClInclude Include="include\shRigidbody.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shCircleCollision.cpp" />
+    <ClCompile Include="source\shPhysicsManager.cpp" />
     <ClCompile Include="source\shPlatformPhysics.cpp" />
+    <ClCompile Include="source\shRigidbody.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

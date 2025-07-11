@@ -28,11 +28,13 @@
     <ClInclude Include="include\shBlendState.h" />
     <ClInclude Include="include\shChannel.h" />
     <ClInclude Include="include\shChannelGroup.h" />
+    <ClInclude Include="include\shColliderComponent.h" />
     <ClInclude Include="include\shComponent.h" />
     <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
     <ClInclude Include="include\shFrustum.h" />
     <ClInclude Include="include\shGameObject.h" />
+    <ClInclude Include="include\shGizmos.h" />
     <ClInclude Include="include\shImageResource.h" />
     <ClInclude Include="include\shLight.h" />
     <ClInclude Include="include\shMaterial.h" />
@@ -53,6 +55,7 @@
     <ClInclude Include="include\shRenderManager.h" />
     <ClInclude Include="include\shResource.h" />
     <ClInclude Include="include\shResourceManager.h" />
+    <ClInclude Include="include\shRigidbodyComponent.h" />
     <ClInclude Include="include\shSamplerState.h" />
     <ClInclude Include="include\shSceneGraph.h" />
     <ClInclude Include="Include\shScreen.h" />
@@ -75,12 +78,14 @@
     <ClCompile Include="source\shEvent.cpp" />
     <ClCompile Include="source\shFrustum.cpp" />
     <ClCompile Include="source\shGameObject.cpp" />
+    <ClCompile Include="source\shGizmos.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
     <ClCompile Include="source\shOCLManager.cpp" />
     <ClCompile Include="source\shPass.cpp" />
     <ClCompile Include="source\shRenderManager.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
+    <ClCompile Include="source\shRigidbodyComponent.cpp" />
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
@@ -164,14 +169,14 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/;$(SolutionDir)/shPhysics/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilitiesd.lib;assimp-vc143-mtd.lib;libluad.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shUtilitiesd.lib;shPhysicsd.lib;assimp-vc143-mtd.lib;libluad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -183,7 +188,7 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/;$(SolutionDir)/shPhysics/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -192,7 +197,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilities.lib;assimp-vc143-mt.lib;liblua.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shUtilities.lib;shPhysicsd.lib;assimp-vc143-mt.lib;liblua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -202,14 +207,14 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/;$(SolutionDir)/shPhysics/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilitiesd.lib;assimp.lib;libluad.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shUtilitiesd.lib;shPhysicsd.lib;assimp.lib;libluad.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -221,7 +226,7 @@
       <PreprocessorDefinitions>SH_CORE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;$(SolutionDir)/shUtilities/include/;$(DEVLIBS)/assimp/include/;$(DEVLIBS)sol2/include/;$(DEVLIBS)lua-5.4.7/include/;$(CUDA_PATH)/include/;$(SolutionDir)/shPhysics/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -230,7 +235,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib/$(PlatformTarget)/;$(DEVLIBS)assimp/lib/$(PlatformTarget)/$(Configuration)/;%(AdditionalLibraryDirectories);$(DEVLIBS)lua-5.4.7/lib/$(PlatformTarget)/;$(CUDA_PATH)/lib/$(PlatformTarget)/</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)lib/$(PlatformTarget)/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>shUtilities.lib;assimp.lib;liblua.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shUtilities.lib;shPhysicsd.lib;assimp.lib;liblua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

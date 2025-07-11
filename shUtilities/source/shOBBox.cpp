@@ -15,6 +15,7 @@
 */
 /*************************************************************/
 #include "shOBBox.h"
+#include "shMatrix3.h"
 
 namespace shEngineSDK {
 
@@ -94,14 +95,41 @@ OBBox::getCorners() const
     Vector3 corner = center;
     for (uint8 j = 0; j < 3; ++j) {
       if (i & (1 << j)) {
-        corner = corner + rotation.toRotate(axes[j]);
+        corner = corner + rotation.rotate(axes[j]);
       }
       else {
-        corner = corner - rotation.toRotate(axes[j]);
+        corner = corner - rotation.rotate(axes[j]);
       }
     }
   }
 
   return corners;
+}
+
+Vector<Vector3>
+OBBox::getVertices()
+{
+  Vector<Vector3> vertices;
+  vertices.reserve(8);
+
+  Matrix3 rot = rotation.toMatrix3();
+
+  Vector3 right = Vector3(rot.m[0][0], rot.m[0][1], rot.m[0][2]);
+  Vector3 up = Vector3(rot.m[1][0], rot.m[1][1], rot.m[1][2]);
+  Vector3 foward = Vector3(rot.m[2][0], rot.m[2][1], rot.m[2][2]);
+
+  for (int32 x = -1; x <= 1; x+=2) {
+    for (int32 y = -1; y <= 1; y += 2) {
+      for (int32 z = -1; z <= 1; z += 2) {
+        Vector3 corner = center +
+                (right * (extent.x * x)) +
+                (up * (extent.y * y)) +
+                (foward * (extent.z * z));
+        vertices.push_back(corner);
+      }
+    }
+  }
+
+  return vertices;
 }
 }

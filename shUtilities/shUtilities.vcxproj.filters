@@ -212,5 +212,8 @@
     <ClCompile Include="source\shLogger.cpp">
       <Filter>Source\Debug</Filter>
     </ClCompile>
+    <ClCompile Include="source\shMatrix3.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

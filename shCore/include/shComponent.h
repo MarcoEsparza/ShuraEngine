@@ -32,6 +32,8 @@ enum SH_CORE_EXPORT E
   kSkeletalMesh,
   kAnimator,
   kSkyBox,
+  kRigidbody,
+  kCollider,
 
   kCount
 };

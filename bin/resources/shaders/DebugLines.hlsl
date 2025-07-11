@@ -1,18 +1,18 @@
-//#include "resources/shaders/ShaderConstants.hlsl"
+#include "ShaderConstants.hlsl"
 
 SamplerState textureSampler : register(s0);
 Texture2D t_inputMap : register(t0);
 
-cbuffer VP : register(b0)
-{
-  float4x4 viewMat;
-  float4x4 projMat;
-}
+//cbuffer VP : register(b0)
+//{
+//  float4x4 viewMat;
+//  float4x4 projMat;
+//}
 
-cbuffer Model : register(b0)
-{
-  float4x4 transformMat;
-}
+//cbuffer Model : register(b3)
+//{
+//  float4x4 transformMat;
+//}
 
 struct VS_INPUT
 {
@@ -28,7 +28,7 @@ PS_INPUT main(VS_INPUT input)
 {
   PS_INPUT output;
   output.position = mul(float4(input.position, 1.0f),
-                    mul(transformMat, mul(viewMat, projMat)));
+                    mul(matViewTranspose, matProjectionTranspose));
   return output;
 }
 

@@ -17,7 +17,7 @@
 */
 /*****************************************************************************/
 #include "shRigidbody.h"
-#include "shTransformComponent.h"
+//#include "shTransformComponent.h"
 
 namespace shEngineSDK {
 Matrix3

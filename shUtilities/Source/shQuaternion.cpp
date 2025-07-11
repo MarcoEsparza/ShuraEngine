@@ -22,6 +22,33 @@
 #include "shMatrix3.h"
 
 namespace shEngineSDK {
+/*****************************************************************************/
+/*
+*  Static Variables
+*/
+/*****************************************************************************/
+
+/**
+* @brief Identity Quaternion value.
+*/
+const Quaternion Quaternion::IDENTITY = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
+
+/**
+* @brief Zero Quaternion value.
+*/
+const Quaternion Quaternion::ZERO = Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
+
+/**
+* @brief Unit Quaternion value.
+*/
+const Quaternion Quaternion::UNIT = Quaternion(0.0f, 1.0f, 0.0f, 0.0f);
+
+/*****************************************************************************/
+/*
+*  Functions
+*/
+/*****************************************************************************/
+
 Quaternion::Quaternion(const Vector3& vec)
 {
   fromAngle(vec);
@@ -285,6 +312,17 @@ Quaternion::slerp(const Quaternion& other, const float time) const
 Matrix3
 Quaternion::toMatrix3() const
 {
-  
+  const float p00 = 1.0f - (2.0f * (y * y)) - (2.0f * (z * z));
+  const float p01 = (2.0f * (x * y)) + (2.0f * (w * z));
+  const float p02 = (2.0f * (x * z)) - (2.0f * (w * y));
+  const float p10 = (2.0f * (x * y)) - (2.0f * (w * z));
+  const float p11 = 1.0f - (2.0f * (x * x)) - (2.0f * (z * z));
+  const float p12 = (2.0f * (y * z)) + (2.0f * (w * x));
+  const float p20 = (2.0f * (x * z)) + (2.0f * (w * y));
+  const float p21 = (2.0f * (y * z)) - (2.0f * (w * x));
+  const float p22 = 1.0f - (2.0f * (x * x)) - (2.0f * (y * y));
+  return Matrix3(p00, p01, p02,
+                 p10, p11, p12,
+                 p20, p21, p22);
 }
 }

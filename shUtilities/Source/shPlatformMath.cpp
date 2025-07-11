@@ -426,6 +426,8 @@ PlatformMath::intersect(const Vector3& point, const Capsule& cap)
   const Vector3 diff = point - closestPoint;
 
   return (diff.mag() <= cap.radius);*/
+
+  return false; // Not implemented
 }
 
 bool
@@ -658,6 +660,7 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap)
   const float distB = diffB.mag();
 
   return (distA <= cap.radius || distB <= cap.radius);*/
+  return false; // Not implemented
 }
 
 bool
@@ -1127,6 +1130,7 @@ PlatformMath::intersect(const Capsule& cap, const Plane& plane, CollisionInfo& c
   }
 
   return false;*/
+  return false; // Not implemented
 }
 
 bool
@@ -1151,6 +1155,7 @@ PlatformMath::intersect(const Capsule& cap, const Rect& rect, CollisionInfo& col
   }
 
   return rect.lineIntersect(projCapA, projCapB);*/
+  return false; // Not implemented
 }
 
 bool

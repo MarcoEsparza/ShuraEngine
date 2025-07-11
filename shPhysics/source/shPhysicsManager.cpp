@@ -30,12 +30,12 @@ PhysicsManager::onUpdate()
 }
 
 Vector<Pair<Rigidbody*, Rigidbody*>>
-PhysicsManager::sweepAndPrune(const Vector<Rigidbody*>& rigidbodies)
+PhysicsManager::sweepAndPrune(Vector<Rigidbody*>& rigidbodies)
 {
   sort(rigidbodies.begin(), rigidbodies.end(),
      [](const Rigidbody* a, const Rigidbody* b) {
        return a->m_position.x < b->m_position.x;
-  });
+     });
 
   Vector<Pair<Rigidbody*, Rigidbody*>> possiblePairs;
 

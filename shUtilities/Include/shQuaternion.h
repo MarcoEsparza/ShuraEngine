@@ -356,6 +356,27 @@ class SH_UTILITY_EXPORT Quaternion
   * @brief Quaternion Z value. Imaginary part.
   */
   float z;
+
+  /*************************************************************/
+  /*
+  *  Static Variables
+  */
+  /*************************************************************/
+ public:
+  /**
+  * @brief Identity Quaternion value.
+  */
+  static const Quaternion IDENTITY;
+
+  /**
+  * @brief Zero Quaternion value.
+  */
+  static const Quaternion ZERO;
+
+  /**
+  * @brief Unit Quaternion value.
+  */
+  static const Quaternion UNIT;
 };
 
 /*************************************************************/

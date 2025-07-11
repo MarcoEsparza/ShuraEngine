@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shAABBox.cpp" />
+    <ClCompile Include="source\shMatrix3.cpp" />
     <ClCompile Include="Source\shOBBox.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
     <ClCompile Include="source\shColor.cpp" />

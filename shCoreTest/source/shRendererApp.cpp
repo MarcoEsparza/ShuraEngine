@@ -36,6 +36,8 @@
 #include "shMeshComponent.h"
 #include "shMaterial.h"
 #include "shSkyBoxComponent.h"
+#include "shColliderComponent.h"
+#include "shGizmos.h"
 
 #include "shRadian.h"
 #include "shVector4.h"
@@ -321,9 +323,11 @@ RendererApp::onRender()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
+  Gizmos& gizmos = Gizmos::instance();
 
   graphMan.setPrimitiveTopology();
   renderMan.renderScene();
+  gizmos.drawGizmos();
   ImGui::Render();
   ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
 }
@@ -1067,6 +1071,14 @@ RendererApp::loadPistol()
 
   model->transform.getTransform() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 5.0f);
+
+  auto pCollider = sh_makeShared<ColliderComponent>();
+  pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
+  pCollider->m_collider.m_box.center = Vector3::ZERO;
+  pCollider->m_collider.m_box.extent = Vector3(0.5f, 0.5f, 0.5f);
+  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;
+
+  model->addComponent(pCollider);
 
   sceneG.addObject(model);
 }

@@ -132,6 +132,9 @@ class SH_UTILITY_EXPORT OBBox
   Array<Vector3, 8>
   getCorners() const;
 
+  Vector<Vector3>
+  getVertices();
+
   /*************************************************************/
   /*
   *  Variables

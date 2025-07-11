@@ -19,6 +19,7 @@
 /*************************************************************/
 #include "shPrerequisitesPhysics.h"
 #include "shAABBox.h"
+#include "shOBBox.h"
 #include "shCapsule.h"
 #include "shSphere.h"
 
@@ -71,7 +72,7 @@ public:
   union {
     Sphere m_sphere;
     Capsule m_capsule;
-    AABBox m_box;
+    OBBox m_box;
   };
 };
 }

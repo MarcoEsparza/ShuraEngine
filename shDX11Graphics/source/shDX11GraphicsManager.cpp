@@ -1193,6 +1193,23 @@ DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
 }
 
 void
+DX11GraphicsManager::updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
+                                        const void* pData,
+                                        const uint32 dataSize)
+{
+  if (pVBuffer.expired() || pData == nullptr) {
+    return;
+  }
+  auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer.lock());
+  m_pDeviceContext->UpdateSubresource(pVertexBuffer->m_pBuffer,
+                                      0,
+                                      nullptr,
+                                      pData,
+                                      dataSize,
+                                      0);
+}
+
+void
 DX11GraphicsManager::internalSaveTextureToDDS(const WPtr<Texture2D> pTexture,
                                               const String& filePath)
 {
