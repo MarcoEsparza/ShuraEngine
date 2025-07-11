@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/27
+*  @date    2025/07/11
 *  @brief   Physics manager class for handling physics simulation.
 *
 *  Physics manager class for handling physics simulation.
@@ -27,6 +27,7 @@ namespace shEngineSDK {
 class OBBox;
 class Sphere;
 class Capsule;
+class Quaternion;
 
 /**
 *  @brief PhysicsManager class for handling physics simulation.
@@ -92,7 +93,18 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
                    CollisionInfo& info);
 
   void
-  eulerRotation(Vector<Rigidbody*>& rigidbodies);
+  eulerLinearIntegration(Rigidbody& rbdy, const float speed);
+
+  void
+  eulerAngularIntegration(Rigidbody& rbdy, const Quaternion& parentRotation);
+
+  void
+  verletLinearIntegration(Rigidbody& rbdy, const float speed);
+
+  void
+  verletAngularIntegration(Rigidbody& rbdy,
+                           const Quaternion& parentRotation,
+                           const Vector3* nextAngularAccel = nullptr);
 };
 
 /**

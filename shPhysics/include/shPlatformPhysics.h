@@ -101,5 +101,6 @@ class SH_PHYSICS_EXPORT PlatformPhysics
 
   static const float SLOP;
   static const float BETA;
+  static const float GRAVITY;
 };
 }

@@ -26,7 +26,7 @@
 #include "shCollider.h"
 
 namespace shEngineSDK {
-class GameObject;
+//class GameObject;
 
 /**
 *  @brief Integration type.
@@ -138,9 +138,11 @@ public:
   */
   float m_friction;
 
+  float m_dragCoefficent = 1.0f;
+
   Matrix3 m_invAngularInertia;
 
-  SPtr<GameObject> m_owner;
+  //SPtr<GameObject> m_owner;
 
   Quaternion m_rotation;
 

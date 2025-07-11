@@ -245,7 +245,7 @@ class SH_UTILITY_EXPORT Quaternion
   Matrix3
   toMatrix3() const;
 
-  Quaternion
+  static Quaternion
   fromBivector(const Vector3& vector);
 
   /*************************************************************/

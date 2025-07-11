@@ -63,6 +63,4 @@ Rigidbody::applyPositinalImpulse(const Vector3& impulse, const Vector3& point)
   m_position += impulse * m_invMass;
   m_rotation += m_rotation.fromBivector(getInvInertiaWorld() * worldPoint.cross(impulse));
 }
-
-
 }

@@ -28,6 +28,7 @@
 namespace shEngineSDK {
 const float PlatformPhysics::SLOP = 0.01f; // Tolerance for collision detection
 const float PlatformPhysics::BETA = 0.8f; // Bias for collision resolution
+const float PlatformPhysics::GRAVITY = 9.81f; // Gravity acceleration in m/s^2
 
 Face::Face(const Vector3& _a, const Vector3& _b, const Vector3& _c)
 {

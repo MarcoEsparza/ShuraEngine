@@ -277,6 +277,16 @@ class SH_UTILITY_EXPORT Vector3
   operator*(const float delta) const;
 
   /**
+  *  @brief Operator to multiply the values of a Vector3 with another Vector3.
+  *
+  *  @param Vector3: The Vector3 to multiply.
+  *
+  *  @return Vector3 The result of the multiplication
+  */
+  FORCEINLINE Vector3
+  operator*(const Vector3& other) const;
+
+  /**
   *  @brief Operator to divide the values of a Vector3 with a float.
   *
   *  @param lValue-Vector3.
@@ -400,6 +410,12 @@ FORCEINLINE Vector3
 Vector3::operator*(const float delta) const
 {
   return Vector3(x * delta, y * delta, z * delta);
+}
+
+FORCEINLINE Vector3
+Vector3::operator*(const Vector3& other) const
+{
+  return Vector3(x * other.x, y * other.y, z * other.z);
 }
 
 FORCEINLINE Vector3

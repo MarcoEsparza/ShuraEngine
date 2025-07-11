@@ -22,6 +22,9 @@
 #include "shOBBox.h"
 #include "shSphere.h"
 #include "shCapsule.h"
+#include "shTime.h"
+//#include "shGameObject.h"
+
 
 // Temporary include for sorting
 using std::sort;
@@ -222,8 +225,81 @@ PhysicsManager::resolveCollision(Rigidbody* rb1, Rigidbody* rb2, CollisionInfo& 
 }
 
 void
-PhysicsManager::eulerRotation(Vector<Rigidbody*>& rigidbodies)
+PhysicsManager::eulerLinearIntegration(Rigidbody& rbdy, const float speed)
 {
+  Time& time = g_time();
+  float deltaTime = time.getFrameDeltaTime();
+
+  Vector3 gravityForce(0.0f,
+                       rbdy.m_mass * -PlatformPhysics::GRAVITY * rbdy.m_gravityScale,
+                       0.0f);
+
+  rbdy.m_linearVelocity += rbdy.m_accel * speed * deltaTime;
+  rbdy.m_linearVelocity += gravityForce; // Apply gravity force
+  rbdy.m_linearVelocity = rbdy.m_linearVelocity * Math::pow(rbdy.m_dragCoefficent, deltaTime);
+
+  rbdy.m_position += rbdy.m_linearVelocity * deltaTime; // Update position
+}
+
+void
+PhysicsManager::eulerAngularIntegration(Rigidbody& rbdy, const Quaternion& parentRotation)
+{
+  Time& time = g_time();
+  float deltaTime = time.getFrameDeltaTime();
+
+  // Compute angular velocity
+  rbdy.m_angularVelocity += rbdy.m_angularAccel * deltaTime;
+
+  // Compute delta rotation
+  Quaternion deltaRotation = Quaternion(rbdy.m_angularVelocity, 0.0f);
+
+  // Apply the delta rotation to the rigidbody's rotation
+  Quaternion newRotation = (deltaRotation * 0.5f) * parentRotation;
+  newRotation = newRotation * deltaTime; // Scale by delta time
+  newRotation.normalize(); // Ensure the quaternion is normalized to avoid drift
+  rbdy.m_rotation = newRotation;
+}
+
+void
+PhysicsManager::verletLinearIntegration(Rigidbody& rbdy, const float speed)
+{
+  Time& time = g_time();
+  float deltaTime = time.FIXED_DELTA_TIME;
+
+  Vector3 gravityForce(0.0f,
+                       rbdy.m_mass * -PlatformPhysics::GRAVITY * rbdy.m_gravityScale,
+                       0.0f);
+
+  rbdy.m_linearVelocity = (rbdy.m_position - rbdy.m_prevPosition) *
+                          speed * deltaTime * rbdy.m_dragCoefficent;
+  rbdy.m_prevPosition = rbdy.m_position; // Store previous position
+  rbdy.m_accel += gravityForce; // Apply gravity force
+  rbdy.m_position += rbdy.m_linearVelocity * rbdy.m_accel; // Update position
+}
+
+void
+PhysicsManager::verletAngularIntegration(Rigidbody& rbdy,
+                                         const Quaternion& parentRotation,
+                                         const Vector3* nextAngularAccel)
+{
+  Time& time = g_time();
+  float halfDeltaTime = time.FIXED_DELTA_TIME * 0.5f;
+
+  // Compute angular velocity
+  Vector3 angularMidPoint = rbdy.m_angularVelocity + rbdy.m_angularAccel * halfDeltaTime;
+
+  // Compute delta rotation
+  Quaternion deltaRotation = Quaternion::fromBivector(angularMidPoint * halfDeltaTime);
+
+  // Apply the delta rotation to the rigidbody's rotation
+  Quaternion newRotation = deltaRotation * parentRotation;
+  newRotation.normalize(); // Ensure the quaternion is normalized to avoid drift
+
+  rbdy.m_rotation = newRotation;
+
+  if (nextAngularAccel) {
+    rbdy.m_angularVelocity = angularMidPoint + (*nextAngularAccel * halfDeltaTime);
+  }
 }
 
 SH_PHYSICS_EXPORT PhysicsManager&
