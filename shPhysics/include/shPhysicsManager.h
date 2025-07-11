@@ -21,8 +21,13 @@
 #include "shModule.h"
 #include "shCollider.h"
 #include "shRigidbody.h"
+#include "shCollisionInfo.h"
 
 namespace shEngineSDK {
+class OBBox;
+class Sphere;
+class Capsule;
+
 /**
 *  @brief PhysicsManager class for handling physics simulation.
 */
@@ -58,6 +63,36 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
   */
   Vector<Pair<Rigidbody*, Rigidbody*>>
   sweepAndPrune(Vector<Rigidbody*>& rigidbodies);
+
+  Matrix3
+  getInertiaTensor(OBBox box, float mass) const;
+
+  Matrix3
+  getInertiaTensor(Sphere sphere, float mass) const;
+
+  Matrix3
+  getInertiaTensor(Capsule capsule, float mass) const;
+
+  Matrix3
+  computeInertiaTensor(Collider& collider, float mass);
+
+  float
+  getElasticity(Rigidbody* rb1, Rigidbody* rb2);
+
+  float
+  getEffectiveMass(Vector3& direction,
+                   Rigidbody* rb1,
+                   Rigidbody* rb2,
+                   Vector3& contact1, 
+                   Vector3& contact2);
+
+  void
+  resolveCollision(Rigidbody* rb1, 
+                   Rigidbody* rb2, 
+                   CollisionInfo& info);
+
+  void
+  eulerRotation(Vector<Rigidbody*>& rigidbodies);
 };
 
 /**

@@ -260,7 +260,7 @@ PlatformMath::intersect(const Vector3& point, const AABBox& box, CollisionInfo& 
 
   colInfo.penetrationDepth = minPen;
   colInfo.normal = normal;
-  colInfo.contactPoint = point;
+  colInfo.contactPoint1 = point;
 
   return true;
 }
@@ -297,7 +297,7 @@ PlatformMath::intersect(const Vector3& point, const OBBox& obb, CollisionInfo& c
     float dist = sqrt(distSq);
     colInfo.penetrationDepth = -dist;
     colInfo.normal = diff * (1.0f / dist);
-    colInfo.contactPoint = closestPointWorld;
+    colInfo.contactPoint1 = closestPointWorld;
     return false;
   }
   else {
@@ -324,7 +324,7 @@ PlatformMath::intersect(const Vector3& point, const OBBox& obb, CollisionInfo& c
 
     colInfo.penetrationDepth = minDist;
     colInfo.normal = normal;
-    colInfo.contactPoint = point - normal * minDist;
+    colInfo.contactPoint1 = point - normal * minDist;
     return true;
   }
 }
@@ -402,7 +402,7 @@ PlatformMath::intersect(const Vector3& point, const Capsule& cap, CollisionInfo&
     colInfo.normal = Vector3(1, 0, 0);
   }
 
-  colInfo.contactPoint = closestPoint + colInfo.normal * cap.radius;
+  colInfo.contactPoint1 = closestPoint + colInfo.normal * cap.radius;
   return true;
 }
 
@@ -635,7 +635,7 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& co
   }
 
   colInfo.normal = normal;
-  colInfo.contactPoint = bestP + normal * cap.radius;
+  colInfo.contactPoint1 = bestP + normal * cap.radius;
 
   return true;
 }
@@ -712,7 +712,7 @@ PlatformMath::intersect(const OBBox& box, const Capsule& cap, CollisionInfo& col
   // Turn to global space
   colInfo.normal = box.rotation.rotate(normal);
   Vector3 contactLocal = bestP + normal * cap.radius;
-  colInfo.contactPoint = box.rotation.rotate(contactLocal) + box.center;
+  colInfo.contactPoint1 = box.rotation.rotate(contactLocal) + box.center;
 
   return true;
 }
@@ -947,7 +947,7 @@ PlatformMath::intersect(const Sphere& sph, const Capsule& cap, CollisionInfo& co
     colInfo.normal = Vector3::RIGHT;
   }
 
-  colInfo.contactPoint = closest + colInfo.normal * cap.radius;
+  colInfo.contactPoint1 = closest + colInfo.normal * cap.radius;
   return true;
 }
 
@@ -1085,7 +1085,7 @@ PlatformMath::intersect(const Capsule& cap, const Capsule& cap1, CollisionInfo& 
     colInfo.normal = Vector3(1, 0, 0);
   }
 
-  colInfo.contactPoint = pt1 + colInfo.normal * cap.radius;
+  colInfo.contactPoint1 = pt1 + colInfo.normal * cap.radius;
   return true;
 }
 

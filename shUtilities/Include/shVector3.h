@@ -277,6 +277,17 @@ class SH_UTILITY_EXPORT Vector3
   operator*(const float delta) const;
 
   /**
+  *  @brief Operator to divide the values of a Vector3 with a float.
+  *
+  *  @param lValue-Vector3.
+  *  @param rValue-float.
+  *
+  *  @return Vector3 The result of the division
+  */
+  FORCEINLINE Vector3
+  operator/(const float delta) const;
+
+  /**
   *  @brief Operator to sum a Vector3 values and other Vector3 values and store
   *         the result in the first Vector3.
   *
@@ -389,6 +400,17 @@ FORCEINLINE Vector3
 Vector3::operator*(const float delta) const
 {
   return Vector3(x * delta, y * delta, z * delta);
+}
+
+FORCEINLINE Vector3
+Vector3::operator/(const float delta) const
+{
+  if (delta == 0.0f)
+  {
+    // Handle division by zero, could throw an exception or return a zero vector
+    return Vector3(0.0f, 0.0f, 0.0f);
+  }
+  return Vector3(x / delta, y / delta, z / delta);
 }
 
 FORCEINLINE Vector3&

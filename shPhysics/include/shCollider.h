@@ -34,7 +34,8 @@ enum E
   kSphere,
   kCapsule,
   kAABBox,
-  kOBBox
+  kOBBox,
+  kConvexMesh
 };
 }
 

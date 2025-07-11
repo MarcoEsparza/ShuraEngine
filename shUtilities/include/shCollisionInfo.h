@@ -26,6 +26,7 @@ struct CollisionInfo
 {
   float penetrationDepth = 0.0f;
   Vector3 normal = Vector3::ZERO;
-  Vector3 contactPoint = Vector3::ZERO;
+  Vector3 contactPoint1 = Vector3::ZERO;
+  Vector3 contactPoint2 = Vector3::ZERO;
 };
 }

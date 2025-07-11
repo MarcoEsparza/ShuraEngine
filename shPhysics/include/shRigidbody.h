@@ -23,6 +23,7 @@
 //#include "shGameObject.h"
 #include "shQuaternion.h"
 #include "shOBBox.h"
+#include "shCollider.h"
 
 namespace shEngineSDK {
 class GameObject;
@@ -64,11 +65,11 @@ public:
   Matrix3
   getInvInertiaWorld();
 
+  Vector3
+  getWorldPosition() const;
+
   void
   applyImpulse(const Vector3& impulse, const Vector3& point);
-
-  Matrix3
-  getInertiaTensor(OBBox box) const;
 
   /***************************************************************************/
   /*
@@ -139,5 +140,7 @@ public:
   SPtr<GameObject> m_owner;
 
   Quaternion m_rotation;
+
+  COLLIDER_TYPE::E m_colliderType = COLLIDER_TYPE::kNone;
 };
 }

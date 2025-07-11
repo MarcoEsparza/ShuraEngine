@@ -295,7 +295,7 @@ PlatformPhysics::EPA(const OBBox& obb1,
     if (d - minDist < Math::SMALL_NUMBER) {
       info.penetrationDepth = d;
       info.normal = f.normal;
-      info.contactPoint = p - f.normal * 0.5f * d;
+      info.contactPoint1 = p - f.normal * 0.5f * d;
       return true;
     }
   }
