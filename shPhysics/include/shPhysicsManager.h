@@ -29,6 +29,12 @@ class Sphere;
 class Capsule;
 class Quaternion;
 
+struct SH_PHYSICS_EXPORT ConvexMesh
+{
+  Vector<Vector3> vertices;
+  Vector<int32> indices;
+};
+
 /**
 *  @brief PhysicsManager class for handling physics simulation.
 */
@@ -153,6 +159,13 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
   resolveCollision(Rigidbody* rb1, 
                    Rigidbody* rb2, 
                    CollisionInfo& info);
+
+  void
+  subexpressions(float w0, float w1, float w2,
+                float& f1, float& f2, float& f3, float& g0, float& g1, float& g2);
+
+  void
+  computeMassProperties(const ConvexMesh& mesh, float mass, Vector3& cm, Matrix3& inertia);
 
   /**
   *  @brief Integrate the linear motion of a Rigidbody using Euler integration.
