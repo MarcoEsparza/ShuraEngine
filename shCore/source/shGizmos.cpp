@@ -33,6 +33,7 @@ void
 Gizmos::onStartUp()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  RenderManager& renderMan = g_renderMan();
 
   m_pass = sh_makeShared<Pass>();
   m_pass->setVShaderInfo("resources/shaders/DebugLines.hlsl",
@@ -57,6 +58,8 @@ Gizmos::onStartUp()
   rasterDesc.antialiasedLineEnable = false;
 
   m_pass->setRasterizerStateFromDesc(rasterDesc);
+  auto& pMainBuffer = renderMan.getMainBuffer();
+  m_pass->addVSConstantBuffer(pMainBuffer, 0);
 
   m_vertices.resize(MAX_LINES * 2);
   m_vertexBuffer = graphMan.createVertexBuffer(m_vertices);
@@ -81,26 +84,23 @@ Gizmos::drawGizmos()
   }
 
   for (auto& obb : boxes) {
-    auto verts = obb.getVertices();
-    for(int32 i = 0; i < 24; i += 2) {
-      drawLine(verts[i], verts[i + 1]);
-    }
+    drawBox(obb);
   }
 
   auto pMainTex = graphMan.getMainRenderTargetView();
   auto pDepthTex = graphMan.getMainDepthStencil();
-  auto& pMainBuffer = renderMan.getMainBuffer(); 
 
   if (m_vertices.size() > 0) {
     graphMan.setPrimitiveTopology(PRIMITIVE_TOPOLOGY::kLineList);
     graphMan.updateVertexBuffer(m_vertexBuffer, m_vertices.data(),
                                 m_vertices.size() * sizeof(Vector3));
-    graphMan.psSetConstantBuffers(pMainBuffer, 0);
     m_pass->setPass();
     graphMan.setRenderTargets({ pMainTex }, pDepthTex);
     graphMan.setVertexBuffers(m_vertexBuffer);
     graphMan.draw(m_vertices.size(), 0);
     m_vertices.clear();
+    m_vertices.resize(MAX_LINES * 2);
+    m_numVerticesInFrame = 0;
   }
 }
 
@@ -125,7 +125,31 @@ Gizmos::getCollidersInScene()
 void
 Gizmos::drawLine(const Vector3& from, const Vector3& to)
 {
-  m_vertices.push_back(from);
-  m_vertices.push_back(to);
+  m_vertices[m_numVerticesInFrame++] = from;
+  m_vertices[m_numVerticesInFrame++] = to;
+}
+
+void
+Gizmos::drawBox(OBBox& box)
+{
+  auto verts = box.getVertices();
+
+  // Front face
+  drawLine(verts[0], verts[1]);
+  drawLine(verts[1], verts[3]);
+  drawLine(verts[3], verts[2]);
+  drawLine(verts[2], verts[0]);
+
+  // Back face
+  drawLine(verts[4], verts[5]);
+  drawLine(verts[5], verts[7]);
+  drawLine(verts[7], verts[6]);
+  drawLine(verts[6], verts[4]);
+
+  // Connect front and back faces
+  drawLine(verts[0], verts[4]);
+  drawLine(verts[1], verts[5]);
+  drawLine(verts[2], verts[6]);
+  drawLine(verts[3], verts[7]);
 }
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shPhysicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/27
+*  @date    2025/07/11
 *  @brief   Physics manager class for handling physics simulation.
 *
 *  Physics manager class for handling physics simulation.
@@ -23,7 +23,6 @@
 #include "shSphere.h"
 #include "shCapsule.h"
 #include "shTime.h"
-//#include "shGameObject.h"
 
 
 // Temporary include for sorting
@@ -64,7 +63,7 @@ PhysicsManager::sweepAndPrune(Vector<Rigidbody*>& rigidbodies)
 }
 
 Matrix3
-PhysicsManager::getInertiaTensor(OBBox box, float mass) const
+PhysicsManager::getInertiaTensor(OBBox& box, float mass) const
 {
   Matrix3 result = Matrix3::ZEROMATRIX;
   result.m[0][0] = (1.0f / 12.0f) * mass *
@@ -78,7 +77,7 @@ PhysicsManager::getInertiaTensor(OBBox box, float mass) const
 }
 
 Matrix3
-PhysicsManager::getInertiaTensor(Sphere sphere, float mass) const
+PhysicsManager::getInertiaTensor(Sphere& sphere, float mass) const
 {
   Matrix3 result = Matrix3::ZEROMATRIX;
   result.m[0][0] = (2.0f / 5.0f) * mass * sphere.radius * sphere.radius;
@@ -88,20 +87,32 @@ PhysicsManager::getInertiaTensor(Sphere sphere, float mass) const
   return result;
 }
 
-Matrix3 PhysicsManager::getInertiaTensor(Capsule capsule, float mass) const
+Matrix3 PhysicsManager::getInertiaTensor(Capsule& capsule, float mass) const
 {
   // For a capsule, we can approximate the inertia tensor as a cylinder
-  // with two hemispherical ends. The inertia tensor for a cylinder is:
+  // with two hemispherical ends.
   Matrix3 result = Matrix3::ZEROMATRIX;
   float r = capsule.radius;
   float h = capsule.height;
 
+  float perpendicularInertia = (1.0f / 12.0f) * mass * (3.0f * r * r + h * h);
+  float inertiaAxis = 0.5f * mass * r * r;
 
-  return Matrix3();
+  // Create the inertia tensor aligned to Y-axis
+  result.m[0][0] = perpendicularInertia; // X-axis inertia
+  result.m[1][1] = inertiaAxis; // Y-axis inertia
+  result.m[2][2] = perpendicularInertia; // Z-axis inertia
+
+  // Rotate the inertia tensor to match the capsule's orientation
+  Quaternion rotation(Vector3::UP, capsule.center);
+  Matrix3 rotatedTensor = rotation.toMatrix3();
+  Matrix3 inertiaWorld = rotatedTensor * result * rotatedTensor.transpose();
+
+  return inertiaWorld;
 }
 
 Matrix3
-PhysicsManager::computeInertiaTensor(Collider& collider, float mass)
+PhysicsManager::computeInertiaTensor(Collider& collider, float mass) const
 {
   switch (collider.m_type) {
   case COLLIDER_TYPE::kOBBox:

@@ -26,6 +26,7 @@ class ColliderComponent;
 class Pass;
 class Texture2D;
 class VertexBuffer;
+class OBBox;
 
 //struct GizmosVertex
 //{
@@ -53,6 +54,9 @@ class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
   void
   drawLine(const Vector3& from, const Vector3& to);
 
+  void
+  drawBox(OBBox& box);
+
  private:
   SPtr<Pass> m_pass;
   //SPtr<Texture2D> m_linesTex;
@@ -60,5 +64,6 @@ class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
   SPtr<VertexBuffer> m_vertexBuffer;
 
   Vector<Vector3> m_vertices;
+  uint32 m_numVerticesInFrame = 0.0f;
 };
 }
