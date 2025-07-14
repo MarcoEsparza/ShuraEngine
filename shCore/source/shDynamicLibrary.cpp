@@ -43,7 +43,7 @@ DynamicLibrary::load()
 
   if (!m_dynLibHandler) {
     auto error = GetLastError();
-    SH_ASSERT(false && "Couldnt load dll");
+    SH_ASSERT(false && error);
   }
 }
 

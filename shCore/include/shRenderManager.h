@@ -74,7 +74,6 @@ struct RenderTargetInfo
 /**
 *  @brief Main buffer data structure.
 */
-MS_ALIGN(16)
 struct MainBufferData
 {
   // View matrix data from the camera.
@@ -103,12 +102,11 @@ struct MainBufferData
   float deltaTime = 0.0f;
   float cosTime = 0.0f;
   float sinTime = 0.0f;
-} GCC_ALIGN(16);
+};
 
 /**
 *  @brief Shader data structure.
 */
-MS_ALIGN(16)
 struct ShaderData {
   // Ambient occlusion data.
   float sampleRadius = 0.0f;
@@ -140,7 +138,7 @@ struct ShaderData {
   
   float lightIntensity = 0.0f;
   float middleGrey = 0.0f;
-} GCC_ALIGN(16);
+};
 
 /**
 *  @brief Render module.

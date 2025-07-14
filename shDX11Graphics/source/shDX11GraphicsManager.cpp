@@ -870,7 +870,7 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
         /*texMipLevels = static_cast<uint32>(Math::log2(Math::max(static_cast<float>(width),
                                                       static_cast<float>(height)))) + 1;*/
         // Temporary fix for log2, later we should use a proper log2 function
-        texMipLevels = std::log2(max(width, height)) + 1;
+        texMipLevels = static_cast<uint32>(std::log2(max(width, height)) + 1);
         autoGenMipMaps = true;
       }
     }
@@ -1267,7 +1267,7 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<RenderTarget>& pRende
     pRTVs.push_back(pD3D11RTV);
   }
 
-  for (uint32 i = pRTVs.size(); i < 8; ++i) {
+  for (uint32 i = static_cast<uint32>(pRTVs.size()); i < 8; ++i) {
     pRTVs.push_back(nullptr);
   }
 

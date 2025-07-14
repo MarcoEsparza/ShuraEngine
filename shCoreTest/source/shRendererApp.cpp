@@ -710,7 +710,7 @@ RendererApp::setImgui()
             ImGui::Text("Vertex Count: %d", vertexCount);
             ImGui::Text("Index Count: %d", indexCount);
 
-            for (uint32 j = 0; j < pMesh->m_mesh->m_materials.size(); ++j) {
+            for (int32 j = 0; j < pMesh->m_mesh->m_materials.size(); ++j) {
               auto& currentMat = pMesh->m_mesh->m_materials[j];
               String matName = "Material:" + currentMat->name;
               //ImGui::Text(matName.c_str());
