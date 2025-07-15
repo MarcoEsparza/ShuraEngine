@@ -19,8 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\shBoxAAB.h" />
-    <ClInclude Include="Include\shBoxOBB.h" />
+    <ClInclude Include="Include\shAABBox.h" />
+    <ClInclude Include="include\shBivector.h" />
+    <ClInclude Include="Include\shOBBox.h" />
     <ClInclude Include="Include\shCapsule.h" />
     <ClInclude Include="include\shCollisionInfo.h" />
     <ClInclude Include="include\shColor.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="Include\shQuaternion.h" />
     <ClInclude Include="include\shRadian.h" />
     <ClInclude Include="Include\shRect.h" />
+    <ClInclude Include="include\shRotor.h" />
     <ClInclude Include="include\shScriptManager.h" />
     <ClInclude Include="include\shScriptVector3.h" />
     <ClInclude Include="Include\shSphere.h" />
@@ -53,8 +55,10 @@
     <ClInclude Include="Include\shVector4.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shBoxAAB.cpp" />
-    <ClCompile Include="Source\shBoxOBB.cpp" />
+    <ClCompile Include="Source\shAABBox.cpp" />
+    <ClCompile Include="source\shBivector.cpp" />
+    <ClCompile Include="source\shMatrix3.cpp" />
+    <ClCompile Include="Source\shOBBox.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
     <ClCompile Include="source\shColor.cpp" />
     <ClCompile Include="source\shDegree.cpp" />
@@ -67,6 +71,7 @@
     <ClCompile Include="Source\shQuaternion.cpp" />
     <ClCompile Include="source\shRadian.cpp" />
     <ClCompile Include="Source\shRect.cpp" />
+    <ClCompile Include="source\shRotor.cpp" />
     <ClCompile Include="source\shScriptManager.cpp" />
     <ClCompile Include="Source\shSphere.cpp" />
     <ClCompile Include="source\shTime.cpp" />

@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/07/14
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -23,14 +23,15 @@
 namespace shEngineSDK {
 class Vector3;
 class Vector2;
-class BoxAAB;
-class BoxOBB;
+class AABBox;
+class OBBox;
 class Capsule;
 class Plane;
 class Rect;
 class Sphere;
 class Degree;
 class Radian;
+struct CollisionInfo;
 
 /**
 *  @brief Math class wrapper, using the STD. compatible with Windows, Linux and OSX.
@@ -143,6 +144,13 @@ public:
   static float
   abs(const float value);
 
+  /**
+  *  @brief Calculates the logarithm base 2 of a given value.
+  *
+  *  @param float value: The value to calculate the logarithm base 2.
+  *
+  *  @return float The logarithm base 2 of the value.
+  */
   static float
   log2(const float value);
 
@@ -322,6 +330,20 @@ public:
   /*************************************************************/
 
   /**
+  *  @brief Checks if a point is intersecting with an axis aligned bounding box, and
+  *         gets the collision information.
+  *
+  *  @param Vector3 point: The point.
+  *  @param shBoxAAB box: The box.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Vector3& point, const AABBox& box, CollisionInfo& colInfo);
+
+
+  /**
   *  @brief Checks if a point is intersecting with an axis aligned bounding box.
   *
   *  @param Vector3 point: The point.
@@ -330,7 +352,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  pointBoxIntersect(const Vector3& point, const BoxAAB& box);
+  intersect(const Vector3& point, const AABBox& box);
+
+  /**
+  *  @brief Checks if a point is intersecting with an oriented bounding box, and
+  *         gets the collision information.
+  *
+  *  @param Vector3 point: The point.
+  *  @param shBoxOBB box: The box.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Vector3& point, const OBBox& box, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with an oriented bounding box.
@@ -341,7 +376,19 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  pointBoxIntersect(const Vector3& point, const BoxOBB& box);
+  intersect(const Vector3& point, const OBBox& box);
+
+  /**
+  *  @brief Checks if a point is intersecting with a sphere, and the collision information.
+  *
+  *  @param Vector3 point: The point.
+  *  @param shSphere sph: The sphere.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Vector3& point, const Sphere& sph, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with a sphere.
@@ -352,7 +399,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  pointSphereIntersect(const Vector3& point, const Sphere& sph);
+  intersect(const Vector3& point, const Sphere& sph);
+
+  /**
+  *  @brief Checks if a point is intersecting with a capsule, and gets the collision
+  *         information.
+  *
+  *  @param Vector3 point: The point.
+  *  @param shCapsule cap: The capsule.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Vector3& point, const Capsule& cap, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with a capsule.
@@ -363,7 +423,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  pointCapsuleIntersect(const Vector3& point, const Capsule& cap);
+  intersect(const Vector3& point, const Capsule& cap);
+
+  /**
+  *  @brief Checks if a point is intersecting with a rect, and gets the collision
+  *         information.
+  *
+  *  @param Vector3 point: The point.
+  *  @param shRect rect: The rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Vector2& point, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with a rect.
@@ -374,7 +447,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  pointRectIntersect(const Vector2& point, const Rect& rect);
+  intersect(const Vector2& point, const Rect& rect);
+
+  /**
+  *  @brief Checks if a point is intersecting with a plane, and gets the collision
+  *         information.
+  *
+  *  @param Vector3 point: The point.
+  *  @param shPlane plane: The plane.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Vector3& point, const Plane& plane, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a point is intersecting with a plane.
@@ -385,7 +471,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  pointPlaneIntersect(const Vector3& point, const Plane& plane);
+  intersect(const Vector3& point, const Plane& plane);
+
+  /**
+  *  @brief Checks if a box is intersecting with another box, and gets the collision
+  *         information.
+  *
+  *  @param shBoxAAB box: The first box.
+  *  @param shBoxAAB box1: The second box.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const AABBox& box, const AABBox& box1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with another box.
@@ -396,7 +495,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxBoxIntersect(const BoxAAB& box, const BoxAAB& box1);
+  intersect(const AABBox& box, const AABBox& box1);
+
+  /**
+  *  @brief Checks if a box is intersecting with another box, and gets the collision
+  *         information.
+  *
+  *  @param shBoxOBB box: The first box.
+  *  @param shBoxOBB box1: The second box.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const OBBox& box, const OBBox& box1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with another box.
@@ -407,7 +519,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxBoxIntersect(const BoxOBB& box, const BoxOBB& box1);
+  intersect(const OBBox& box, const OBBox& box1);
+
+  /**
+  *  @brief Checks if a box is intersecting with another box, and gets the collision
+  *         information.
+  *
+  *  @param shBoxAAB boxA: The axis aligned bounding box.
+  *  @param shBoxOBB boxO: The oriented bounding box.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const AABBox& boxA, const OBBox& boxO, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with another box.
@@ -418,7 +543,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxBoxIntersect(const BoxAAB& boxA, const BoxOBB& boxO);
+  intersect(const AABBox& boxA, const OBBox& boxO);
+
+  /**
+  *  @brief Checks if a box is intersecting with a capsule, and gets the collision
+  *         information.
+  *
+  *  @param shBoxAAB box: The axis aligned bounding box.
+  *  @param shCapsule cap: The capsule.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const AABBox& box, const Capsule& cap, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a capsule.
@@ -429,7 +567,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxCapsuleIntersect(const BoxAAB& box, const Capsule& cap);
+  intersect(const AABBox& box, const Capsule& cap);
+
+  /**
+  *  @brief Checks if a box is intersecting with a capsule, and gets the collision
+  *         information.
+  *
+  *  @param shBoxOBB box: The oriented bounding box.
+  *  @param shCapsule cap: The capsule.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const OBBox& box, const Capsule& cap, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a capsule.
@@ -440,7 +591,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxCapsuleIntersect(const BoxOBB& box, const Capsule& cap);
+  intersect(const OBBox& box, const Capsule& cap);
+
+  /**
+  *  @brief Checks if a box is intersecting with a plane, and gets the collision
+  *         information.
+  *
+  *  @param shBoxAAB box: The axis aligned bounding box.
+  *  @param shPlane plane: The plane.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const AABBox& box, const Plane& plane, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a plane.
@@ -451,7 +615,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxPlaneIntersect(const BoxAAB& box, const Plane& plane);
+  intersect(const AABBox& box, const Plane& plane);
+
+  /**
+  *  @brief Checks if a box is intersecting with a plane, and gets the collision
+  *         information.
+  *
+  *  @param shBoxOBB box: The oriented bounding box.
+  *  @param shPlane plane: The plane.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const OBBox& box, const Plane& plane, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a plane.
@@ -462,7 +639,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxPlaneIntersect(const BoxOBB& box, const Plane& plane);
+  intersect(const OBBox& box, const Plane& plane);
+
+  /**
+  *  @brief Checks if a box is intersecting with a rect, and gets the collision
+  *         information.
+  *
+  *  @param shBoxAAB box: The axis aligned bounding box.
+  *  @param shRect rect: The rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const AABBox& box, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a rect.
@@ -473,7 +663,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxRectIntersect(const BoxAAB& box, const Rect& rect);
+  intersect(const AABBox& box, const Rect& rect);
+
+  /**
+  *  @brief Checks if a box is intersecting with a rect, and gets the collision
+  *         information.
+  *
+  *  @param shBoxOBB box: The oriented bounding box.
+  *  @param shRect rect: The rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const OBBox& box, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a rect.
@@ -484,7 +687,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxRectIntersect(const BoxOBB& box, const Rect& rect);
+  intersect(const OBBox& box, const Rect& rect);
+
+  /**
+  *  @brief Checks if a sphere is intersecting with another sphere, and gets the collision
+  *         information.
+  *
+  *  @param shSphere sph: The first sphere.
+  *  @param shSphere sph1: The second sphere.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Sphere& sph, const Sphere& sph1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a sphere is intersecting with another sphere.
@@ -495,7 +711,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  sphereSphereIntersect(const Sphere& sph, const Sphere& sph1);
+  intersect(const Sphere& sph, const Sphere& sph1);
+
+  /**
+  *  @brief Checks if a box is intersecting with a sphere, and gets the collision
+  *         information.
+  *
+  *  @param shBoxAAB box: The axis aligned bounding box.
+  *  @param shSphere sph: The sphere.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const AABBox& box, const Sphere& sph, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a sphere.
@@ -506,7 +735,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxSphereIntersect(const BoxAAB& box, const Sphere& sph);
+  intersect(const AABBox& box, const Sphere& sph);
+
+  /**
+  *  @brief Checks if a box is intersecting with a sphere, and gets the collision
+  *         information.
+  *
+  *  @param shBoxOBB box: The oriented bounding box.
+  *  @param shSphere sph: The sphere.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const OBBox& box, const Sphere& sph, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a box is intersecting with a sphere.
@@ -517,7 +759,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  boxSphereIntersect(const BoxOBB& box, const Sphere& sph);
+  intersect(const OBBox& box, const Sphere& sph);
+
+  /**
+  *  @brief Checks if a sphere is intersecting with a capsule, and gets the collision
+  *         information.
+  *
+  *  @param shSphere sph: The sphere.
+  *  @param shCapsule cap: The capsule.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Sphere& sph, const Capsule& cap, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a sphere is intersecting with a capsule.
@@ -528,7 +783,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  sphereCapsuleIntersect(const Sphere& sph, const Capsule& cap);
+  intersect(const Sphere& sph, const Capsule& cap);
+
+  /**
+  *  @brief Checks if a sphere is intersecting with a plane, and gets the collision
+  *         information.
+  *
+  *  @param shSphere sph: The sphere.
+  *  @param shPlane plane: The plane.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Sphere& sph, const Plane& plane, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a sphere is intersecting with a plane.
@@ -539,7 +807,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  spherePlaneIntersect(const Sphere& sph, const Plane& plane);
+  intersect(const Sphere& sph, const Plane& plane);
+
+  /**
+  *  @brief Checks if a sphere is intersecting with a rect, and gets the collision
+  *         information.
+  *
+  *  @param shSphere sph: The sphere.
+  *  @param shRect rect: The rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Sphere& sph, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a sphere is intersecting with a rect.
@@ -550,10 +831,24 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  sphereRectIntersect(const Sphere& sph, const Rect& rect);
+  intersect(const Sphere& sph, const Rect& rect);
 
   /**
-  *  @brief Checks if a capsule is intersecting with another capsule.
+  *  @brief Checks if a capsule is intersecting with another capsule, and gets the
+  *         collision information.
+  *
+  *  @param shCapsule cap: The first capsule.
+  *  @param shCapsule cap1: The second capsule.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Capsule& cap, const Capsule& cap1, CollisionInfo& colInfo);
+
+  /**
+  *  @brief Checks if a capsule is intersecting with another capsule, and gets the
+  *         collision information.
   *
   *  @param shCapsule cap: The first capsule.
   *  @param shCapsule cap1: The second capsule.
@@ -561,8 +856,21 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  capsuleCapsuleIntersect(const Capsule& cap, const Capsule& cap1);
+  intersect(const Capsule& cap, const Capsule& cap1);
   
+  /**
+  *  @brief Checks if a capsule is intersecting with a plane, and gets the collision
+  *         information.
+  *
+  *  @param shCapsule cap: The capsule.
+  *  @param shPlane plane: The plane.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Capsule& cap, const Plane& pln, CollisionInfo& colInfo);
+
   /**
   *  @brief Checks if a capsule is intersecting with a plane.
   *
@@ -572,7 +880,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  capsulePlaneIntersect(const Capsule& cap, const Plane& pln);
+  intersect(const Capsule& cap, const Plane& pln);
+
+  /**
+  *  @brief Checks if a capsule is intersecting with a rect, and gets the collision
+  *         information.
+  *
+  *  @param shCapsule cap: The capsule.
+  *  @param shRect rect: The rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Capsule& cap, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a capsule is intersecting with a rect.
@@ -583,7 +904,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  capsuleRectIntersect(const Capsule& cap, const Rect& rect);
+  intersect(const Capsule& cap, const Rect& rect);
+
+  /**
+  *  @brief Checks if a plane is intersecting with another plane, and gets the collision
+  *         information.
+  *
+  *  @param shPlane plane: The first plane.
+  *  @param shPlane plane1: The second plane.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Plane& plane, const Plane& plane1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a plane is intersecting with another plane.
@@ -594,7 +928,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  planePlaneIntersect(const Plane& plane, const Plane& plane1);
+  intersect(const Plane& plane, const Plane& plane1);
+
+  /**
+  *  @brief Checks if a plane is intersecting with a rect, and gets the collision
+  *         information.
+  *
+  *  @param shPlane plane: The plane.
+  *  @param shRect rect: The rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Plane& plane, const Rect& rect, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a plane is intersecting with a rect.
@@ -605,7 +952,20 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  planeRectIntersect(const Plane& plane, const Rect& rect);
+  intersect(const Plane& plane, const Rect& rect);
+
+  /**
+  *  @brief Checks if a rect is intersecting with another rect, and gets the collision
+  *         information.
+  *
+  *  @param shRect rect: The first rect.
+  *  @param shRect rect1: The second rect.
+  *  @param CollisionInfo& colInfo.
+  *
+  *  @return bool True if is intersecting, false is otherwise.
+  */
+  static bool
+  intersect(const Rect& rect, const Rect& rect1, CollisionInfo& colInfo);
 
   /**
   *  @brief Checks if a rect is intersecting with another rect.
@@ -616,7 +976,7 @@ public:
   *  @return bool True if is intersecting, false is otherwise.
   */
   static bool
-  rectRectIntersect(const Rect& rect, const Rect& rect1);
+  intersect(const Rect& rect, const Rect& rect1);
 
   /*************************************************************/
   /*
@@ -628,6 +988,16 @@ public:
   *  @brief PI value.
   */
   static const float PI;
+
+  /**
+  *  @brief Two PI value.
+  */
+  static const float TWO_PI;
+
+  /**
+  *  @brief Half PI value.
+  */
+  static const float HALF_PI;
 
   /**
   *  @brief Use to convert a Radian value to a Degree angle.
@@ -643,5 +1013,10 @@ public:
   *  @brief Small number.
   */
   static const float SMALL_NUMBER;
+
+  /**
+  *  @brief Less Small number.
+  */
+  static const float KINDA_SMALL_NUMBER;
 };
 }

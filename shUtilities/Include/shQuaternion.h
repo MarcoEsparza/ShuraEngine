@@ -2,7 +2,7 @@
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2025/07/11
 *  @brief   Quaternion for rotations
 *
 *  Quaternion for rotations
@@ -21,6 +21,8 @@
 #include "shVector3.h"
 
 namespace shEngineSDK {
+class Matrix3;
+
 /**
 *  @brief Quaternion for rotations
 * 
@@ -63,6 +65,8 @@ class SH_UTILITY_EXPORT Quaternion
   */
   Quaternion(const Vector3& axis, const float angle);
 
+  Quaternion(const Vector3& from, const Vector3& to);
+
   /**
   *  @brief Copy constructor
   *
@@ -90,14 +94,24 @@ class SH_UTILITY_EXPORT Quaternion
   toEulerAngles() const;
 
   /**
-  *  @brief Transform Quaternion to Vector3
+  *  @brief Transform Quaternion to rotation Vector3
   *
   *  @param Vector3& vec
   * 
   *  @return Vector3
   */
   Vector3
-  toRotate(const Vector3& vec) const;
+  rotate(const Vector3& vec) const;
+
+  /**
+  *  @brief Transform Quaternion to inverse rotation Vector3
+  *
+  *  @param Vector3& vec
+  * 
+  *  @return Vector3
+  */
+  Vector3
+  invRotate(const Vector3& vec) const;
 
   /**
   *  @brief Transform three given Vectors3 to axes vectors for a rotation matrix3.
@@ -134,6 +148,9 @@ class SH_UTILITY_EXPORT Quaternion
   */
   float
   lenght() const;
+
+  float
+  lenghtSquared() const;
 
   /**
   *  @brief Normalize Quaternion values.
@@ -220,6 +237,17 @@ class SH_UTILITY_EXPORT Quaternion
   Quaternion
   slerp(const Quaternion& other, const float _time) const;
 
+  /**
+  *  @brief Transform this Quaternion to a Matrix3 rotation matrix.
+  *
+  *  @return Matrix3 The rotation matrix from this Quaternion.
+  */
+  Matrix3
+  toMatrix3() const;
+
+  static Quaternion
+  fromBivector(const Vector3& vector);
+
   /*************************************************************/
   /*
   *  Operator overload
@@ -282,6 +310,17 @@ class SH_UTILITY_EXPORT Quaternion
   operator*(const Vector3& axis) const;
 
   /**
+  *  @brief Quaternion multiplication with a Matrix3.
+  *
+  *  @param lValue-Quaternion.
+  *  @param rValue-Matrix3.
+  *
+  *  @return Matrix3
+  */
+  Matrix3
+  operator*(const Matrix3& mat) const;
+
+  /**
   *  @brief Operator to sum a Quaternion values and other Quaternion values and
   *         store the result in the first Quaternion.
   *
@@ -330,6 +369,27 @@ class SH_UTILITY_EXPORT Quaternion
   * @brief Quaternion Z value. Imaginary part.
   */
   float z;
+
+  /*************************************************************/
+  /*
+  *  Static Variables
+  */
+  /*************************************************************/
+ public:
+  /**
+  * @brief Identity Quaternion value.
+  */
+  static const Quaternion IDENTITY;
+
+  /**
+  * @brief Zero Quaternion value.
+  */
+  static const Quaternion ZERO;
+
+  /**
+  * @brief Unit Quaternion value.
+  */
+  static const Quaternion UNIT;
 };
 
 /*************************************************************/

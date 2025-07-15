@@ -2,7 +2,7 @@
 /*
 *  @file    shCapsule.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/06/06
 *  @brief   Math class for capsule figure.
 *
 *  Math class for capsule figure.
@@ -36,8 +36,14 @@ class SH_UTILITY_EXPORT Capsule
   *  @param const Vector3& pA: Point A.
   *  @param const Vector3& pB: Point B.
   */
-  Capsule(const float _radius, const Vector3& pA, const Vector3& pB)
-            : radius(_radius), pointA(pA), pointB(pB) {}
+  Capsule(const float _radius,
+          const Vector3& _center,
+          const Vector3& _direction,
+          const float _height)
+          : radius(_radius),
+            center(_center),
+            direction(_direction),
+            height(_height) {}
   /**
   *  @brief Default destructor.
   */
@@ -50,37 +56,12 @@ class SH_UTILITY_EXPORT Capsule
   /*************************************************************/
 
   /**
-  *  @brief Set the min and max values for the capsule.
-  * 
-  *  @param const Vector3& pA: Desired first point value.
-  *  @param const Vector3& pB: Desired second point value.
-  */
-  void
-  setPosition(const Vector3& pA, const Vector3& pB);
-
-  /**
   *  @brief Set the capsule radius.
   *  
   *  @param const float& _radius: Set the radius.
   */
   void
   setRadius(const float _radius);
-
-  /**
-  *  @brief Returns capsule point A.
-  *
-  *  @return Vector3
-  */
-  Vector3
-  getPointA() const;
-
-  /**
-  *  @brief Returns capsule point B.
-  *
-  *  @return Vector3
-  */
-  Vector3
-  getPointB() const;
 
   /**
   *  @brief Returns capsule radius.
@@ -112,13 +93,18 @@ class SH_UTILITY_EXPORT Capsule
   float radius;
 
   /**
-  *  @brief The min value of the capsule figure.
+  *  @brief The center of the figure
   */
-  Vector3 pointA;
+  Vector3 center;
 
   /**
-  *  @brief The max value of the capsule figure.
+  *  @brief The direction.
   */
-  Vector3 pointB;
+  Vector3 direction;
+
+  /**
+  *  @brief The height between the two points of the capsule.
+  */
+  float height;
 };
 }

@@ -48,10 +48,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\shBoxAAB.h">
+    <ClInclude Include="Include\shAABBox.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
-    <ClInclude Include="Include\shBoxOBB.h">
+    <ClInclude Include="Include\shOBBox.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
     <ClInclude Include="Include\shCapsule.h">
@@ -144,9 +144,15 @@
     <ClInclude Include="include\shCollisionInfo.h">
       <Filter>Include\Figures</Filter>
     </ClInclude>
+    <ClInclude Include="include\shBivector.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shRotor.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\shBoxOBB.cpp">
+    <ClCompile Include="Source\shOBBox.cpp">
       <Filter>Source\Figures</Filter>
     </ClCompile>
     <ClCompile Include="Source\shCapsule.cpp">
@@ -161,7 +167,7 @@
     <ClCompile Include="Source\shSphere.cpp">
       <Filter>Source\Figures</Filter>
     </ClCompile>
-    <ClCompile Include="Source\shBoxAAB.cpp">
+    <ClCompile Include="Source\shAABBox.cpp">
       <Filter>Source\Figures</Filter>
     </ClCompile>
     <ClCompile Include="Source\shMatrix4.cpp">
@@ -211,6 +217,15 @@
     </ClCompile>
     <ClCompile Include="source\shLogger.cpp">
       <Filter>Source\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shMatrix3.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shBivector.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shRotor.cpp">
+      <Filter>Source\Math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

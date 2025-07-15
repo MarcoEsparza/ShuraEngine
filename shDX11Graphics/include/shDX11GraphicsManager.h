@@ -384,6 +384,11 @@ class DX11GraphicsManager : public GraphicsManager
   virtual void
   internalUpdateScreenSize(const Vector2& size) override;
 
+  void
+  updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
+                     const void* pData,
+                     const uint32 dataSize) override;
+
   /**
   *  @brief Saves a Texture2D to a dds file.
   *

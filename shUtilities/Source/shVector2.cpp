@@ -40,6 +40,12 @@ Vector2::dot(const Vector2& other) const
 }
 
 float
+Vector2::cross(const Vector2& other)
+{
+  return x * other.y - y * other.x;
+}
+
+float
 Vector2::mag() const
 {
   return Math::sqrt(x * x + y * y);

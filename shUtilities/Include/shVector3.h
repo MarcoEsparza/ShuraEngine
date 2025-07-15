@@ -120,6 +120,29 @@ class SH_UTILITY_EXPORT Vector3
   lerp(const Vector3& other, const float time) const;
 
   /**
+  *  @brief Clamp this Vector with other 2 Vectors as min and max.
+  *
+  *  @param Vector3 min: Max value.
+  *  @param Vector3 max: Min value.
+  *
+  *  @return Vector3 Interpolated Vector3.
+  */
+  Vector3
+  clamp(const Vector3& min, const Vector3& max) const;
+
+  /**
+  *  @brief Vector3 lenght.
+  */
+  float
+  lenght() const;
+
+  /**
+  *  @brief Vector3 squared lenght.
+  */
+  float
+  lenghtSq() const;
+
+  /**
   *  @brief Rotate Vector3 in X axis.
   *
   *  @param Radian angle
@@ -171,12 +194,13 @@ class SH_UTILITY_EXPORT Vector3
   /*
   *  @brief Computes the closest point betwwen two given Vector3 to this.
   * 
-  *  @param Vector3& other
+  *  @param Vector3& A
+  *  @param Vector3& B
   * 
   *  @return Vector3
   */
   Vector3
-  closestPointOnSegment(const Vector3& vec1, const Vector3& vec2) const;
+  closestPointOnSegment(const Vector3& A, const Vector3& B) const;
 
   /*
   *  @brief Returns true if all components are zero.
@@ -193,6 +217,17 @@ class SH_UTILITY_EXPORT Vector3
   */
   bool
   containsNaN() const;
+
+  /*
+  *  @brief Calculates the distance between two Vector3s.
+  *
+  *  @param Vector3 a: First Vector3.
+  *  @param Vector3 b: Second Vector3.
+  * 
+  *  @return float The distance between the two Vector3s.
+  */
+  static float
+  distance(const Vector3& a, const Vector3& b);
 
   /***************************************************************************/
   /*
@@ -234,6 +269,14 @@ class SH_UTILITY_EXPORT Vector3
   operator-(const Vector3& other) const;
 
   /**
+  *  @brief Change Vector3 values sign.
+  *
+  *  @return Vector3
+  */
+  FORCEINLINE Vector3
+  operator-() const;
+
+  /**
   *  @brief Operator to multiply the values of a Vector3 with a float.
   *
   *  @param lValue-Vector3.
@@ -243,6 +286,27 @@ class SH_UTILITY_EXPORT Vector3
   */
   FORCEINLINE Vector3
   operator*(const float delta) const;
+
+  /**
+  *  @brief Operator to multiply the values of a Vector3 with another Vector3.
+  *
+  *  @param Vector3: The Vector3 to multiply.
+  *
+  *  @return Vector3 The result of the multiplication
+  */
+  FORCEINLINE Vector3
+  operator*(const Vector3& other) const;
+
+  /**
+  *  @brief Operator to divide the values of a Vector3 with a float.
+  *
+  *  @param lValue-Vector3.
+  *  @param rValue-float.
+  *
+  *  @return Vector3 The result of the division
+  */
+  FORCEINLINE Vector3
+  operator/(const float delta) const;
 
   /**
   *  @brief Operator to sum a Vector3 values and other Vector3 values and store
@@ -267,6 +331,9 @@ class SH_UTILITY_EXPORT Vector3
   */
   FORCEINLINE Vector3&
   operator-=(const Vector3& other);
+
+  FORCEINLINE Vector3&
+  operator*=(const Vector3& other);
 
   FORCEINLINE bool
   operator!=(const Vector3& other);
@@ -348,9 +415,32 @@ Vector3::operator-(const Vector3& other) const
 }
 
 FORCEINLINE Vector3
+Vector3::operator-() const
+{
+  return Vector3(-x, -y, -z);
+}
+
+FORCEINLINE Vector3
 Vector3::operator*(const float delta) const
 {
   return Vector3(x * delta, y * delta, z * delta);
+}
+
+FORCEINLINE Vector3
+Vector3::operator*(const Vector3& other) const
+{
+  return Vector3(x * other.x, y * other.y, z * other.z);
+}
+
+FORCEINLINE Vector3
+Vector3::operator/(const float delta) const
+{
+  if (delta == 0.0f)
+  {
+    // Handle division by zero, could throw an exception or return a zero vector
+    return Vector3(0.0f, 0.0f, 0.0f);
+  }
+  return Vector3(x / delta, y / delta, z / delta);
 }
 
 FORCEINLINE Vector3&
@@ -370,6 +460,15 @@ Vector3::operator-=(const Vector3& other)
   y -= other.y;
   z -= other.z;
 
+  return *this;
+}
+
+FORCEINLINE Vector3&
+Vector3::operator*=(const Vector3& other)
+{
+  x *= other.x;
+  y *= other.y;
+  z *= other.z;
   return *this;
 }
 

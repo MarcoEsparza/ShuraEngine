@@ -27,6 +27,8 @@
 #include "shTime.h"
 #include "shSceneGraph.h"
 #include "shLogger.h"
+#include "shPhysicsManager.h"
+#include "shGizmos.h"
 #include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
@@ -142,10 +144,12 @@ BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
   RenderManager::startUp();
+  Gizmos::startUp();
   ResourceManager::startUp();
   ScriptManager::startUp();
   Time::startUp();
   SceneGraph::startUp();
+  PhysicsManager::startUp();
   Logger::startUp();
 
   loadAudioAPI();
@@ -255,10 +259,12 @@ void
 BaseApp::destroyManagers()
 {
   Logger::shutDown();
+  PhysicsManager::shutDown();
   SceneGraph::shutDown();
   ResourceManager::shutDown();
   ScriptManager::shutDown();
   Time::shutDown();
+  Gizmos::shutDown();
   RenderManager::shutDown();
   AudioManager::shutDown();
   GraphicsManager::shutDown();

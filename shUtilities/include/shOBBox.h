@@ -2,7 +2,7 @@
 /*
 *  @file    shBoxOBB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/05/30
 *  @brief   Math class for Oriented Bounding-Box.
 *
 *  Math class for Oriented Bounding-Box.
@@ -23,13 +23,13 @@ namespace shEngineSDK {
 /**
 *  @brief Math class for Oriented Bounding-Box.
 */
-class SH_UTILITY_EXPORT BoxOBB
+class SH_UTILITY_EXPORT OBBox
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  BoxOBB() = default;
+  OBBox() = default;
   /**
   *  @brief Constructor that initialize box values.
   * 
@@ -37,7 +37,7 @@ class SH_UTILITY_EXPORT BoxOBB
   *  @param Quaternion& _rotation: Rotation values.
   *  @param Vector3& _extent: Extent values.
   */
-  BoxOBB(const Vector3& _center,
+  OBBox(const Vector3& _center,
            const Quaternion& _rotation,
            const Vector3 _extent)
            : center(_center), rotation(_rotation), extent(_extent) {}
@@ -45,7 +45,7 @@ class SH_UTILITY_EXPORT BoxOBB
   /**
   *  @brief Default destructor.
   */
-  ~BoxOBB() = default;
+  ~OBBox() = default;
 
   /*************************************************************/
   /*
@@ -131,6 +131,9 @@ class SH_UTILITY_EXPORT BoxOBB
   */
   Array<Vector3, 8>
   getCorners() const;
+
+  Vector<Vector3>
+  getVertices() const;
 
   /*************************************************************/
   /*

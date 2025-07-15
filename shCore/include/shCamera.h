@@ -23,6 +23,7 @@
 #include "shRadian.h"
 #include "shDegree.h"
 #include "shFrustum.h"
+#include "shQuaternion.h"
 
 namespace shEngineSDK {
 /**

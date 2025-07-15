@@ -402,6 +402,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   void
   updateScreenSize(const Vector2& size);
 
+  virtual void
+  updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
+                     const void* pData,
+                     const uint32 dataSize) = 0;
+
   /**
   *  @brief Saves a Texture2D to a dds file.
   * 

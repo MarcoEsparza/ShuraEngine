@@ -2,7 +2,7 @@
 /*
 *  @file    shCapsule.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2025/06/06
 *  @brief   Math class for capsule figure.
 *
 *  Math class for capsule figure.
@@ -26,28 +26,9 @@ namespace shEngineSDK {
 /*************************************************************/
 
 void
-Capsule::setPosition(const Vector3& pA, const Vector3& pB)
-{
-  pointA = pA;
-  pointB = pB;
-}
-
-void
 Capsule::setRadius(const float _radius)
 {
   radius = _radius;
-}
-
-Vector3
-Capsule::getPointA() const
-{
-  return pointA;
-}
-
-Vector3
-Capsule::getPointB() const
-{
-  return pointB;
 }
 
 float
@@ -55,21 +36,15 @@ Capsule::getRadius()
 {
   return radius;
 }
+
 void
 Capsule::projectOnAxis(const Vector3& axis, float& min, float& max) const
 {
-  Vector3 dir = pointB - pointA;
-  float length = Math::sqrt(dir.dot(dir));
-
-  if (length > 0.0f) {
-    dir.normalize();
-  }
-
-  float projPA = pointA.dot(axis);
-  float projPB = pointB.dot(axis);
-  float projRadius = radius * Math::abs(axis.dot(dir));
-
-  min = Math::min(projPA, projPB) - projRadius;
-  max = Math::max(projPA, projPB) + projRadius;
+  Vector3 pA = center + (direction * (height * 0.5f));
+  Vector3 pB = center - (direction * (height * 0.5f));
+  float dotA = pA.dot(axis);
+  float dotB = pB.dot(axis);
+  min = Math::min(dotA, dotB) - radius;
+  max = Math::max(dotA, dotB) + radius;
 }
 }
