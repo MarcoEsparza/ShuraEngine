@@ -218,6 +218,17 @@ class SH_UTILITY_EXPORT Vector3
   bool
   containsNaN() const;
 
+  /*
+  *  @brief Calculates the distance between two Vector3s.
+  *
+  *  @param Vector3 a: First Vector3.
+  *  @param Vector3 b: Second Vector3.
+  * 
+  *  @return float The distance between the two Vector3s.
+  */
+  static float
+  distance(const Vector3& a, const Vector3& b);
+
   /***************************************************************************/
   /*
   *  Operator overload
@@ -320,6 +331,9 @@ class SH_UTILITY_EXPORT Vector3
   */
   FORCEINLINE Vector3&
   operator-=(const Vector3& other);
+
+  FORCEINLINE Vector3&
+  operator*=(const Vector3& other);
 
   FORCEINLINE bool
   operator!=(const Vector3& other);
@@ -446,6 +460,15 @@ Vector3::operator-=(const Vector3& other)
   y -= other.y;
   z -= other.z;
 
+  return *this;
+}
+
+FORCEINLINE Vector3&
+Vector3::operator*=(const Vector3& other)
+{
+  x *= other.x;
+  y *= other.y;
+  z *= other.z;
   return *this;
 }
 

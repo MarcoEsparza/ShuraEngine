@@ -54,4 +54,14 @@ Matrix3 Matrix3::transpose()
 
   return transposed;
 }
+
+Vector3
+Matrix3::getColumn(uint32 index) const
+{
+  if (index >= 3) {
+    //throw std::out_of_range("Index out of range in Matrix3::getColumn()");
+    return Vector3::ZERO; // Return zero vector if index is out of range
+  }
+  return Vector3(m[0][index], m[1][index], m[2][index]);
+}
 }

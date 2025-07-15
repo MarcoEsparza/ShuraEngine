@@ -23,6 +23,7 @@
 #include "shRadian.h"
 #include "shDegree.h"
 #include "shFrustum.h"
+#include "shQuaternion.h"
 
 namespace shEngineSDK {
 /**
@@ -380,6 +381,11 @@ class SH_CORE_EXPORT Camera
   Vector3 m_position = Vector3::ZERO;
 
   /**
+  *  @brief Camera rotation as a Quaternion.
+  */
+  Quaternion m_rotation = Quaternion::IDENTITY;
+
+  /**
   *  @brief Camera look target.
   */
   Vector3 m_target = Vector3::FORWARD;
@@ -423,6 +429,16 @@ class SH_CORE_EXPORT Camera
   *  @brief Is camera orthographic.
   */
   bool m_bIsOrtho = false;
+
+  /**
+  *  @brief Pitch rotation
+  */
+  float m_pitch = 0.0f;
+
+  /**
+  *  @brief Yaw rotation
+  */
+  float m_yaw = 0.0f;
 
   /**
   *  @brief Camera frustum.

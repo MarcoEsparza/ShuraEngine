@@ -133,7 +133,7 @@ class SH_UTILITY_EXPORT OBBox
   getCorners() const;
 
   Vector<Vector3>
-  getVertices();
+  getVertices() const;
 
   /*************************************************************/
   /*

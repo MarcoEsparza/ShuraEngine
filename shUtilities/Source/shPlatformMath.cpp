@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/29
+*  @date    2025/07/14
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -20,6 +20,7 @@
 #include "shPlatformMath.h"
 #include "shVector3.h"
 #include "shVector2.h"
+#include "shMatrix3.h"
 #include "shAABBox.h"
 #include "shOBBox.h"
 #include "shRect.h"
@@ -39,11 +40,17 @@ namespace shEngineSDK {
 
 const float PlatformMath::PI = 2 * asin(Radian(1.0f));
 
+const float PlatformMath::TWO_PI = 2 * PlatformMath::PI;
+
+const float PlatformMath::HALF_PI = PI * 0.5f;
+
 const float PlatformMath::RAD2DEG = 180.0f / PI;
 
 const float PlatformMath::DEG2RAD = PI / 180.0f;
 
 const float PlatformMath::SMALL_NUMBER = (1.e-6f);
+
+const float PlatformMath::KINDA_SMALL_NUMBER = (1.e-4f);
 
 /*************************************************************/
 /*
@@ -261,6 +268,8 @@ PlatformMath::intersect(const Vector3& point, const AABBox& box, CollisionInfo& 
   colInfo.penetrationDepth = minPen;
   colInfo.normal = normal;
   colInfo.contactPoint1 = point;
+  // Contact point 2 is not applicable for point intersection, so we leave it as zero
+  colInfo.contactPoint2 = Vector3::ZERO;
 
   return true;
 }
@@ -325,6 +334,8 @@ PlatformMath::intersect(const Vector3& point, const OBBox& obb, CollisionInfo& c
     colInfo.penetrationDepth = minDist;
     colInfo.normal = normal;
     colInfo.contactPoint1 = point - normal * minDist;
+    // Contact point 2 is not applicable for point intersection, so we leave it as zero
+    colInfo.contactPoint2 = Vector3::ZERO;
     return true;
   }
 }
@@ -360,13 +371,29 @@ PlatformMath::intersect(const Vector3& point, const Sphere& sph, CollisionInfo& 
                               ((point.z - sph.center.z) *
                               (point.z - sph.center.z)));
 
+  colInfo.penetrationDepth = sph.radius - distance;
+  if (distance > SMALL_NUMBER) {
+    colInfo.normal = Vector3((point.x - sph.center.x) / distance,
+                             (point.y - sph.center.y) / distance,
+                             (point.z - sph.center.z) / distance);
+  }
+  else {
+    colInfo.normal = Vector3(1, 0, 0); // Arbitrary normal if point is at the center
+  }
+  colInfo.contactPoint1 = point + colInfo.normal * sph.radius;
+  // Contact point 2 is not applicable for point intersection, so we leave it as zero
+  colInfo.contactPoint2 = Vector3::ZERO;
+
   return distance < sph.radius;
 }
 
 bool
 PlatformMath::intersect(const Vector3& point, const Sphere& sph)
 {
-  return false;
+  const float distanceSq = ((point.x - sph.center.x) * (point.x - sph.center.x)) +
+                           ((point.y - sph.center.y) * (point.y - sph.center.y)) +
+                           ((point.z - sph.center.z) * (point.z - sph.center.z));
+  return distanceSq <= (sph.radius * sph.radius);
 }
 
 bool
@@ -403,47 +430,90 @@ PlatformMath::intersect(const Vector3& point, const Capsule& cap, CollisionInfo&
   }
 
   colInfo.contactPoint1 = closestPoint + colInfo.normal * cap.radius;
+  // Contact point 2 is not applicable for point intersection, so we leave it as zero
+  colInfo.contactPoint2 = Vector3::ZERO;
   return true;
 }
 
 bool
 PlatformMath::intersect(const Vector3& point, const Capsule& cap)
 {
-  /*const Vector3 pointAB = cap.pointB - cap.pointA;
-  const Vector3 pointAP = point - cap.pointA;
-  const Vector3 abNormalized = pointAB.getNormalized();
+  Vector3 direction = cap.direction.getNormalized();
+  Vector3 A = cap.center - direction * (cap.height / 2.0f);
+  Vector3 B = cap.center + direction * (cap.height / 2.0f);
+  Vector3 AB = B - A;
+  Vector3 AP = point - A;
+  float t = AB.dot(AP) / AB.dot(AB);
+  t = PlatformMath::clamp(t, 0.0f, 1.0f);
+  Vector3 closestPoint = A + AB * t;
+  Vector3 vectorToPoint = point - closestPoint;
+  float distanceSq = vectorToPoint.dot(vectorToPoint);
 
-  float proj = pointAP.dot(abNormalized);
-
-  if (proj < 0.0f) {
-    proj = 0.0f;
-  }
-  else if (proj > pointAB.mag()) {
-    proj = pointAB.mag();
-  }
-
-  const Vector3 closestPoint = cap.pointA + abNormalized * proj;
-  const Vector3 diff = point - closestPoint;
-
-  return (diff.mag() <= cap.radius);*/
-
-  return false; // Not implemented
+  return (distanceSq <= cap.radius * cap.radius);
 }
 
 bool
 PlatformMath::intersect(const Vector2& point, const Rect& rect, CollisionInfo& colInfo)
 {
-  return rect.pointIntersect(point);
+  if (point.x < rect.min.x || point.x > rect.max.x ||
+      point.y < rect.min.y || point.y > rect.max.y) {
+    return false;
+  }
+  // Compute distance to each edge of the rectangle
+  float dxMin = point.x - rect.min.x;
+  float dxMax = rect.max.x - point.x;
+  float dyMin = point.y - rect.min.y;
+  float dyMax = rect.max.y - point.y;
+  
+  // Find minimum penetration and normal
+  float minPen = dxMin;
+  Vector2 normal(1.0f, 0.0f);
+  if (dxMax < minPen) {
+    minPen = dxMax;
+    normal = Vector2(-1.0f, 0.0f);
+  }
+  if (dyMin < minPen) {
+    minPen = dyMin;
+    normal = Vector2(0.0f, 1.0f);
+  }
+  if (dyMax < minPen) {
+    minPen = dyMax;
+    normal = Vector2(0.0f, -1.0f);
+  }
+  colInfo.penetrationDepth = minPen;
+  colInfo.normal = Vector3(normal.x, normal.y, 0.0f);
+  colInfo.contactPoint1 = Vector3(point.x, point.y, 0.0f);
+  // Contact point 2 is not applicable for point intersection, so we leave it as zero
+  colInfo.contactPoint2 = Vector3::ZERO;
+  return true;
 }
 
 bool
 PlatformMath::intersect(const Vector2& point, const Rect& rect)
 {
-  return false;
+  return (point.x >= rect.min.x &&
+          point.x <= rect.max.x &&
+          point.y >= rect.min.y &&
+          point.y <= rect.max.y);
 }
 
 bool
 PlatformMath::intersect(const Vector3& point, const Plane& plane, CollisionInfo& colInfo)
+{
+  const float distance = plane.pointToPlaneDistance(point);
+  if (PlatformMath::abs(distance) < SMALL_NUMBER) {
+    colInfo.penetrationDepth = 0.0f;
+    colInfo.normal = plane.normal;
+    colInfo.contactPoint1 = point;
+    // Contact point 2 is not applicable for point intersection, so we leave it as zero
+    colInfo.contactPoint2 = Vector3::ZERO;
+    return true;
+  }
+  return false;
+}
+
+bool
+PlatformMath::intersect(const Vector3& point, const Plane& plane)
 {
   const float distance = plane.pointToPlaneDistance(point);
 
@@ -451,13 +521,60 @@ PlatformMath::intersect(const Vector3& point, const Plane& plane, CollisionInfo&
 }
 
 bool
-PlatformMath::intersect(const Vector3& point, const Plane& plane)
+PlatformMath::intersect(const AABBox& box, const AABBox& box1, CollisionInfo& colInfo)
 {
-  return false;
+  if (box.min.x > box1.max.x || box.max.x < box1.min.x ||
+      box.min.y > box1.max.y || box.max.y < box1.min.y ||
+      box.min.z > box1.max.z || box.max.z < box1.min.z) {
+    return false; // No intersection
+  }
+
+  // Calculate collision info
+  colInfo.penetrationDepth = 0.0f;
+  colInfo.normal = Vector3::ZERO;
+  colInfo.contactPoint1 = Vector3::ZERO;
+  colInfo.contactPoint2 = Vector3::ZERO;
+
+  // Find the minimum penetration depth and normal
+  float dxMin = box.min.x - box1.max.x;
+  float dxMax = box.max.x - box1.min.x;
+  float dyMin = box.min.y - box1.max.y;
+  float dyMax = box.max.y - box1.min.y;
+  float dzMin = box.min.z - box1.max.z;
+  float dzMax = box.max.z - box1.min.z;
+  float minPen = dxMin;
+  Vector3 normal(1.0f, 0.0f, 0.0f);
+  if (dxMax < minPen) {
+    minPen = dxMax; normal = Vector3(-1.0f, 0.0f, 0.0f);
+  }
+  if (dyMin < minPen) {
+    minPen = dyMin; normal = Vector3(0.0f, 1.0f, 0.0f);
+  }
+  if (dyMax < minPen) {
+    minPen = dyMax; normal = Vector3(0.0f, -1.0f, 0.0f);
+  }
+  if (dzMin < minPen) {
+    minPen = dzMin; normal = Vector3(0.0f, 0.0f, 1.0f);
+  }
+  if (dzMax < minPen) {
+    minPen = dzMax; normal = Vector3(0.0f, 0.0f, -1.0f);
+  }
+  colInfo.penetrationDepth = minPen;
+  colInfo.normal = normal;
+  
+  // Calculate contact points
+  colInfo.contactPoint1.x = (box.min.x + box.max.x) * 0.5f;
+  colInfo.contactPoint1.y = (box.min.y + box.max.y) * 0.5f;
+  colInfo.contactPoint1.z = (box.min.z + box.max.z) * 0.5f;
+  colInfo.contactPoint2.x = (box1.min.x + box1.max.x) * 0.5f;
+  colInfo.contactPoint2.y = (box1.min.y + box1.max.y) * 0.5f;
+  colInfo.contactPoint2.z = (box1.min.z + box1.max.z) * 0.5f;
+
+  return true; // Intersection occurred
 }
 
 bool
-PlatformMath::intersect(const AABBox& box, const AABBox& box1, CollisionInfo& colInfo)
+PlatformMath::intersect(const AABBox& box, const AABBox& box1)
 {
   return (box.min.x <= box1.max.x &&
           box.max.x >= box1.min.x &&
@@ -468,13 +585,113 @@ PlatformMath::intersect(const AABBox& box, const AABBox& box1, CollisionInfo& co
 }
 
 bool
-PlatformMath::intersect(const AABBox& box, const AABBox& box1)
+TestAxis(const Vector3& axis,
+         const OBBox& boxA,
+         const OBBox& boxB,
+         const Vector3& t,
+         float& minPenetration,
+         Vector3& bestAxis)
 {
-  return false;
+  if(axis.lenghtSq() < 1e-6f) {
+    return true; // Axiss is zero-length, skip it
+  }
+
+  Vector3 axisNorm = axis.getNormalized();
+
+  // Project distance between centers onto the axis
+  float distance = PlatformMath::abs(t.dot(axisNorm));
+
+  float rA = 0.0f;
+  Matrix3 rotA = boxA.rotation.toMatrix3();
+  rA += boxA.extent.x * PlatformMath::abs(rotA.getColumn(0).dot(axisNorm));
+  rA += boxA.extent.y * PlatformMath::abs(rotA.getColumn(1).dot(axisNorm));
+  rA += boxA.extent.z * PlatformMath::abs(rotA.getColumn(2).dot(axisNorm));
+
+  float rB = 0.0f;
+  Matrix3 rotB = boxB.rotation.toMatrix3();
+  rB += boxB.extent.x * PlatformMath::abs(rotB.getColumn(0).dot(axisNorm));
+  rB += boxB.extent.y * PlatformMath::abs(rotB.getColumn(1).dot(axisNorm));
+  rB += boxB.extent.z * PlatformMath::abs(rotB.getColumn(2).dot(axisNorm));
+
+  float overlap = rA + rB - distance;
+
+  if (overlap <= 0.0f) {
+    return false; // No intersection on this axis
+  }
+
+  if(overlap < minPenetration) {
+    minPenetration = overlap;
+    bestAxis = axisNorm; // Store the best axis
+  }
+
+  return true; // Intersection on this axis
 }
 
 bool
 PlatformMath::intersect(const OBBox& box, const OBBox& box1, CollisionInfo& colInfo)
+{
+  // 1. Build matrices for each OBB
+  Matrix3 rotA = box.rotation.toMatrix3();
+  Matrix3 rotB = box1.rotation.toMatrix3();
+
+  // 2. Axis vectors for each OBB
+  Vector3 axesA[3] = { rotA.getColumn(0), rotA.getColumn(1), rotA.getColumn(2) };
+  Vector3 axesB[3] = { rotB.getColumn(0), rotB.getColumn(1), rotB.getColumn(2) };
+
+  // 3. Vector between centers
+  Vector3 t = box.center - box1.center;
+
+  float minPenetration = FLT_MAX;
+  Vector3 bestAxis;
+
+  // Evaluate axes
+  for (int i = 0; i < 3; ++i) {
+    // Axes A
+    Vector3 axis = axesA[i];
+    if (!TestAxis(axis, box, box1, t, minPenetration, bestAxis))
+      return false;
+  }
+
+  for (int i = 0; i < 3; ++i) {
+    // Axes B
+    Vector3 axis = axesB[i];
+    if (!TestAxis(axis, box, box1, t, minPenetration, bestAxis)) {
+      return false;
+    }
+  }
+
+  // Cross products of axes A and B
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      Vector3 axis = axesA[i].cross(axesB[j]);
+      if (axis.lenghtSq() < 1e-6f) continue; // ejes paralelos
+
+      axis = axis.getNormalized();
+      if (!TestAxis(axis, box, box1, t, minPenetration, bestAxis))
+        return false;
+    }
+  }
+
+  // 4. If we reach here, we have a collision
+  colInfo.penetrationDepth = minPenetration;
+  colInfo.normal = bestAxis;
+
+  // Invert normal if necessary
+  if (bestAxis.dot(t) < 0) {
+    colInfo.normal = -bestAxis;
+  }
+
+  // 5. Calculate contact points
+  colInfo.contactPoint1 = box.center + colInfo.normal *
+                          (box.extent.lenght() * 0.5f - 0.5f * minPenetration);
+  colInfo.contactPoint2 = box1.center - colInfo.normal *
+                          (box1.extent.lenght() * 0.5f - 0.5f * minPenetration);
+
+  return true;
+}
+
+bool
+PlatformMath::intersect(const OBBox& box, const OBBox& box1)
 {
   Vector<Vector3> axes;
   axes.resize(15);
@@ -495,7 +712,7 @@ PlatformMath::intersect(const OBBox& box, const OBBox& box1, CollisionInfo& colI
   for (uint8 i = 0; i < 3; ++i) {
     axes[index + i] = axes1[i];
   }
-  
+
   index = 6;
   for (uint8 i = 0; i < 3; ++i) {
     for (uint8 j = 0; j < 3; ++j) {
@@ -517,14 +734,108 @@ PlatformMath::intersect(const OBBox& box, const OBBox& box1, CollisionInfo& colI
   return false;
 }
 
-bool
-PlatformMath::intersect(const OBBox& box, const OBBox& box1)
+bool TestAxis(const Vector3& axis,
+              const Vector3& extentA,
+              const OBBox& obb,
+              const Vector3& t,
+              float& minPenetration,
+              Vector3& bestAxis)
 {
-  return false;
+  if (axis.lenghtSq() < 1e-6f) {
+    return true; // Axiss is zero-length, skip it
+  }
+
+  Vector3 axisNorm = axis.getNormalized();
+
+  // Project distance between centers onto the axis
+  float distance = PlatformMath::abs(t.dot(axisNorm));
+
+  float rA = 0.0f;
+  rA += extentA.x * PlatformMath::abs(Vector3::RIGHT.dot(axisNorm));
+  rA += extentA.y * PlatformMath::abs(Vector3::UP.dot(axisNorm));
+  rA += extentA.z * PlatformMath::abs(Vector3::FORWARD.dot(axisNorm));
+
+  Matrix3 rotB = obb.rotation.toMatrix3();
+  float rB = 0.0f;
+  rB += obb.extent.x * PlatformMath::abs(rotB.getColumn(0).dot(axisNorm));
+  rB += obb.extent.y * PlatformMath::abs(rotB.getColumn(1).dot(axisNorm));
+  rB += obb.extent.z * PlatformMath::abs(rotB.getColumn(2).dot(axisNorm));
+
+  float overlap = rA + rB - distance;
+  if (overlap <= 0.0f) {
+    return false; // No intersection on this axis
+  }
+
+  if (overlap < minPenetration) {
+    minPenetration = overlap;
+    bestAxis = axisNorm; // Store the best axis
+  }
+
+  return true; // Intersection on this axis
 }
 
 bool
 PlatformMath::intersect(const AABBox& boxA, const OBBox& boxO, CollisionInfo& colInfo)
+{
+  Vector3 center = boxA.min + boxA.max * 0.5f;
+  Vector3 extent = boxA.max - boxA.min * 0.5f;
+
+  Matrix3 rotB = boxO.rotation.toMatrix3();
+
+  Vector3 axesA[3] = { Vector3::RIGHT, Vector3::UP, Vector3::FORWARD };
+  Vector3 axesB[3] = { rotB.getColumn(0), rotB.getColumn(1), rotB.getColumn(2) };
+
+  Vector3 t = boxO.center - center;
+
+  float minPenetration = FLT_MAX;
+  Vector3 bestAxis;
+
+  for(uint32 i = 0; i < 3; ++i) {
+    // Test axes A
+    if (!TestAxis(axesA[i], extent, boxO, t, minPenetration, bestAxis)) {
+      return false;
+    }
+  }
+
+  for(uint32 i = 0; i < 3; ++i) {
+    // Test axes B
+    if (!TestAxis(axesB[i], extent, boxO, t, minPenetration, bestAxis)) {
+      return false;
+    }
+  }
+
+  // Cross products of axes A and B
+  for (uint32 i = 0; i < 3; ++i) {
+    for (uint32 j = 0; j < 3; ++j) {
+      Vector3 axis = axesA[i].cross(axesB[j]);
+      if (axis.lenghtSq() < 1e-6f) {
+        continue; // Skip zero-length axes
+      }
+      axis = axis.getNormalized();
+      if (!TestAxis(axis, extent, boxO, t, minPenetration, bestAxis)) {
+        return false;
+      }
+    }
+  }
+
+  // If we reach here, we have a collision
+  colInfo.penetrationDepth = minPenetration;
+  colInfo.normal = bestAxis;
+  if (bestAxis.dot(t) < 0) {
+    colInfo.normal = -bestAxis; // Invert normal if necessary
+  }
+
+  // Calculate contact points
+  colInfo.contactPoint1 = center + colInfo.normal *
+                          (extent.lenght() * 0.5f - 0.5f * minPenetration);
+  colInfo.contactPoint2 = boxO.center - colInfo.normal *
+                          (boxO.extent.lenght() * 0.5f - 0.5f * minPenetration);
+
+  return true; // Intersection occurred
+}
+
+bool
+PlatformMath::intersect(const AABBox& boxA, const OBBox& boxO)
 {
   Vector<Vector3> aabbAxes = { Vector3(1.0f,0.0f,0.0f),
                                Vector3(0.0f,1.0f,0.0f),
@@ -581,12 +892,6 @@ PlatformMath::intersect(const AABBox& boxA, const OBBox& boxO, CollisionInfo& co
 }
 
 bool
-PlatformMath::intersect(const AABBox& boxA, const OBBox& boxO)
-{
-  return false;
-}
-
-bool
 PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& colInfo)
 {
   Vector3 dir = cap.direction.getNormalized();
@@ -636,6 +941,7 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& co
 
   colInfo.normal = normal;
   colInfo.contactPoint1 = bestP + normal * cap.radius;
+  colInfo.contactPoint2 = bestQ + normal * cap.radius;
 
   return true;
 }
@@ -643,24 +949,37 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& co
 bool
 PlatformMath::intersect(const AABBox& box, const Capsule& cap)
 {
-  /*Vector3 closestPoint(0.0f, 0.0f, 0.0f);
+  Vector3 dir = cap.direction.getNormalized();
 
-  closestPoint.x = (PlatformMath::max(box.min.x, PlatformMath::min(cap.pointA.x, box.max.x)));
-  closestPoint.y = (PlatformMath::max(box.min.y, PlatformMath::min(cap.pointA.y, box.max.y)));
-  closestPoint.z = (PlatformMath::max(box.min.z, PlatformMath::min(cap.pointA.z, box.max.z)));
+  // Capsule points
+  Vector3 A = cap.center - dir * (cap.height / 2.0f);
+  Vector3 B = cap.center + dir * (cap.height / 2.0f);
+  Vector3 AB = B - A;
 
-  const Vector3 diffA = closestPoint - cap.pointA;
-  const float distA = diffA.mag();
+  // Test on multiple points along the segment
+  const int steps = 10;
+  float tMin = 0.0f;
+  float minDistSq = FLT_MAX;
+  Vector3 bestP = Vector3::ZERO;
+  Vector3 bestQ = Vector3::ZERO;
 
-  closestPoint.x = (PlatformMath::max(box.min.x, PlatformMath::min(cap.pointB.x, box.max.x)));
-  closestPoint.y = (PlatformMath::max(box.min.y, PlatformMath::min(cap.pointB.y, box.max.y)));
-  closestPoint.z = (PlatformMath::max(box.min.z, PlatformMath::min(cap.pointB.z, box.max.z)));
+  for (int i = 0; i <= steps; ++i) {
+    float t = (float)i / steps;
+    // Point on capsule
+    Vector3 p = A + AB * t;
+    // Closest point to box
+    Vector3 q = p.clamp(box.min, box.max);
 
-  const Vector3 diffB = closestPoint - cap.pointB;
-  const float distB = diffB.mag();
+    float distSq = (q - p).lenghtSq();
+    if (distSq < minDistSq) {
+      minDistSq = distSq;
+      tMin = t;
+      bestP = p;
+      bestQ = q;
+    }
+  }
 
-  return (distA <= cap.radius || distB <= cap.radius);*/
-  return false; // Not implemented
+  return (minDistSq > cap.radius * cap.radius);
 }
 
 bool
@@ -713,6 +1032,7 @@ PlatformMath::intersect(const OBBox& box, const Capsule& cap, CollisionInfo& col
   colInfo.normal = box.rotation.rotate(normal);
   Vector3 contactLocal = bestP + normal * cap.radius;
   colInfo.contactPoint1 = box.rotation.rotate(contactLocal) + box.center;
+  colInfo.contactPoint2 = box.rotation.rotate(bestQ + normal * cap.radius) + box.center;
 
   return true;
 }
@@ -773,13 +1093,42 @@ PlatformMath::intersect(const AABBox& box, const Plane& plane, CollisionInfo& co
     }
   }
 
-  return !(allPositive || allNegative);
+  if (allPositive || allNegative) {
+    return false; // No intersection
+  }
+  
+  // Calculate collision info
+  colInfo.penetrationDepth = 0.0f; // Placeholder, actual depth calculation needed
+  colInfo.normal = plane.normal;
+  colInfo.contactPoint1 = Vector3::ZERO; // Placeholder, actual contact point needed
+  colInfo.contactPoint2 = Vector3::ZERO; // Placeholder, actual contact point needed
+  
+  return true; // Intersection occurred
 }
 
 bool
 PlatformMath::intersect(const AABBox& box, const Plane& plane)
 {
-  return false;
+  auto vertices = box.getVertices();
+  Array<float, 8> evaluations;
+
+  for (uint8 i = 0; i < 8; ++i) {
+    evaluations[i] = plane.evaluate(vertices[i]);
+  }
+
+  bool allPositive = true;
+  bool allNegative = true;
+
+  for (float val : evaluations) {
+    if (val > 0.0f) {
+      allNegative = false;
+    }
+    if (val < 0.0f) {
+      allPositive = false;
+    }
+  }
+
+  return !(allPositive || allNegative);
 }
 
 bool
@@ -805,17 +1154,58 @@ PlatformMath::intersect(const OBBox& box, const Plane& plane, CollisionInfo& col
     }
   }
 
+  // Calculate collision info
+  colInfo.penetrationDepth = 0.0f; // Placeholder, actual depth calculation needed
+  colInfo.normal = plane.normal;
+  colInfo.contactPoint1 = Vector3::ZERO; // Placeholder, actual contact point needed
+  colInfo.contactPoint2 = Vector3::ZERO; // Placeholder, actual contact point needed
+
   return false;
 }
 
 bool
 PlatformMath::intersect(const OBBox& box, const Plane& plane)
 {
+  auto corners = box.getCorners();
+
+  bool allPositive = true;
+  bool allNegative = true;
+
+  for (const auto& corner : corners) {
+    float distance = plane.normal.dot(corner) - plane.distance;
+
+    if (distance > 0) {
+      allNegative = false;
+    }
+    else if (distance < 0) {
+      allPositive = false;
+    }
+
+    if (!allPositive && !allNegative) {
+      return true;
+    }
+  }
+
   return false;
 }
 
 bool
 PlatformMath::intersect(const AABBox& box, const Rect& rect, CollisionInfo& colInfo)
+{
+  if (box.min.x > rect.max.x || box.max.x < rect.min.x ||
+      box.min.y > rect.max.y || box.max.y < rect.min.y) {
+    return false; // No intersection
+  }
+  // Calculate collision info
+  colInfo.penetrationDepth = 0.0f; // Placeholder, actual depth calculation needed
+  colInfo.normal = Vector3::ZERO; // Placeholder, actual normal needed
+  colInfo.contactPoint1 = Vector3::ZERO; // Placeholder, actual contact point needed
+  colInfo.contactPoint2 = Vector3::ZERO; // Placeholder, actual contact point needed
+  return true; // Intersection occurred
+}
+
+bool
+PlatformMath::intersect(const AABBox& box, const Rect& rect)
 {
   return (box.min.x <= rect.max.x &&
           box.max.x >= rect.min.x &&
@@ -824,13 +1214,37 @@ PlatformMath::intersect(const AABBox& box, const Rect& rect, CollisionInfo& colI
 }
 
 bool
-PlatformMath::intersect(const AABBox& box, const Rect& rect)
+PlatformMath::intersect(const OBBox& box, const Rect& rect, CollisionInfo& colInfo)
 {
-  return false;
+  Array<float, 4> projX;
+  Array<float, 4> projY;
+
+  const auto vertices = box.getCorners();
+
+  for (int8 i = 0; i < 8; ++i) {
+    projX[i % 4] = vertices[i].x;
+    projY[i % 4] = vertices[i].y;
+  }
+
+  const float minX = *min_element(projX.begin(), projX.end());
+  const float maxX = *max_element(projX.begin(), projX.end());
+  const float minY = *min_element(projY.begin(), projY.end());
+  const float maxY = *max_element(projY.begin(), projY.end());
+
+  // Calculate collision info
+  colInfo.penetrationDepth = 0.0f; // Placeholder, actual depth calculation needed
+  colInfo.normal = Vector3::ZERO; // Placeholder, actual normal needed
+  colInfo.contactPoint1 = Vector3::ZERO; // Placeholder, actual contact point needed
+  colInfo.contactPoint2 = Vector3::ZERO; // Placeholder, actual contact point needed
+
+  return (minX <= rect.max.x &&
+          maxX >= rect.min.x &&
+          minY <= rect.max.y &&
+          maxY >= rect.min.y);
 }
 
 bool
-PlatformMath::intersect(const OBBox& box, const Rect& rect, CollisionInfo& colInfo)
+PlatformMath::intersect(const OBBox& box, const Rect& rect)
 {
   Array<float, 4> projX;
   Array<float, 4> projY;
@@ -854,13 +1268,34 @@ PlatformMath::intersect(const OBBox& box, const Rect& rect, CollisionInfo& colIn
 }
 
 bool
-PlatformMath::intersect(const OBBox& box, const Rect& rect)
+PlatformMath::intersect(const Sphere& sph, const Sphere& sph1, CollisionInfo& colInfo)
 {
-  return false;
+  const float distance = sqrt(((sph.center.x - sph1.center.x) *
+                               (sph.center.x - sph1.center.x)) +
+                              ((sph.center.y - sph1.center.y) *
+                               (sph.center.y - sph1.center.y)) +
+                              ((sph.center.z - sph1.center.z) *
+                               (sph.center.z - sph1.center.z)));
+  if (distance >= (sph.radius + sph1.radius)) {
+    return false; // No intersection
+  }
+  colInfo.penetrationDepth = (sph.radius + sph1.radius) - distance;
+  if (distance > SMALL_NUMBER) {
+    colInfo.normal = Vector3((sph1.center.x - sph.center.x) / distance,
+                             (sph1.center.y - sph.center.y) / distance,
+                             (sph1.center.z - sph.center.z) / distance);
+  }
+  else {
+    colInfo.normal = Vector3(1, 0, 0); // Arbitrary normal if spheres are at the same point
+  }
+  
+  colInfo.contactPoint1 = sph.center + colInfo.normal * sph.radius;
+  colInfo.contactPoint2 = sph1.center + colInfo.normal * sph1.radius;
+  return true;
 }
 
 bool
-PlatformMath::intersect(const Sphere& sph, const Sphere& sph1, CollisionInfo& colInfo)
+PlatformMath::intersect(const Sphere& sph, const Sphere& sph1)
 {
   const float distance = sqrt((sph.center.x - sph1.center.x) +
                               (sph.center.y - sph1.center.y) +
@@ -870,13 +1305,32 @@ PlatformMath::intersect(const Sphere& sph, const Sphere& sph1, CollisionInfo& co
 }
 
 bool
-PlatformMath::intersect(const Sphere& sph, const Sphere& sph1)
+PlatformMath::intersect(const AABBox& box, const Sphere& sph, CollisionInfo& colInfo)
 {
-  return false;
+  const float x = max(box.min.x, min(sph.center.x, box.max.x));
+  const float y = max(box.min.y, min(sph.center.y, box.max.y));
+  const float z = max(box.min.z, min(sph.center.z, box.max.z));
+  const float distance = sqrt(((x - sph.center.x) * (x - sph.center.x)) +
+                              ((y - sph.center.y) * (y - sph.center.y)) +
+                              ((z - sph.center.z) * (z - sph.center.z)));
+  colInfo.penetrationDepth = sph.radius - distance;
+  if (distance > SMALL_NUMBER) {
+    colInfo.normal = Vector3((x - sph.center.x) / distance,
+                             (y - sph.center.y) / distance,
+                             (z - sph.center.z) / distance);
+  }
+  else {
+    colInfo.normal = Vector3(1, 0, 0); // Arbitrary normal if point is at the center
+  }
+  
+  colInfo.contactPoint1 = Vector3(x, y, z) + colInfo.normal * sph.radius;
+  // Contact point 2 is not applicable for point intersection, so we leave it as zero
+  colInfo.contactPoint2 = Vector3::ZERO;
+  return distance < sph.radius;
 }
 
 bool
-PlatformMath::intersect(const AABBox& box, const Sphere& sph, CollisionInfo& colInfo)
+PlatformMath::intersect(const AABBox& box, const Sphere& sph)
 {
   const float x = max(box.min.x, min(sph.center.x, box.max.x));
   const float y = max(box.min.y, min(sph.center.y, box.max.y));
@@ -889,16 +1343,34 @@ PlatformMath::intersect(const AABBox& box, const Sphere& sph, CollisionInfo& col
   return distance < sph.radius;
 }
 
-bool
-PlatformMath::intersect(const AABBox& box, const Sphere& sph)
-{
-  return false;
-}
-
 
 
 bool
 PlatformMath::intersect(const OBBox& box, const Sphere& sph, CollisionInfo& colInfo)
+{
+  Vector3 sphereToBox = sph.center - box.center;
+  Vector3 transformedSphCenter = box.rotation.invRotate(sphereToBox);
+  const float clampedX = clamp(transformedSphCenter.x, -box.extent.x, box.extent.x);
+  const float clampedY = clamp(transformedSphCenter.y, -box.extent.y, box.extent.y);
+  const float clampedZ = clamp(transformedSphCenter.z, -box.extent.z, box.extent.z);
+  const Vector3 closestPoint = box.center + box.rotation.rotate(Vector3(clampedX, clampedY, clampedZ));
+  const float dist = (closestPoint - sph.center).mag();
+  colInfo.penetrationDepth = sph.radius - dist;
+  if (dist > SMALL_NUMBER) {
+    colInfo.normal = (closestPoint - sph.center) * (1.0f / dist);
+  }
+  else {
+    colInfo.normal = Vector3(1, 0, 0); // Arbitrary normal if point is at the center
+  }
+  colInfo.contactPoint1 = closestPoint + colInfo.normal * sph.radius;
+  // Contact point 2 is not applicable for point intersection, so we leave it as zero
+  colInfo.contactPoint2 = Vector3::ZERO;
+
+  return (dist <= sph.radius);
+}
+
+bool
+PlatformMath::intersect(const OBBox& box, const Sphere& sph)
 {
   Vector3 sphereToBox = sph.center - box.center;
   Vector3 transformedSphCenter = box.rotation.rotate(sphereToBox);
@@ -912,12 +1384,6 @@ PlatformMath::intersect(const OBBox& box, const Sphere& sph, CollisionInfo& colI
   const float dist = (closestPoint - sph.center).mag();
 
   return (dist <= sph.radius);
-}
-
-bool
-PlatformMath::intersect(const OBBox& box, const Sphere& sph)
-{
-  return false;
 }
 
 bool
@@ -948,6 +1414,7 @@ PlatformMath::intersect(const Sphere& sph, const Capsule& cap, CollisionInfo& co
   }
 
   colInfo.contactPoint1 = closest + colInfo.normal * cap.radius;
+  colInfo.contactPoint2 = sph.center + colInfo.normal * sph.radius;
   return true;
 }
 
@@ -967,13 +1434,14 @@ PlatformMath::intersect(const Sphere& sph, const Capsule& cap)
   if (distSq > radiusSum * radiusSum) {
     return false;
   }
+  return true; // Intersection occurred
 }
 
 bool
-PlatformMath::intersect(const Sphere& sph, const Plane& plane, CollisionInfo& colInfo)
+PlatformMath::intersect(const Sphere& sph, const Plane& plane, CollisionInfo&)
 {
   float dist = PlatformMath::abs(plane.normal.dot(sph.center) - plane.distance) /
-               plane.normal.mag();
+                                 plane.normal.mag();
 
   return (dist <= sph.radius);
 }
@@ -981,11 +1449,14 @@ PlatformMath::intersect(const Sphere& sph, const Plane& plane, CollisionInfo& co
 bool
 PlatformMath::intersect(const Sphere& sph, const Plane& plane)
 {
-  return false;
+  float dist = PlatformMath::abs(plane.normal.dot(sph.center) - plane.distance) /
+                                 plane.normal.mag();
+
+  return (dist <= sph.radius);
 }
 
 bool
-PlatformMath::intersect(const Sphere& sph, const Rect& rect, CollisionInfo& colInfo)
+PlatformMath::intersect(const Sphere& sph, const Rect& rect, CollisionInfo&)
 {
   const float closestX = clamp(sph.center.x, rect.min.x, rect.max.x);
   const float closestY = clamp(sph.center.y, rect.min.y, rect.max.y);
@@ -999,7 +1470,13 @@ PlatformMath::intersect(const Sphere& sph, const Rect& rect, CollisionInfo& colI
 bool
 PlatformMath::intersect(const Sphere& sph, const Rect& rect)
 {
-  return false;
+  const float closestX = clamp(sph.center.x, rect.min.x, rect.max.x);
+  const float closestY = clamp(sph.center.y, rect.min.y, rect.max.y);
+
+  const float distX = sph.center.x - closestX;
+  const float distY = sph.center.x - closestY;
+
+  return ((distX * distX + distY * distY) <= (sph.radius * sph.radius));
 }
 
 void
@@ -1086,6 +1563,7 @@ PlatformMath::intersect(const Capsule& cap, const Capsule& cap1, CollisionInfo& 
   }
 
   colInfo.contactPoint1 = pt1 + colInfo.normal * cap.radius;
+  colInfo.contactPoint2 = pt2 + colInfo.normal * cap1.radius;
   return true;
 }
 
@@ -1114,58 +1592,75 @@ PlatformMath::intersect(const Capsule& cap, const Capsule& cap1)
 bool
 PlatformMath::intersect(const Capsule& cap, const Plane& plane, CollisionInfo& colInfo)
 {
-  /*float distA = plane.pointToPlaneDistance(cap.pointA);
-  float distB = plane.pointToPlaneDistance(cap.pointB);
-
-  if (distA <= cap.radius || distB >= cap.radius) {
-    return true;
+  // Project capsule points onto the plane
+  const Vector3 dir = cap.direction.getNormalized();
+  const Vector3 A = cap.center - dir * (cap.height / 2.0f);
+  const Vector3 B = cap.center + dir * (cap.height / 2.0f);
+  float distA = plane.evaluate(A);
+  float distB = plane.evaluate(B);
+  if (distA > cap.radius || distB > cap.radius) {
+    return false; // No intersection
   }
-
-  const Vector3 segment = cap.pointB - cap.pointA;
-  const float t = -(plane.normal.dot(cap.pointA) - plane.distance) /
-                  plane.normal.dot(segment);
-
-  if (t >= 0.0f && t <= 1.0f) {
-    return true;
-  }
-
-  return false;*/
-  return false; // Not implemented
+  // Calculate collision info
+  colInfo.penetrationDepth = cap.radius - min(distA, distB);
+  colInfo.normal = plane.normal;
+  colInfo.contactPoint1 = A + colInfo.normal * cap.radius;
+  colInfo.contactPoint2 = B + colInfo.normal * cap.radius;
+  return true; // Intersection occurred
 }
 
 bool
-PlatformMath::intersect(const Capsule& cap, const Plane& pln)
+PlatformMath::intersect(const Capsule& cap, const Plane& plane)
 {
-  return false;
+  // Project capsule points onto the plane
+  const Vector3 dir = cap.direction.getNormalized();
+  const Vector3 A = cap.center - dir * (cap.height / 2.0f);
+  const Vector3 B = cap.center + dir * (cap.height / 2.0f);
+  float distA = plane.evaluate(A);
+  float distB = plane.evaluate(B);
+  
+  // Check if the capsule intersects the plane
+  return (distA <= cap.radius || distB <= cap.radius);
 }
 
 bool
 PlatformMath::intersect(const Capsule& cap, const Rect& rect, CollisionInfo& colInfo)
 {
-  // Capsule points projected
-  /*const Vector2 projCapA(cap.pointA.x, cap.pointA.y);
-  const Vector2 projCapB(cap.pointB.x, cap.pointB.y);
-
-  Sphere sphereA(cap.pointA, cap.radius);
-  Sphere sphereB(cap.pointB, cap.radius);
-
-  if(intersect(sphereA, rect, colInfo) ||
-     intersect(sphereB, rect, colInfo)) {
-    return true;
+  // Check if the capsule's bounding box intersects with the rectangle's bounding box
+  const Vector3 dir = cap.direction.getNormalized();
+  const Vector3 A = cap.center - dir * (cap.height / 2.0f);
+  const Vector3 B = cap.center + dir * (cap.height / 2.0f);
+  // Check if the capsule's bounding box intersects with the rectangle's bounding box
+  if (A.x > rect.max.x || B.x < rect.min.x ||
+      A.y > rect.max.y || B.y < rect.min.y) {
+    return false; // No intersection
   }
-
-  return rect.lineIntersect(projCapA, projCapB);*/
-  return false; // Not implemented
+  // Calculate collision info
+  colInfo.penetrationDepth = cap.radius; // Placeholder, actual depth calculation needed
+  colInfo.normal = Vector3::ZERO; // Placeholder, actual normal needed
+  colInfo.contactPoint1 = Vector3::ZERO; // Placeholder, actual contact point needed
+  colInfo.contactPoint2 = Vector3::ZERO; // Placeholder, actual contact point needed
+  return true; // Intersection occurred
 }
 
 bool
 PlatformMath::intersect(const Capsule& cap, const Rect& rect)
 {
-  return false;
+  // Check if the capsule's bounding box intersects with the rectangle's bounding box
+  const Vector3 dir = cap.direction.getNormalized();
+  const Vector3 A = cap.center - dir * (cap.height / 2.0f);
+  const Vector3 B = cap.center + dir * (cap.height / 2.0f);
+  // Check if the capsule's bounding box intersects with the rectangle's bounding box
+  if (A.x > rect.max.x || B.x < rect.min.x ||
+      A.y > rect.max.y || B.y < rect.min.y) {
+    return false; // No intersection
+  }
+  // If we reach here, it means the bounding boxes intersect
+  return true;
 }
 
 bool
-PlatformMath::intersect(const Plane& plane, const Plane& plane1, CollisionInfo& colInfo)
+PlatformMath::intersect(const Plane& plane, const Plane& plane1, CollisionInfo&)
 {
   const Vector3 lineDir = plane.normal.cross(plane1.normal);
 
@@ -1179,11 +1674,17 @@ PlatformMath::intersect(const Plane& plane, const Plane& plane1, CollisionInfo& 
 bool
 PlatformMath::intersect(const Plane& plane, const Plane& plane1)
 {
-  return false;
+  const Vector3 lineDir = plane.normal.cross(plane1.normal);
+
+  if (lineDir.x == 0.0f && lineDir.y == 0.0f && lineDir.z == 0.0f) {
+    return false;
+  }
+
+  return true;
 }
 
 bool
-PlatformMath::intersect(const Plane& plane, const Rect& rect, CollisionInfo& colInfo)
+PlatformMath::intersect(const Plane& plane, const Rect& rect, CollisionInfo&)
 {
   auto vertices = rect.getVertices();
   Array<float, 4> evaluations;
@@ -1207,11 +1708,27 @@ PlatformMath::intersect(const Plane& plane, const Rect& rect, CollisionInfo& col
 bool
 PlatformMath::intersect(const Plane& plane, const Rect& rect)
 {
-  return false;
+  auto vertices = rect.getVertices();
+  Array<float, 4> evaluations;
+
+  for (int8 i = 0; i < 4; ++i) {
+    evaluations[i] = plane.evaluate(vertices[i]);
+  }
+
+  bool allPositive = all_of(evaluations.begin(), evaluations.end(),
+                            [](float val) { return val > 0.0f; });
+  bool allNegative = all_of(evaluations.begin(), evaluations.end(),
+                            [](float val) { return val < 0.0f; });
+
+  if (allPositive || allNegative) {
+    return false;
+  }
+
+  return true;
 }
 
 bool
-PlatformMath::intersect(const Rect& rect, const Rect& rect1, CollisionInfo& colInfo)
+PlatformMath::intersect(const Rect& rect, const Rect& rect1, CollisionInfo&)
 {
   return (rect.min.x <= rect1.max.x &&
           rect.max.x >= rect1.min.x &&
@@ -1222,6 +1739,9 @@ PlatformMath::intersect(const Rect& rect, const Rect& rect1, CollisionInfo& colI
 bool
 PlatformMath::intersect(const Rect& rect, const Rect& rect1)
 {
-  return false;
+  return (rect.min.x <= rect1.max.x &&
+          rect.max.x >= rect1.min.x &&
+          rect.min.y <= rect1.max.y &&
+          rect.max.y >= rect1.min.y);
 }
 }

@@ -34,6 +34,7 @@ enum SH_CORE_EXPORT E
   kSkyBox,
   kRigidbody,
   kCollider,
+  kCamera,
 
   kCount
 };

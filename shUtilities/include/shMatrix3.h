@@ -22,6 +22,7 @@
 
 namespace shEngineSDK {
 class Quaternion;
+class Vector3;
 
 class SH_UTILITY_EXPORT Matrix3
 {
@@ -88,6 +89,9 @@ class SH_UTILITY_EXPORT Matrix3
   */
   Matrix3
   transpose();
+
+  Vector3
+  getColumn(uint32 index) const;
 
   /***************************************************************************/
   /*

@@ -230,7 +230,7 @@ PhysicsManager::resolveCollision(Rigidbody* rb1, Rigidbody* rb2, CollisionInfo& 
                                          rb2,
                                          info.contactPoint1,
                                          info.contactPoint2);
-  float biasImpulse = info.penetrationDepth / effectiveMass;
+  //float biasImpulse = info.penetrationDepth / effectiveMass;
 
   float penetration = Math::max(0.0f, info.penetrationDepth - PlatformPhysics::SLOP);
   Vector3 correction = info.normal * ((penetration / effectiveMass) * PlatformPhysics::BETA);

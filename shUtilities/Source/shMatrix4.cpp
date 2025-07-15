@@ -630,15 +630,35 @@ Transform::getPosition() const
 Vector3
 Transform::getRotation() const
 {
-  const float yaw = Math::atan2(Radian(m[0][2]), Radian(m[2][2]));
-  const float pitch = Math::asin(Radian(-m[1][2]));
-  const float roll = Math::atan2(Radian(m[1][0]), Radian(m[1][1]));
-  return Vector3(yaw, pitch, roll);
+  auto q = toQuaternion();
+  return q.toEulerAngles();
+  //const float yaw = Math::atan2(Radian(m[0][2]), Radian(m[2][2]));
+  //const float pitch = Math::asin(Radian(-m[1][2]));
+  //const float roll = Math::atan2(Radian(m[1][0]), Radian(m[1][1]));
+  //return Vector3(yaw, pitch, roll);
 }
 
 Vector3
 Transform::getScale() const
 {
   return Vector3(m[0][0], m[1][1], m[2][2]);
+}
+
+Vector3
+Transform::transformPoint(const Vector3& point) const
+{
+  float tx = m[0][0] * point.x + m[0][1] * point.y + m[0][2] * point.z + m[0][3];
+  float ty = m[1][0] * point.x + m[1][1] * point.y + m[1][2] * point.z + m[1][3];
+  float tz = m[2][0] * point.x + m[2][1] * point.y + m[2][2] * point.z + m[2][3];
+  float tw = m[3][0] * point.x + m[3][1] * point.y + m[3][2] * point.z + m[3][3];
+
+  if(tw != 0.0f && tw!= 1.0f)
+  {
+    tx /= tw;
+    ty /= tw;
+    tz /= tw;
+  }
+
+  return Vector3(tx, ty, tz);
 }
 }

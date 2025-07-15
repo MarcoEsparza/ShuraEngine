@@ -196,7 +196,8 @@ Quaternion::lenght() const
 float
 Quaternion::lenghtSquared() const
 {
-  return (Math::sqrt(w) + Math::sqrt(x) + Math::sqrt(y) + Math::sqrt(z));
+  //return (Math::sqrt(w) + Math::sqrt(x) + Math::sqrt(y) + Math::sqrt(z));
+  return w * w + x * x + y * y + z * z;
 }
 
 void

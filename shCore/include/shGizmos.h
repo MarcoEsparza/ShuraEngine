@@ -20,6 +20,8 @@
 #include "shPrerequisitesCore.h"
 #include "shModule.h"
 #include "shVector3.h"
+#include "shLinearColor.h"
+//#include "shCamera.h"
 
 namespace shEngineSDK {
 class ColliderComponent;
@@ -27,11 +29,21 @@ class Pass;
 class Texture2D;
 class VertexBuffer;
 class OBBox;
+class Sphere;
+class Capsule;
+class Transform;
+class Camera;
 
-//struct GizmosVertex
-//{
-//  Vector3 position;
-//};
+struct GizmosVertex
+{
+  GizmosVertex() = default;
+  GizmosVertex(const Vector3& pos, const LinearColor& col = LinearColor::YELLOW)
+    : position(pos), color(col)
+  {}
+
+  Vector3 position = Vector3::ZERO;
+  LinearColor color = LinearColor::YELLOW;
+};
 
 class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
 {
@@ -45,17 +57,26 @@ class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
   onStartUp() override;
 
   void
-  drawGizmos();
+  drawGizmos(const Camera& camera);
 
  private:
-  Vector<WPtr<ColliderComponent>>
-  getCollidersInScene();
+  void
+  render();
 
   void
   drawLine(const Vector3& from, const Vector3& to);
 
   void
-  drawBox(OBBox& box);
+  drawBox(const OBBox& box, const Transform& InTfrm);
+
+  void
+  drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& camera);
+
+  void
+  drawCapsule(const Capsule& capsule, const Transform& InTfrm, const Camera& camera);
+
+  void
+  drawFrustum(const Camera& camera);
 
  private:
   SPtr<Pass> m_pass;
@@ -63,7 +84,7 @@ class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
   //SPtr<Texture2D> m_depthStencil;
   SPtr<VertexBuffer> m_vertexBuffer;
 
-  Vector<Vector3> m_vertices;
-  uint32 m_numVerticesInFrame = 0.0f;
+  Vector<GizmosVertex> m_vertices;
+  uint32 m_numVerticesInFrame = 0;
 };
 }

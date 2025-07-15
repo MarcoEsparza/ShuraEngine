@@ -588,6 +588,9 @@ class SH_UTILITY_EXPORT Transform : public Matrix4
   Vector3
   getScale() const;
 
+  Vector3
+  transformPoint(const Vector3& point) const;
+
   FORCEINLINE Transform&
   operator=(const Matrix4& mat4);
 };

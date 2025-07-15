@@ -117,30 +117,34 @@ Camera::move(const Vector3& direction)
   m_position += offset;
   m_target += offset;
 
-  //setViewData(m_position, m_target, Vector3::UP);
-
   m_bIsDirty = true;
 }
 
 void
 Camera::rotate(const float yaw, const float pitch)
 {
-  Matrix4 rotation = MatrixRotationAxis(getRight(), pitch) * MatrixRotationAxis(Vector3::UP, yaw);
+  m_yaw += yaw;
+  m_pitch += pitch;
 
-  Vector3 newFoward = (rotation * getFoward()).getNormalized();
+  // Clamp pitch to prevent gimbal lock
+  const float limit = 89.0f * Math::DEG2RAD; // 89 degrees in radians
+  m_pitch = Math::clamp(m_pitch, -limit, limit);
+
+  /*Matrix4 rotation = MatrixRotationAxis(getRight(), m_pitch) *
+                     MatrixRotationAxis(Vector3::UP, m_yaw);*/
+
+  //Vector3 newFoward = (rotation * getFoward()).getNormalized();
+
+  // Build new axis from yaw and pitch
+  Quaternion qPitch(Vector3::RIGHT, m_pitch);
+  Quaternion qYaw(Vector3::UP, m_yaw);
+
+  // Apply rotations
+  m_rotation = (qYaw * qPitch).getNormalized();
+
+  Vector3 newFoward = m_rotation * Vector3::FORWARD;
 
   m_target = m_position + newFoward;
-
-  //setViewData(m_position, m_position + newFoward, Vector3::UP);
-
-  /*Quaternion yawRot(Vector3::UP, yaw);
-  Quaternion pitchRot(Vector3::RIGHT, pitch);
-
-  Vector3 forward = getForward();
-  forward = yawRot * forward;
-  forward = pitchRot * forward;
-
-  setViewData(m_position, m_position + forward, Vector3::UP);*/
 
   m_bIsDirty = true;
 }

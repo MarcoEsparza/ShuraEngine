@@ -107,7 +107,7 @@ OBBox::getCorners() const
 }
 
 Vector<Vector3>
-OBBox::getVertices()
+OBBox::getVertices() const
 {
   Vector<Vector3> vertices;
   vertices.reserve(8);

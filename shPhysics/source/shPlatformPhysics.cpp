@@ -303,5 +303,7 @@ PlatformPhysics::EPA(const OBBox& obb1,
       return true;
     }
   }
+
+  return false; // No collision found within max iterations
 }
 }

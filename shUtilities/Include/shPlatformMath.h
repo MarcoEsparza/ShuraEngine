@@ -2,7 +2,7 @@
 /*
 *  @file    shPlatformMath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/29
+*  @date    2025/07/14
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -144,6 +144,13 @@ public:
   static float
   abs(const float value);
 
+  /**
+  *  @brief Calculates the logarithm base 2 of a given value.
+  *
+  *  @param float value: The value to calculate the logarithm base 2.
+  *
+  *  @return float The logarithm base 2 of the value.
+  */
   static float
   log2(const float value);
 
@@ -983,6 +990,16 @@ public:
   static const float PI;
 
   /**
+  *  @brief Two PI value.
+  */
+  static const float TWO_PI;
+
+  /**
+  *  @brief Half PI value.
+  */
+  static const float HALF_PI;
+
+  /**
   *  @brief Use to convert a Radian value to a Degree angle.
   */
   static const float RAD2DEG;
@@ -996,5 +1013,10 @@ public:
   *  @brief Small number.
   */
   static const float SMALL_NUMBER;
+
+  /**
+  *  @brief Less Small number.
+  */
+  static const float KINDA_SMALL_NUMBER;
 };
 }

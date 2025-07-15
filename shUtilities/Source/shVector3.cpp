@@ -221,4 +221,10 @@ Vector3::containsNaN() const
 {
   return ((Math::is_NaN(x)) && (Math::is_NaN(y)) && (Math::is_NaN(z)));
 }
+
+float
+Vector3::distance(const Vector3& a, const Vector3& b)
+{
+  return (a - b).mag();
+}
 }
