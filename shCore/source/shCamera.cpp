@@ -79,10 +79,13 @@ void
 Camera::update()
 {
   Vector3 dir = (m_target - m_position).getNormalized();
-  float DdU = Math::abs(dir.dot(m_up));
+  float DdU = Math::abs(dir.dot(Vector3::UP));
 
-  if (DdU >= 0.99f) {
+  if (DdU > 0.999f) {
     m_up = Vector3::RIGHT;
+  }
+  else {
+    m_up = Vector3::UP;
   }
 
   m_view = ViewMatrix(m_position, m_target, m_up);
@@ -130,17 +133,6 @@ Camera::rotate(const float yaw, const float pitch)
   Vector3 newFoward = (rotation * getFoward()).getNormalized();
 
   m_target = m_position + newFoward;
-
-  //setViewData(m_position, m_position + newFoward, Vector3::UP);
-
-  /*Quaternion yawRot(Vector3::UP, yaw);
-  Quaternion pitchRot(Vector3::RIGHT, pitch);
-
-  Vector3 forward = getForward();
-  forward = yawRot * forward;
-  forward = pitchRot * forward;
-
-  setViewData(m_position, m_position + forward, Vector3::UP);*/
 
   m_bIsDirty = true;
 }
