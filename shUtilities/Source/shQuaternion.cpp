@@ -57,10 +57,11 @@ Quaternion::Quaternion(const Vector3& vec)
 Quaternion::Quaternion(const Vector3& axis, const float angle)
 {
   float sina = Math::sin(Radian(angle * 0.5f));
+  Vector3 normalizedAxis = axis.getNormalized();
   w = Math::cos(Radian(angle * 0.5f));
-  x = sina * axis.x;
-  y = sina * axis.y;
-  z = sina * axis.z;
+  x = sina * normalizedAxis.x;
+  y = sina * normalizedAxis.y;
+  z = sina * normalizedAxis.z;
 }
 
 Quaternion::Quaternion(const Vector3& from, const Vector3& to)

@@ -541,9 +541,8 @@ RendererApp::rotateCamera()
   const float dx = (m_lastMousePos.x - m_currentMousePos.x) * speed;
   const float dy = (m_lastMousePos.y - m_currentMousePos.y) * speed;
 
-  if (m_lastMousePos.x != m_currentMousePos.x ||
-      m_lastMousePos.y != m_currentMousePos.y) {
-    m_camera.rotate(-dx * Math::DEG2RAD, -dy * Math::DEG2RAD);
+  if (Math::abs(dx) > 0.0f || Math::abs(dy) > 0.0f) {
+    m_camera.rotate(dx * Math::DEG2RAD, dy * Math::DEG2RAD);
   }
 }
 
@@ -1075,16 +1074,16 @@ RendererApp::loadPistol()
   model->setScale(Vector3::ONE * 5.0f);
 
   auto pCollider = sh_makeShared<ColliderComponent>();
-  pCollider->m_collider.m_type = COLLIDER_TYPE::kCapsule;
-  //pCollider->m_collider.m_box.center = Vector3::ZERO;
-  //pCollider->m_collider.m_box.extent = Vector3(0.5f, 0.5f, 0.5f);
-  //pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;
+  pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
+  pCollider->m_collider.m_box.center = Vector3::ZERO;
+  pCollider->m_collider.m_box.extent = Vector3(0.5f, 0.5f, 0.5f);
+  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;
   //pCollider->m_collider.m_sphere.center = Vector3::ZERO;
   //pCollider->m_collider.m_sphere.radius = 0.5f;
-  pCollider->m_collider.m_capsule.center = Vector3::ZERO;
-  pCollider->m_collider.m_capsule.radius = 0.5f;
-  pCollider->m_collider.m_capsule.height = 1.0f;
-  pCollider->m_collider.m_capsule.direction = Vector3::ZERO;
+  //pCollider->m_collider.m_capsule.center = Vector3::ZERO;
+  //pCollider->m_collider.m_capsule.radius = 0.5f;
+  //pCollider->m_collider.m_capsule.height = 1.0f;
+  //pCollider->m_collider.m_capsule.direction = Vector3::ZERO;
 
   model->addComponent(pCollider);
 

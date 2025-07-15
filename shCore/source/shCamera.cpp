@@ -123,31 +123,20 @@ Camera::move(const Vector3& direction)
 void
 Camera::rotate(const float yaw, const float pitch)
 {
-  m_yaw += yaw;
-  m_pitch += pitch;
-
   // Clamp pitch to prevent gimbal lock
-  const float limit = 89.0f * Math::DEG2RAD; // 89 degrees in radians
-  m_pitch = Math::clamp(m_pitch, -limit, limit);
+  //const float limit = 89.0f * Math::DEG2RAD; // 89 degrees in radians
+  //pitch = Math::clamp(pitch, -limit, limit);
 
-  /*Matrix4 rotation = MatrixRotationAxis(getRight(), m_pitch) *
-                     MatrixRotationAxis(Vector3::UP, m_yaw);*/
+  Matrix4 rotation = MatrixRotationAxis(getRight(), pitch) *
+                     MatrixRotationAxis(Vector3::UP, yaw);
 
-  //Vector3 newFoward = (rotation * getFoward()).getNormalized();
-
-  // Build new axis from yaw and pitch
-  Quaternion qPitch(Vector3::RIGHT, m_pitch);
-  Quaternion qYaw(Vector3::UP, m_yaw);
-
-  // Apply rotations
-  m_rotation = (qYaw * qPitch).getNormalized();
-
-  Vector3 newFoward = m_rotation * Vector3::FORWARD;
+  Vector3 newFoward = (rotation * getFoward()).getNormalized();
 
   m_target = m_position + newFoward;
 
   m_bIsDirty = true;
 }
+
 void
 Camera::orbitCamera(const Radian& yaw, const Radian& pitch, const Vector3& center)
 {
