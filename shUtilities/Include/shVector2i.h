@@ -1,32 +1,27 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shVector2i.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/07/15
 *  @brief   Vector2 with integers
 *
 *  Vector2 with integers
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
  /**
  *  @brief Vector2 with integers
- * 
- *  @brief Sample usage:
- *  @brief Vector2i myVector2i;
- *  @brief Vector2i myVector2i(1.0f, 1.0f);
- *  @brief Vector2i* ptrVector2i = new Vector2i(); The constructor may take arguments.
  */
 class SH_UTILITY_EXPORT Vector2i
 {
@@ -39,10 +34,12 @@ class SH_UTILITY_EXPORT Vector2i
   /**
   *  @brief Constructor to initialize values to the given numbers.
   *
-  *  @param _x: X value.
-  *  @param _y: Y value.
+  *  @param x: X value.
+  *  @param y: Y value.
   */
-  Vector2i(const int32 _x, const int32 _y) : x(_x), y(_y) {}
+  Vector2i(const int32 x, const int32 y)
+    : x(x), y(y)
+  {}
 
   /**
   *  @brief Copy constructor
@@ -56,11 +53,11 @@ class SH_UTILITY_EXPORT Vector2i
   */
   ~Vector2i() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
 
   /**
   *  @brief Calculates the dot product of two given Vector2is.
@@ -92,19 +89,18 @@ class SH_UTILITY_EXPORT Vector2i
   Vector2i
   lerp(const Vector2i& other, const int32 time) const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Operator overload
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Operator to sum a Vector2i values and other Vector2i values
   *
-  *  @param lValue-Vector2i
-  *  @param rValue-Vector2i
+  *  @param const Vector2i& other: The other Vector2i to sum with this one.
   *
-  *  @return Vector2i
+  *  @return Vector2i: The result of the sum of this Vector2i and the other one.
   */
   FORCEINLINE Vector2i
   operator+(const Vector2i& other) const;
@@ -112,10 +108,9 @@ class SH_UTILITY_EXPORT Vector2i
   /**
   *  @brief Operator to substract a Vector2i values and other Vector2i values
   *
-  *  @param lValue-Vector2i
-  *  @param rValue-Vector2i
+  *  @param const Vector2i& other: The other Vector2i to substract from this one.
   *
-  *  @return Vector2i
+  *  @return Vector2i: The result of the substraction of this Vector2i and the other one.
   */
   FORCEINLINE Vector2i
   operator-(const Vector2i& other) const;
@@ -123,10 +118,9 @@ class SH_UTILITY_EXPORT Vector2i
   /**
   *  @brief Operator to multiply the values of a Vector2 with a int32
   *
-  *  @param lValue-Vectori2
-  *  @param rValue-int32
+  *  @param const int32& delta: The int32 to multiply with this Vector2i.
   *
-  *  @return Vector2i The result of the multiplication
+  *  @return Vector2i: The result of the multiplication
   */
   FORCEINLINE Vector2i
   operator*(const int32& delta) const;
@@ -135,10 +129,9 @@ class SH_UTILITY_EXPORT Vector2i
   *  @brief Operator to sum a Vector2i values and other Vector2i values and store
   *         the result in the first Vector2i
   *
-  *  @param lValue-Vector2i
-  *  @param rValue-Vector2i
+  *  @param const Vector2i& other: The other Vector2i to sum with this one.
   * 
-  *  @return Vector2i This.
+  *  @return Vector2i: This after the sum.
   */
   FORCEINLINE Vector2i&
   operator+=(const Vector2i& other);
@@ -147,19 +140,18 @@ class SH_UTILITY_EXPORT Vector2i
   *  @brief Operator to substract a Vector2i values and other Vector2i values and
   *         store the result in the first Vector2i
   *
-  *  @param lValue-Vector2i
-  *  @param rValue-Vector2i
+  *  @param const Vector2i& other: The other Vector2i to substract from this one.
   * 
-  *  @return Vector2i This.
+  *  @return Vector2i: This after the substraction.
   */
   FORCEINLINE Vector2i&
   operator-=(const Vector2i& other);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   * @brief Vector2i X value.
@@ -172,11 +164,11 @@ class SH_UTILITY_EXPORT Vector2i
   int32 y;
 };
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Implementations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 FORCEINLINE Vector2i
 Vector2i::operator+(const Vector2i& other) const

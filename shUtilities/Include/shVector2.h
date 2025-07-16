@@ -1,32 +1,27 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/06
+*  @date    2025/07/15
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
  /**
  *  @brief Vector2 with float
- * 
- *  @brief Sample usage:
- *  @brief Vector2 myVector2;
- *  @brief Vector2 myVector2(1.0f, 1.0f);
- *  @brief Vector2* ptrVector2 = new Vector2(); The constructor may take arguments.
  */
 class SH_UTILITY_EXPORT  Vector2
 {
@@ -39,15 +34,17 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Constructor to initialize values to the given numbers.
   * 
-  *  @param float _x: X value.
-  *  @param float _y: Y value.
+  *  @param float x: X value.
+  *  @param float y: Y value.
   */
-  Vector2(float _x, float _y) : x(_x), y(_y) {}
+  Vector2(float x, float y)
+    : x(x), y(y)
+  {}
 
   /**
   *  @brief Copy constructor.
   * 
-  *  @param Vector2 other: The Vector2 to be copied.
+  *  @param const Vector2& other: The Vector2 to be copied.
   */
   Vector2(const Vector2& other);
 
@@ -56,29 +53,36 @@ class SH_UTILITY_EXPORT  Vector2
   */
   ~Vector2() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
 
   /**
   *  @brief Calculates the dot product of two given Vector2s.
   * 
-  *  @param Vector2 other: To calculate with this Vector2.
+  *  @param const Vector2& other: To calculate with this Vector2.
   * 
-  *  @return float The result of the dot product.
+  *  @return float: The result of the dot product.
   */
   float
   dot(const Vector2& other) const;
 
+  /**
+  *  @brief Calculates the cross product of this Vector2 with another Vector2.
+  *
+  *  @param const Vector2& other: To calculate with this Vector2.
+  *
+  *  @return float: The result of the cross product.
+  */
   float
   cross(const Vector2& other);
 
   /**
   *  @brief Calculates the magnitude of the Vector2.
   * 
-  *  @return float The magnitude of this Vector2.
+  *  @return float: The magnitude of this Vector2.
   */
   float
   mag() const;
@@ -92,7 +96,7 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Get this Vector2 normalized.
   *
-  *  @return Vector2 The normalized Vector2.
+  *  @return Vector2: The normalized Vector2.
   */
   Vector2
   getNormalized() const;
@@ -100,9 +104,9 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Calculates the cross product of the Vector2.
   *
-  *  @param Vector2 other: To calculate with this Vector2.
+  *  @param const Vector2& other: To calculate with this Vector2.
   *
-  *  @return Vector2 The ortogonal Vector2 between this and the other Vector2.
+  *  @return Vector2: The ortogonal Vector2 between this and the other Vector2.
   */
   float
   scalarProjection(const Vector2& other) const;
@@ -110,7 +114,7 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Calculates the of a Vector2 to another Vector2.
   *
-  *  @param Vector2 other: To calculate over this.
+  *  @param const Vector2& other: To calculate over this.
   *
   *  @return Vector2 The ortogonal Vector2 between this and the other Vector2.
   */
@@ -121,27 +125,26 @@ class SH_UTILITY_EXPORT  Vector2
   *  @brief Calculates the linear interpolate between two Vector2.
   *  @brief This Vector2 is taken as the min value.
   *
-  *  @param Vector2 other: Max value.
-  *  @param float time: Alpha.
+  *  @param const Vector2& other: Max value.
+  *  @param const float time: Alpha.
   *
   *  @return Vector2 The result of the linear interpolation.
   */
   Vector2
   lerp(const Vector2& other, const float time) const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Operator overload
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Operator to sum a Vector2 values and other Vector2 values.
   *  
-  *  @param lValue-Vector2.
-  *  @param rValue-Vector2.
+  *  @param const Vector2& other: Vector2 to be added.
   * 
-  *  @return Vector2
+  *  @return Vector2: The result of the addition.
   */
   FORCEINLINE Vector2
   operator+(const Vector2& other) const;
@@ -149,10 +152,9 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Operator to substract a Vector2 values and other Vector2 values.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-Vector2.
+  *  @param const Vector2& other: Vector2 to be substracted.
   *
-  *  @return Vector2
+  *  @return Vector2: The result of the substraction.
   */
   FORCEINLINE Vector2
   operator-(const Vector2& other) const;
@@ -160,10 +162,9 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Operator to multiply the values of a Vector2 with a float.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-float.
+  *  @param const float delta: The float to multiply with.
   *
-  *  @return Vector2 The result of the multiplication.
+  *  @return Vector2: The result of the multiplication.
   */
   FORCEINLINE Vector2
   operator*(const float delta) const;
@@ -171,10 +172,9 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Operator to divide the values of a Vector2 with a float.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-float.
+  *  @param const float delta: The float to divide with.
   *
-  *  @return Vector2 The result of the division.
+  *  @return Vector2: The result of the division.
   */
   FORCEINLINE Vector2
   operator/(const float delta) const;
@@ -182,10 +182,9 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Operator to multiply the values of a Vector2 with another Vector2.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-Vector2.
+  *  @param const Vector2& other: The Vector2 to multiply with.
   *
-  *  @return Vector2 The result of the multiplication.
+  *  @return Vector2: The result of the multiplication.
   */
   FORCEINLINE Vector2
   operator*(const Vector2& other) const;
@@ -193,10 +192,9 @@ class SH_UTILITY_EXPORT  Vector2
   /**
   *  @brief Operator to divide the values of a Vector2 with another Vector2.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-Vector2.
+  *  @param const Vector2& other: The Vector2 to divide with.
   *
-  *  @return Vector2 The result of the division.
+  *  @return Vector2: The result of the division.
   */
   FORCEINLINE Vector2
   operator/(const Vector2& other) const;
@@ -205,10 +203,9 @@ class SH_UTILITY_EXPORT  Vector2
   *  @brief Operator to sum a Vector2 values and other Vector2 values and store
   *         the result in the first Vector2.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-Vector2.
+  *  @param const Vector2& other: Vector2 to be added.
   * 
-  *  @return Vector2 This
+  *  @return Vector2: This Vector2 with the result of the addition.
   */
   FORCEINLINE Vector2&
   operator+=(const Vector2& other);
@@ -217,19 +214,18 @@ class SH_UTILITY_EXPORT  Vector2
   *  @brief Operator to substract a Vector2 values and other Vector2 values and
   *         store the result in the first Vector2.
   *
-  *  @param lValue-Vector2.
-  *  @param rValue-Vector2.
+  *  @param const Vector2& other: Vector2 to be substracted.
   * 
-  *  @return Vector2 This
+  *  @return Vector2: This Vector2 with the result of the substraction.
   */
   FORCEINLINE Vector2&
   operator-=(const Vector2& other);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   * @brief Vector2 X value.
@@ -242,11 +238,11 @@ class SH_UTILITY_EXPORT  Vector2
   float y;
 };
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Implementations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 FORCEINLINE Vector2
 Vector2::operator+(const Vector2& other) const

@@ -19,6 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shComponent.h"
+#include <shMatrix4.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -30,7 +31,6 @@ class Material;
 class StaticMeshResource;
 class SkeletalMeshResource;
 class SkeletonResource;
-class Matrix4;
 class VertexBuffer;
 class IndexBuffer;
 class ConstantBuffer;

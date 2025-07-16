@@ -1,20 +1,20 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shSphere.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/03
+*  @date    2025/07/15
 *  @brief   Math class for sphere figure.
 *
 *  Math class for sphere figure.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 #include "shVector3.h"
 
@@ -29,62 +29,33 @@ class SH_UTILITY_EXPORT Sphere
   *  @brief Default constructor.
   */
   Sphere() = default;
+
   /**
   *  @brief Constructor to initialize center and radius values.
   * 
-  *  @param const Vector3& _center: Desired center.
-  *  @param const float _radius: Desired radius.
+  *  @param const Vector3& center: Desired center.
+  *  @param const float radius: Desired radius.
   */
-  Sphere(const Vector3& _center, const float _radius)
-           : center(_center), radius(_radius) {}
+  Sphere(const Vector3& center, const float radius)
+    : radius(radius), center(center)
+  {}
+
   /**
   *  @brief Default destructor.
   */
   ~Sphere() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
-
-  /**
-  *  @brief Set the center of the sphere.
-  * 
-  *  @param Vector3& _center: Desired center.
-  */
-  void
-  setCenter(const Vector3& _center);
-
-  /**
-  *  @brief Set the radius of the sphere.
-  *  
-  *  @param float _radius: Desired radius.
-  */
-  void
-  setRadius(const float _radius);
-
-  /**
-  *  @brief Returns sphere center.
-  *
-  *  @return Vector3
-  */
-  Vector3
-  getCenter() const;
-
-  /**
-  *  @brief Returns sphere radius.
-  *
-  *  @return float
-  */
-  float
-  getRadius() const;
-
-  /*************************************************************/
+  /***************************************************************************/
+ public:
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
 public:
   /**
   *  @brief The sphere radius.
