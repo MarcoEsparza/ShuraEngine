@@ -126,10 +126,6 @@ Camera::move(const Vector3& direction)
 void
 Camera::rotate(const float yaw, const float pitch)
 {
-  // Clamp pitch to prevent gimbal lock
-  //const float limit = 89.0f * Math::DEG2RAD; // 89 degrees in radians
-  //pitch = Math::clamp(pitch, -limit, limit);
-
   Matrix4 rotation = MatrixRotationAxis(getRight(), pitch) *
                      MatrixRotationAxis(Vector3::UP, yaw);
 

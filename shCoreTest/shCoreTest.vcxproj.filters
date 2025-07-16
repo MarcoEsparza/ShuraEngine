@@ -36,7 +36,13 @@
     <ClCompile Include="source\imgui_impl_shura.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\shGUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="source\imgui.cpp">
+      <Filter>Source Files\Externals\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\imgui_demo.cpp">
       <Filter>Source Files\Externals\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="source\imgui_draw.cpp">
@@ -48,12 +54,15 @@
     <ClCompile Include="source\imgui_widgets.cpp">
       <Filter>Source Files\Externals\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="source\imgui_demo.cpp">
-      <Filter>Source Files\Externals\ImGui</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\shRendererApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui_impl_shura.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shGUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\externals\imconfig.h">
@@ -73,9 +82,6 @@
     </ClInclude>
     <ClInclude Include="include\externals\imstb_truetype.h">
       <Filter>Header Files\Externals\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="include\imgui_impl_shura.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

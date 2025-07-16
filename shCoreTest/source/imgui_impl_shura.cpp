@@ -16,10 +16,10 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "imgui.h"
+//#include "imgui.h"
+#include "imgui_impl_shura.h"
 #ifndef IMGUI_DISABLE
 
-#include "imgui_impl_shura.h"
 #include "shGraphicsManager.h"
 #include "shRenderManager.h"
 #include "shScreen.h"
@@ -94,6 +94,9 @@ ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle)
   io.BackendPlatformName = "ImGui_impl_Shura_Platform";
   io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
   io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   
   io.DisplaySize.x = static_cast<float>(pScreen->getWidth());
   io.DisplaySize.y = static_cast<float>(pScreen->getHeight());

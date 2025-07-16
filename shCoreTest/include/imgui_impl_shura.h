@@ -20,7 +20,12 @@
 #include "shPrerequisitesCore.h"
 #include "shScreen.h"
 #include "shVector2.h"
+
+#define IMGUI_ENABLE_VIEWPORTS
+#define IMGUI_HAS_DOCK
+
 #include "imgui.h"
+#include "externals/imgui_internal.h"
 
 namespace shEngineSDK {
 

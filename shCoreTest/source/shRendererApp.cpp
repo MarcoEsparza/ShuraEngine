@@ -79,10 +79,11 @@ RendererApp::onCreate()
                     2000.0f);
 
   // Imgui initialize
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui_ImplShura_Init(getScreen());
-  ImGui::StyleColorsDark();
+  //IMGUI_CHECKVERSION();
+  //ImGui::CreateContext();
+  //ImGui_ImplShura_Init(getScreen());
+  //ImGui::StyleColorsDark();
+  m_gui.init(getScreen());
 
   // Load images
   Path whitePNG("resources/White.png");
@@ -206,11 +207,12 @@ RendererApp::onUpdate()
   m_fpsTimer += time.getFrameDeltaTime();
 
   // Update imgui
-  ImGui_ImplShura_NewFrame();
-  ImGui::NewFrame();
-  ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
-  m_delta = 0.0f;
-  m_hdelta = 0.0f;
+  //ImGui_ImplShura_NewFrame();
+  //ImGui::NewFrame();
+  //ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
+  //m_delta = 0.0f;
+  //m_hdelta = 0.0f;
+  m_gui.update();
 
   if (scene.getGameObjectList().size() && m_sceneIndex >= 0) {
     m_pModel = scene.getGameObjectList()[m_sceneIndex];
@@ -317,6 +319,8 @@ RendererApp::onUpdate()
   }
   audioMan.update();
 
+  m_delta = 0.0f;
+  m_hdelta = 0.0f;
   m_lastMousePos = m_currentMousePos;
 }
 
@@ -330,8 +334,9 @@ RendererApp::onRender()
   graphMan.setPrimitiveTopology();
   renderMan.renderScene();
   gizmos.drawGizmos(m_camera);
-  ImGui::Render();
-  ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
+  //ImGui::Render();
+  //ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
+  m_gui.render();
 }
 
 void
@@ -512,6 +517,7 @@ RendererApp::onMouseWheel(const double delta, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
   m_delta = static_cast<float>(delta);
+  ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
 }
 
 void
@@ -519,6 +525,7 @@ RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
   m_hdelta = static_cast<float>(delta);
+  ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
 }
 
 void
@@ -529,8 +536,9 @@ RendererApp::onDestroy()
   m_pLCBuffer.reset();
   m_pLightBuffer.reset();
   m_pModel.reset();
-  ImGui_ImplShura_Shutdown();
-  ImGui::DestroyContext();
+  //ImGui_ImplShura_Shutdown();
+  //ImGui::DestroyContext();
+  m_gui.shutdown();
 }
 
 void

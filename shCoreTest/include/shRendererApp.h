@@ -25,6 +25,7 @@
 #include "shVector2.h"
 #include "shLight.h"
 #include "shPass.h"
+#include "shGUI.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -547,5 +548,7 @@ class RendererApp : public BaseApp
   float m_middleGrey = 1.0f;
 
   int32 m_selectedMat = -1;
+
+  GUI m_gui;
 };
 }
