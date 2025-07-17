@@ -2,7 +2,7 @@
 /*
 *  @file    shFMODChannel.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/27
+*  @date    2025/07/16
 *  @brief   Audio FMOD plugin channel.
 *
 *  Audio FMOD plugin channel.
@@ -18,7 +18,7 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesFMODAudio.h"
-#include "shChannel.h"
+#include <shChannel.h>
 
 namespace FMOD
 {
@@ -40,7 +40,7 @@ class FMODChannel : public Channel
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE virtual ~FMODChannel();
+  virtual ~FMODChannel();
 
   /***************************************************************************/
   /*
@@ -53,19 +53,4 @@ class FMODChannel : public Channel
   */
   FMOD::Channel* m_channel = nullptr;
 };
-
-/*****************************************************************************/
-/*
-*  Implementations
-*/
-/*****************************************************************************/
-
-FMODChannel::~FMODChannel()
-{
-#if USING_FMOD
-  m_channel->stop();
-#else
-  SH_ASSERT("FMOD is not enabled in this build");
-#endif // USING_FMOD
-}
 }

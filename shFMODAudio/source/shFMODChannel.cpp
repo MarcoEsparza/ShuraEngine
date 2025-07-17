@@ -1,38 +1,37 @@
 /*****************************************************************************/
 /*
-*  @file    shAudioTypes.h
+*  @file    shFMODChannel.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/07/16
-*  @brief   Basic types for audio engine.
+*  @brief   Audio FMOD plugin channel.
 *
-*  Basic types for audio engine.
+*  Audio FMOD plugin channel.
 *
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
+#include "shFMODChannel.h"
 
-#define CHANNELS_PER_GROUP           10
+//Add fmod libraries
+#if USING_FMOD
+#pragma comment(lib, "fmod_vc.lib")
+#pragma comment(lib, "fmodstudio_vc.lib")
+#include <fmod.hpp>
+#endif // USING_FMOD
 
 namespace shEngineSDK {
-/**
-*  @brief Enum for channel selection.
-*/
-namespace CHANNEL_TYPE {
-enum E
+FMODChannel::~FMODChannel()
 {
-  kMaster = 0,
-  kSFX,
-  kMusic,
-  kVoice,
-  kUI
-};
+#if USING_FMOD
+  m_channel->stop();
+#else
+  SH_ASSERT("FMOD is not enabled in this build");
+#endif // USING_FMOD
 }
 }
