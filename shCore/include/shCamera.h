@@ -2,7 +2,7 @@
 /*
 *  @file    shCamera.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/15
+*  @date    2025/07/16
 *  @brief   Engine Camera class.
 *
 *  Engine Camera class.
@@ -50,21 +50,22 @@ class SH_CORE_EXPORT Camera
   *  @param const float maxZ
   */
   FORCEINLINE Camera(const Vector3& camPos,
-         const Vector3& targetPos,
-         const Vector3& upVector,
-         const float halfFOV,
-         const float width,
-         const float height,
-         const float minZ,
-         const float maxZ)
-         : m_position(camPos),
-           m_target(targetPos),
-           m_up(upVector),
-           m_halfFOV(halfFOV),
-           m_screenWidth(width),
-           m_screenHeight(height),
-           m_near(minZ),
-           m_far(maxZ) {}
+                     const Vector3& targetPos,
+                     const Vector3& upVector,
+                     const float halfFOV,
+                     const float width,
+                     const float height,
+                     const float minZ,
+                     const float maxZ)
+    :  m_position(camPos),
+       m_target(targetPos),
+       m_up(upVector),
+       m_near(minZ),
+       m_far(maxZ),
+       m_halfFOV(halfFOV),
+       m_screenWidth(width),
+       m_screenHeight(height)
+  {}
 
   /**
   *  @brief Orthographic camera constructor.
@@ -84,14 +85,15 @@ class SH_CORE_EXPORT Camera
          const float height,
          const float minZ,
          const float maxZ)
-         : m_position(camPos),
-           m_target(targetPos),
-           m_up(upVector),
-           m_screenWidth(width),
-           m_screenHeight(height),
-           m_near(minZ),
-           m_far(maxZ),
-           m_bIsOrtho(true) {}
+    : m_position(camPos),
+      m_target(targetPos),
+      m_up(upVector),
+      m_near(minZ),
+      m_far(maxZ),
+      m_screenWidth(width),
+      m_screenHeight(height),
+      m_bIsOrtho(true)
+  {}
 
   /**
   *  @brief Default destructor.
@@ -243,7 +245,7 @@ class SH_CORE_EXPORT Camera
   *
   *  @return bool
   */
-  FORCEINLINE const bool
+  FORCEINLINE bool
   isOrtho() const;
 
   /**
@@ -275,7 +277,7 @@ class SH_CORE_EXPORT Camera
   *
   *  @return float
   */
-  FORCEINLINE const float
+  FORCEINLINE float
   getHalfFOV() const;
 
   /**
@@ -283,7 +285,7 @@ class SH_CORE_EXPORT Camera
   *
   *  @return float
   */
-  FORCEINLINE const float
+  FORCEINLINE float
   getWidth() const;
 
   /**
@@ -291,7 +293,7 @@ class SH_CORE_EXPORT Camera
   *
   *  @return float
   */
-  FORCEINLINE const float
+  FORCEINLINE float
   getHeight() const;
 
   /**
@@ -299,7 +301,7 @@ class SH_CORE_EXPORT Camera
   *
   *  @return float
   */
-  FORCEINLINE const float
+  FORCEINLINE float
   getNear() const;
 
   /**
@@ -307,7 +309,7 @@ class SH_CORE_EXPORT Camera
   *
   *  @return float
   */
-  FORCEINLINE const float
+  FORCEINLINE float
   getFar() const;
 
   /**
@@ -520,7 +522,7 @@ Camera::getProjection()
   return m_proj;
 }
 
-FORCEINLINE const bool
+FORCEINLINE bool
 Camera::isOrtho() const
 {
   return m_bIsOrtho;
@@ -544,31 +546,31 @@ Camera::getUp() const
   return m_up;
 }
 
-FORCEINLINE const float
+FORCEINLINE float
 Camera::getHalfFOV() const
 {
   return m_halfFOV;
 }
 
-FORCEINLINE const float
+FORCEINLINE float
 Camera::getWidth() const
 {
   return m_screenWidth;
 }
 
-FORCEINLINE const float
+FORCEINLINE float
 Camera::getHeight() const
 {
   return m_screenHeight;
 }
 
-FORCEINLINE const float
+FORCEINLINE float
 Camera::getNear() const
 {
   return m_near;
 }
 
-FORCEINLINE const float
+FORCEINLINE float
 Camera::getFar() const
 {
   return m_far;

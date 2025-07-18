@@ -1,24 +1,23 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shCoreTestMain.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/11
+*  @date    2025/07/16
 *  @brief   Here is the main to test the window initialize.
 *
 *  Here is the main to test the window initialize.
 * 
 *  @bug     Camera movement not working properly.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shScreen.h"
+/*****************************************************************************/
 #include "shRendererApp.h"
+#include <shScreen.h>
 
 using namespace shEngineSDK;
 

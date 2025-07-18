@@ -22,10 +22,10 @@
 #include "shPrerequisitesCore.h"
 #include "shResource.h"
 #include "shSkeletonResource.h"
-#include "shVector3.h"
-#include "shVector4.h"
-#include "shQuaternion.h"
-#include "shMatrix4.h"
+#include <shVector3.h>
+#include <shVector4.h>
+#include <shQuaternion.h>
+#include <shMatrix4.h>
 
 namespace shEngineSDK {
 /**
@@ -79,7 +79,7 @@ struct SH_CORE_EXPORT KeyScale
 /**
 *  @brief Struct for animation bone transforms.
 */
-struct SH_CORE_EXPORT BoneTransformTrack
+struct SH_CORE_EXPORT ALIGN_AS(16) BoneTransformTrack
 {
   /**
   *  @brief Bone position keys.

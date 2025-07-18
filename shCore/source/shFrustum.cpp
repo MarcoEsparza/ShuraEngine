@@ -2,10 +2,10 @@
 /*
 *  @file    shFrustum.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/30
-*  @brief
+*  @date    2025/07/17
+*  @brief   Frustum class for camera view frustum calculations.
 *
-*
+*  Frustum class for camera view frustum calculations.
 *
 *  @bug     Camera movement not working properly.
 */

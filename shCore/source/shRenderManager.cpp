@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/13
+*  @date    2025/07/17
 *  @brief   Render module.
 *
 *  Render module.
@@ -10,7 +10,6 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*

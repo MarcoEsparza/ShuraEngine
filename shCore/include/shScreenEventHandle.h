@@ -1,20 +1,26 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shScreenEventHandle.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/23
+*  @date    2025/07/17
 *  @brief   Base screen event handler
 *
 *  Base screen event handler
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
+
+/*****************************************************************************/
+/*
+*  Includes
+*/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shEvent.h"
 
 namespace shEngineSDK {
 namespace shPROCESSING_MODE{
-enum SH_CORE_EXPORT E
+enum E
 {
   kPoll = 0,
   kDispatch,
@@ -38,6 +44,12 @@ class SH_CORE_EXPORT ScreenEventHandle
   */
   ~ScreenEventHandle() = default;
 
+  /***************************************************************************/
+  /*
+  *  Functions
+  */
+  /***************************************************************************/
+ public:
   /**
   *  @brief Update events.
   */
@@ -92,6 +104,11 @@ class SH_CORE_EXPORT ScreenEventHandle
 
   friend class Screen;
 
+  /***************************************************************************/
+  /*
+  *  Variables
+  */
+  /***************************************************************************/
  protected:
   /**
   *  @brief Processing mode

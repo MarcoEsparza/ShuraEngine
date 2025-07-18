@@ -74,13 +74,14 @@ class RendererApp : public BaseApp
   *  @brief Constructor that initialize the app.
   * 
   *  @param ScreenDesc& desc
-  *  @param GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11
   *  @param SampleDesc& sample = SampleDesc(1, 1)
+  *  @param GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11
   */
   RendererApp(const ScreenDesc& desc,
               const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
               const SampleDesc& sample = SampleDesc(1, 1))
-              : BaseApp(desc, dllGAPI, sample) {}
+    : BaseApp(desc, dllGAPI, sample)
+  {}
 
   /**
   *  @brief Default destructor.

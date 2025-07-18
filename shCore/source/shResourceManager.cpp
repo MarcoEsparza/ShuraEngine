@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/07/18
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -26,6 +26,9 @@
 #include "shSkeletonResource.h"
 #include "shAnimationResource.h"
 #include "shAsset.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "externals/stb_image.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -488,14 +491,29 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   auto pImage = sh_makeShared<ImageResource>();
 
-  pImage->texture = graphMan.createTextureFromFile(fileName);
+  int32 width = 0;
+  int32 height = 0;
+  int32 bpp = 0;
 
-  SystemPath file = fileName;
-  pImage->setName(file.filename().string());
+  SystemPath path = fileName;
+  String file = path.filename().string();
+
+  if (path.extension() == ".hdr") {
+    void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+    stbi_image_free(data);
+  }
+  else {
+    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+    stbi_image_free(data);
+  }
+  
+  pImage->setName(file);
 
   m_loadedResources[pImage->getName()] = pImage;
 
-  SystemPath path = file.filename();
+  path = file;
   path.replace_extension(".dds");
   String saveTex = "resources/assets/textures/" + path.string();
 

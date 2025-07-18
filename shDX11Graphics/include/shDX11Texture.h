@@ -1,56 +1,26 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shDX11Texture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/08
+*  @date    2025/07/17
 *  @brief   DirectX11 Texture and Texture2D class wrappers.
 *
 *  DirectX11 Texture and Texture2D class wrappers.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
-#include "shTexture.h"
+#include <shTexture.h>
 
 namespace shEngineSDK {
-/**
-*  @brief DirectX11 Texture class wrapper.
-*/
-class DX11Texture : public Texture
-{
- public:
-  /**
-  *  @brief Default constructor.
-  */
-  DX11Texture() = default;
-
-  /**
-  *  @brief Destructor. Release gpu memory.
-  */
-  FORCEINLINE virtual ~DX11Texture();
-
-  friend class DX11GraphicsManager;
-
-  /*************************************************************/
-  /*
-  *  Variables
-  */
-  /*************************************************************/
- protected:
-  /**
-  *  @brief DirectX11 Shader Resource View pointer.
-  */
-  ID3D11ShaderResourceView* m_pShaderRV = nullptr;
-};
-
 /**
 *  @brief DirectX11 Texture2D class wrapper.
 */
@@ -69,11 +39,11 @@ class DX11Texture2D final : public Texture2D
 
   friend class DX11GraphicsManager;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  protected:
   /**
   *  @brief DirectX11 Texture2D pointer.

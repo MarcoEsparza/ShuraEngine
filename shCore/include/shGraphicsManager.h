@@ -1,4 +1,4 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
@@ -9,14 +9,14 @@
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shGraphicTypes.h"
 #include "shModule.h"
@@ -24,11 +24,11 @@
 #include "shRect.h"
 
 namespace shEngineSDK {
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Forward declarations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 class Screen;
 class VertexBuffer;
@@ -74,14 +74,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   /**
   *  @brief Initialize the graphics manager.
   *
-  *  @param SPtr<Screen> screen
-  *  @param bool bAntiliasing
-  *  @param SAMPLE_DESC& sample
+  *  @param const SPtr<Screen> screen
+  *  @param const bool bAntiliasing
+  *  @param const SAMPLE_DESC& sample
   */
-  void
+  virtual void
   initManager(const WPtr<Screen> screen,
               const bool bAntiliasing,
-              const SampleDesc& sample);
+              const SampleDesc& sample) = 0;
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -89,26 +89,27 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param SPtr<RenderTargetView>& pTarget
   *  @param LinearColor& color
   */
-  void
+  virtual void
   clearRenderTarget(const WPtr<Texture2D> pTarget,
-                    const LinearColor& color);
+                    const LinearColor& color) = 0;
 
   /**
   *  @brief Clear the depth stencil.
   *
-  *  @param SPtr<DepthStencilView>& pDepthSV
+  *  @param const WPtr<Texture2D>& pDepthSV
+  *  @param const uint32 flags
   */
-  void
+  virtual void
   clearDepthStencil(const WPtr<Texture2D> pDepthSV,
-                    uint32 flags = CLEAR_FLAGS::kDepth,
-                    float depth = 1.0f,
-                    uint8 stencil = 0);
+                    const uint32 flags = CLEAR_FLAGS::kDepth,
+                    const float depth = 1.0f,
+                    const uint8 stencil = 0) = 0;
 
   /**
   *  @brief Present the swapchain.
   */
-  void
-  present(uint32 syncInterval = 0, uint32 flags = 0);
+  virtual void
+  present(uint32 syncInterval = 0, uint32 flags = 0) = 0;
 
   /********************
   *  Getters
@@ -119,16 +120,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<RenderTargetView>
   */
-  WPtr<Texture2D>
-  getMainRenderTargetView() const;
+  virtual WPtr<Texture2D>
+  getMainRenderTargetView() const = 0;
 
   /**
   *  @brief Returns the Depth Stencil View.
   *
   *  @return SPtr<DepthStencilView>
   */
-  WPtr<Texture2D>
-  getMainDepthStencil() const;
+  virtual WPtr<Texture2D>
+  getMainDepthStencil() const = 0;
 
   /********************
   *  Creates
@@ -142,9 +143,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<InputLayout>
   */
-  SPtr<InputLayout>
+  virtual SPtr<InputLayout>
   createInputLayout(const Vector<InputDesc>& desc,
-                    const WPtr<VertexShader> pShader);
+                    const WPtr<VertexShader> pShader) = 0;
 
   /**
   *  @brief Creates Input Layout from a VertexShader.
@@ -153,8 +154,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<InputLayout>
   */
-  SPtr<InputLayout>
-  createInputLayoutFromShader(const WPtr<VertexShader> pShader);
+  virtual SPtr<InputLayout>
+  createInputLayoutFromShader(const WPtr<VertexShader> pShader) = 0;
 
   /**
   *  @brief Creates a Vertex Shader.
@@ -166,11 +167,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<VertexShader>
   */
-  SPtr<VertexShader>
+  virtual SPtr<VertexShader>
   createVertexShader(const String& fileName,
                      const String& entryPoint,
                      const String& shaderModel,
-                     const Vector<ShaderMacro>& macros = {});
+                     const Vector<ShaderMacro>& macros = {}) = 0;
 
   /**
   *  @brief Creates a Pixel Shader.
@@ -182,11 +183,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<PixelShader>
   */
-  SPtr<PixelShader>
+  virtual SPtr<PixelShader>
   createPixelShader(const String& fileName,
                     const String& entryPoint,
                     const String& shaderModel,
-                    const Vector<ShaderMacro>& macros = {});
+                    const Vector<ShaderMacro>& macros = {}) = 0;
 
   /**
   *  @brief Creates a Geometry Shader.
@@ -198,11 +199,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<GeometryShader>
   */
-  SPtr<GeometryShader>
+  virtual SPtr<GeometryShader>
   createGeometryShader(const String& fileName,
                        const String& entryPoint,
                        const String& shaderModel,
-                       const Vector<ShaderMacro>& macros = {});
+                       const Vector<ShaderMacro>& macros = {}) = 0;
 
   /**
   *  @brief Creates a Compute Shader.
@@ -214,19 +215,19 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<ComputeShader>
   */
-  SPtr<ComputeShader>
+  virtual SPtr<ComputeShader>
   createComputeShader(const String& fileName,
                       const String& entryPoint,
                       const String& shaderModel,
-                      const Vector<ShaderMacro>& macros = {});
+                      const Vector<ShaderMacro>& macros = {}) = 0;
 
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
   *
-  *  @param Vector<T>& vertices : Template vector.
-  *  @param uint32 usage = 0
+  *  @param const Vector<T>& vertices: Template vector.
+  *  @param const uint32 usage = USAGE::kDefault
   *
-  *  @return SPtr<VertexBuffer>
+  *  @return SPtr<VertexBuffer>: The vertex buffer.
   */
   template<typename T>
   SPtr<VertexBuffer>
@@ -247,9 +248,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<IndexBuffer>
   */
-  SPtr<IndexBuffer>
+  virtual SPtr<IndexBuffer>
   createIndexBuffer(const Vector<uint32>& indices,
-                    const uint32 usage = USAGE::kDefault);
+                    const uint32 usage = USAGE::kDefault) = 0;
 
   /**
   *  @brief Creates a constant buffer with given data.
@@ -260,10 +261,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<ConstantBuffer>
   */
-  SPtr<ConstantBuffer>
+  virtual SPtr<ConstantBuffer>
   createConstantBuffer(const uint32 bufferSize,
                        const uint32 usage = USAGE::kDefault,
-                       const void* pData = nullptr);
+                       const void* pData = nullptr) = 0;
 
   /**
   *  @brief Creates a Sampler State.
@@ -273,9 +274,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<SamplerState>
   */
-  SPtr<SamplerState>
+  virtual SPtr<SamplerState>
   createSamplerState(const uint32 filter = SAMPLER_FILTER::kFilterMinMagMipLinear,
-                     const uint32 textAddress = TEXTURE_ADDRESS_MODE::kWrap);
+                     const uint32 textAddress = TEXTURE_ADDRESS_MODE::kWrap) = 0;
 
   /**
   *  @brief Creates a Texture2D from file with given route.
@@ -284,8 +285,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<Texture2D>
   */
-  SPtr<Texture2D>
-  createTextureFromFile(const String& fileName);
+  virtual SPtr<Texture2D>
+  createTextureFromFile(const String& fileName,
+                        const void* pData,
+                        const uint32 width,
+                        const uint32 height,
+                        const uint32 bpp) = 0;
 
   /**
   *  @brief Creates a Texture2D from a dds file.
@@ -722,10 +727,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param bool bAntiliasing
   *  @param SAMPLE_DESC& sample
   */
-  virtual void
+  /*virtual void
   internalInit(const WPtr<Screen> screen,
                const bool bAntiliasing,
-               const SampleDesc& sample) = 0;
+               const SampleDesc& sample) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -733,26 +738,26 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @param WPtr<Texture2D> pTarget
   *  @param LinearColor& color
   */
-  virtual void
+  /*virtual void
   internalClearRenderTarget(const WPtr<Texture2D> pTarget,
-                            const LinearColor& color) = 0;
+                            const LinearColor& color) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
   * 
   *  @param SPtr<Texture2D>& pDepthSV
   */
-  virtual void
+  /*virtual void
   internalClearDepthStencil(const WPtr<Texture2D> pDepthSV,
                             uint32 flags,
                             float depth,
-                            uint8 stencil) = 0;
+                            uint8 stencil) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
   */
-  virtual void
-  internalPresent(uint32 syncInterval, uint32 flags) = 0;
+  /*virtual void
+  internalPresent(uint32 syncInterval, uint32 flags) = 0;*/
 
   /********************
   *  Getters
@@ -763,16 +768,16 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   * 
   *  @return SPtr<RenderTargetView>
   */
-  virtual WPtr<Texture2D>
-  internalGetMainRenderTargetView() const = 0;
+  /*virtual WPtr<Texture2D>
+  internalGetMainRenderTargetView() const = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
   * 
   *  @return SPtr<DepthStencilView>
   */
-  virtual WPtr<Texture2D>
-  internalGetMainDepthStencil() const = 0;
+  /*virtual WPtr<Texture2D>
+  internalGetMainDepthStencil() const = 0;*/
 
   /********************
   *  Creates
@@ -786,9 +791,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<InputLayout>
   */
-  virtual SPtr<InputLayout>
+  /*virtual SPtr<InputLayout>
   internalCreateInputLayout(const Vector<InputDesc>& desc,
-                            const WPtr<VertexShader> pPShader) = 0;
+                            const WPtr<VertexShader> pPShader) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -797,8 +802,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<InputLayout>
   */
-  virtual SPtr<InputLayout>
-  internalCreateInputLayoutFromShader(const WPtr<VertexShader> pPShader) = 0;
+  /*virtual SPtr<InputLayout>
+  internalCreateInputLayoutFromShader(const WPtr<VertexShader> pPShader) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -810,11 +815,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<VertexShader>
   */
-  virtual SPtr<VertexShader>
+  /*virtual SPtr<VertexShader>
   internalCreateVertexShader(const String& fileName,
                              const String& entryPoint,
                              const String& shaderModel,
-                             const Vector<ShaderMacro>& macros) = 0;
+                             const Vector<ShaderMacro>& macros) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -826,11 +831,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<PixelShader>
   */
-  virtual SPtr<PixelShader>
+  /*virtual SPtr<PixelShader>
   internalCreatePixelShader(const String& fileName,
                             const String& entryPoint,
                             const String& shaderModel,
-                            const Vector<ShaderMacro>& macros) = 0;
+                            const Vector<ShaderMacro>& macros) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -842,11 +847,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<GeometryShader>
   */
-  virtual SPtr<GeometryShader>
+  /*virtual SPtr<GeometryShader>
   internalCreateGeometryShader(const String& fileName,
                                const String& entryPoint,
                                const String& shaderModel,
-                               const Vector<ShaderMacro>& macros) = 0;
+                               const Vector<ShaderMacro>& macros) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -858,19 +863,14 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<ComputeShader>
   */
-  virtual SPtr<ComputeShader>
+  /*virtual SPtr<ComputeShader>
   internalCreateComputeShader(const String& fileName,
                               const String& entryPoint,
                               const String& shaderModel,
-                              const Vector<ShaderMacro>& macros) = 0;
+                              const Vector<ShaderMacro>& macros) = 0;*/
 
   /**
-  *  @brief Calls the selected API overrided function.
-  * 
-  *  @param Vector<VertexData>& vertices
-  *  @param uint32 usage
-  *
-  *  @return SPtr<VertexBuffer>
+  *  @copydoc GraphicsManager::createVertexBuffer(type1,type2)
   */
   virtual SPtr<VertexBuffer>
   internalCreateVertexBuffer(const void* pData,
@@ -886,9 +886,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<IndexBuffer>
   */
-  virtual SPtr<IndexBuffer>
+  /*virtual SPtr<IndexBuffer>
   internalCreateIndexBuffer(const Vector<uint32>& indices,
-                            const uint32 usage) = 0;
+                            const uint32 usage) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -899,10 +899,10 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<ConstantBuffer>
   */
-  virtual SPtr<ConstantBuffer>
+  /*virtual SPtr<ConstantBuffer>
   internalCreateConstantBuffer(const uint32 bufferSize,
                                const uint32 usage,
-                               const void* pData) = 0;
+                               const void* pData) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -912,8 +912,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<SamplerState>
   */
-  virtual SPtr<SamplerState>
-  internalCreateSamplerState(const uint32 filter, const uint32 textAddress) = 0;
+  /*virtual SPtr<SamplerState>
+  internalCreateSamplerState(const uint32 filter, const uint32 textAddress) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.
@@ -922,11 +922,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *
   *  @return SPtr<Texture2D>
   */
-  virtual SPtr<Texture2D>
-  internalCreateTextureFromFile(const void* pData,
+  /*virtual SPtr<Texture2D>
+  internalCreateTextureFromFile(const String& fileName,
+                                const void* pData,
                                 const int32 width,
                                 const int32 height,
-                                const int32 bpp) = 0;
+                                const int32 bpp) = 0;*/
 
   /**
   *  @brief Calls the selected API overrided function.

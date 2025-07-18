@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/07/17
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -10,7 +10,6 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*

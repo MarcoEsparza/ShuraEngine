@@ -1,4 +1,4 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shGraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
@@ -9,151 +9,151 @@
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shGraphicsManager.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "externals/stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "externals/stb_image.h"
 
 namespace shEngineSDK {
-void
-GraphicsManager::initManager(const WPtr<Screen> screen,
-                             const bool bAntiliasing,
-                             const SampleDesc& sample)
-{
-  internalInit(screen, bAntiliasing, sample);
-}
+//void
+//GraphicsManager::initManager(const WPtr<Screen> screen,
+//                             const bool bAntiliasing,
+//                             const SampleDesc& sample)
+//{
+//  internalInit(screen, bAntiliasing, sample);
+//}
 
-void
-GraphicsManager::clearRenderTarget(const WPtr<Texture2D> pTarget,
-                                   const LinearColor& color)
-{
-  internalClearRenderTarget(pTarget, color);
-}
+//void
+//GraphicsManager::clearRenderTarget(const WPtr<Texture2D> pTarget,
+//                                   const LinearColor& color)
+//{
+//  internalClearRenderTarget(pTarget, color);
+//}
 
-void
-GraphicsManager::clearDepthStencil(const WPtr<Texture2D> pDepthSV,
-                                   uint32 flags,
-                                   float depth,
-                                   uint8 stencil)
-{
-  internalClearDepthStencil(pDepthSV, flags, depth, stencil);
-}
+//void
+//GraphicsManager::clearDepthStencil(const WPtr<Texture2D> pDepthSV,
+//                                   uint32 flags,
+//                                   float depth,
+//                                   uint8 stencil)
+//{
+//  internalClearDepthStencil(pDepthSV, flags, depth, stencil);
+//}
 
-void
-GraphicsManager::present(uint32 syncInterval, uint32 flags)
-{
-  internalPresent(syncInterval, flags);
-}
+//void
+//GraphicsManager::present(uint32 syncInterval, uint32 flags)
+//{
+//  internalPresent(syncInterval, flags);
+//}
+//
+//WPtr<Texture2D>
+//GraphicsManager::getMainRenderTargetView() const
+//{
+//  return internalGetMainRenderTargetView();
+//}
+//
+//WPtr<Texture2D>
+//GraphicsManager::getMainDepthStencil() const
+//{
+//  return internalGetMainDepthStencil();
+//}
 
-WPtr<Texture2D>
-GraphicsManager::getMainRenderTargetView() const
-{
-  return internalGetMainRenderTargetView();
-}
+//SPtr<InputLayout>
+//GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
+//                                   const WPtr<VertexShader> pShader)
+//{
+//  return internalCreateInputLayout(desc, pShader);
+//}
+//
+//SPtr<InputLayout>
+//GraphicsManager::createInputLayoutFromShader(const WPtr<VertexShader> pShader)
+//{
+//  return internalCreateInputLayoutFromShader(pShader);
+//}
+//
+//SPtr<VertexShader>
+//GraphicsManager::createVertexShader(const String& fileName,
+//                                    const String& entryPoint,
+//                                    const String& shaderModel,
+//                                    const Vector<ShaderMacro>& macros)
+//{
+//  return internalCreateVertexShader(fileName, entryPoint, shaderModel, macros);
+//}
+//
+//SPtr<PixelShader>
+//GraphicsManager::createPixelShader(const String& fileName,
+//                                   const String& entryPoint,
+//                                   const String& shaderModel,
+//                                   const Vector<ShaderMacro>& macros)
+//{
+//  return internalCreatePixelShader(fileName, entryPoint, shaderModel, macros);
+//}
+//
+//SPtr<GeometryShader>
+//GraphicsManager::createGeometryShader(const String& fileName,
+//                                      const String& entryPoint,
+//                                      const String& shaderModel,
+//                                      const Vector<ShaderMacro>& macros)
+//{
+//  return internalCreateGeometryShader(fileName, entryPoint, shaderModel, macros);
+//}
+//
+//SPtr<ComputeShader>
+//GraphicsManager::createComputeShader(const String& fileName,
+//                                     const String& entryPoint,
+//                                     const String& shaderModel,
+//                                     const Vector<ShaderMacro>& macros)
+//{
+//  return internalCreateComputeShader(fileName, entryPoint, shaderModel, macros);
+//}
+//
+//SPtr<IndexBuffer>
+//GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint32 usage)
+//{
+//  return internalCreateIndexBuffer(indices, usage);
+//}
+//
+//SPtr<ConstantBuffer>
+//GraphicsManager::createConstantBuffer(const uint32 bufferSize,
+//                                      const uint32 usage,
+//                                      const void* pData)
+//{
+//  return internalCreateConstantBuffer(bufferSize, usage, pData);
+//}
+//
+//SPtr<SamplerState>
+//GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAddress)
+//{
+//  return internalCreateSamplerState(filter, textAddress);
+//}
 
-WPtr<Texture2D>
-GraphicsManager::getMainDepthStencil() const
-{
-  return internalGetMainDepthStencil();
-}
-
-SPtr<InputLayout>
-GraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
-                                   const WPtr<VertexShader> pShader)
-{
-  return internalCreateInputLayout(desc, pShader);
-}
-
-SPtr<InputLayout>
-GraphicsManager::createInputLayoutFromShader(const WPtr<VertexShader> pShader)
-{
-  return internalCreateInputLayoutFromShader(pShader);
-}
-
-SPtr<VertexShader>
-GraphicsManager::createVertexShader(const String& fileName,
-                                    const String& entryPoint,
-                                    const String& shaderModel,
-                                    const Vector<ShaderMacro>& macros)
-{
-  return internalCreateVertexShader(fileName, entryPoint, shaderModel, macros);
-}
-
-SPtr<PixelShader>
-GraphicsManager::createPixelShader(const String& fileName,
-                                   const String& entryPoint,
-                                   const String& shaderModel,
-                                   const Vector<ShaderMacro>& macros)
-{
-  return internalCreatePixelShader(fileName, entryPoint, shaderModel, macros);
-}
-
-SPtr<GeometryShader>
-GraphicsManager::createGeometryShader(const String& fileName,
-                                      const String& entryPoint,
-                                      const String& shaderModel,
-                                      const Vector<ShaderMacro>& macros)
-{
-  return internalCreateGeometryShader(fileName, entryPoint, shaderModel, macros);
-}
-
-SPtr<ComputeShader>
-GraphicsManager::createComputeShader(const String& fileName,
-                                     const String& entryPoint,
-                                     const String& shaderModel,
-                                     const Vector<ShaderMacro>& macros)
-{
-  return internalCreateComputeShader(fileName, entryPoint, shaderModel, macros);
-}
-
-SPtr<IndexBuffer>
-GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint32 usage)
-{
-  return internalCreateIndexBuffer(indices, usage);
-}
-
-SPtr<ConstantBuffer>
-GraphicsManager::createConstantBuffer(const uint32 bufferSize,
-                                      const uint32 usage,
-                                      const void* pData)
-{
-  return internalCreateConstantBuffer(bufferSize, usage, pData);
-}
-
-SPtr<SamplerState>
-GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAddress)
-{
-  return internalCreateSamplerState(filter, textAddress);
-}
-
-SPtr<Texture2D>
-GraphicsManager::createTextureFromFile(const String& fileName)
-{
-  int32 width, height, bpp;
-
-  SystemPath path = fileName;
-  SPtr<Texture2D> pTexture;
-
-  if (path.extension() == ".hdr") {
-    void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-    pTexture = internalCreateTextureFromFile(data, width, height, bpp);
-    stbi_image_free(data);
-  }
-  else {
-    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-    pTexture = internalCreateTextureFromFile(data, width, height, bpp);
-    stbi_image_free(data);
-  }
-
-  return pTexture;
-}
+//SPtr<Texture2D>
+//GraphicsManager::createTextureFromFile(const String& fileName)
+//{
+//  int32 width, height, bpp;
+//
+//  SystemPath path = fileName;
+//  SPtr<Texture2D> pTexture;
+//
+//  if (path.extension() == ".hdr") {
+//    void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+//    pTexture = internalCreateTextureFromFile(data, width, height, bpp);
+//    stbi_image_free(data);
+//  }
+//  else {
+//    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+//    pTexture = internalCreateTextureFromFile(data, width, height, bpp);
+//    stbi_image_free(data);
+//  }
+//
+//  return pTexture;
+//}
 
 SPtr<Texture2D>
 GraphicsManager::createTextureFromDDS(const String& fileName)

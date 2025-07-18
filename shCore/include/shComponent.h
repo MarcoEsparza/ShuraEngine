@@ -24,7 +24,7 @@ namespace shEngineSDK {
 *  @brief Component type enumerator.
 */
 namespace COMPONENT_TYPE{
-enum SH_CORE_EXPORT E
+enum E
 {
   kTransform = 0,
   kTexture,

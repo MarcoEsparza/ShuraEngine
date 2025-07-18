@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/11
+*  @date    2025/07/17
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -24,7 +24,6 @@
 #include "shRenderManager.h"
 #include "shScreen.h"
 
-#include "shDevice.h"
 #include "shBuffers.h"
 #include "shInputLayout.h"
 #include "shShader.h"

@@ -18,8 +18,8 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shVector3.h"
-#include "shVector4.h"
+#include <shVector3.h>
+#include <shVector4.h>
 //#include "shLinearColor.h"
 
 namespace shEngineSDK {
