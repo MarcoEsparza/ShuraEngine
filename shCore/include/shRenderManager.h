@@ -190,6 +190,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   SPtr<Pass>
   getPass(const String& passName);
 
+  SPtr<Texture2D>
+  getTexture(const String& texName);
+
   /**
   *  @brief Recompile the shaders on the storaged passes.
   */

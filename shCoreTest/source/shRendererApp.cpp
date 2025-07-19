@@ -214,20 +214,20 @@ RendererApp::onUpdate()
   //m_hdelta = 0.0f;
   m_gui.update();
 
-  if (scene.getGameObjectList().size() && m_sceneIndex >= 0) {
+  /*if (scene.getGameObjectList().size() && m_sceneIndex >= 0) {
     m_pModel = scene.getGameObjectList()[m_sceneIndex];
-  }
-  if (m_pModel) {
+  }*/
+  /*if (m_pModel) {
     m_modelPos = m_pModel->getPosition();
     m_modelRot = m_pModel->getRotation() * Math::RAD2DEG;
     m_modelScale = m_pModel->getScale();
-  }
+  }*/
   
   Vector<Vector4> lights;
   lights.resize(12);
   lights[0] = m_lightPos;
 
-  setImgui();
+  //setImgui();
 
   if (m_fpsTimer >= 1.0f) {
     m_fpsTimer = 0.0f;
@@ -239,7 +239,7 @@ RendererApp::onUpdate()
   }
 
   // Update models transform
-  if (m_pModel) {
+  /*if (m_pModel) {
     if (m_modelPos != m_pModel->getPosition()) {
       m_pModel->setPosition(m_modelPos);
     }
@@ -249,7 +249,7 @@ RendererApp::onUpdate()
     if (m_modelScale != m_pModel->getScale()) {
       m_pModel->setScale(m_modelScale);
     }
-  }
+  }*/
 
   // Update light
   Vector3 lightTarget = m_lightCam.getTarget();
@@ -480,7 +480,7 @@ RendererApp::onMouseButtonPressed(const MOUSE_INPUT::E mouseButton,
     m_bRightClick = true;
   }
 
-  ImGui_ImplShura_AddMouseButtonEvent(true);
+  ImGui_ImplShura_AddMouseButtonEvent(true, mouseButton);
 }
 
 void
@@ -499,7 +499,7 @@ RendererApp::onMouseButtonReleased(const MOUSE_INPUT::E mouseButton,
     m_bRightClick = false;
   }
 
-  ImGui_ImplShura_AddMouseButtonEvent(false);
+  ImGui_ImplShura_AddMouseButtonEvent(false, mouseButton);
 }
 
 void

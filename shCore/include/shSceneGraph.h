@@ -71,8 +71,8 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   * 
   *  @return const Vector<SPtr<GameObject>>&
   */
-  const Vector<SPtr<GameObject>>&
-  getGameObjectList() const;
+  Vector<SPtr<GameObject>>&
+  getGameObjectList();
 
   const Vector<SPtr<StaticMeshComponent>>
   getStaticMeshComponentInScene() const;

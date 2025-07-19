@@ -632,10 +632,10 @@ ImGui_ImplShura_AddMousePosEvent(const Vector2& mousePos)
 }
 
 void
-ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked)
+ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked, MOUSE_INPUT::E button)
 {
   ImGuiIO& io = ImGui::GetIO();
-  io.AddMouseButtonEvent(0, bClicked);
+  io.AddMouseButtonEvent(static_cast<int>(button), bClicked);
 }
 
 void

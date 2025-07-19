@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2025/07/18
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -292,12 +292,12 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
                                                   nullptr,
                                                   &pBackbuffer->m_pRenderTV[0]));
 
-  m_pDepthStencil = internalCreateTexture2D(scDesc.BufferDesc.Width,
-                                            scDesc.BufferDesc.Height,
-                                            DXGI_FORMAT_D24_UNORM_S8_UINT,
-                                            D3D11_USAGE_DEFAULT,
-                                            D3D11_BIND_DEPTH_STENCIL,
-                                            1);
+  m_pDepthStencil = createTexture2D(scDesc.BufferDesc.Width,
+                                    scDesc.BufferDesc.Height,
+                                    DXGI_FORMAT_D24_UNORM_S8_UINT,
+                                    D3D11_USAGE_DEFAULT,
+                                    D3D11_BIND_DEPTH_STENCIL,
+                                    1);
 
   //Setup the viewport
   Viewport viewPort;
@@ -307,7 +307,7 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   viewPort.maxDepth = 1.0f;
   viewPort.topLeftX = 0.0f;
   viewPort.topLeftY = 0.0f;
-  internalSetViewport(viewPort);
+  setViewport(viewPort);
 
 #if defined(SH_DEBUG_MODE)
   String DeviceName = "Main Device";
@@ -804,7 +804,7 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
 
   int32 pitch = width * bpp;
 
-  auto pTexture = sh_reinterpretPCast<DX11Texture2D>(internalCreateTexture2D(
+  auto pTexture = sh_reinterpretPCast<DX11Texture2D>(createTexture2D(
                                                      width,
                                                      height,
                                                      DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -828,7 +828,7 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
 }
 
 SPtr<Texture2D>
-DX11GraphicsManager::internalCreateTextureFromDDS(const String& fileName)
+DX11GraphicsManager::createTextureFromDDS(const String& fileName)
 {
   auto pTexture = sh_makeShared<DX11Texture2D>();
 
@@ -839,11 +839,21 @@ DX11GraphicsManager::internalCreateTextureFromDDS(const String& fileName)
                 reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D),
                 &pTexture->m_pShaderRV));
 
+  String texName = "t_" + fileName;
+  String ShaderRes = "sr_" + fileName;
+
+  pTexture->m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                         static_cast<uint32>(texName.size()),
+                                         texName.c_str());
+  pTexture->m_pShaderRV->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                        static_cast<uint32>(ShaderRes.size()),
+                                        ShaderRes.c_str());
+
   return pTexture;
 }
 
 SPtr<Texture2D>
-DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
+DX11GraphicsManager::createTexture2D(const uint32 width,
                                              const uint32 height,
                                              const uint32 format,
                                              const uint32 usage,
@@ -966,7 +976,7 @@ DX11GraphicsManager::internalCreateTexture2D(const uint32 width,
 }
 
 SPtr<Texture2D>
-DX11GraphicsManager::internalCreateErrorTexture()
+DX11GraphicsManager::createErrorTexture()
 {
   auto pTexture = sh_makeShared<DX11Texture2D>();
   uint32 errorSize = 128;
@@ -1004,7 +1014,7 @@ DX11GraphicsManager::internalCreateErrorTexture()
 }
 
 SPtr<BlendState>
-DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
+DX11GraphicsManager::createBlendState(const BlendDesc& blendDesc,
                                               const LinearColor& blendFactor)
 {
   auto pBlendState = sh_makeShared<DX11BlendState>();
@@ -1039,7 +1049,7 @@ DX11GraphicsManager::internalCreateBlendState(const BlendDesc& blendDesc,
 }
 
 SPtr<RasterizerState>
-DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc)
+DX11GraphicsManager::createRasterizerState(const RasterizerDesc& rasterizerDesc)
 {
   auto pRasterizerState = sh_makeShared<DX11RasterizerState>();
 
@@ -1066,7 +1076,7 @@ DX11GraphicsManager::internalCreateRasterizerState(const RasterizerDesc& rasteri
 }
 
 SPtr<DepthStencilState>
-DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc)
+DX11GraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
 {
   auto pDepthSS = sh_makeShared<DX11DepthStencilState>();
 
@@ -1107,7 +1117,7 @@ DX11GraphicsManager::internalCreateDepthStencilState(const DepthStencilDesc& dep
 }
 
 void
-DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D> pTexture)
+DX11GraphicsManager::generateMips(const WPtr<Texture2D> pTexture)
 {
   if (pTexture.expired())
   {
@@ -1121,9 +1131,9 @@ DX11GraphicsManager::internalGenerateMips(const WPtr<Texture2D> pTexture)
 }
 
 void
-DX11GraphicsManager::internalUpdateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
-                                                  const void* pData,
-                                                  const uint32 dataSize)
+DX11GraphicsManager::updateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
+                                          const void* pData,
+                                          const uint32 dataSize)
 {
   if (pCBuffer.expired()) {
     return;
@@ -1139,10 +1149,10 @@ DX11GraphicsManager::internalUpdateConstantBuffer(const WPtr<ConstantBuffer> pCB
 }
 
 void
-DX11GraphicsManager::internalUpdateTexture2D(WPtr<Texture2D> pTexture,
-                                             uint8* pData,
-                                             uint32 width,
-                                             uint32 bpp)
+DX11GraphicsManager::updateTexture2D(WPtr<Texture2D> pTexture,
+                                     uint8* pData,
+                                     uint32 width,
+                                     uint32 bpp)
 {
   if (pTexture.expired() || pData == nullptr) {
     return;
@@ -1154,7 +1164,7 @@ DX11GraphicsManager::internalUpdateTexture2D(WPtr<Texture2D> pTexture,
 }
 
 void
-DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
+DX11GraphicsManager::updateScreenSize(const Vector2& size)
 {
   uint32 width = static_cast<uint32>(size.x);
   uint32 height = static_cast<uint32>(size.y);
@@ -1181,12 +1191,12 @@ DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
                                                   &pBackbuffer->m_pRenderTV[0]));
   m_pBackbuffer = pBackbuffer;
 
-  m_pDepthStencil = internalCreateTexture2D(width,
-                                            height,
-                                            DXGI_FORMAT_D24_UNORM_S8_UINT,
-                                            D3D11_USAGE_DEFAULT,
-                                            D3D11_BIND_DEPTH_STENCIL,
-                                            1);
+  m_pDepthStencil = createTexture2D(width,
+                                    height,
+                                    DXGI_FORMAT_D24_UNORM_S8_UINT,
+                                    D3D11_USAGE_DEFAULT,
+                                    D3D11_BIND_DEPTH_STENCIL,
+                                    1);
 
   /*m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(1,
                                                          &m_pRenderTargetView->m_pRenderTV,
@@ -1200,7 +1210,7 @@ DX11GraphicsManager::internalUpdateScreenSize(const Vector2& size)
   viewPort.maxDepth = 1.0f;
   viewPort.topLeftX = 0.0f;
   viewPort.topLeftY = 0.0f;
-  internalSetViewport(viewPort);
+  setViewport(viewPort);
 }
 
 void
@@ -1221,7 +1231,7 @@ DX11GraphicsManager::updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
 }
 
 void
-DX11GraphicsManager::internalSaveTextureToDDS(const WPtr<Texture2D> pTexture,
+DX11GraphicsManager::saveTextureToDDS(const WPtr<Texture2D> pTexture,
                                               const String& filePath)
 {
   SH_UNREFERENCED_PARAMETER(filePath);
@@ -1249,7 +1259,7 @@ DX11GraphicsManager::internalSaveTextureToDDS(const WPtr<Texture2D> pTexture,
 }
 
 void
-DX11GraphicsManager::internalSetViewport(const Viewport& vp)
+DX11GraphicsManager::setViewport(const Viewport& vp)
 {
   D3D11_VIEWPORT viewPort;
   viewPort.Width = vp.width;
@@ -1262,7 +1272,7 @@ DX11GraphicsManager::internalSetViewport(const Viewport& vp)
 }
 
 void
-DX11GraphicsManager::internalSetRenderTargets(const Vector<RenderTarget>& pRenderTVs,
+DX11GraphicsManager::setRenderTargets(const Vector<RenderTarget>& pRenderTVs,
                                               const WPtr<Texture2D> pDepthSV)
 {
   Vector<ID3D11RenderTargetView*> pRTVs;
@@ -1292,7 +1302,7 @@ DX11GraphicsManager::internalSetRenderTargets(const Vector<RenderTarget>& pRende
 }
 
 void
-DX11GraphicsManager::internalSetInputLayout(const WPtr<InputLayout> pInput)
+DX11GraphicsManager::setInputLayout(const WPtr<InputLayout> pInput)
 {
   if (pInput.expired()) {
     return;
@@ -1302,7 +1312,7 @@ DX11GraphicsManager::internalSetInputLayout(const WPtr<InputLayout> pInput)
 }
 
 void
-DX11GraphicsManager::internalSetVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
+DX11GraphicsManager::setVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
                                               const uint32 startSlot,
                                               const uint32 numBuffers,
                                               const uint32 offset)
@@ -1325,7 +1335,7 @@ DX11GraphicsManager::internalSetVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
 }
 
 void
-DX11GraphicsManager::internalSetIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
+DX11GraphicsManager::setIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
                                              const uint32 offset)
 {
   SH_ASSERT(m_pDeviceContext);
@@ -1344,7 +1354,7 @@ DX11GraphicsManager::internalSetIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
 }
 
 void
-DX11GraphicsManager::internalVSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+DX11GraphicsManager::vsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
@@ -1363,7 +1373,7 @@ DX11GraphicsManager::internalVSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 }
 
 void
-DX11GraphicsManager::internalPSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+DX11GraphicsManager::psSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
@@ -1382,7 +1392,7 @@ DX11GraphicsManager::internalPSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 }
 
 void
-DX11GraphicsManager::internalGSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+DX11GraphicsManager::gsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
@@ -1401,7 +1411,7 @@ DX11GraphicsManager::internalGSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 }
 
 void
-DX11GraphicsManager::internalCSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+DX11GraphicsManager::csSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                                   const uint32 startSlot,
                                                   const uint32 numBuffers)
 {
@@ -1420,13 +1430,13 @@ DX11GraphicsManager::internalCSSetConstantBuffers(const WPtr<ConstantBuffer> pCB
 }
 
 void
-DX11GraphicsManager::internalSetPrimitiveTopology(uint32 primitive)
+DX11GraphicsManager::setPrimitiveTopology(uint32 primitive)
 {
   m_pDeviceContext->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(primitive));
 }
 
 void
-DX11GraphicsManager::internalSetVertexShader(const WPtr<VertexShader> pVShader,
+DX11GraphicsManager::setVertexShader(const WPtr<VertexShader> pVShader,
                                              const void* ppClassInstances,
                                              const uint32 numClassInstances)
 {
@@ -1441,7 +1451,7 @@ DX11GraphicsManager::internalSetVertexShader(const WPtr<VertexShader> pVShader,
 }
 
 void
-DX11GraphicsManager::internalSetPixelShader(const WPtr<PixelShader> pPShader,
+DX11GraphicsManager::setPixelShader(const WPtr<PixelShader> pPShader,
                                             const void* ppClassInstances,
                                             const uint32 numClassInstances)
 {
@@ -1456,7 +1466,7 @@ DX11GraphicsManager::internalSetPixelShader(const WPtr<PixelShader> pPShader,
 }
 
 void
-DX11GraphicsManager::internalSetGeometryShader(const WPtr<GeometryShader> pGShader,
+DX11GraphicsManager::setGeometryShader(const WPtr<GeometryShader> pGShader,
                                                const void* ppClassInstances,
                                                const uint32 numClassInstances)
 {
@@ -1471,7 +1481,7 @@ DX11GraphicsManager::internalSetGeometryShader(const WPtr<GeometryShader> pGShad
 }
 
 void
-DX11GraphicsManager::internalSetComputeShader(const WPtr<ComputeShader> pCShader,
+DX11GraphicsManager::setComputeShader(const WPtr<ComputeShader> pCShader,
                                               const void* ppClassInstances,
                                               const uint32 numClassInstances)
 {
@@ -1486,7 +1496,7 @@ DX11GraphicsManager::internalSetComputeShader(const WPtr<ComputeShader> pCShader
 }
 
 void
-DX11GraphicsManager::internalPSSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+DX11GraphicsManager::psSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
                                                      const uint32 startSlot,
                                                      const uint32 numViews)
 {
@@ -1502,7 +1512,7 @@ DX11GraphicsManager::internalPSSetShaderResourceView(const WPtr<Texture2D> pShad
 }
 
 void
-DX11GraphicsManager::internalCSSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+DX11GraphicsManager::csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
                                                      const uint32 startSlot,
                                                      const uint32 numViews)
 {
@@ -1518,7 +1528,7 @@ DX11GraphicsManager::internalCSSetShaderResourceView(const WPtr<Texture2D> pShad
 }
 
 void
-DX11GraphicsManager::internalSetUnorderedAccessView(const UnorderedAccess& pUAVs,
+DX11GraphicsManager::setUnorderedAccessView(const UnorderedAccess& pUAVs,
                                                     const uint32 startSlot)
 {
   if (pUAVs.pUAccess.expired()) {
@@ -1535,7 +1545,7 @@ DX11GraphicsManager::internalSetUnorderedAccessView(const UnorderedAccess& pUAVs
 }
 
 void
-DX11GraphicsManager::internalPSSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
+DX11GraphicsManager::psSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
                                                const uint32 startSlot,
                                                const uint32 numSamplers)
 {
@@ -1551,7 +1561,7 @@ DX11GraphicsManager::internalPSSetSamplerState(const WPtr<SamplerState> pSampler
 }
 
 void
-DX11GraphicsManager::internalCSSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
+DX11GraphicsManager::csSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
                                                const uint32 startSlot,
                                                const uint32 numSamplers)
 {
@@ -1567,7 +1577,7 @@ DX11GraphicsManager::internalCSSetSamplerState(const WPtr<SamplerState> pSampler
 }
 
 void
-DX11GraphicsManager::internalSetBlendState(const WPtr<BlendState> pBlendState)
+DX11GraphicsManager::setBlendState(const WPtr<BlendState> pBlendState)
 {
   if (pBlendState.expired()) {
     return;
@@ -1581,7 +1591,7 @@ DX11GraphicsManager::internalSetBlendState(const WPtr<BlendState> pBlendState)
 }
 
 void
-DX11GraphicsManager::internalSetRasterizerState(const WPtr<RasterizerState> pRasterizerState)
+DX11GraphicsManager::setRasterizerState(const WPtr<RasterizerState> pRasterizerState)
 {
   if (pRasterizerState.expired()) {
     return;
@@ -1591,7 +1601,7 @@ DX11GraphicsManager::internalSetRasterizerState(const WPtr<RasterizerState> pRas
 }
 
 void
-DX11GraphicsManager::internalSetDepthStencilState(const WPtr<DepthStencilState> pDepthSState,
+DX11GraphicsManager::setDepthStencilState(const WPtr<DepthStencilState> pDepthSState,
                                                   const uint8 stencilRef)
 {
   if (pDepthSState.expired()) {
@@ -1602,7 +1612,7 @@ DX11GraphicsManager::internalSetDepthStencilState(const WPtr<DepthStencilState> 
 }
 
 void
-DX11GraphicsManager::internalSetScissorRects(const Rect& scissorClip)
+DX11GraphicsManager::setScissorRects(const Rect& scissorClip)
 {
   const D3D11_RECT r = { static_cast<LONG>(scissorClip.min.x),
                          static_cast<LONG>(scissorClip.min.y),
@@ -1613,13 +1623,13 @@ DX11GraphicsManager::internalSetScissorRects(const Rect& scissorClip)
 }
 
 void
-DX11GraphicsManager::internalDraw(const uint32 vertexCount, const uint32 startVertexLocation)
+DX11GraphicsManager::draw(const uint32 vertexCount, const uint32 startVertexLocation)
 {
   m_pDeviceContext->Draw(vertexCount, startVertexLocation);
 }
 
 void
-DX11GraphicsManager::internalDrawIndexed(const uint32 indexCount,
+DX11GraphicsManager::drawIndexed(const uint32 indexCount,
                                          const uint32 startIndexLocation,
                                          const uint32 baseVertexLocation)
 {
@@ -1627,7 +1637,7 @@ DX11GraphicsManager::internalDrawIndexed(const uint32 indexCount,
 }
 
 void
-DX11GraphicsManager::internalDispatch(const uint32 threadGroupCountX,
+DX11GraphicsManager::dispatch(const uint32 threadGroupCountX,
                                       const uint32 threadGroupCountY,
                                       const uint32 threadGroupCountZ)
 {

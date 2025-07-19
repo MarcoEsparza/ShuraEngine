@@ -35,6 +35,7 @@ enum E
   kRigidbody,
   kCollider,
   kCamera,
+  kLight,
 
   kCount
 };

@@ -479,6 +479,19 @@ RenderManager::getPass(const String& passName)
   return nullptr;
 }
 
+SPtr<Texture2D>
+RenderManager::getTexture(const String& texName)
+{
+  StringID strID(texName);
+  auto pTex = m_renderTargetMap.find(strID.getID());
+
+  if (pTex != m_renderTargetMap.end()) {
+    return (*pTex).second.pTexture;
+  }
+
+  return nullptr;
+}
+
 void RenderManager::recompileShaders()
 {
   for(auto& pPass : m_passes) {
@@ -879,7 +892,7 @@ RenderManager::renderScene()
       pInput = pAdditiveMap.pTexture;
       //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
       m_passes[StringID("AddMixShader").getID()]->setPass();
-      graphMan.setCSSamplerState(m_pSamplerClamp, 1);
+      graphMan.csSetSamplerState(m_pSamplerClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
       graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
       graphMan.setUnorderedAccessView({ pAdditiveMap.pTexture, mipLevel0 }, 0);
@@ -935,7 +948,7 @@ RenderManager::renderScene()
 
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ToneMapShader").getID()]->setPass();
-  graphMan.setCSSamplerState(m_pSamplerClamp, 1);
+  graphMan.csSetSamplerState(m_pSamplerClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
   graphMan.csSetShaderResourceView(pLuminance.pTexture, 2);

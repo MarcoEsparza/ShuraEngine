@@ -17,9 +17,10 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shScreen.h"
-#include "shVector2.h"
+#include <shPrerequisitesCore.h>
+#include <shScreen.h>
+#include <shVector2.h>
+#include <shEventEnums.h>
 
 #define IMGUI_ENABLE_VIEWPORTS
 #define IMGUI_HAS_DOCK
@@ -73,7 +74,7 @@ void
 ImGui_ImplShura_AddMousePosEvent(const Vector2& mousePos);
 
 void
-ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked);
+ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked, MOUSE_INPUT::E button);
 
 void
 ImGui_ImplShura_AddMouseWheelEvent(const float wheel,

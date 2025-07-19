@@ -48,8 +48,8 @@ SceneGraph::addObject(const SPtr<GameObject>& object)
   m_gameObjects.push_back(object);
 }
 
-const Vector<SPtr<GameObject>>&
-SceneGraph::getGameObjectList() const
+Vector<SPtr<GameObject>>&
+SceneGraph::getGameObjectList()
 {
   return m_gameObjects;
 }

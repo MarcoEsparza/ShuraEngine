@@ -581,7 +581,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   if (diffCount == 0) {
     // Create error texture
     pMeshMat->m_properties.bHasDiffuseMap = true;
-    pMeshMat->baseColor = graphMan.createErrorTexturre();
+    pMeshMat->baseColor = graphMan.createErrorTexture();
   }
   else {
     pMeshMat->m_properties.bHasDiffuseMap = true;

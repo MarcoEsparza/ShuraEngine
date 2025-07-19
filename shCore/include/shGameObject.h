@@ -181,5 +181,7 @@ class SH_CORE_EXPORT GameObject
   *  @brief Childs vector.
   */
   Vector<SPtr<GameObject>> childs;
+
+  WPtr<GameObject> parent;
 };
 }
