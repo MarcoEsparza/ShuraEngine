@@ -1094,6 +1094,17 @@ RenderManager::cleanShaderObjects()
 }
 
 void
+RenderManager::updateShaderDataBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (m_pShaderDataBuffer == nullptr) {
+    m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
+  }
+
+  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
+}
+
+void
 RenderManager::setShadowMapSize(const float size)
 {
   m_shadowMapSize = size;

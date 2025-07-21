@@ -55,12 +55,12 @@ RendererApp::onCreate()
   m_shadowTexSize = 2048.0f;
   m_screenSize = Vector2(static_cast<float>(getScreenDescription().width),
                          static_cast<float>(getScreenDescription().height));
-  m_minR = 0.0f;
-  m_maxR = 255.0f;
-  m_minG = 0.0f;
-  m_maxG = 255.0f;
-  m_minB = 0.0f;
-  m_maxB = 255.0f;
+  //m_minR = 0.0f;
+  //m_maxR = 255.0f;
+  //m_minG = 0.0f;
+  //m_maxG = 255.0f;
+  //m_minB = 0.0f;
+  //m_maxB = 255.0f;
 
   // Initialize graphics
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
@@ -113,7 +113,7 @@ RendererApp::onCreate()
   m_whitePt = 1.0f;
   m_bloomMultiplier = 1.0f;
   m_brightT = 1.0f;
-  updateShaderDataBuffer();
+  //updateShaderDataBuffer();
   updateMainBuffer();
 
   auto& pMainBuffer = renderMan.getMainBuffer();
@@ -201,7 +201,7 @@ RendererApp::onUpdate()
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
-  SceneGraph& scene = g_sceneGraph();
+  //SceneGraph& scene = g_sceneGraph();
   Time& time = g_time();
 
   m_fpsTimer += time.getFrameDeltaTime();
@@ -309,7 +309,7 @@ RendererApp::onUpdate()
     m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * camSpeed);
   }
 
-  updateShaderDataBuffer();
+  //updateShaderDataBuffer();
   updateMainBuffer();
 
   // Update audio
@@ -409,7 +409,7 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
     m_bRotRight = true;
   }
 
-  ImGui_ImplShura_AddKeyEvent(key, true);
+  ImGui_ImplShura_AddKeyEvent(key, true, modifier);
 }
 
 void
@@ -461,7 +461,7 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
     g_renderMan().recompileShaders();
   }
 
-  ImGui_ImplShura_AddKeyEvent(key, false);
+  ImGui_ImplShura_AddKeyEvent(key, false, modifier);
 }
 
 void

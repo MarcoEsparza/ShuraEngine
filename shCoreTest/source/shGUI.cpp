@@ -19,6 +19,8 @@
 /*************************************************************/
 #include "shGUI.h"
 #include "imgui_impl_shura.h"
+
+//#include <shGraphicsManager.h>
 #include <shRenderManager.h>
 #include <shSceneGraph.h>
 #include <shTexture.h>
@@ -32,6 +34,9 @@
 #include <shRigidbodyComponent.h>
 
 #include <shMeshResource.h>
+
+#define COLOR_LIMIT                                           255.0f
+#define NORM_COLOR                                            1.0f / 255.0f
 
 using std::remove;
 using std::strncpy;
@@ -79,10 +84,7 @@ GUI::update()
 
   setSceneGraph();
   setComponentInspector();
-
-  ImGui::Begin("RendererSettings");
-  ImGui::Text("Object1");
-  ImGui::End();
+  setRendererSettings();
 
   ImGui::Begin("ResourceManager");
   ImGui::Text("Resource1");
@@ -90,6 +92,14 @@ GUI::update()
 
   ImGui::Begin("Console");
   ImGui::Text("Message1");
+  /*static char buffer[256] = "This is a test";
+  if (ImGui::InputText("##TestText",
+                       buffer,
+                       IM_ARRAYSIZE(buffer),
+                       ImGuiInputTextFlags_EnterReturnsTrue |
+                       ImGuiInputTextFlags_AutoSelectAll)) {
+  }
+  ImGui::Text(buffer);*/
   ImGui::End();
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
@@ -130,9 +140,9 @@ GUI::setDockSpace()
     ImGuiID bottom;
     ImGuiID center;
 
-    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.2f, &left, &main);
-    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.25f, &right, &main);
-    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.25f, &bottom, &center);
+    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.15f, &left, &main);
+    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, &right, &main);
+    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.2f, &bottom, &center);
 
     ImGui::DockBuilderDockWindow("Scenegraph", left);
     ImGui::DockBuilderDockWindow("Scene", center);
@@ -192,6 +202,89 @@ GUI::setDockSpace()
   }
 
   ImGui::End();
+}
+
+void
+GUI::setRendererSettings()
+{
+  RenderManager& renderMan = g_renderMan();
+  auto& rendererSettings = renderMan.getShaderData();
+
+  ImGui::Begin("RendererSettings");
+  ImGui::SetNextItemWidth(150.0f);
+  if (ImGui::Button("Recompile Shaders")) {
+    renderMan.recompileShaders();
+  }
+  if (ImGui::CollapsingHeader("Ambient Occlusion")) {
+    ImGui::DragFloat("AO sampler rad", &rendererSettings.sampleRadius, 0.1f, 0.0f, 5.0f);
+    ImGui::DragFloat("AO scale", &rendererSettings.aoScale, 0.1f, 0.0f, 5.0f);
+    ImGui::DragFloat("AO bias", &rendererSettings.aoBias, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("AO intensity", &rendererSettings.aoIntensity, 0.1f, 0.0f, 5.0f);
+  }
+  if (ImGui::CollapsingHeader("Tone Mapping")) {
+    const char* toneMapType[] = {
+      "Reinhard", "0ACES", "0Uncharted2", "0AgX", "0LUT",
+    };
+    int32 toneMapIndex = static_cast<int32>(rendererSettings.toneMappingIndex);
+    ImGui::Combo("##ToneMappingCombo",
+                 &toneMapIndex,
+                 toneMapType,
+                 IM_ARRAYSIZE(toneMapType));
+    rendererSettings.toneMappingIndex = static_cast<float>(toneMapIndex);
+
+    ImGui::Spacing();
+    ImGui::DragFloat("Bright Threshold:",
+                     &rendererSettings.brightThreshold,
+                     0.01f, 0.0f, 1.0f);
+    ImGui::Spacing();
+    ImGui::DragFloat("White Point:",
+                     &rendererSettings.whitePoint,
+                     0.01f, 0.5f, 11.2f);
+    ImGui::Spacing();
+    ImGui::DragFloat("Bloom Multiplier:",
+                     &rendererSettings.bloomMultiplier,
+                     0.01f, 0.5f, 2.0f);
+    ImGui::Spacing();
+    ImGui::DragFloat("MiddleGrey:",
+                     &rendererSettings.middleGrey,
+                     0.01f, 0.5f, 2.0f);
+  }
+  if (ImGui::CollapsingHeader("Post-Process")) {
+    float minR = rendererSettings.minR * COLOR_LIMIT;
+    float maxR = rendererSettings.maxR * COLOR_LIMIT;
+    float minG = rendererSettings.minG * COLOR_LIMIT;
+    float maxG = rendererSettings.maxG * COLOR_LIMIT;
+    float minB = rendererSettings.minB * COLOR_LIMIT;
+    float maxB = rendererSettings.maxB * COLOR_LIMIT;
+
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::DragFloat("Min R:", &minR, 1.0f, 0.0f, COLOR_LIMIT);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::DragFloat("Max R:", &maxR, 1.0f, 0.0f, COLOR_LIMIT);
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::DragFloat("Min G:", &minG, 1.0f, 0.0f, COLOR_LIMIT);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::DragFloat("Max G:", &maxG, 1.0f, 0.0f, COLOR_LIMIT);
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::DragFloat("Min B:", &minB, 1.0f, 0.0f, COLOR_LIMIT);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::DragFloat("Max B:", &maxB, 1.0f, 0.0f, COLOR_LIMIT);
+
+    rendererSettings.minR = minR * NORM_COLOR;
+    rendererSettings.maxR = maxR * NORM_COLOR;
+    rendererSettings.minG = minG * NORM_COLOR;
+    rendererSettings.maxG = maxG * NORM_COLOR;
+    rendererSettings.minB = minB * NORM_COLOR;
+    rendererSettings.maxB = maxB * NORM_COLOR;
+  }
+  ImGui::End();
+
+  renderMan.updateShaderDataBuffer();
 }
 
 static bool
@@ -378,7 +471,7 @@ GUI::setSceneGraph()
 
   // Draw hierarchy
   for (auto& gameObject : scene.getGameObjectList()) {
-    showSceneGraph(gameObject, m_pModel, renamingObject);
+    showSceneGraph(gameObject, m_pActiveGameObject, renamingObject);
   }
 
   ImGui::End();
@@ -388,9 +481,9 @@ void
 GUI::setComponentInspector()
 {
   ImGui::Begin("Inspector");
-  if (m_pModel) {
+  if (m_pActiveGameObject) {
     showTransformComponent();
-    for (auto& pComponent : m_pModel->components) {
+    for (auto& pComponent : m_pActiveGameObject->components) {
       COMPONENT_TYPE::E type = pComponent->getType();
       if (type == COMPONENT_TYPE::kStaticMesh) {
         showStaticMeshComponent(sh_reinterpretPCast<StaticMeshComponent>(pComponent));
@@ -399,13 +492,13 @@ GUI::setComponentInspector()
 
       }
       else if (type == COMPONENT_TYPE::kSkyBox) {
-
+        showSkyBoxComponent(sh_reinterpretPCast<SkyBoxComponent>(pComponent));
       }
       else if (type == COMPONENT_TYPE::kCamera) {
 
       }
       else if (type == COMPONENT_TYPE::kCollider) {
-
+        showColliderComponent(sh_reinterpretPCast<ColliderComponent>(pComponent));
       }
       else if (type == COMPONENT_TYPE::kRigidbody) {
 
@@ -424,9 +517,9 @@ GUI::setComponentInspector()
 void
 GUI::showTransformComponent()
 {
-  Vector3 modelPos = m_pModel->getPosition();
-  Vector3 modelRot = m_pModel->getRotation() * Math::RAD2DEG;
-  Vector3 modelScale = m_pModel->getScale();
+  Vector3 modelPos = m_pActiveGameObject->getPosition();
+  Vector3 modelRot = m_pActiveGameObject->getRotation() * Math::RAD2DEG;
+  Vector3 modelScale = m_pActiveGameObject->getScale();
 
   if (ImGui::CollapsingHeader("Transform")) {
     // Position
@@ -524,14 +617,14 @@ GUI::showTransformComponent()
     ImGui::PopStyleColor(3);
   }
 
-  if (modelPos != m_pModel->getPosition()) {
-    m_pModel->setPosition(modelPos);
+  if (modelPos != m_pActiveGameObject->getPosition()) {
+    m_pActiveGameObject->setPosition(modelPos);
   }
-  if (modelRot != m_pModel->getRotation()) {
-    m_pModel->setRotation(modelRot * Math::DEG2RAD);
+  if (modelRot != m_pActiveGameObject->getRotation()) {
+    m_pActiveGameObject->setRotation(modelRot * Math::DEG2RAD);
   }
-  if (modelScale != m_pModel->getScale()) {
-    m_pModel->setScale(modelScale);
+  if (modelScale != m_pActiveGameObject->getScale()) {
+    m_pActiveGameObject->setScale(modelScale);
   }
 }
 
@@ -660,7 +753,19 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
 void
 GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
 {
-
+  if (wpSkyBox.expired()) {
+    return;
+  }
+  auto pSkyBox = wpSkyBox.lock();
+  if (ImGui::CollapsingHeader("SkyBox Component")) {
+    auto& pSBMat = pSkyBox->getMaterial();
+    ImGui::Text("SkyBox Texture: %s", pSBMat->name.c_str());
+    ImGui::Image(reinterpret_cast<ImTextureID*>(&pSBMat->baseColor), ImVec2(64, 64));
+    if (ImGui::Button("Change SkyBox Texture")) {
+      // Open file dialog to select new texture
+      // This is a placeholder for actual file dialog implementation
+    }
+  }
 }
 
 void
@@ -678,7 +783,70 @@ GUI::showCameraComponent()
 void
 GUI::showColliderComponent(const WPtr<ColliderComponent> wpCollider)
 {
+  if (wpCollider.expired()) {
+    return;
+  }
+  auto pCollider = wpCollider.lock();
+  if (ImGui::CollapsingHeader("Collider Component")) {
+    // Collider Type selection
+    int32 colliderType = static_cast<int32>(pCollider->m_collider.m_type);
+    ImGui::Text("Collider Type:");
+    const char* colliderTypeNames[] = {
+      "None", "Sphere", "Capsule", "AABBox", "OBBox", "ConvexMesh"
+    };
+    ImGui::Combo("##ColliderTypeCombo",
+                 &colliderType,
+                 colliderTypeNames,
+                 IM_ARRAYSIZE(colliderTypeNames));
+    pCollider->m_collider.m_type = static_cast<COLLIDER_TYPE::E>(colliderType);
 
+    // Show collider properties based on type
+    if (colliderType == COLLIDER_TYPE::kOBBox) {
+      ImGui::Text("Offset:");
+      ImGui::Text("X");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("##OBBoxXOffset",
+                       &pCollider->m_collider.m_box.center.x,
+                       0.01f);
+      ImGui::SameLine();
+      ImGui::Text("Y");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("##OBBoxYOffset",
+                       &pCollider->m_collider.m_box.center.y,
+                       0.01f);
+      ImGui::SameLine();
+      ImGui::Text("Z");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("##OBBoxZOffset",
+                       &pCollider->m_collider.m_box.center.z,
+                       0.01f);
+
+      ImGui::Text("Size:");
+      ImGui::Text("X");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("##OBBoxXSize",
+                       &pCollider->m_collider.m_box.extent.x,
+                       0.01f);
+      ImGui::SameLine();
+      ImGui::Text("Y");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("##OBBoxYSize",
+                       &pCollider->m_collider.m_box.extent.y,
+                       0.01f);
+      ImGui::SameLine();
+      ImGui::Text("Z");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("##OBBoxZSize",
+                       &pCollider->m_collider.m_box.extent.z,
+                       0.01f);
+    }
+  }
 }
 
 void

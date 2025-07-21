@@ -75,6 +75,9 @@ class GUI
   setDockSpace();
 
   void
+  setRendererSettings();
+
+  void
   setSceneGraph();
 
   void
@@ -111,29 +114,10 @@ class GUI
   Vector2 m_screenSize;
   int32 m_sceneIndex = -1;
 
-  /*************************************/
-  /*          Imgui transform          */
-  /*************************************/
-
   /**
-  *  @brief Model game object.
+  *  @brief Selected game object on scenegraph.
   */
-  SPtr<GameObject> m_pModel;
-
-  /**
-  *  @brief Model position.
-  */
-  //Vector3 m_modelPos = { 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Model rotation.
-  */
-  //Vector3 m_modelRot = { 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Model scale.
-  */
-  //Vector3 m_modelScale = { 0.0f, 0.0f, 0.0f };
+  SPtr<GameObject> m_pActiveGameObject;
 
   bool m_bTexColor = false;
   int32 m_selectedMat = -1;

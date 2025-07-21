@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/11
+*  @date    2025/07/20
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -68,7 +68,9 @@ void
 ImGui_ImplShura_NewFrame();
 
 void
-ImGui_ImplShura_AddKeyEvent(const KEY::E key, const bool bPressed);
+ImGui_ImplShura_AddKeyEvent(const KEY::E key,
+                            const bool bPressed,
+                            const ModifierState modifier);
 
 void
 ImGui_ImplShura_AddMousePosEvent(const Vector2& mousePos);

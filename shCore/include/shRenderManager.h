@@ -109,35 +109,35 @@ struct MainBufferData
 */
 struct ShaderData {
   // Ambient occlusion data.
-  float sampleRadius = 0.0f;
-  float aoScale = 0.0f;
-  float aoBias = 0.0f;
-  float aoIntensity = 0.0f;
+  float sampleRadius = 1.0f;
+  float aoScale = 1.0f;
+  float aoBias = 0.01f;
+  float aoIntensity = 1.0f;
 
   // ShadowMap
-  float shadowMapSize = 0.0f;
+  float shadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
 
   // Tone mapping data.
   float toneMappingIndex = 0.0f;
   float lutSize = 0.0f;
-  float whitePoint = 0.0f;
-  float bloomMultiplier = 0.0f;
-  float brightThreshold = 0.0f;
+  float whitePoint = 1.0f;
+  float bloomMultiplier = 1.0f;
+  float brightThreshold = 1.0f;
 
   // Post-processing data.
   float minR = 0.0f;
-  float maxR = 0.0f;
+  float maxR = 1.0f;
   float minG = 0.0f;
-  float maxG = 0.0f;
+  float maxG = 1.0f;
   float minB = 0.0f;
-  float maxB = 0.0f;
+  float maxB = 1.0f;
 
   // Mip levels for texture sampling.
   float mipLevel0 = 0.0f;
   float mipLevel1 = 0.0f;
   
-  float lightIntensity = 0.0f;
-  float middleGrey = 0.0f;
+  float lightIntensity = 1.0f;
+  float middleGrey = 1.0f;
 };
 
 /**
@@ -280,6 +280,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   cleanShaderObjects();
+
+  void
+  updateShaderDataBuffer();
 
   /**
   *  @brief Set the shadow map texture size.

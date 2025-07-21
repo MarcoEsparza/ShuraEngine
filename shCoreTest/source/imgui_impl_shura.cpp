@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2025/07/20
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -20,19 +20,19 @@
 #include "imgui_impl_shura.h"
 #ifndef IMGUI_DISABLE
 
-#include "shGraphicsManager.h"
-#include "shRenderManager.h"
-#include "shScreen.h"
+#include <shGraphicsManager.h>
+#include <shRenderManager.h>
+#include <shScreen.h>
 
-#include "shBuffers.h"
-#include "shInputLayout.h"
-#include "shShader.h"
-#include "shTexture.h"
-#include "shSamplerState.h"
-#include "shRasterizerState.h"
-#include "shBlendState.h"
-#include "shDepthStencilState.h"
-#include "shPass.h"
+#include <shBuffers.h>
+#include <shInputLayout.h>
+#include <shShader.h>
+#include <shTexture.h>
+#include <shSamplerState.h>
+#include <shRasterizerState.h>
+#include <shBlendState.h>
+#include <shDepthStencilState.h>
+#include <shPass.h>
 
 #define VertexBufferMaxSize                        5000
 #define IndexBufferMaxSize                         10000
@@ -93,6 +93,7 @@ ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle)
   io.BackendPlatformName = "ImGui_impl_Shura_Platform";
   io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
   io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+  //io.BackendFlags |= ImGuiBackendFlags_HasKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -103,6 +104,10 @@ ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle)
   viewport->PlatformHandle = reinterpret_cast<void*>(pScreen->getPlatformHandler());
   viewport->Size.x = static_cast<float>(pScreen->getWidth());
   viewport->Size.y = static_cast<float>(pScreen->getHeight());
+
+  for (int32 key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key) {
+    io.KeysData[key - ImGuiKey_NamedKey_BEGIN].Down = false;
+  }
 
   return true;
 }
@@ -401,190 +406,355 @@ ImGui_ImplShura_InvalidateDeviceObjects()
   bd->pFontTexture.reset();
 }
 
-static ImGuiKey
-getImGuiKey(KEY::E key)
+static void
+getKeyData(KEY::E key, ImGuiKey& imKey, uint32& input, const ModifierState modifier)
 {
-  ImGuiKey imKey = ImGuiKey_None;
 
   switch (key) {
   case KEY::kA:
   {
     imKey = ImGuiKey_A;
+    if (modifier.shift) {
+      input = 'A';
+    }
+    else {
+      input = 'a';
+    }
     break;
   }
   case KEY::kB:
   {
     imKey = ImGuiKey_B;
+    if (modifier.shift) {
+      input = 'B';
+    }
+    else {
+      input = 'b';
+    }
     break;
   }
   case KEY::kC:
   {
     imKey = ImGuiKey_C;
+    if (modifier.shift) {
+      input = 'C';
+    }
+    else {
+      input = 'c';
+    }
     break;
   }
   case KEY::kD:
   {
     imKey = ImGuiKey_D;
+    if (modifier.shift) {
+      input = 'D';
+    }
+    else {
+      input = 'd';
+    }
     break;
   }
   case KEY::kE:
   {
     imKey = ImGuiKey_E;
+    if (modifier.shift) {
+      input = 'E';
+    }
+    else {
+      input = 'e';
+    }
     break;
   }
   case KEY::kF:
   {
     imKey = ImGuiKey_F;
+    if (modifier.shift) {
+      input = 'F';
+    }
+    else {
+      input = 'f';
+    }
     break;
   }
   case KEY::kG:
   {
     imKey = ImGuiKey_G;
+    if (modifier.shift) {
+      input = 'G';
+    }
+    else {
+      input = 'g';
+    }
     break;
   }
   case KEY::kH:
   {
     imKey = ImGuiKey_H;
+    if (modifier.shift) {
+      input = 'H';
+    }
+    else {
+      input = 'h';
+    }
     break;
   }
   case KEY::kI:
   {
     imKey = ImGuiKey_I;
+    if (modifier.shift) {
+      input = 'I';
+    }
+    else {
+      input = 'i';
+    }
     break;
   }
   case KEY::kJ:
   {
     imKey = ImGuiKey_J;
+    if (modifier.shift) {
+      input = 'J';
+    }
+    else {
+      input = 'j';
+    }
     break;
   }
   case KEY::kK:
   {
     imKey = ImGuiKey_K;
+    if (modifier.shift) {
+      input = 'K';
+    }
+    else {
+      input = 'k';
+    }
     break;
   }
   case KEY::kL:
   {
     imKey = ImGuiKey_L;
+    if (modifier.shift) {
+      input = 'L';
+    }
+    else {
+      input = 'l';
+    }
     break;
   }
   case KEY::kM:
   {
     imKey = ImGuiKey_M;
+    if (modifier.shift) {
+      input = 'M';
+    }
+    else {
+      input = 'm';
+    }
     break;
   }
   case KEY::kN:
   {
     imKey = ImGuiKey_N;
+    if (modifier.shift) {
+      input = 'N';
+    }
+    else {
+      input = 'n';
+    }
     break;
   }
   case KEY::kO:
   {
     imKey = ImGuiKey_O;
+    if (modifier.shift) {
+      input = 'O';
+    }
+    else {
+      input = 'o';
+    }
     break;
   }
   case KEY::kP:
   {
     imKey = ImGuiKey_P;
+    if (modifier.shift) {
+      input = 'P';
+    }
+    else {
+      input = 'p';
+    }
     break;
   }
   case KEY::kQ:
   {
     imKey = ImGuiKey_Q;
+    if (modifier.shift) {
+      input = 'Q';
+    }
+    else {
+      input = 'q';
+    }
     break;
   }
   case KEY::kR:
   {
     imKey = ImGuiKey_R;
+    if (modifier.shift) {
+      input = 'R';
+    }
+    else {
+      input = 'r';
+    }
     break;
   }
   case KEY::kS:
   {
     imKey = ImGuiKey_S;
+    if (modifier.shift) {
+      input = 'S';
+    }
+    else {
+      input = 's';
+    }
     break;
   }
   case KEY::kT:
   {
     imKey = ImGuiKey_T;
+    if (modifier.shift) {
+      input = 'T';
+    }
+    else {
+      input = 't';
+    }
     break;
   }
   case KEY::kU:
   {
     imKey = ImGuiKey_U;
+    if (modifier.shift) {
+      input = 'U';
+    }
+    else {
+      input = 'u';
+    }
     break;
   }
   case KEY::kV:
   {
     imKey = ImGuiKey_V;
+    if (modifier.shift) {
+      input = 'V';
+    }
+    else {
+      input = 'v';
+    }
     break;
   }
   case KEY::kW:
   {
     imKey = ImGuiKey_W;
+    if (modifier.shift) {
+      input = 'W';
+    }
+    else {
+      input = 'w';
+    }
     break;
   }
   case KEY::kX:
   {
     imKey = ImGuiKey_X;
+    if (modifier.shift) {
+      input = 'X';
+    }
+    else {
+      input = 'x';
+    }
     break;
   }
   case KEY::kY:
   {
     imKey = ImGuiKey_Y;
+    if (modifier.shift) {
+      input = 'Y';
+    }
+    else {
+      input = 'y';
+    }
     break;
   }
   case KEY::kZ:
   {
     imKey = ImGuiKey_Z;
+    if (modifier.shift) {
+      input = 'Z';
+    }
+    else {
+      input = 'z';
+    }
     break;
   }
   case KEY::kNum0:
   {
     imKey = ImGuiKey_0;
+    input = '0';
     break;
   }
   case KEY::kNum1:
   {
     imKey = ImGuiKey_1;
+    input = '1';
     break;
   }
   case KEY::kNum2:
   {
     imKey = ImGuiKey_2;
+    input = '2';
     break;
   }
   case KEY::kNum3:
   {
     imKey = ImGuiKey_3;
+    input = '3';
     break;
   }
   case KEY::kNum4:
   {
     imKey = ImGuiKey_4;
+    input = '4';
     break;
   }
   case KEY::kNum5:
   {
     imKey = ImGuiKey_5;
+    input = '5';
     break;
   }
   case KEY::kNum6:
   {
     imKey = ImGuiKey_6;
+    input = '6';
     break;
   }
   case KEY::kNum7:
   {
     imKey = ImGuiKey_7;
+    input = '7';
     break;
   }
   case KEY::kNum8:
   {
     imKey = ImGuiKey_8;
+    input = '8';
     break;
   }
   case KEY::kNum9:
   {
     imKey = ImGuiKey_9;
+    input = '9';
     break;
   }
   case KEY::kBack:
@@ -592,16 +762,37 @@ getImGuiKey(KEY::E key)
     imKey = ImGuiKey_Backspace;
     break;
   }
+  case KEY::kSpace:
+  {
+    imKey = ImGuiKey_Space;
+    input = ' ';
+    break;
+  }
+  case KEY::kCapital:
+  {
+    imKey = ImGuiKey_CapsLock;
+    break;
+  }
+  case KEY::kComma:
+  {
+    imKey = ImGuiKey_Comma;
+    input = ',';
+    break;
+  }
+  case KEY::kTab:
+  {
+    imKey = ImGuiKey_Tab;
+    input = '    ';
+    break;
+  }
   case KEY::kKeysMax:
   {
-    return ImGuiKey_COUNT;
+    imKey = ImGuiKey_COUNT;
     break;
   }
   default:
     break;
   }
-
-  return imKey;
 }
 
 void
@@ -617,11 +808,24 @@ ImGui_ImplShura_NewFrame()
 }
 
 void
-ImGui_ImplShura_AddKeyEvent(const KEY::E key, const bool bPressed)
+ImGui_ImplShura_AddKeyEvent(const KEY::E key,
+                            const bool bPressed,
+                            const ModifierState modifier)
 {
   ImGuiIO& io = ImGui::GetIO();
-  ImGuiKey imKey = getImGuiKey(key);
-  io.AddKeyEvent(imKey, bPressed);
+  uint32 input = '\0';
+  ImGuiKey imKey = ImGuiKey_None;
+  getKeyData(key, imKey, input, modifier);
+
+  if (imKey != ImGuiKey_None && imKey != ImGuiKey_COUNT) {
+    io.AddKeyEvent(imKey, bPressed);
+  }
+
+  if (bPressed) {
+    if (input != '\0') {
+      io.AddInputCharacter(input);
+    }
+  }
 }
 
 void
