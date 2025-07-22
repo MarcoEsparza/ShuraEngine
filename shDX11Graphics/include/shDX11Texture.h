@@ -2,10 +2,10 @@
 /*
 *  @file    shDX11Texture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
-*  @brief   DirectX11 Texture and Texture2D class wrappers.
+*  @date    2025/07/21
+*  @brief   DirectX11 Texture2D and Texture3D class wrappers.
 *
-*  DirectX11 Texture and Texture2D class wrappers.
+*  DirectX11 Texture2D and Texture3D class wrappers.
 *
 *  @bug     No bug known.
 */
@@ -71,4 +71,39 @@ class DX11Texture2D final : public Texture2D
   Vector<ID3D11UnorderedAccessView*> m_pUnorderedAV;
 };
 
+
+/**
+*  @brief DirectX11 Texture3D class wrapper.
+*/
+class DX11Texture3D final : public Texture3D
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+   DX11Texture3D() = default;
+
+  /**
+  *  @brief Destructor. Release gpu memory.
+  */
+  ~DX11Texture3D();
+
+  friend class DX11GraphicsManager;
+
+  /***************************************************************************/
+  /*
+  *  Variables
+  */
+  /***************************************************************************/
+ protected:
+  /**
+  *  @brief DirectX11 Texture3D pointer.
+  */
+  ID3D11Texture3D* m_pTexture3D = nullptr;
+
+  /**
+  *  @brief DirectX11 Shader Resource View pointer.
+  */
+  ID3D11ShaderResourceView* m_pShaderRV = nullptr;
+};
 }

@@ -2,7 +2,7 @@
 /*
 *  @file    shTexture.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2025/07/21
 *  @brief   Engine base Texture classes.
 *
 *  Engine base Texture classes.
@@ -25,7 +25,7 @@ namespace shEngineSDK {
 */
 class Texture2D
 {
-public:
+ public:
   /**
   *  @brief Default constructor.
   */
@@ -35,5 +35,22 @@ public:
   *  @brief Default destructor.
   */
   virtual ~Texture2D() = default;
+};
+
+/**
+*  @brief Engine base Texture3D class.
+*/
+class Texture3D
+{
+ public:
+  /**
+  *  @brief Default constructor.
+  */
+  Texture3D() = default;
+
+  /**
+  *  @brief Default destructor.
+  */
+  virtual ~Texture3D() = default;
 };
 }

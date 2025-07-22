@@ -26,6 +26,7 @@
 #include "shSkeletonResource.h"
 #include "shAnimationResource.h"
 #include "shAsset.h"
+#include "shCubeMap.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "externals/stb_image.h"
@@ -395,6 +396,9 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
     resource = loadModelFromFile(filePath.toString());
   }
+  else if (filePath.compareExtensions({ ".cube" })) {
+    resource = loadCubeMapFromFile(filePath.toString());
+  }
   else {
     return nullptr;
   }
@@ -541,6 +545,17 @@ ResourceManager::loadTextureFromDDS(const String& filename)
   pImage->setPath(texPath);
 
   return pImage;
+}
+
+SPtr<Resource>
+ResourceManager::loadCubeMapFromFile(const String& fileName)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  auto pCubeMap = sh_makeShared<CubeMap>();
+  SystemPath file = fileName;
+  pCubeMap->setName(file.filename().string());
+  pCubeMap->loadFromFile(fileName);
+  return pCubeMap;
 }
 
 SPtr<Resource>

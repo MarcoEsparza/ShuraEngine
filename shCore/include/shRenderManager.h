@@ -38,9 +38,11 @@ class Material;
 class Pass;
 class BlendState;
 class Texture2D;
+class Texture3D;
 class ConstantBuffer;
 class SceneGraph;
 class SamplerState;
+class CubeMap;
 
 /**
 *  @brief Render target information structure.
@@ -284,6 +286,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   updateShaderDataBuffer();
 
+  void
+  setSamplers();
+
   /**
   *  @brief Set the shadow map texture size.
   * 
@@ -354,7 +359,14 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   ShaderData m_shaderData;
 
-  SPtr<SamplerState> m_pSamplerClamp;
+  SPtr<SamplerState> m_pSamplerLinearWrap;
+  SPtr<SamplerState> m_pSamplerPointWrap;
+  SPtr<SamplerState> m_pSamplerAnisotropicWrap;
+  SPtr<SamplerState> m_pSamplerLinearClamp;
+  SPtr<SamplerState> m_pSamplerPointClamp;
+  SPtr<SamplerState> m_pSamplerAnisotropicClamp;
+
+  SPtr<CubeMap> m_pLutTexture;
 
   /**
   *  @brief Shadow map texture size.

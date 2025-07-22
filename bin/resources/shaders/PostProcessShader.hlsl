@@ -1,7 +1,5 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
-SamplerState samplerLinearClamp : register(s1);
 Texture2D t_inputMap : register(t0);
 Texture2D t_texture1 : register(t1);
 Texture2D t_texture2 : register(t2);
@@ -53,25 +51,6 @@ aces(float3 color)
     
   color = saturate(color);
   return color;
-    
-  //const float3x3 ACESInputMat =
-  //{
-  //  { 0.59719f, 0.35458f, 0.04823f },
-  //  { 0.07600f, 0.90834f, 0.01566f },
-  //  { 0.02840f, 0.13383f, 0.83777f }
-  //};
-
-  //const float3x3 ACESOutputMat =
-  //{
-  //  { 1.60475f, -0.53108f, -0.07367f },
-  //  { -0.10208f, 1.10813f, -0.00605f },
-  //  { -0.00327f, -0.07276f, 1.07602f }
-  //};
-
-  //color = mul(ACESInputMat, color);
-  //color = RRTAndODTFit(color);
-  //color = mul(ACESOutputMat, color);
-  //return saturate(color);
 }
 
 float3
@@ -116,9 +95,9 @@ agx(float3 X)
 float3
 lutToneMap(float3 color)
 {
-  color = saturate(color);
-  float3 coord = color * (lutSize - 1.0) / lutSize;
-  return lutTex.SampleLevel(textureSampler, coord, 0).rgb;
+  //float3 coord = color * (lutSize - 1.0) / lutSize;
+  //coord = saturate(coord);
+  return lutTex.SampleLevel(samplerLinearClamp, color, 0).rgb;
 }
 
 float3
@@ -152,14 +131,10 @@ PostProcessCS(uint3 dtID : SV_DispatchThreadID)
   }
 
   float4 color = t_inputMap.Load(uint3(dtID.xy, 0));
-    
-  color = saturate(color);
-    
+
   color.r = lerp(minR, maxR, color.r);
   color.g = lerp(minG, maxG, color.g);
   color.b = lerp(minB, maxB, color.b);
-    
-  color = pow(color, 1.0f / 2.2f);
   
   t_outputMap[dtID.xy] = color;
 }
@@ -197,6 +172,7 @@ ToneMapCS(uint3 dtID : SV_DispatchThreadID)
   //mapped = pow(mapped, 1.0f / 2.2f);
   //float bloomMultiplier = 1.0f;
   mapped += bloom * bloomMultiplier;
+  mapped = pow(mapped, 1.0f / 2.2f);
     
   t_outputMap[dtID.xy] = float4(saturate(mapped), 1.0f);
 }

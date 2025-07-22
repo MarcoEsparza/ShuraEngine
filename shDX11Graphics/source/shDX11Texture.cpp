@@ -2,10 +2,10 @@
 /*
 *  @file    shDX11Texture.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
-*  @brief   DirectX11 Texture and Texture2D class wrappers.
+*  @date    2025/07/21
+*  @brief   DirectX11 Texture2D and Texture3D class wrappers.
 *
-*  DirectX11 Texture and Texture2D class wrappers.
+*  DirectX11 Texture2D and Texture3D class wrappers.
 *
 *  @bug     No bug known.
 */
@@ -31,5 +31,11 @@ DX11Texture2D::~DX11Texture2D()
     SafeRelease(it);
   }
   SafeRelease(m_pTexture2D);
+}
+
+DX11Texture3D::~DX11Texture3D()
+{
+  SafeRelease(m_pTexture3D);
+  SafeRelease(m_pShaderRV);
 }
 }

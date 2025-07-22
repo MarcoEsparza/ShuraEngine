@@ -1,3 +1,9 @@
+SamplerState samplerLinearWrap : register(s0);
+SamplerState samplerPointWrap : register(s1);
+SamplerState samplerAnisotropicWrap : register(s2);
+SamplerState samplerLinearClamp : register(s3);
+SamplerState samplerPointClamp : register(s4);
+SamplerState samplerAnisotropicClamp : register(s5);
 
 cbuffer MainBuffer : register(b0)
 {

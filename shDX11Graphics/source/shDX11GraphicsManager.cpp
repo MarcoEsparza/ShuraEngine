@@ -854,11 +854,11 @@ DX11GraphicsManager::createTextureFromDDS(const String& fileName)
 
 SPtr<Texture2D>
 DX11GraphicsManager::createTexture2D(const uint32 width,
-                                             const uint32 height,
-                                             const uint32 format,
-                                             const uint32 usage,
-                                             const uint32 bindFlags,
-                                             const uint32 mipLevels)
+                                     const uint32 height,
+                                     const uint32 format,
+                                     const uint32 usage,
+                                     const uint32 bindFlags,
+                                     const uint32 mipLevels)
 {
   auto pTexture = std::make_shared<DX11Texture2D>();
   uint32 texMipLevels = mipLevels;
@@ -971,6 +971,49 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
   if(autoGenMipMaps) {
     generateMips(pTexture);
   }
+
+  return pTexture;
+}
+
+SPtr<Texture3D>
+DX11GraphicsManager::createTexture3D(const Vector3 size,
+                                     const uint32 format,
+                                     const Vector<LinearColor>* data,
+                                     const uint32 usage)
+{
+  auto pTexture = std::make_shared<DX11Texture3D>();
+
+  D3D11_TEXTURE3D_DESC textureDesc;
+  memset(&textureDesc, 0, sizeof(textureDesc));
+  textureDesc.Width = static_cast<uint32>(size.x);
+  textureDesc.Height = static_cast<uint32>(size.y);
+  textureDesc.Depth = static_cast<uint32>(size.z);
+  textureDesc.MipLevels = 1;
+  textureDesc.Format = static_cast<DXGI_FORMAT>(format);
+  textureDesc.Usage = static_cast<D3D11_USAGE>(usage);
+  textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+  textureDesc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
+  textureDesc.MiscFlags = 0;
+
+  D3D11_SUBRESOURCE_DATA initData = {};
+  if (data) {
+    initData.pSysMem = data->data();
+    initData.SysMemPitch = size.x * sizeof(LinearColor);
+    initData.SysMemSlicePitch = size.y * initData.SysMemPitch;
+  }
+
+  throwIfFailed(m_pDevice->CreateTexture3D(&textureDesc,
+                                           data ? &initData : nullptr,
+                                           &pTexture->m_pTexture3D));
+
+  D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+  srvDesc.Format = textureDesc.Format;
+  srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
+  srvDesc.Texture3D.MipLevels = 1;
+
+  throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture3D,
+                                                    &srvDesc,
+                                                    &pTexture->m_pShaderRV));
 
   return pTexture;
 }
@@ -1523,6 +1566,38 @@ DX11GraphicsManager::csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
   }
 
   auto pShaderTexture = sh_reinterpretPCast<DX11Texture2D>(pShaderRV.lock());
+
+  m_pDeviceContext->CSSetShaderResources(startSlot, numViews, &pShaderTexture->m_pShaderRV);
+}
+
+void
+DX11GraphicsManager::psSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                                             const uint32 startSlot,
+                                             const uint32 numViews)
+{
+  if (pShaderRV.expired()) {
+    ID3D11ShaderResourceView* dx11SRV = nullptr;
+    m_pDeviceContext->PSSetShaderResources(startSlot, numViews, &dx11SRV);
+    return;
+  }
+
+  auto pShaderTexture = sh_reinterpretPCast<DX11Texture3D>(pShaderRV.lock());
+
+  m_pDeviceContext->PSSetShaderResources(startSlot, numViews, &pShaderTexture->m_pShaderRV);
+}
+
+void
+DX11GraphicsManager::csSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                                             const uint32 startSlot,
+                                             const uint32 numViews)
+{
+  if (pShaderRV.expired()) {
+    ID3D11ShaderResourceView* dx11SRV = nullptr;
+    m_pDeviceContext->CSSetShaderResources(startSlot, numViews, &dx11SRV);
+    return;
+  }
+
+  auto pShaderTexture = sh_reinterpretPCast<DX11Texture3D>(pShaderRV.lock());
 
   m_pDeviceContext->CSSetShaderResources(startSlot, numViews, &pShaderTexture->m_pShaderRV);
 }

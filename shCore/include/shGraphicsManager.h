@@ -22,6 +22,8 @@
 #include <shModule.h>
 #include <shLinearColor.h>
 #include <shRect.h>
+#include <shVector3.h>
+#include <shVector4.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -41,6 +43,7 @@ class PixelShader;
 class GeometryShader;
 class ComputeShader;
 class Texture2D;
+class Texture3D;
 class BlendState;
 class RasterizerState;
 class DepthStencilState;
@@ -322,6 +325,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 bindFlags = BIND_FLAGS::kShaderResource,
                   const uint32 mipLevels = 1)  = 0;
 
+  virtual SPtr<Texture3D>
+  createTexture3D(const Vector3 size,
+                  const uint32 format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                  const Vector<LinearColor>* data = nullptr,
+                  const uint32 usage = USAGE::kDefault) = 0;
+
   /**
   *  @brief Creates an error Texture2D.
   *
@@ -586,7 +595,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                    const uint32 numClassInstances = 0) = 0;
 
   /**
-  *  @brief Sets a shader resource to the pixel shader.
+  *  @brief Sets a 2D shader resource to the pixel shader.
   *
   *  @param SPtr<Texture2D>& pShaderRV
   *  @param uint32 startSlot = 0
@@ -598,7 +607,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                           const uint32 numViews = 1) = 0;
 
   /**
-  *  @brief Sets a shader resource to the compute shader.
+  *  @brief Sets a 2D shader resource to the compute shader.
   *
   *  @param SPtr<Texture2D>& pShaderRV
   *  @param uint32 startSlot = 0
@@ -606,6 +615,30 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1) = 0;
+
+  /**
+  *  @brief Sets a 3D shader resource to the pixel shader.
+  *
+  *  @param SPtr<Texture3D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  virtual void
+  psSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1) = 0;
+
+  /**
+  *  @brief Sets a 3D shader resource to the compute shader.
+  *
+  *  @param SPtr<Texture3D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  virtual void
+  csSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
                           const uint32 startSlot = 0,
                           const uint32 numViews = 1) = 0;
 

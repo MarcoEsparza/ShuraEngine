@@ -19,6 +19,7 @@
 #include "shRenderManager.h"
 #include "shGraphicsManager.h"
 #include "shSceneGraph.h"
+#include "shResourceManager.h"
 #include "shMeshComponent.h"
 #include "shSkyBoxComponent.h"
 #include "shMeshResource.h"
@@ -26,6 +27,9 @@
 #include "shPass.h"
 #include "shMatrix4.h"
 #include "shStringID.h"
+#include "shPath.h"
+#include "shTexture.h"
+#include "shCubeMap.h"
 
 #define PBRBufferSize 32 // Size of the PBR material constant buffer
 #define LUMINANCE_MAP_SIZE 512.0f // Size of the luminance map
@@ -52,6 +56,7 @@ void
 RenderManager::onStartUp()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  ResourceManager& resMan = g_resourceMan();
 
   // Blend state for alpha testing
   BlendDesc blendDesc = {};
@@ -158,6 +163,12 @@ RenderManager::onStartUp()
     TEXTURE_FORMAT::kR32_FLOAT,
     fullUAVBindFlags, USAGE::kDefault, 1,
     HISTOGRAM_MAP_SIZE, 3, false);
+
+  auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/LBK-K-Tone_33.cube"));
+  if (pLut) {
+    m_pLutTexture = sh_reinterpretPCast<CubeMap>(pLut);
+    m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
+  }
 }
 
 void
@@ -397,9 +408,19 @@ RenderManager::createPasses()
   planeDepthSDesc.stencilEnable = false;
 
   // States creation
-  auto pSamplerLinear = graphMan.createSamplerState();
-  m_pSamplerClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
-                                                TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerLinearWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
+                                                     TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerPointWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
+                                                    TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerAnisotropicWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
+                                                          TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerLinearClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
+                                                      TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerPointClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
+                                                     TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerAnisotropicClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
+                                                           TEXTURE_ADDRESS_MODE::kClamp);
+
   auto pRasterState = graphMan.createRasterizerState(rasterDesc);
   auto pBlendState = graphMan.createBlendState(blendDesc);
   auto pDepthStencil = graphMan.createDepthStencilState(depthSDesc);
@@ -407,43 +428,43 @@ RenderManager::createPasses()
   // Fill pass info
   // GBuffer
   pGbufferShader->generateInputLayout();
-  pGbufferShader->setSamplerState(pSamplerLinear);
+  //pGbufferShader->setSamplerState(m_pSamplerLinearWrap);
   pGbufferShader->setRasterizerState(pRasterState);
   pGbufferShader->setBlendState(pBlendState);
   pGbufferShader->setDepthStencilState(pDepthStencil);
 
   // Lightning
-  pLightCS->setSamplerState(pSamplerLinear);
+  //pLightCS->setSamplerState(m_pSamplerLinearWrap);
 
   // AO
-  pAOShader->setSamplerState(pSamplerLinear);
+  //pAOShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Shadow Map
   pSMapShader->generateInputLayout();
-  pSMapShader->setSamplerState(pSamplerLinear);
+  //pSMapShader->setSamplerState(m_pSamplerLinearWrap);
   pSMapShader->setRasterizerState(pRasterState);
   pSMapShader->setBlendState(pBlendState);
   pSMapShader->setDepthStencilState(pDepthStencil);
 
   // SkyBox Map
   pSkyBoxShader->generateInputLayout();
-  pSkyBoxShader->setSamplerState(pSamplerLinear);
+  //pSkyBoxShader->setSamplerState(m_pSamplerLinearWrap);
   pSkyBoxShader->setRasterizerState(pRasterState);
   pSkyBoxShader->setBlendState(pBlendState);
   pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
 
   // Final
-  pFinalShader->setSamplerState(pSamplerLinear);
+  //pFinalShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Plane vs
   pPlaneVS->generateInputLayout();
   pPlaneVS->setDepthStencilStateFromDesc(planeDepthSDesc);
 
   // ToneMap
-  pToneMapShader->setSamplerState(pSamplerLinear);
+  //pToneMapShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Bright
-  pBrightShader->setSamplerState(pSamplerLinear);
+  //pBrightShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Save passes
   m_passes[StringID("GBufferShader").getID()] = pGbufferShader;
@@ -732,6 +753,7 @@ RenderManager::renderScene()
                              {pColorMap.pTexture},
                              {pPropMap.pTexture }}, pDepthSV);
   m_passes[StringID("GBufferShader").getID()]->setPass();
+  setSamplers();
   drawStaticMeshOnScene();
   cleanShaderObjects();
 
@@ -743,6 +765,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{ pOutput }}, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("AOShader").getID()]->setPass();
+  setSamplers();
   graphMan.psSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.psSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.draw(3, 0);
@@ -757,6 +780,7 @@ RenderManager::renderScene()
   pOutput = pHBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HBlurShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
@@ -772,6 +796,7 @@ RenderManager::renderScene()
   pOutput = pVBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("VBlurShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   /*graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
@@ -786,6 +811,7 @@ RenderManager::renderScene()
   pOutput = pLightCMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LightCS").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
@@ -803,6 +829,7 @@ RenderManager::renderScene()
   graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
   graphMan.setRenderTargets({{ pSkyBoxMap.pTexture }}, pDepthSV);
   m_passes[StringID("SkyBoxShader").getID()]->setPass();
+  setSamplers();
 
   WPtr<Texture2D> pSbTex;
   for (auto& gameObject : scene.getGameObjectList()) {
@@ -828,6 +855,7 @@ RenderManager::renderScene()
   pOutput = pTempMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ASBShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
@@ -842,6 +870,7 @@ RenderManager::renderScene()
   pOutput = pLuminance.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LuminanceShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
@@ -855,6 +884,7 @@ RenderManager::renderScene()
   pOutput = pBrightMap.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("BrightShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pInput, 1);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
@@ -892,7 +922,8 @@ RenderManager::renderScene()
       pInput = pAdditiveMap.pTexture;
       //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
       m_passes[StringID("AddMixShader").getID()]->setPass();
-      graphMan.csSetSamplerState(m_pSamplerClamp, 1);
+      setSamplers();
+      //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
       graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
       graphMan.setUnorderedAccessView({ pAdditiveMap.pTexture, mipLevel0 }, 0);
@@ -909,6 +940,7 @@ RenderManager::renderScene()
     //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     m_passes[StringID("HBlurShader").getID()]->setPass();
     //m_passes[StringID("HBlurCS").getID()]->setPass();
+    setSamplers();
     graphMan.csSetShaderResourceView(pInput, 0);
     graphMan.setUnorderedAccessView({ pBHBlur.pTexture, mipLevel0 }, 0);
     /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
@@ -925,6 +957,7 @@ RenderManager::renderScene()
     //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     m_passes[StringID("VBlurShader").getID()]->setPass();
     //m_passes[StringID("VBlurCS").getID()]->setPass();
+    setSamplers();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
     graphMan.setUnorderedAccessView({ pBVBlur.pTexture, mipLevel0 }, 0);
     /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
@@ -948,10 +981,12 @@ RenderManager::renderScene()
 
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ToneMapShader").getID()]->setPass();
-  graphMan.csSetSamplerState(m_pSamplerClamp, 1);
+  setSamplers();
+  //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
   graphMan.csSetShaderResourceView(pLuminance.pTexture, 2);
+  graphMan.csSetShaderResourceView(m_pLutTexture->getTexture(), 3);
   graphMan.setUnorderedAccessView({ pToneMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
@@ -961,10 +996,8 @@ RenderManager::renderScene()
   /*************************************/
   /*            PostProcess            */
   /*************************************/
-  //pInput = pTempMap.pTexture;
-  //pOutput = pPPMap.pTexture;
-  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("PPShader").getID()]->setPass();
+  setSamplers();
 
   graphMan.csSetShaderResourceView(pToneMap.pTexture, 0);
   graphMan.setUnorderedAccessView({ pPPMap.pTexture }, 0);
@@ -979,6 +1012,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{ pMainTarget }}, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("FinalShader").getID()]->setPass();
+  setSamplers();
 
   graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
 
@@ -991,6 +1025,7 @@ RenderManager::renderScene()
   /*************************************/
   /*graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HistogramShader").getID()]->setPass();
+  setSamplers();
 
   graphMan.csSetShaderResourceView(pPPMap.pTexture, 0);
   graphMan.setUnorderedAccessView(pHistogramMap.pTexture, 0);
@@ -1102,6 +1137,26 @@ RenderManager::updateShaderDataBuffer()
   }
 
   graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
+}
+
+void
+RenderManager::setSamplers()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  graphMan.psSetSamplerState(m_pSamplerLinearWrap, 0);
+  graphMan.psSetSamplerState(m_pSamplerPointWrap, 1);
+  graphMan.psSetSamplerState(m_pSamplerAnisotropicWrap, 2);
+  graphMan.psSetSamplerState(m_pSamplerLinearClamp, 3);
+  graphMan.psSetSamplerState(m_pSamplerPointClamp, 4);
+  graphMan.psSetSamplerState(m_pSamplerAnisotropicClamp, 5);
+
+  graphMan.csSetSamplerState(m_pSamplerLinearWrap, 0);
+  graphMan.csSetSamplerState(m_pSamplerPointWrap, 1);
+  graphMan.csSetSamplerState(m_pSamplerAnisotropicWrap, 2);
+  graphMan.csSetSamplerState(m_pSamplerLinearClamp, 3);
+  graphMan.csSetSamplerState(m_pSamplerPointClamp, 4);
+  graphMan.csSetSamplerState(m_pSamplerAnisotropicClamp, 5);
 }
 
 void

@@ -1,6 +1,5 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
 Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
 Texture2D t_colorMap : register(t2);

@@ -143,9 +143,9 @@ void
 BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
+  ResourceManager::startUp();
   RenderManager::startUp();
   Gizmos::startUp();
-  ResourceManager::startUp();
   ScriptManager::startUp();
   Time::startUp();
   SceneGraph::startUp();

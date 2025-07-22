@@ -1,6 +1,6 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
+//SamplerState textureSampler : register(s0);
 Texture2D t_baseColor : register(t0);
 Texture2D t_normal : register(t1);
 Texture2D t_metallic : register(t2);
@@ -88,7 +88,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   }
   else
   {
-    output.Color = t_baseColor.Sample(textureSampler, input.Tex);
+    output.Color = t_baseColor.Sample(samplerLinearWrap, input.Tex);
     output.Color = output.Color * float4(baseColorFactor, 1.0f);
   }
     
@@ -105,7 +105,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   //{
   //  fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
   //}
-  float3 fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
+  float3 fvNormal = t_normal.Sample(samplerLinearWrap, input.Tex).xyz * 2.0f - 1.0f;
   fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
   output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
     
@@ -113,7 +113,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
     
   if (materialProps.bHasMetallicMap)
   {
-    output.Properties.r = t_metallic.Sample(textureSampler, input.Tex);
+    output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex);
   }
   else
   {
@@ -122,7 +122,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   
   if(materialProps.bHasRoughnessMap)
   {
-    output.Properties.b = t_roughness.Sample(textureSampler, input.Tex);
+    output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex);
   }
   else
   {

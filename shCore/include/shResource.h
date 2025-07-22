@@ -32,6 +32,7 @@ enum E
   kSkeletalMesh,
   kSkeleton,
   kAnmimation,
+  kCubeMap,
 
   kCount
 };

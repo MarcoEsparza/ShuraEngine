@@ -290,6 +290,12 @@ class DX11GraphicsManager : public GraphicsManager
                   const uint32 bindFlags,
                   const uint32 mipLevels) override;
 
+  SPtr<Texture3D>
+  createTexture3D(const Vector3 size,
+                  const uint32 format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                  const Vector<LinearColor>* data = nullptr,
+                  const uint32 usage = USAGE::kDefault) override;
+
   /**
   *  @brief Creates an error Texture2D.
   *
@@ -573,6 +579,30 @@ class DX11GraphicsManager : public GraphicsManager
   csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
                           const uint32 startSlot,
                           const uint32 numViews) override;
+
+  /**
+  *  @brief Sets a 3D shader resource to the pixel shader.
+  *
+  *  @param SPtr<Texture3D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  psSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1) override;
+
+  /**
+  *  @brief Sets a 3D shader resource to the compute shader.
+  *
+  *  @param SPtr<Texture3D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  csSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1) override;
 
   /**
   *  @brief Sets a shader resource.

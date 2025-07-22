@@ -223,7 +223,7 @@ GUI::setRendererSettings()
   }
   if (ImGui::CollapsingHeader("Tone Mapping")) {
     const char* toneMapType[] = {
-      "Reinhard", "0ACES", "0Uncharted2", "0AgX", "0LUT",
+      "Reinhard", "ACES", "Uncharted2", "AgX", "Guardians-LogC4(LUT)",
     };
     int32 toneMapIndex = static_cast<int32>(rendererSettings.toneMappingIndex);
     ImGui::Combo("##ToneMappingCombo",

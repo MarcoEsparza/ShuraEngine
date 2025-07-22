@@ -1,6 +1,5 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
 Texture2D t_skybox : register(t0);
 
 #ifndef PI
@@ -60,6 +59,6 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
 {
   float2 uv = getSkyBoxUV(normalize(input.Texcoord));
     
-  float3 color = t_skybox.Sample(textureSampler, uv).xyz;
+  float3 color = t_skybox.Sample(samplerLinearWrap, uv).xyz;
   return float4(color, 1.0f);
 }
