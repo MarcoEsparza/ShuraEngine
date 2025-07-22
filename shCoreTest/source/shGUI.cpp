@@ -382,11 +382,32 @@ showSceneGraph(const SPtr<GameObject>& pNode,
 
   // Context menu
   if (ImGui::BeginPopupContextItem()) {
-    if (ImGui::MenuItem("Add Child")) {
+    if (ImGui::MenuItem("Add Child...")) {
       SPtr<GameObject> child = sh_makeShared<GameObject>();
       child->name = "NewChild";
       child->parent = pNode;
       pNode->addChild(child);
+      //if (ImGui::BeginPopupContextItem()) {
+      //  if (ImGui::MenuItem("Create empty child")) {
+      //    SPtr<GameObject> child = sh_makeShared<GameObject>();
+      //    child->name = "NewChild";
+      //    child->parent = pNode;
+      //    pNode->addChild(child);
+      //  }
+      //  if (ImGui::MenuItem("Create Cube")) {
+      //    /*SPtr<GameObject> child = sh_makeShared<GameObject>();
+      //    child->name = "Cube";
+      //    child->parent = pNode;
+      //    pNode->addChild(child);*/
+      //  }
+      //  ImGui::EndPopup();
+      //}
+    }
+    if (ImGui::MenuItem("Rename")) {
+      
+    }
+    if (ImGui::MenuItem("Delete")) {
+      
     }
     ImGui::EndPopup();
   }
@@ -463,8 +484,11 @@ GUI::setSceneGraph()
 
   // Empty context menu
   if (ImGui::BeginPopup("HierarchyContextMenu")) {
-    if (ImGui::MenuItem("Create GameObject")) {
+    if (ImGui::MenuItem("Create Empty Object")) {
       scene.createEmptyObject("NewObject");
+    }
+    if (ImGui::MenuItem("Create Cube")) {
+      scene.createCubeObject();
     }
     ImGui::EndPopup();
   }
@@ -509,6 +533,47 @@ GUI::setComponentInspector()
       else if (type == COMPONENT_TYPE::kLight) {
 
       }
+    }
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(200.0f);
+    if (ImGui::Button("Add Component")) {
+      ImGui::OpenPopup("ComponentMenu");
+    }
+
+    if (ImGui::BeginPopup("ComponentMenu")) {
+      if (ImGui::MenuItem("StaticMesh")) {
+
+      }
+      if (ImGui::MenuItem("SkeletalMesh")) {
+
+      }
+      if (ImGui::MenuItem("Animator")) {
+
+      }
+      if (ImGui::MenuItem("Audio Source")) {
+
+      }
+      if (ImGui::MenuItem("Audio Listener")) {
+
+      }
+      if (ImGui::MenuItem("Collider")) {
+
+      }
+      if (ImGui::MenuItem("Rigidbody")) {
+
+      }
+      if (ImGui::MenuItem("Camera")) {
+
+      }
+      if (ImGui::MenuItem("Light")) {
+
+      }
+      if (ImGui::MenuItem("Skybox")) {
+
+      }
+      ImGui::EndPopup();
     }
   }
   ImGui::End();

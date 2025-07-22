@@ -58,6 +58,9 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   SPtr<GameObject>
   createEmptyObject(const String& objectName);
 
+  SPtr<GameObject>
+  createCubeObject();
+
   /**
   *  @brief Adds a object to the scene.
   * 

@@ -2,7 +2,7 @@
 /*
 *  @file    shStdHeaders.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/07/22
 *  @brief   Header for the STD libraries
 *
 *  This file includes the most common and required STL objects.
@@ -196,4 +196,36 @@ struct hash<string>
     return hash ^ (hash >> 16);
   }
 };
+}
+
+namespace cast {
+/*
+*  @brief Function to reinterpret a shared pointer.
+*/
+template<typename to, typename from>
+std::shared_ptr<to>
+rePointer(const std::shared_ptr<from>& pFrom)
+{
+  return std::reinterpret_pointer_cast<to>(pFrom);
+}
+
+/*
+*  @brief Function to reinterpret cast any object.
+*/
+template<typename to, typename from>
+to
+re(const from& fromObje)
+{
+  return reinterpret_cast<to>(fromObje);
+}
+
+/*
+*  @brief Function to static cast any object.
+*/
+template<typename to, typename from>
+to
+st(const from& fromObje)
+{
+  return static_cast<to>(fromObje);
+}
 }

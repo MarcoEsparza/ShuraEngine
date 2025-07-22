@@ -86,8 +86,8 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load images
-  Path whitePNG("resources/White.png");
-  g_resourceMan().loadResourceFromFile(whitePNG);
+  //Path whitePNG("resources/White.png");
+  //g_resourceMan().loadResourceFromFile(whitePNG);
 
   // Load resources
   loadPistol();

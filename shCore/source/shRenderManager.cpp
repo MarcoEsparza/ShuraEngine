@@ -164,7 +164,7 @@ RenderManager::onStartUp()
     fullUAVBindFlags, USAGE::kDefault, 1,
     HISTOGRAM_MAP_SIZE, 3, false);
 
-  auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/LBK-K-Tone_33.cube"));
+  auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
   if (pLut) {
     m_pLutTexture = sh_reinterpretPCast<CubeMap>(pLut);
     m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());

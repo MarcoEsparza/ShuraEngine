@@ -65,6 +65,10 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   ~ResourceManager();
 
+
+  void
+  onStartUp() override;
+
   /*************************************************************/
   /*
   *  Functions

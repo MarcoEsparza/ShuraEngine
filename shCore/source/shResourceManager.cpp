@@ -375,6 +375,16 @@ ResourceManager::~ResourceManager()
   m_loadedResources.clear();
 }
 
+void
+ResourceManager::onStartUp()
+{
+  auto white = cast::rePointer<ImageResource>(loadResourceFromFile(
+                                              Path("resources/White.png")));
+  auto pCube = cast::rePointer<StaticMeshResource>(loadResourceFromFile(
+                                                   Path("resources/models/cube.fbx")));
+  pCube->m_materials[0]->baseColor = white->texture;
+}
+
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {
