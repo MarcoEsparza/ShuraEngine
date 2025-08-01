@@ -804,14 +804,27 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
 
   int32 pitch = width * bpp;
 
-  auto pTexture = sh_reinterpretPCast<DX11Texture2D>(createTexture2D(
-                                                     width,
-                                                     height,
-                                                     DXGI_FORMAT_R8G8B8A8_UNORM,
-                                                     D3D11_USAGE_DEFAULT,
-                                                     D3D11_BIND_SHADER_RESOURCE,
-                                                     1));
+  SystemPath path(fileName);
+  uint32 format = 0;
 
+  //if(path.extension() == ".dds") {
+  //  // If the file is a DDS, we will use the DDS loader
+  //  return createTextureFromDDS(fileName);
+  //}
+  if (path.extension() == ".hdr") {
+    format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    pitch = width * 16;
+  }
+  else {
+    format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  }
+  auto pTexture = cast::rePointer<DX11Texture2D>(createTexture2D(width,
+                                                                 height,
+                                                                 format,
+                                                                 D3D11_USAGE_DEFAULT,
+                                                                 D3D11_BIND_SHADER_RESOURCE,
+                                                                 0));
+  
   m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
   
   String texName = "t_" + fileName;

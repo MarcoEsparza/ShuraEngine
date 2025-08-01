@@ -90,6 +90,9 @@ struct MainBufferData
   Matrix4 inverseProjectionMatrix = Matrix4::IDENTITY;
   Matrix4 inverseTransposeProjectionMatrix = Matrix4::IDENTITY;
 
+  Matrix4 inverseViewProjMatrix = Matrix4::IDENTITY;
+  Matrix4 inverseTransposeViewProjMatrix = Matrix4::IDENTITY;
+
   // Viewport dimensions.
   Vector2 screenSize = { 0.0f, 0.0f };
   float nearPlane = 0.0f;
@@ -367,6 +370,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   SPtr<SamplerState> m_pSamplerAnisotropicClamp;
 
   SPtr<CubeMap> m_pLutTexture;
+  SPtr<Texture2D> m_pEnvTexture;
 
   /**
   *  @brief Shadow map texture size.

@@ -755,9 +755,9 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   String buttonID = "##ColorButton" + currentMat->name;
   Vector3& baseColor = currentMat->baseColorFactor;
   if (ImGui::ColorButton(buttonID.c_str(), ImVec4(baseColor.x,
-    baseColor.y,
-    baseColor.z,
-    1.0f)))
+                         baseColor.y,
+                         baseColor.z,
+                         1.0f)))
   {
     m_bTexColor = m_bTexColor ? false : true;
   }

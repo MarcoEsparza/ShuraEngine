@@ -184,12 +184,6 @@ HBlur_CS(uint3 gID : SV_GroupID,
          uint3 gtID : SV_GroupThreadID,
          uint GI : SV_GroupIndex)
 {
-  //int2 outputDimensions;
-  //t_outputMap.GetDimensions(outputDimensions.x, outputDimensions.y);
-  //if (dtID.x >= outputDimensions.x || dtID.y >= outputDimensions.y) {
-  //  return;
-  //}
-    
   static const float g_blurWeights[] = {
     0.004815026f,
     0.028716039f,

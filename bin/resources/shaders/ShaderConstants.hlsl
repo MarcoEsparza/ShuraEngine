@@ -18,16 +18,19 @@ cbuffer MainBuffer : register(b0)
   float4x4 matProjectionTranspose;
   float4x4 matProjectionInverse;
   float4x4 matProjectionInverseTranspose;
-    
+
+  float4x4 matViewProjInverse;
+  float4x4 matViewProjInverseTranspose;
+  
   // Viewport
   float2 screenSize;
   float nearClip;
   float farClip;
-    
+
   // Camera data
   float4 viewPos;
   float4 viewTarget;
-    
+
   // Time
   float time;
   float deltaTime;
@@ -108,4 +111,11 @@ getMaterialProperties(int materialProps)
   props.bCanReceiveShadow = (materialProps & 8192) == 8192; // bit13
     
   return props;
+}
+
+float4
+sRGBToLinear(float4 color)
+{
+  // Convert sRGB to linear color space
+  return float4(pow(color.rgb, 1.0f / 2.2f), color.a);
 }

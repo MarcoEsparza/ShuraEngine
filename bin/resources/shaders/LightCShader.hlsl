@@ -6,7 +6,9 @@ Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
 Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
-Texture2D t_skyMap : register(t6);
+Texture2D t_depthStencil : register(t6);
+Texture2D t_skyMap : register(t7);
+Texture2D t_skyReflect : register(t8);
 RWTexture2D<float4> t_outputMap : register(u0);
 
 #ifndef PCF_KERNEL_SIZE
@@ -17,6 +19,12 @@ RWTexture2D<float4> t_outputMap : register(u0);
 #endif
 #ifndef PI
 #define PI 3.14159265359
+#endif
+#ifndef RECIPROCAL_PI
+#define RECIPROCAL_PI 1.0f / 3.14159265359
+#endif
+#ifndef RECIPROCAL_2PI
+#define RECIPROCAL_2PI 1.0f / (2 * 3.14159265359)
 #endif
 
 cbuffer Light : register(b2)
@@ -30,10 +38,45 @@ cbuffer LightCam : register(b3)
   float4x4 lightProj;
 }
 
+cbuffer skyboxConstants : register(b4)
+{
+  float4x4 matSkyRotation;
+}
+
 struct PS_INPUT
 {
   float4 Position : SV_POSITION;
   float2 Texcoord : TEXCOORD0;
+};
+
+struct BRDFInput
+{
+  float3 viewDir;
+  float3 normal;
+  float3 lightDir;
+  
+  float nDotH;
+  float nDotL;
+  float nDotV;
+  float F0;
+  float sigmaSqrd;
+  float halfSigmaSqrd;
+  
+  float3 specularColor;
+  float4 albedo;
+  float metallic;
+  float roughness;
+  
+  bool bHasSpecularPath;
+};
+
+struct BRDFOutput
+{
+  float3 diffuse;
+  float3 specular;
+  float3 fresnel;
+  //float3 ambient;
+  //float shadowFactor;
 };
 
 float
@@ -131,14 +174,91 @@ float3 cookTorrenceSpecular(float3 normal,
   float vDotH = saturate(dot(viewDirection, H));
     
   float alpha = roughness * roughness;
-  //float D = D_Beckmann(nDotH, alpha);
-  float D = D_BlinnPhong(nDotH, roughness);
+  float D = D_Beckmann(nDotH, alpha);
+  //float D = D_BlinnPhong(nDotH, roughness);
   //float G = geometrySmith(nDotV, nDotL, roughness);
   float G = geomSmith(nDotV, nDotL, roughness);
-  float F = fresnelSchlick(F0, vDotH);
+  float3 F = fresnelSchlick(F0, vDotH);
     
   float denominator = 4.0f * nDotV * nDotL + 1e-5f;
   return (D * G * F) / denominator;
+}
+
+float3
+Lambert(float3 fresnel, float3 albedo, float metallic)
+{
+  // Lambertian diffuse reflectance with energy conservation
+  float3 diffuse = (1.0f - fresnel) * albedo * (1.0f - metallic);
+  return diffuse;
+}
+
+float
+ndf_GGX(float nDotH, float roughness, float alpha)
+{
+  float alphaSqrd = alpha * alpha;
+  float cos2Theta = nDotH * nDotH;
+  float tan2Theta = (1.0f - cos2Theta) / (cos2Theta + 1e-5f);
+  
+  return alphaSqrd / (PI * cos2Theta * pow((alphaSqrd + tan2Theta), 2.0f));
+}
+
+BRDFOutput
+BRDF(in BRDFInput inData)
+{
+  BRDFOutput outData = (BRDFOutput) 0;
+  
+  float halfDotV = dot(normalize(inData.viewDir + inData.lightDir), inData.normal);
+  
+  float3 F = fresnelSchlick(inData.F0, halfDotV);
+  float D = ndf_GGX(inData.nDotH, inData.roughness, inData.sigmaSqrd);
+  float G = geometrySmith(inData.nDotV, inData.nDotL, inData.roughness);
+  float3 specular = (D * G * F) / max(DELTA, 4.0f * inData.nDotV * inData.nDotL);
+  specular *= inData.bHasSpecularPath ? inData.specularColor : 1.0f;
+  
+  // Diffuse with energy conservation
+  outData.diffuse = Lambert(F, inData.albedo.rgb, inData.metallic);
+  outData.specular = specular;
+  outData.fresnel = F;
+  
+  return outData;
+}
+
+float clampedDot(float3 a, float3 b)
+{
+  return max(0.0f, dot(a, b));
+}
+
+float2 getSkyBoxUV(float3 dir)
+{
+  float u = -atan2(dir.z, dir.x) * RECIPROCAL_2PI + 0.5f;
+  float v = acos(dir.y) * RECIPROCAL_PI;
+  return float2(u, v);
+}
+
+float4 getSpecularSample(float3 reflection, float lod)
+{
+  float u_EnvIntensity = 1.0f; // Environment intensity, can be adjusted
+  
+  float2 uv = getSkyBoxUV(normalize(mul(float4(reflection, 0.0f), matSkyRotation).xyz));
+  // Sample the texture at the specified LOD level
+  float4 texSample = t_skyReflect.SampleLevel(samplerLinearClamp, uv, lod);
+  
+  texSample.rgb *= u_EnvIntensity; // Apply environment intensity
+  return float4(texSample.rgb, 1.0f);
+}
+
+float3 getIBLRadianceGGX(float3 n, float3 v, float roughness)
+{
+  float NdotV = clampedDot(n, v);
+  
+  float3 texDimensions;
+  t_skyReflect.GetDimensions(0, texDimensions.x, texDimensions.y, texDimensions.z);
+  float lod = min((roughness * (texDimensions.x - 1)) + 1.0f, texDimensions.z);
+  
+  float3 reflection = normalize(reflect(-v, n));
+  float4 specularSample = getSpecularSample(reflection, lod);
+  
+  return specularSample.rgb;
 }
 
 [numthreads(32, 32, 1)]
@@ -156,6 +276,7 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 propMap = t_propMap.Load(int3(dtID.xy, 0));
   float4 ao = t_aoMap.Load(int3(dtID.xy, 0));
   float4 shadows = t_shadowMap.Load(int3(dtID.xy, 0));
+  float depthStencil = t_depthStencil.Load(int3(dtID.xy, 0));
   
   float3 albedo = color.rgb;
   float metalness = propMap.r;
@@ -167,15 +288,18 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
     return;
   }
-  //float normalLen = length(normalMap.xyz);
-  //if(normalLen < 0.001f) {
-  //  t_outputMap[dtID.xy] = float4(t_skyMap.Load(uint3(dtID.xy, 0)).rgb, 1.0f);
+  //if (normalMap.w == 0)
+  //{
+  //  t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
+  //  return;
   //}
-  if (normalMap.w == 0)
-  {
-    t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
-    return;
-  }
+  
+  //if (depthStencil >= 0.9999f)
+  //{
+  //  color = t_skyMap.Load(uint3(dtID.xy, 0));
+  //  t_outputMap[dtID.xy] = float4(color.rgb, 1.0f);
+  //  return;
+  //}
   
   normal = normal * 2.0f - 1.0f;
   float4 posWorld = depth;
@@ -188,10 +312,11 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float3 F0 = lerp(0.04, albedo, metalness);
   
   float3 ambientLight = 0.15f * albedo;
-  
+  //float3 ambientLight = getIBLRadianceGGX(normal, viewDirection, roughness);
+
   float3 specular = cookTorrenceSpecular(normal, viewDirection, lightDir, roughness, F0);
-  float3 finalColor = ((((albedo + specular) * lightIntensity * NdL) + ambientLight) * ao.r);
-  
+  float3 finalColor = ((((albedo + specular) * 1.0f * NdL) + ambientLight) * ao.r);
+
   // Shadow calculation
   float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
   lightWorldPos.xyz /= lightWorldPos.w;

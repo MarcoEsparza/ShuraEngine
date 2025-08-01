@@ -513,12 +513,24 @@ ResourceManager::loadTextureFromFile(const String& fileName)
   String file = path.filename().string();
 
   if (path.extension() == ".hdr") {
-    void* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    float* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, 4);
+    //Vector<float> pImgData(width * height * 4);
+    //for(int32 i = 0; i < width * height; i+=4) {
+    //  pImgData[i + 0] = data[i + 0]; // R
+    //  pImgData[i + 1] = data[i + 1]; // G
+    //  pImgData[i + 2] = data[i + 2]; // B
+    //  pImgData[i + 3] = 1.0f; //(bpp == 4) ? data[i * bpp + 3] : 1.0f; // A
+    //}
     pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+
     stbi_image_free(data);
   }
   else {
-    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    int32 reqComp = STBI_rgb_alpha;
+    if (path.extension() == ".jpg") {
+      //reqComp = STBI_rgb;
+    }
+    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, reqComp);
     pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
     stbi_image_free(data);
   }

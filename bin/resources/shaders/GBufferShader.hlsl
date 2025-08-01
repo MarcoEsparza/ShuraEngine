@@ -101,13 +101,17 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   }
 
   //float3 fvNormal = float3(0.0f, 0.0f, 0.0f);
-  //if (materialProps.bHasNormalMap)
-  //{
-  //  fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
-  //}
-  float3 fvNormal = t_normal.Sample(samplerLinearWrap, input.Tex).xyz * 2.0f - 1.0f;
-  fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
-  output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  if (materialProps.bHasNormalMap)
+  {
+    float3 fvNormal = t_normal.Sample(samplerLinearWrap, input.Tex).xyz * 2.0f - 1.0f;
+    fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
+    output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  }
+  else
+  {
+    float3 fvNormal = normalize(input.Normal);
+    output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  }
     
   output.Depth = float4(input.Depth.xyz, 1.0f);
     

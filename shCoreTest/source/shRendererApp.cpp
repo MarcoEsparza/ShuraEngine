@@ -91,7 +91,7 @@ RendererApp::onCreate()
 
   // Load resources
   loadPistol();
-  loadSponza();
+  //loadSponza();
   loadSkybox();
 
   // Initialize light orthographic camera
@@ -100,7 +100,7 @@ RendererApp::onCreate()
   // Set light buffer
   Vector<Vector4> lights;
   lights.resize(12);
-  m_lightPos = { 0.0f, 500.0f, 0.0f, 1.0f };
+  m_lightPos = { 0.0f, 100.0f, 0.0f, 1.0f };
   lights[0] = m_lightPos;
   m_pLightBuffer = graphMan.createConstantBuffer(sizeof(lights));
   graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
@@ -130,7 +130,7 @@ RendererApp::onCreate()
   pSMapShader->addVSConstantBuffer(m_pLCBuffer, 3);
   // Skybox shader buffers
   auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
-  pSkyBoxShader->addVSConstantBuffer(pMainBuffer, 0);
+  pSkyBoxShader->addCSConstantBuffer(pMainBuffer, 0);
   // Lightning shader buffers
   auto pLightCS = renderMan.getPass("LightCS");
   pLightCS->addCSConstantBuffer(pMainBuffer, 0);
@@ -601,6 +601,9 @@ RendererApp::updateMainBuffer()
   mbd.inverseProjectionMatrix = m_camera.getView().getInversed();
   mbd.inverseTransposeProjectionMatrix = mbd.inverseProjectionMatrix *
                                          mbd.transposeProjectionMatrix;
+
+  mbd.inverseViewProjMatrix = (mbd.viewMatrix * mbd.projectionMatrix).getInversed();
+  mbd.inverseTransposeViewProjMatrix = mbd.inverseViewProjMatrix.getTransposed();
 
   mbd.screenSize = m_screenSize;
   mbd.nearPlane = m_camera.getNear();
@@ -1125,12 +1128,16 @@ RendererApp::loadSponza()
 void
 RendererApp::loadSkybox()
 {
-  ResourceManager& resourceMan = g_resourceMan();
+  ResourceManager& resMan = g_resourceMan();
   SceneGraph& scene = g_sceneGraph();
 
-  auto skyboxTx = sh_reinterpretPCast<ImageResource>(
-                  resourceMan.loadResourceFromFile(
+  auto skyboxTx = cast::rePointer<ImageResource>(
+                  resMan.loadResourceFromFile(
                   Path("resources/textures/skybox1.png")));
+
+  /*auto skyboxTx = cast::rePointer<ImageResource>(
+                  resMan.loadResourceFromFile(
+                  Path("resources/textures/night_free_Prev.tga")));*/
 
   Vector<Vector3> vertices = { {-1.0f, -1.0f, -1.0f},
                                {1.0f, -1.0f, -1.0f},

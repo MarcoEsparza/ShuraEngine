@@ -22,6 +22,7 @@
 #include "shResourceManager.h"
 #include "shMeshComponent.h"
 #include "shSkyBoxComponent.h"
+#include "shImageResource.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
 #include "shPass.h"
@@ -41,6 +42,9 @@
 #define BLURH_THREADS_Y 64
 #define BLURV_THREADS_X 64
 #define BLURV_THREADS_Y 4
+
+#define TEXTURE8K_WIDTH 8192
+#define TEXTURE4K_WIDTH 4096
 
 namespace shEngineSDK {
 RenderManager::~RenderManager()
@@ -116,7 +120,9 @@ RenderManager::onStartUp()
   m_renderTargetMap[StringID("LightCMap").getID()] = RenderTargetInfo("LightCMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
 
-  m_renderTargetMap[StringID("SkyBoxMap").getID()] = RenderTargetInfo("SkyBoxMap");
+  m_renderTargetMap[StringID("SkyBoxMap").getID()] = RenderTargetInfo("SkyBoxMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    fullUAVBindFlags);
 
   m_renderTargetMap[StringID("TempMap").getID()] = RenderTargetInfo("TempMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
@@ -164,10 +170,20 @@ RenderManager::onStartUp()
     fullUAVBindFlags, USAGE::kDefault, 1,
     HISTOGRAM_MAP_SIZE, 3, false);
 
+  m_renderTargetMap[StringID("GbufferDepth").getID()] = RenderTargetInfo("GbufferDepth",
+    TEXTURE_FORMAT::kR32_TYPELESS,
+    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1);
+
   auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
   if (pLut) {
     m_pLutTexture = sh_reinterpretPCast<CubeMap>(pLut);
     m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
+  }
+  //auto pTex = resMan.loadResourceFromFile(Path("resources/textures/kiara_interior_8k.hdr"));
+  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/kiara_interior_8k.hdr"));
+  if (pTex) {
+    m_pEnvTexture = cast::rePointer<ImageResource>(pTex)->texture;
+    //graphMan.generateMips(m_pEnvTexture);
   }
 }
 
@@ -273,12 +289,15 @@ RenderManager::createPasses()
 
   // Skybox
   auto pSkyBoxShader = sh_makeShared<Pass>();
-  pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+  /*pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
                                 "main",
                                 "vs_5_0");
   pSkyBoxShader->setPShaderInfo("resources/shaders/SkyBoxShader.hlsl",
                                 "mainPS",
-                                "ps_5_0");
+                                "ps_5_0");*/
+  pSkyBoxShader->setCShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+                                "CSMain",
+                                "cs_5_0");
   pSkyBoxShader->compileShader();
 
   // Final shader
@@ -686,6 +705,7 @@ RenderManager::renderScene()
   auto& pAdditiveMap = m_renderTargetMap[StringID("AdditiveMap").getID()];
   auto& pBHBlur = m_renderTargetMap[StringID("BHBlur").getID()];
   auto& pBVBlur = m_renderTargetMap[StringID("BVBlur").getID()];
+  auto& pGbufferDepth = m_renderTargetMap[StringID("GbufferDepth").getID()];
   //auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
@@ -743,6 +763,7 @@ RenderManager::renderScene()
   /*              GBuffer              */
   /*************************************/
   graphMan.setViewport(normalVP);
+  graphMan.clearDepthStencil(pGbufferDepth.pTexture);
   graphMan.clearRenderTarget(pDepthMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pNormalMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pColorMap.pTexture, LinearColor::BLACK);
@@ -751,7 +772,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{pDepthMap.pTexture},
                              {pNormalMap.pTexture},
                              {pColorMap.pTexture},
-                             {pPropMap.pTexture }}, pDepthSV);
+                             {pPropMap.pTexture }}, pGbufferDepth.pTexture);
   m_passes[StringID("GBufferShader").getID()]->setPass();
   setSamplers();
   drawStaticMeshOnScene();
@@ -806,28 +827,10 @@ RenderManager::renderScene()
   cleanShaderObjects();
 
   /*************************************/
-  /*             Lightning             */
-  /*************************************/
-  pOutput = pLightCMap.pTexture;
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("LightCS").getID()]->setPass();
-  setSamplers();
-  graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
-  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
-  graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
-  graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
-  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
-  graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 5);
-  //graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 6);
-  graphMan.setUnorderedAccessView({ pOutput }, 0);
-  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
-
-  /*************************************/
   /*              Sky Box              */
   /*************************************/
-  graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
-  graphMan.setRenderTargets({{ pSkyBoxMap.pTexture }}, pDepthSV);
+  /*graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
+  graphMan.setRenderTargets({ { pSkyBoxMap.pTexture } }, pDepthSV);
   m_passes[StringID("SkyBoxShader").getID()]->setPass();
   setSamplers();
 
@@ -845,8 +848,36 @@ RenderManager::renderScene()
         graphMan.drawIndexed(numIndices, 0, 0);
       }
     }
-  }
+  }*/
+  m_passes[StringID("SkyBoxShader").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(m_pEnvTexture, 0);
+  graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
+  /*graphMan.dispatch(threadGroups(TEXTURE8K_WIDTH, 32),
+                    threadGroups(TEXTURE4K_WIDTH, 32),
+                    1);*/
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
+  cleanShaderObjects();
+
+  /*************************************/
+  /*             Lightning             */
+  /*************************************/
+  pOutput = pLightCMap.pTexture;
+  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  m_passes[StringID("LightCS").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
+  graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
+  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
+  graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 5);
+  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 6);
+  graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 7);
+  graphMan.csSetShaderResourceView(m_pEnvTexture, 8);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
 
   /*************************************/
@@ -857,7 +888,7 @@ RenderManager::renderScene()
   m_passes[StringID("ASBShader").getID()]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
-  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 1);
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
@@ -866,12 +897,12 @@ RenderManager::renderScene()
   /*************************************/
   /*             Luminance             */
   /*************************************/
-  pInput = pTempMap.pTexture;
+  pInput = pLightCMap.pTexture;
   pOutput = pLuminance.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LuminanceShader").getID()]->setPass();
   setSamplers();
-  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
