@@ -371,6 +371,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   SPtr<CubeMap> m_pLutTexture;
   SPtr<Texture2D> m_pEnvTexture;
+  SPtr<Texture2D> m_pCubeTexture;
 
   /**
   *  @brief Shadow map texture size.

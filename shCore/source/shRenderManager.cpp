@@ -46,6 +46,8 @@
 #define TEXTURE8K_WIDTH 8192
 #define TEXTURE4K_WIDTH 4096
 
+#define CUBE_MAP_SIZE 1024 // Size of the cube map texture
+
 namespace shEngineSDK {
 RenderManager::~RenderManager()
 {
@@ -185,6 +187,11 @@ RenderManager::onStartUp()
     m_pEnvTexture = cast::rePointer<ImageResource>(pTex)->texture;
     //graphMan.generateMips(m_pEnvTexture);
   }
+
+  /*m_pCubeTexture = graphMan.createTexture2D(CUBE_MAP_SIZE, CUBE_MAP_SIZE,
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, 6);*/
 }
 
 void
@@ -363,6 +370,13 @@ RenderManager::createPasses()
                             "cs_5_0");
   pPPShader->compileShader();
 
+  // Shader to calculate cube maps
+  auto pCubeMapShader = sh_makeShared<Pass>();
+  pCubeMapShader->setCShaderInfo("resources/shaders/CubeMapShader.hlsl",
+                                 "CSMain",
+                                 "cs_5_0");
+  pCubeMapShader->compileShader();
+
   // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -504,6 +518,7 @@ RenderManager::createPasses()
   m_passes[StringID("ToneMapShader").getID()] = pToneMapShader;
   m_passes[StringID("PPShader").getID()] = pPPShader;
   m_passes[StringID("AddMixShader").getID()] = pAddMixShader;
+  m_passes[StringID("CubeMapShader").getID()] = pCubeMapShader;
 }
 
 SPtr<Pass>
@@ -825,6 +840,20 @@ RenderManager::renderScene()
                     1);*/
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
+
+  /*************************************/
+  /*             Cube Map              */
+  /*************************************/
+  /*pOutput = m_pCubeTexture;
+  m_passes[StringID("CubeMapShader").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(m_pEnvTexture, 0);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
+  graphMan.dispatch(threadGroups(CUBE_MAP_SIZE, 32),
+                    threadGroups(CUBE_MAP_SIZE, 32),
+                    6);
+
+  cleanShaderObjects();*/
 
   /*************************************/
   /*              Sky Box              */

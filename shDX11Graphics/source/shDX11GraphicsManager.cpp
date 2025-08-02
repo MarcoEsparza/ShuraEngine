@@ -871,7 +871,8 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
                                      const uint32 format,
                                      const uint32 usage,
                                      const uint32 bindFlags,
-                                     const uint32 mipLevels)
+                                     const uint32 mipLevels,
+                                     const uint32 arraySize)
 {
   auto pTexture = std::make_shared<DX11Texture2D>();
   uint32 texMipLevels = mipLevels;
@@ -881,7 +882,7 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
   textureDesc.Width = width;
   textureDesc.Height = height;
   textureDesc.MipLevels = texMipLevels;
-  textureDesc.ArraySize = 1;
+  textureDesc.ArraySize = arraySize;
   textureDesc.Format = static_cast<DXGI_FORMAT>(format);
   textureDesc.SampleDesc.Count = 1;
   textureDesc.SampleDesc.Quality = 0;
@@ -952,6 +953,13 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
     memset(&descUAV, 0, sizeof(descUAV));
     descUAV.Format = textureDesc.Format;
     descUAV.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+
+    if(arraySize > 1) {
+      descUAV.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+      descUAV.Texture2DArray.ArraySize = arraySize;
+      descUAV.Texture2DArray.FirstArraySlice = 0;
+    }
+
     pTexture->m_pUnorderedAV.resize(texMipLevels);
     for (uint32 i = 0; i < texMipLevels; ++i) {
       descUAV.Texture2D.MipSlice = i;
@@ -1030,6 +1038,45 @@ DX11GraphicsManager::createTexture3D(const Vector3 size,
 
   return pTexture;
 }
+
+//SPtr<Texture2D>
+//DX11GraphicsManager::createTexture2DArray(const uint32 width,
+//                                          const uint32 height,
+//                                          const uint32 arraySize,
+//                                          const uint32 format,
+//                                          const uint32 usage)
+//{
+//  auto pTexture = std::make_shared<DX11Texture2D>();
+//
+//  D3D11_TEXTURE2D_DESC textureDesc;
+//  memset(&textureDesc, 0, sizeof(textureDesc));
+//  textureDesc.Width = width;
+//  textureDesc.Height = height;
+//  textureDesc.MipLevels = 1;
+//  textureDesc.ArraySize = arraySize;
+//  textureDesc.Format = static_cast<DXGI_FORMAT>(format);
+//  textureDesc.SampleDesc.Count = 1;
+//  textureDesc.SampleDesc.Quality = 0;
+//  textureDesc.Usage = static_cast<D3D11_USAGE>(usage);
+//  textureDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+//  textureDesc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
+//  textureDesc.MiscFlags = 0;
+//
+//  throwIfFailed(m_pDevice->CreateTexture2D(&textureDesc, nullptr, &pTexture->m_pTexture2D));
+//
+//  D3D11_UNORDERED_ACCESS_VIEW_DESC descUAV = {};
+//  descUAV.Format = textureDesc.Format;
+//  descUAV.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+//  descUAV.Texture2DArray.ArraySize = arraySize;
+//  descUAV.Texture2DArray.FirstArraySlice = 0;
+//  descUAV.Texture2DArray.MipSlice = 0;
+//
+//  throwIfFailed(m_pDevice->CreateUnorderedAccessView(pTexture->m_pTexture2D,
+//                                                     &descUAV,
+//                                                     &pTexture->m_pUnorderedAV[0]));
+//
+//  return pTexture;
+//}
 
 SPtr<Texture2D>
 DX11GraphicsManager::createErrorTexture()

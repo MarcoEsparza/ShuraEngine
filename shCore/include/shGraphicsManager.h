@@ -323,13 +323,21 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                   const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_UNORM,
                   const uint32 usage = USAGE::kDefault,
                   const uint32 bindFlags = BIND_FLAGS::kShaderResource,
-                  const uint32 mipLevels = 1)  = 0;
+                  const uint32 mipLevels = 1,
+                  const uint32 arraySize = 1)  = 0;
 
   virtual SPtr<Texture3D>
   createTexture3D(const Vector3 size,
                   const uint32 format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
                   const Vector<LinearColor>* data = nullptr,
                   const uint32 usage = USAGE::kDefault) = 0;
+
+  /*virtual SPtr<Texture2D>
+  createTexture2DArray(const uint32 width,
+                       const uint32 height,
+                       const uint32 arraySize = 6,
+                       const uint32 format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                       const uint32 usage = USAGE::kDefault) = 0;*/
 
   /**
   *  @brief Creates an error Texture2D.
