@@ -150,6 +150,9 @@
     <ClInclude Include="include\shRotor.h">
       <Filter>Include\Math</Filter>
     </ClInclude>
+    <ClInclude Include="include\shMatrix3.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shOBBox.cpp">

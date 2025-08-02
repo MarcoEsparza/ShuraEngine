@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Include\shAABBox.h" />
     <ClInclude Include="include\shBivector.h" />
+    <ClInclude Include="include\shMatrix3.h" />
     <ClInclude Include="Include\shOBBox.h" />
     <ClInclude Include="Include\shCapsule.h" />
     <ClInclude Include="include\shCollisionInfo.h" />

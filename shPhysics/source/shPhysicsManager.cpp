@@ -106,7 +106,7 @@ Matrix3 PhysicsManager::getInertiaTensor(Capsule& capsule, float mass) const
   // Rotate the inertia tensor to match the capsule's orientation
   Quaternion rotation(Vector3::UP, capsule.center);
   Matrix3 rotatedTensor = rotation.toMatrix3();
-  Matrix3 inertiaWorld = rotatedTensor * result * rotatedTensor.transpose();
+  Matrix3 inertiaWorld = rotatedTensor * result * rotatedTensor.getTranspose();
 
   return inertiaWorld;
 }

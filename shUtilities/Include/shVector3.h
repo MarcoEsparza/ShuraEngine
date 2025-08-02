@@ -21,6 +21,7 @@
 
 namespace shEngineSDK {
 class Radian;
+class Matrix3;
 
 /**
 *  @brief Vector3 with float
@@ -286,6 +287,16 @@ class SH_UTILITY_EXPORT Vector3
   */
   FORCEINLINE Vector3
   operator*(const float delta) const;
+
+  /**
+  *  @brief Operator to multiply the values of a Vector3 with a Matrix3.
+  * 
+  *  @param const Matrix3& mat: The Matrix3 to multiply.
+  * 
+  *  @return Vector3 The result of the multiplication
+  */
+  Vector3
+  operator*(const Matrix3& mat) const;
 
   /**
   *  @brief Operator to multiply the values of a Vector3 with another Vector3.

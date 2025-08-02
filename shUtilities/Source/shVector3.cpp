@@ -19,6 +19,7 @@
 #include "shVector3.h"
 #include "shMath.h"
 #include "shRadian.h"
+#include "shMatrix3.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -226,5 +227,13 @@ float
 Vector3::distance(const Vector3& a, const Vector3& b)
 {
   return (a - b).mag();
+}
+
+Vector3
+Vector3::operator*(const Matrix3& mat) const
+{
+  return Vector3((x * mat.m[0][0]) + (y * mat.m[1][0]) + (z * mat.m[2][0]),
+                 (x * mat.m[0][1]) + (y * mat.m[1][1]) + (z * mat.m[2][1]),
+                 (x * mat.m[0][2]) + (y * mat.m[1][2]) + (z * mat.m[2][2]));
 }
 }

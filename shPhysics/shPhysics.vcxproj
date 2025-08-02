@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\shBasePhysicsConstraint.h" />
     <ClInclude Include="include\shCircleCollision.h" />
     <ClInclude Include="include\shCollider.h" />
+    <ClInclude Include="include\shJointConstraint.h" />
     <ClInclude Include="include\shPhysicsManager.h" />
     <ClInclude Include="include\shPlatformPhysics.h" />
     <ClInclude Include="include\shPrerequisitesPhysics.h" />
@@ -28,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\shCircleCollision.cpp" />
+    <ClCompile Include="source\shJointConstraint.cpp" />
     <ClCompile Include="source\shPhysicsManager.cpp" />
     <ClCompile Include="source\shPlatformPhysics.cpp" />
     <ClCompile Include="source\shRigidbody.cpp" />

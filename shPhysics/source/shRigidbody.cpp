@@ -24,7 +24,7 @@ Matrix3
 Rigidbody::getInvInertiaWorld()
 {
   Matrix3 rotationMat = m_rotation.toMatrix3();
-  return rotationMat * m_invAngularInertia * rotationMat.transpose();
+  return rotationMat * m_invAngularInertia * rotationMat.getTranspose();
 }
 
 Vector3

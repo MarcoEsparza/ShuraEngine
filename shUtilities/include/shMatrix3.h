@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/11
+*  @date    2025/08/02
 *  @brief   Matrix3x3, double array, use double brackets to access to the values.
 *
 *  Matrix3x3, double array, use double brackets to access to the values.
@@ -18,7 +18,7 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
-#include "shVector3.h"
+//#include "shVector3.h"
 
 namespace shEngineSDK {
 class Quaternion;
@@ -50,11 +50,7 @@ class SH_UTILITY_EXPORT Matrix3
   *  @param row1 Second row of the matrix
   *  @param row2 Third row of the matrix
   */
-  Matrix3(const Vector3& row0, const Vector3& row1, const Vector3& row2) :
-          m{{row0.x, row0.y, row0.z},
-            {row1.x, row1.y, row1.z},
-            {row2.x, row2.y, row2.z}}
-  {}
+  Matrix3(const Vector3& row0, const Vector3& row1, const Vector3& row2);
 
   /**
    *  @brief Copy constructor
@@ -88,10 +84,30 @@ class SH_UTILITY_EXPORT Matrix3
   *  @return Matrix3 Transposed matrix
   */
   Matrix3
-  transpose();
+  getTranspose();
 
+  Matrix3
+  getInverse() const;
+
+  /**
+  *  @brief Get a specific column of the matrix.
+  * 
+  *  @param uint32 index: Index of the column to retrieve (0, 1, or 2)
+  * 
+  *  @return Vector3: The column vector at the specified index.
+  */
   Vector3
   getColumn(uint32 index) const;
+
+  /**
+  *  @brief Get the skew-symmetric matrix of a given vector.
+  * 
+  *  @param Vector3 vec: The vector to create the skew-symmetric matrix from
+  * 
+  *  @return Matrix3: The skew-symmetric matrix corresponding to the vector.
+  */
+  static Matrix3
+  getSkewSymmetric(const Vector3& vec);
 
   /***************************************************************************/
   /*
@@ -99,7 +115,16 @@ class SH_UTILITY_EXPORT Matrix3
   */
   /***************************************************************************/
  public:
-  
+  /**
+  *  @brief Operator to add two Matrix3 objects.
+  * 
+  *  @param Matrix3 other: The other Matrix3 to add
+  * 
+  *  @return Matrix3: Result of the addition
+  */
+  FORCEINLINE Matrix3
+  operator+(const Matrix3& other) const;
+
   /**
   *  @brief Operator to multiply two Matrix3 objects.
   * 
@@ -111,13 +136,23 @@ class SH_UTILITY_EXPORT Matrix3
   operator*(const Matrix3& other) const;
 
   /**
+  *  @brief Operator to multiply a Matrix3 with a scalar.
+  * 
+  *  @param float scalar: The scalar to multiply with
+  * 
+  *  @return Matrix3: Result of the multiplication
+  */
+  FORCEINLINE Matrix3
+  operator*(const float scalar) const;
+
+  /**
   *  @brief Operator to multiply a Matrix3 with a Vector3.
   *
   *  @param Vector3 vec: The Vector3 to multiply with
   *
   *  @return Vector3: Result of the multiplication
   */
-  FORCEINLINE Vector3
+  Vector3
   operator*(const Vector3& vec) const;
 
   /**
@@ -166,6 +201,18 @@ class SH_UTILITY_EXPORT Matrix3
 };
 
 FORCEINLINE Matrix3
+Matrix3::operator+(const Matrix3& other) const
+{
+  Matrix3 result = *this;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      result.m[i][j] += other.m[i][j];
+    }
+  }
+  return result;
+}
+
+FORCEINLINE Matrix3
 Matrix3::operator*(const Matrix3& other) const
 {
   Matrix3 result = ZEROMATRIX;
@@ -179,11 +226,15 @@ Matrix3::operator*(const Matrix3& other) const
   return result;
 }
 
-FORCEINLINE Vector3
-Matrix3::operator*(const Vector3& vec) const
+FORCEINLINE Matrix3
+Matrix3::operator*(const float scalar) const
 {
-  return Vector3(m[0][0] * vec.x + m[0][1] * vec.y + m[0][2] * vec.z,
-                 m[1][0] * vec.x + m[1][1] * vec.y + m[1][2] * vec.z,
-                 m[2][0] * vec.x + m[2][1] * vec.y + m[2][2] * vec.z);
+  Matrix3 result = *this;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      result.m[i][j] *= scalar;
+    }
+  }
+  return result;
 }
 }
