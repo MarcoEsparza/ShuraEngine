@@ -109,7 +109,9 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   }
   else
   {
-    float3 fvNormal = normalize(input.Normal);
+    //float3 fvNormal = normalize(input.Normal);
+    float3 fvNormal = float3(1.0f, 1.0f, 1.0f);
+    fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
     output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
   }
     
@@ -127,10 +129,16 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   if(materialProps.bHasRoughnessMap)
   {
     output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex);
+    
   }
   else
   {
     output.Properties.b = metallicRoughnessFactors.y; // roughness factor
+  }
+  
+  if (materialProps.bInvertRoughness)
+  {
+    output.Properties.b = 1.0f - output.Properties.b;
   }
   
   return output;

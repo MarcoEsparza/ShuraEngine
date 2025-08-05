@@ -93,6 +93,7 @@ RendererApp::onCreate()
   loadPistol();
   //loadSponza();
   loadSkybox();
+  //loadCoat();
 
   // Initialize light orthographic camera
   initLightCamera();
@@ -177,6 +178,9 @@ RendererApp::onCreate()
   pVBlurCS->addCSConstantBuffer(pMainBuffer, 0);
   pVBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
 
+  auto pSPCubeMap = renderMan.getPass("SpecularPreMapShader");
+  pSPCubeMap->addCSConstantBuffer(pShaderDataBuffer, 1);
+
   // Final shader buffers
   auto pFinalShader = renderMan.getPass("FinalShader");
   pFinalShader->addPSConstantBuffer(pMainBuffer, 0);
@@ -186,6 +190,8 @@ RendererApp::onCreate()
   // Add skybox
   auto pASBShader = renderMan.getPass("ASBShader");
   pASBShader->addCSConstantBuffer(pMainBuffer, 0);
+
+  renderMan.preCookSkybox();
 
   // Create audio
   Path audioPath("resources/cat.wav");
@@ -212,6 +218,10 @@ RendererApp::onUpdate()
   //ImGui_ImplShura_AddMouseWheelEvent(m_hdelta, m_delta);
   //m_delta = 0.0f;
   //m_hdelta = 0.0f;
+
+  if (m_fpsTimer >= 1.0f) {
+    m_gui.m_fpsCountGUI = m_fpsCount;
+  }
   m_gui.update();
 
   /*if (scene.getGameObjectList().size() && m_sceneIndex >= 0) {
@@ -289,7 +299,7 @@ RendererApp::onUpdate()
     rotateCamera();
   }
 
-  const float camSpeed = 100.0f * time.getFrameDeltaTime();
+  const float camSpeed = m_gui.m_camSpeed * time.getFrameDeltaTime();
   if (m_bFoward) {
     m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
   }
@@ -1181,5 +1191,50 @@ RendererApp::loadSkybox()
   pSkyBoxGO->name = "SkyBox";
 
   scene.addObject(pSkyBoxGO);
+}
+
+void
+RendererApp::loadCoat()
+{
+  ResourceManager& resMan = g_resourceMan();
+  SceneGraph& scene = g_sceneGraph();
+
+  auto modelRes = cast::rePointer<StaticMeshResource>(
+    resMan.loadResourceFromFile(Path("resources/models/export3dcoat.obj")));
+
+  Path colorPath("resources/textures/export3dcoat_lambert3SG_color.tga");
+  Path glossPath("resources/textures/export3dcoat_lambert3SG_gloss.tga");
+  Path metalPath("resources/textures/export3dcoat_lambert3SG_metalness.tga");
+  Path normalPath("resources/textures/export3dcoat_lambert3SG_nmap.tga");
+
+  auto pAlbedo = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(colorPath));
+  auto pGloss = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(glossPath));
+  auto pMetal = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(metalPath));
+  auto pNormal = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(normalPath));
+
+  auto& pMat = modelRes->m_materials[0];
+  pMat->baseColor = pAlbedo->texture;
+  pMat->metallic = pMetal->texture;
+  pMat->normal = pNormal->texture;
+  pMat->roughness = pGloss->texture;
+
+  pMat->m_properties.bHasDiffuseMap = true;
+  pMat->m_properties.bHasMetalnessMap = true;
+  pMat->m_properties.bHasNormalMap = true;
+  pMat->m_properties.bHasRoughnessMap = true;
+  pMat->m_properties.bInvertRoughness = true;
+
+  modelRes->m_meshes[0].materialIndex = 0;
+
+  auto model = sh_makeShared<GameObject>();
+  model->name = "CoatBall";
+  auto modelMC = sh_makeShared<StaticMeshComponent>();
+
+  modelMC->setMeshData(modelRes);
+  model->addComponent(modelMC);
+
+  model->transform.getTransform() = Matrix4::IDENTITY;
+
+  scene.addObject(model);
 }
 }

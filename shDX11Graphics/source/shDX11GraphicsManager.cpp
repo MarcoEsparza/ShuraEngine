@@ -891,6 +891,10 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
   textureDesc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ?  D3D11_CPU_ACCESS_WRITE : 0;
   textureDesc.MiscFlags = 0;
 
+  if (arraySize > 1) {
+    textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+  }
+
   bool autoGenMipMaps = false;
   if (texMipLevels != 1 && usage != D3D11_USAGE_STAGING) {
     // Check if the format supports mipmaps

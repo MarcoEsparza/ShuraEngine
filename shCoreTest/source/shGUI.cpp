@@ -55,6 +55,8 @@ GUI::init(const WPtr<Screen> pScreen)
   ImGui::CreateContext();
   ImGui_ImplShura_Init(pScreen);
   ImGui::StyleColorsDark();
+
+  m_camSpeed = 100.0f;
 }
 
 void
@@ -211,6 +213,9 @@ GUI::setRendererSettings()
   auto& rendererSettings = renderMan.getShaderData();
 
   ImGui::Begin("RendererSettings");
+  String strCount = std::to_string(m_fpsCountGUI);
+  String text = strCount + ": fps";
+  ImGui::Text(text.c_str());
   ImGui::SetNextItemWidth(150.0f);
   if (ImGui::Button("Recompile Shaders")) {
     renderMan.recompileShaders();
@@ -282,6 +287,11 @@ GUI::setRendererSettings()
     rendererSettings.minB = minB * NORM_COLOR;
     rendererSettings.maxB = maxB * NORM_COLOR;
   }
+
+  if (ImGui::CollapsingHeader("Camera Settings")) {
+    ImGui::DragFloat("Camera Speed", &m_camSpeed, 1.0f, 1.0f, 300.0f);
+  }
+
   ImGui::End();
 
   renderMan.updateShaderDataBuffer();

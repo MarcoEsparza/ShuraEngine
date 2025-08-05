@@ -121,6 +121,14 @@ class GUI
 
   bool m_bTexColor = false;
   int32 m_selectedMat = -1;
+
+ public:
+  /**
+  *  @brief
+  */
+  uint32 m_fpsCountGUI = 0;
+
+  float m_camSpeed = 0.0f;
 };
 
 FORCEINLINE void

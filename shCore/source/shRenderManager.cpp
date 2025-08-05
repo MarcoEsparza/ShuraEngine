@@ -31,6 +31,7 @@
 #include "shPath.h"
 #include "shTexture.h"
 #include "shCubeMap.h"
+#include "shMath.h"
 
 #define PBRBufferSize 32 // Size of the PBR material constant buffer
 #define LUMINANCE_MAP_SIZE 512.0f // Size of the luminance map
@@ -47,6 +48,7 @@
 #define TEXTURE4K_WIDTH 4096
 
 #define CUBE_MAP_SIZE 1024 // Size of the cube map texture
+#define NUM_CUBE_MAP_FACES 6 // Number of faces in a cube map
 
 namespace shEngineSDK {
 RenderManager::~RenderManager()
@@ -123,8 +125,7 @@ RenderManager::onStartUp()
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
 
   m_renderTargetMap[StringID("SkyBoxMap").getID()] = RenderTargetInfo("SkyBoxMap",
-    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags);
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
 
   m_renderTargetMap[StringID("TempMap").getID()] = RenderTargetInfo("TempMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
@@ -137,22 +138,22 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("ShadowMap").getID()] = RenderTargetInfo("ShadowMap",
     TEXTURE_FORMAT::kR32_TYPELESS,
-    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1,
+    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1, 1,
     m_shadowMapSize, m_shadowMapSize, false);
 
   m_renderTargetMap[StringID("ShadowTemp").getID()] = RenderTargetInfo("ShadowTemp",
     TEXTURE_FORMAT::kR32_FLOAT,
-    BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1,
+    BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1, 1,
     m_shadowMapSize, m_shadowMapSize, false);
 
   m_renderTargetMap[StringID("LuminanceMap").getID()] = RenderTargetInfo("LuminanceMap",
     TEXTURE_FORMAT::kR32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, 0,
+    fullUAVBindFlags, USAGE::kDefault, 0, 1,
     LUMINANCE_MAP_SIZE, LUMINANCE_MAP_SIZE, false);
 
   m_renderTargetMap[StringID("BrightMap").getID()] = RenderTargetInfo("BrightMap",
     TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS, 1,
     0.5f, 0.5f);
 
   m_renderTargetMap[StringID("AdditiveMap").getID()] = RenderTargetInfo("AdditiveMap",
@@ -169,12 +170,32 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("HistogramMap").getID()] = RenderTargetInfo("HistogramMap",
     TEXTURE_FORMAT::kR32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, 1,
+    fullUAVBindFlags, USAGE::kDefault, 1, 1,
     HISTOGRAM_MAP_SIZE, 3, false);
 
   m_renderTargetMap[StringID("GbufferDepth").getID()] = RenderTargetInfo("GbufferDepth",
     TEXTURE_FORMAT::kR32_TYPELESS,
     BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1);
+
+  m_renderTargetMap[StringID("CubeMap").getID()] = RenderTargetInfo("CubeMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, NUM_CUBE_MAP_FACES, CUBE_MAP_SIZE, CUBE_MAP_SIZE, false);
+
+  m_renderTargetMap[StringID("IrrCubeMap").getID()] = RenderTargetInfo("IrrCubeMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, NUM_CUBE_MAP_FACES, CUBE_MAP_SIZE, CUBE_MAP_SIZE, false);
+
+  m_renderTargetMap[StringID("SpecularPreMap").getID()] = RenderTargetInfo("SpecularPreMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, NUM_CUBE_MAP_FACES, CUBE_MAP_SIZE, CUBE_MAP_SIZE, false);
+
+  m_renderTargetMap[StringID("BRDFLut").getID()] = RenderTargetInfo("BRDFLut",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, 1, 256.0f, 256.0f, false);
 
   auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
   if (pLut) {
@@ -182,16 +203,19 @@ RenderManager::onStartUp()
     m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
   }
   //auto pTex = resMan.loadResourceFromFile(Path("resources/textures/kiara_interior_8k.hdr"));
-  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/kiara_interior_8k.hdr"));
+  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/shanghai_bund_4k.hdr"));
   if (pTex) {
     m_pEnvTexture = cast::rePointer<ImageResource>(pTex)->texture;
     //graphMan.generateMips(m_pEnvTexture);
   }
 
   /*m_pCubeTexture = graphMan.createTexture2D(CUBE_MAP_SIZE, CUBE_MAP_SIZE,
-    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
-    USAGE::kDefault, 1, 6);*/
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, USAGE::kDefault,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess, 1, NUM_CUBE_MAP_FACES);
+
+  m_pIrrCubeTexture = graphMan.createTexture2D(CUBE_MAP_SIZE, CUBE_MAP_SIZE,
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, USAGE::kDefault,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess, 1, NUM_CUBE_MAP_FACES);*/
 }
 
 void
@@ -221,7 +245,8 @@ RenderManager::createRenderTextures()
                                          rtiInfo.format,
                                          rtiInfo.usage,
                                          rtiInfo.bFlags,
-                                         rtiInfo.mipLevels);
+                                         rtiInfo.mipLevels,
+                                         rtiInfo.arraySize);
     m_renderTargetMap[StringID(rtiInfo.name).getID()].pTexture = pTex;
   }
 }
@@ -377,6 +402,27 @@ RenderManager::createPasses()
                                  "cs_5_0");
   pCubeMapShader->compileShader();
 
+  // Irradiance cube shader
+  auto pIrrCubeShader = sh_makeShared<Pass>();
+  pIrrCubeShader->setCShaderInfo("resources/shaders/IrradianceCubeShader.hlsl",
+                                 "CSMain",
+                                 "cs_5_0");
+  pIrrCubeShader->compileShader();
+
+  // Specular Prefiltered Cubemap shader
+  auto pSPreCubeMap = sh_makeShared<Pass>();
+  pSPreCubeMap->setCShaderInfo("resources/shaders/SpecularPreMapShader.hlsl",
+                               "CSMain",
+                               "cs_5_0");
+  pSPreCubeMap->compileShader();
+
+  // BRDF LUT shader
+  auto pBRDFShader = sh_makeShared<Pass>();
+  pBRDFShader->setCShaderInfo("resources/shaders/BRDFShader.hlsl",
+                              "CSMain",
+                              "cs_5_0");
+  pBRDFShader->compileShader();
+
   // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -480,11 +526,11 @@ RenderManager::createPasses()
   pSMapShader->setDepthStencilState(pDepthStencil);
 
   // SkyBox Map
-  pSkyBoxShader->generateInputLayout();
+  //pSkyBoxShader->generateInputLayout();
   //pSkyBoxShader->setSamplerState(m_pSamplerLinearWrap);
-  pSkyBoxShader->setRasterizerState(pRasterState);
-  pSkyBoxShader->setBlendState(pBlendState);
-  pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
+  //pSkyBoxShader->setRasterizerState(pRasterState);
+  //pSkyBoxShader->setBlendState(pBlendState);
+  //pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
 
   // Final
   //pFinalShader->setSamplerState(m_pSamplerLinearWrap);
@@ -519,6 +565,9 @@ RenderManager::createPasses()
   m_passes[StringID("PPShader").getID()] = pPPShader;
   m_passes[StringID("AddMixShader").getID()] = pAddMixShader;
   m_passes[StringID("CubeMapShader").getID()] = pCubeMapShader;
+  m_passes[StringID("IrrCubeShader").getID()] = pIrrCubeShader;
+  m_passes[StringID("SpecularPreMapShader").getID()] = pSPreCubeMap;
+  m_passes[StringID("BRDFShader").getID()] = pBRDFShader;
 }
 
 SPtr<Pass>
@@ -721,6 +770,10 @@ RenderManager::renderScene()
   auto& pBHBlur = m_renderTargetMap[StringID("BHBlur").getID()];
   auto& pBVBlur = m_renderTargetMap[StringID("BVBlur").getID()];
   auto& pGbufferDepth = m_renderTargetMap[StringID("GbufferDepth").getID()];
+  auto& pCubeMap = m_renderTargetMap[StringID("CubeMap").getID()];
+  auto& pIrrCubeMap = m_renderTargetMap[StringID("IrrCubeMap").getID()];
+  auto& pSPreCubeMap = m_renderTargetMap[StringID("SpecularPreMap").getID()];
+  auto& pBRDFMap = m_renderTargetMap[StringID("BRDFLut").getID()];
   //auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
@@ -729,6 +782,8 @@ RenderManager::renderScene()
   uint32 dispatchX = threadGroups(screenWidth, DEFAULT_THREADS);
   uint32 dispatchY = threadGroups(screenHeight, DEFAULT_THREADS);
   uint32 dispatchZ = 1;
+
+  uint32 cubeDispatch = threadGroups(CUBE_MAP_SIZE, DEFAULT_THREADS);
 
   Viewport normalVP = {};
   normalVP.width = m_screenDimension.x;
@@ -842,20 +897,6 @@ RenderManager::renderScene()
   cleanShaderObjects();
 
   /*************************************/
-  /*             Cube Map              */
-  /*************************************/
-  /*pOutput = m_pCubeTexture;
-  m_passes[StringID("CubeMapShader").getID()]->setPass();
-  setSamplers();
-  graphMan.csSetShaderResourceView(m_pEnvTexture, 0);
-  graphMan.setUnorderedAccessView({ pOutput }, 0);
-  graphMan.dispatch(threadGroups(CUBE_MAP_SIZE, 32),
-                    threadGroups(CUBE_MAP_SIZE, 32),
-                    6);
-
-  cleanShaderObjects();*/
-
-  /*************************************/
   /*              Sky Box              */
   /*************************************/
   /*graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
@@ -882,9 +923,6 @@ RenderManager::renderScene()
   setSamplers();
   graphMan.csSetShaderResourceView(m_pEnvTexture, 0);
   graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
-  /*graphMan.dispatch(threadGroups(TEXTURE8K_WIDTH, 32),
-                    threadGroups(TEXTURE4K_WIDTH, 32),
-                    1);*/
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
@@ -903,8 +941,10 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
   graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 5);
   graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 6);
-  graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 7);
-  graphMan.csSetShaderResourceView(m_pEnvTexture, 8);
+  graphMan.csSetShaderResourceView(m_pEnvTexture, 7);
+  //graphMan.csSetShaderResourceView(pIrrCubeMap.pTexture, 7);
+  //graphMan.csSetShaderResourceView(pSPreCubeMap.pTexture, 8);
+  graphMan.csSetShaderResourceView(pBRDFMap.pTexture, 8);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
@@ -1097,6 +1137,81 @@ RenderManager::renderScene()
   graphMan.dispatch(dx, dy, dz);
 
   cleanShaderObjects();*/
+}
+
+void
+RenderManager::preCookSkybox()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  //auto& pSkyBoxMap = m_renderTargetMap[StringID("SkyBoxMap").getID()];
+  auto& pCubeMap = m_renderTargetMap[StringID("CubeMap").getID()];
+  auto& pIrrCubeMap = m_renderTargetMap[StringID("IrrCubeMap").getID()];
+  auto& pSPreCubeMap = m_renderTargetMap[StringID("SpecularPreMap").getID()];
+  auto& pBRDFMap = m_renderTargetMap[StringID("BRDFLut").getID()];
+
+  uint32 cubeDispatch = threadGroups(CUBE_MAP_SIZE, DEFAULT_THREADS);
+  uint32 lutDispatch = threadGroups(256, DEFAULT_THREADS);
+
+  /*************************************/
+  /*             Cube Map              */
+  /*************************************/
+  m_passes[StringID("CubeMapShader").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(m_pEnvTexture, 0);
+  graphMan.setUnorderedAccessView({ pCubeMap.pTexture }, 0);
+  graphMan.dispatch(cubeDispatch, cubeDispatch, NUM_CUBE_MAP_FACES);
+
+  cleanShaderObjects();
+
+  //graphMan.generateMips(pCubeMap.pTexture);
+
+  /*************************************/
+  /*            Irradiance             */
+  /*************************************/
+  m_passes[StringID("IrrCubeShader").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(pCubeMap.pTexture, 0);
+  graphMan.setUnorderedAccessView({ pIrrCubeMap.pTexture }, 0);
+  graphMan.dispatch(cubeDispatch, cubeDispatch, NUM_CUBE_MAP_FACES);
+
+  cleanShaderObjects();
+
+  /*************************************/
+  /*      Specular Prefiltered Map     */
+  /*************************************/
+  const uint32 maxMipLevels = 5;
+
+  for (uint32 mip = 0; mip < maxMipLevels; ++mip) {
+    uint32 mipSize = CUBE_MAP_SIZE >> mip;
+    //uint32 mipSize = CUBE_MAP_SIZE * Math::pow(0.5f, static_cast<float>(mip));
+    float roughness = static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1.0f);
+
+    for (uint32 face = 0; face < NUM_CUBE_MAP_FACES; ++face) {
+      m_shaderData.mipLevel0 = static_cast<float>(mip);
+      m_shaderData.roughness = roughness;
+      m_shaderData.cubeFace = face;
+      updateShaderDataBuffer();
+      uint32 dispatch = threadGroups(mipSize, DEFAULT_THREADS);
+
+      m_passes[StringID("SpecularPreMapShader").getID()]->setPass();
+      setSamplers();
+      graphMan.csSetShaderResourceView(pCubeMap.pTexture, 0);
+      graphMan.setUnorderedAccessView({ pSPreCubeMap.pTexture }, 0);
+      graphMan.dispatch(dispatch, dispatch, 1);
+
+      cleanShaderObjects();
+    }
+  }
+
+  /*************************************/
+  /*                BRDF               */
+  /*************************************/
+  m_passes[StringID("BRDFShader").getID()]->setPass();
+  setSamplers();
+  graphMan.setUnorderedAccessView({ pBRDFMap.pTexture }, 0);
+  graphMan.dispatch(lutDispatch, lutDispatch, 1);
+
+  cleanShaderObjects();
 }
 
 void

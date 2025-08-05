@@ -55,11 +55,12 @@ struct RenderTargetInfo
     uint32 bFlags = BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource,
     uint32 usage = USAGE::kDefault,
     uint32 mipLevels = 1,
+    uint32 arraySize = 1,
     float width = 1.0f,
     float height = 1.0f,
     bool bUseScaledSize = true)
     : name(name), format(format), usage(usage), bFlags(bFlags), mipLevels(mipLevels),
-    width(width), height(height), bUseScaledSize(bUseScaledSize)
+    arraySize(arraySize), width(width), height(height), bUseScaledSize(bUseScaledSize)
   {}
 
   String name;
@@ -67,6 +68,7 @@ struct RenderTargetInfo
   uint32 usage = 0;
   uint32 bFlags = 0;
   uint32 mipLevels = 1;
+  uint32 arraySize = 1;
   float width = 1.0f;
   float height = 1.0f;
   bool bUseScaledSize = true;
@@ -143,6 +145,10 @@ struct ShaderData {
   
   float lightIntensity = 1.0f;
   float middleGrey = 1.0f;
+
+  float roughness = 0.0f;
+  uint32 cubeFace = 0.0f;
+  Vector2 padding = { 0.0f, 0.0f };
 };
 
 /**
@@ -223,6 +229,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   renderScene();
+
+  void
+  preCookSkybox();
 
   /**
   *  @brief Clean the PS shader resource view slots.
@@ -371,7 +380,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   SPtr<CubeMap> m_pLutTexture;
   SPtr<Texture2D> m_pEnvTexture;
-  SPtr<Texture2D> m_pCubeTexture;
+  //SPtr<Texture2D> m_pCubeTexture;
+  //SPtr<Texture2D> m_pIrrCubeTexture;
 
   /**
   *  @brief Shadow map texture size.

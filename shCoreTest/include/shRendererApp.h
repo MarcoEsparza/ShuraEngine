@@ -245,6 +245,9 @@ class RendererApp : public BaseApp
   void
   loadSkybox();
 
+  void
+  loadCoat();
+
   /***************************************************************************/
   /*
   *  Variables
