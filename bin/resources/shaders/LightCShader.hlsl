@@ -7,10 +7,10 @@ Texture2D t_propMap : register(t3);
 Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
 Texture2D t_depthStencil : register(t6);
-Texture2D t_skybox : register(t7);
-Texture2D t_brdfLUT : register(t8);
-Texture2D t_diffIrr : register(t9);
-Texture2D t_skyReflect : register(t10);
+//Texture2D t_skybox : register(t7);
+Texture2D t_brdfLUT : register(t7);
+Texture2D t_diffIrr : register(t8);
+Texture2D t_skyReflect : register(t9);
 RWTexture2D<float4> t_outputMap : register(u0);
 
 #define PCF_KERNEL_SIZE 5

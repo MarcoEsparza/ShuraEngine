@@ -23,6 +23,8 @@
 //#include <shGraphicsManager.h>
 #include <shRenderManager.h>
 #include <shSceneGraph.h>
+#include <shResourceManager.h>
+#include <shFileExplorer.h>
 #include <shTexture.h>
 #include <shMath.h>
 
@@ -828,17 +830,31 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
 void
 GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
 {
+  RenderManager& renderMan = g_renderMan();
+  ResourceManager& resMan = g_resourceMan();
+  FileExplorer& fileExp = g_fileExplorer();
+
   if (wpSkyBox.expired()) {
     return;
   }
   auto pSkyBox = wpSkyBox.lock();
   if (ImGui::CollapsingHeader("SkyBox Component")) {
-    auto& pSBMat = pSkyBox->getMaterial();
-    ImGui::Text("SkyBox Texture: %s", pSBMat->name.c_str());
-    ImGui::Image(reinterpret_cast<ImTextureID*>(&pSBMat->baseColor), ImVec2(64, 64));
-    if (ImGui::Button("Change SkyBox Texture")) {
-      // Open file dialog to select new texture
-      // This is a placeholder for actual file dialog implementation
+    if (ImGui::DragFloat("Skyblur",
+                         &renderMan.getPrefilteredIBLData().roughness,
+                         0.01, 0.0f, 1.0f)) {
+      renderMan.updatePrefilteredIBLBuffer();
+    }
+
+    if(ImGui::Button("Load Image")) {
+      String filePath;
+      if(fileExp.openFile(filePath, ".hdr", "resources/textures/")) {
+        auto pRes = resMan.loadResourceFromFile(Path(filePath));
+        auto pImg = cast::rePointer<ImageResource>(pRes);
+        if (pImg) {
+          pSkyBox->setSkyBoxResource(pImg);
+          renderMan.computeIBL();
+        }
+      }
     }
   }
 }

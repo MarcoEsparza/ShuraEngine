@@ -247,7 +247,10 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   renderScene();
 
   void
-  preCookSkybox();
+  computeIBL();
+
+  void
+  computeBRDF();
 
   /**
   *  @brief Clean the PS shader resource view slots.
@@ -315,6 +318,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   updateShaderDataBuffer();
 
   void
+  updatePrefilteredIBLBuffer();
+
+  void
   setSamplers();
 
   /**
@@ -339,11 +345,17 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   FORCEINLINE ShaderData&
   getShaderData();
 
+  FORCEINLINE PrefilteredCB&
+  getPrefilteredIBLData();
+
   FORCEINLINE SPtr<ConstantBuffer>&
   getMainBuffer();
 
   FORCEINLINE SPtr<ConstantBuffer>&
   getShaderDataBuffer();
+
+  FORCEINLINE SPtr<ConstantBuffer>&
+  getPrefilteredIBLCB();
 
  private:
   /**
@@ -399,9 +411,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   SPtr<SamplerState> m_pSamplerAnisotropicClamp;
 
   SPtr<CubeMap> m_pLutTexture;
-  SPtr<Texture2D> m_pEnvTexture;
+  //SPtr<Texture2D> m_pEnvTexture;
   //SPtr<Texture2D> m_pCubeTexture;
-  //SPtr<Texture2D> m_pIrrCubeTexture;
+  //SPtr<Texture2D> m_pSpecularPreMap;
 
   /**
   *  @brief Shadow map texture size.
@@ -428,6 +440,12 @@ RenderManager::getShaderData()
   return m_shaderData;
 }
 
+FORCEINLINE PrefilteredCB&
+RenderManager::getPrefilteredIBLData()
+{
+  return m_prefilteredCB;
+}
+
 FORCEINLINE SPtr<ConstantBuffer>&
 RenderManager::getMainBuffer()
 {
@@ -438,6 +456,12 @@ FORCEINLINE SPtr<ConstantBuffer>&
 RenderManager::getShaderDataBuffer()
 {
   return m_pShaderDataBuffer;
+}
+
+FORCEINLINE SPtr<ConstantBuffer>&
+RenderManager::getPrefilteredIBLCB()
+{
+  return m_pPreCB;
 }
 
 /**

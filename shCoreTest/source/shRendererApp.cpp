@@ -68,6 +68,8 @@ RendererApp::onCreate()
   renderMan.setScreenSize(m_screenSize);
   renderMan.setShadowMapSize(m_shadowTexSize);
   renderMan.createRenderTextures();
+  renderMan.computeBRDF();
+  
   
   m_camera = Camera(Vector3(0.0f, 0.0f, -3.0f),
                     Vector3(0.0f, 0.0f, 0.0f),
@@ -191,7 +193,7 @@ RendererApp::onCreate()
   auto pASBShader = renderMan.getPass("ASBShader");
   pASBShader->addCSConstantBuffer(pMainBuffer, 0);
 
-  renderMan.preCookSkybox();
+  renderMan.computeIBL();
 
   // Create audio
   Path audioPath("resources/cat.wav");
@@ -1141,50 +1143,11 @@ RendererApp::loadSkybox()
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& scene = g_sceneGraph();
 
-  auto skyboxTx = cast::rePointer<ImageResource>(
-                  resMan.loadResourceFromFile(
-                  Path("resources/textures/skybox1.png")));
-
-  /*auto skyboxTx = cast::rePointer<ImageResource>(
-                  resMan.loadResourceFromFile(
-                  Path("resources/textures/night_free_Prev.tga")));*/
-
-  Vector<Vector3> vertices = { {-1.0f, -1.0f, -1.0f},
-                               {1.0f, -1.0f, -1.0f},
-                               {1.0f, 1.0f, -1.0f},
-                               {-1.0f, 1.0f, -1.0f},
-                               {-1.0f, -1.0f, 1.0f},
-                               {1.0f, -1.0f, 1.0f},
-                               {1.0f, 1.0f, 1.0f},
-                               {-1.0f, 1.0f, 1.0f} };
-
-  Vector<uint32> indices = { // front
-                             0, 1, 2,
-                             2, 3, 0,
-                             // right
-                             1, 5, 6,
-                             6, 2, 1,
-                             // back
-                             7, 6, 5,
-                             5, 4, 7,
-                             // left
-                             4, 0, 3,
-                             3, 7, 4,
-                             // top
-                             3, 2, 6,
-                             6, 7, 3,
-                             // bottom
-                             4, 5, 1,
-                             1, 0, 4 };
+  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/rathaus_8k.hdr"));
+  auto skyboxTx = cast::rePointer<ImageResource>(pTex);
 
   auto pSkyBox = sh_makeShared<SkyBoxComponent>();
-  pSkyBox->setVertices(vertices);
-  pSkyBox->setIndices(indices);
-
-  auto pSkyBoxMat = sh_makeShared<Material>();
-  pSkyBoxMat->m_properties.bHasDiffuseMap = true;
-  pSkyBoxMat->baseColor = skyboxTx->texture;
-  pSkyBox->setMaterial(pSkyBoxMat);
+  pSkyBox->setSkyBoxResource(skyboxTx);
   
   auto pSkyBoxGO = sh_makeShared<GameObject>();
   pSkyBoxGO->addComponent(pSkyBox);

@@ -144,7 +144,7 @@ sRGBToLinear(float4 color)
 float2
 getSkyBoxUV(float3 dir)
 {
-  float u = -atan2(dir.z, dir.x) * RECIPROCAL_2PI + 0.5f;
+  float u = atan2(dir.z, dir.x) * RECIPROCAL_2PI + 0.5f;
   float v = acos(dir.y) * RECIPROCAL_PI;
   return float2(u, v);
 }

@@ -38,7 +38,7 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
   
   // Get number of mips
   float adaptFactor = saturate(roughness + mipmapLevels / 8.0f);
-  float maxBrightness = lerp(1.0f, 2.0f, adaptFactor);
+  float maxBrightness = lerp(0.0f, 1.0f, adaptFactor);
   
   for (uint n = 0u; n < samples; ++n)
   {
@@ -73,7 +73,11 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
     }
   }
 
-  result = (totalWeight > 0.0f) ? (result / totalWeight) : float3(0.0f, 0.0f, 0.0f);
+  result = (totalWeight > 0.0f) ? (result / totalWeight) : float3(0.0f, 1.0f, 0.0f);
+  //if(mipmapLevels > 0.0f)
+  //{
+  //  result = float3(0.0f, 1.0f, 0.0f);
+  //}
   //result /= PI;
   //result *= 11.0f;
   t_output[dtID.xy] = float4(result, 1.0f);

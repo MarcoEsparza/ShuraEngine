@@ -249,6 +249,9 @@
     <ClInclude Include="include\shCubeMap.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\shFileExplorer.h">
+      <Filter>Header Files\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -318,6 +321,9 @@
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\shCubeMap.cpp">
+      <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shFileExplorerWin32.cpp">
       <Filter>Source Files\Resource</Filter>
     </ClCompile>
   </ItemGroup>

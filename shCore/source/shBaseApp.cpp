@@ -27,6 +27,7 @@
 #include "shTime.h"
 #include "shSceneGraph.h"
 #include "shLogger.h"
+#include "shFileExplorer.h"
 #include "shPhysicsManager.h"
 #include "shGizmos.h"
 #include "shDynamicLibrary.h"
@@ -151,6 +152,7 @@ BaseApp::initManagers()
   SceneGraph::startUp();
   PhysicsManager::startUp();
   Logger::startUp();
+  FileExplorer::startUp();
 
   loadAudioAPI();
 }
@@ -258,6 +260,7 @@ BaseApp::render()
 void
 BaseApp::destroyManagers()
 {
+  FileExplorer::shutDown();
   Logger::shutDown();
   PhysicsManager::shutDown();
   SceneGraph::shutDown();
