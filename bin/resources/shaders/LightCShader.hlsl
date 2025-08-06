@@ -8,18 +8,13 @@ Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
 Texture2D t_depthStencil : register(t6);
 Texture2D t_skybox : register(t7);
-//Texture2DArray<float4> t_diffIrrCube : register(t7);
-//Texture2DArray<float4> t_specPreCube : register(t8);
 Texture2D t_brdfLUT : register(t8);
+Texture2D t_diffIrr : register(t9);
+Texture2D t_skyReflect : register(t10);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-#ifndef PCF_KERNEL_SIZE
 #define PCF_KERNEL_SIZE 5
-#endif
-#ifndef DELTA
 #define DELTA 0.00000001
-#endif
-
 #define SAMPLE_DELTA 0.2f
 #define MAX_REFLECTION_LOD 5.0f
 
@@ -39,41 +34,15 @@ cbuffer skyboxConstants : register(b4)
   float4x4 matSkyRotation;
 }
 
-//struct PS_INPUT
-//{
-//  float4 Position : SV_POSITION;
-//  float2 Texcoord : TEXCOORD0;
-//};
-
-//struct BRDFInput
-//{
-//  float3 viewDir;
-//  float3 normal;
-//  float3 lightDir;
-//  
-//  float nDotH;
-//  float nDotL;
-//  float nDotV;
-//  float F0;
-//  float sigmaSqrd;
-//  float halfSigmaSqrd;
-//  
-//  float3 specularColor;
-//  float4 albedo;
-//  float metallic;
-//  float roughness;
-//  
-//  bool bHasSpecularPath;
-//};
-
-//struct BRDFOutput
-//{
-//  float3 diffuse;
-//  float3 specular;
-//  float3 fresnel;
-//  //float3 ambient;
-//  //float shadowFactor;
-//};
+cbuffer PrefilterConstants : register(b5)
+{
+  uint width;
+  uint height;
+  uint samples;
+  float prefRoughness;
+  float mipmapLevels;
+  float3 pcPadding; // Padding to 16 bytes
+};
 
 float
 pcFiltering(float2 uv,
@@ -90,17 +59,11 @@ pcFiltering(float2 uv,
     {
     
       float2 offset = float2(x, y) * texelSize;
-      //float sampledDepth = t_shadowMap.Sample(textureSampler, uv + offset).r;
       float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
 
       sampledDepth = sampledDepth * 0.5f + 0.5f;
       float shadowIntensity = 0.8f; // Change to a variable in constant buffer
       shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
-      //if (depth - shadowBias > sampledDepth)
-      //{
-      //  shadow += 1.0f;
-      //}
-      //++sampleCount;
     }
   }
     
@@ -193,94 +156,61 @@ Lambert(float3 fresnel, float3 albedo, float metallic)
   return diffuse;
 }
 
-float3
-getDiffuseIrradiance(float3 normal)
+float4 getSpecularSample(float3 reflection, float lod)
 {
-  float3 irradiance = float3(0.0f, 0.0f, 0.0f);
-  
-  float3 up = float3(0.0f, 1.0f, 0.0f);
-  float3 right = normalize(cross(up, normal));
-  up = normalize(cross(normal, right));
-  
-  float nrSamples = 0.0f;
-  for (float phi = 0.0f; phi < PI * 2.0f; phi += SAMPLE_DELTA)
-  {
-    for (float theta = 0.0f; theta < PI * 0.5f; theta += SAMPLE_DELTA)
-    {
-      // Spherical coordinates to Cartesian (in tangential space)
-      float3 tangentSample = float3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
-      // Convert to world space using the tangent basis
-      //float3 sampleVec = tangentSample.x * right + tangentSample.y * up +
-      //                   tangentSample.z * normal;
-      float2 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
-      
-      irradiance += t_skybox.SampleLevel(samplerLinearClamp, sampleVec, 0).rgb *
-                    cos(theta) * sin(theta);
-      
-      ++nrSamples;
-    }
-  }
-  irradiance *= PI / nrSamples;
-  
-  return irradiance;
+  float u_EnvIntensity = 1.0f; // Environment intensity, can be adjusted
+
+  //float2 uv = getSkyBoxUV(normalize(mul(float4(reflection, 0.0f), matSkyRotation).xyz));
+  float2 uv = getSkyBoxUV(normalize(reflection));
+  // Sample the texture at the specified LOD level
+  float4 texSample = t_skyReflect.SampleLevel(samplerAnisotropicClamp, uv, lod);
+
+  texSample.rgb *= u_EnvIntensity; // Apply environment intensity
+  return float4(texSample.rgb, 1.0f);
 }
 
-//float
-//ndf_GGX(float nDotH, float roughness, float alpha)
-//{
-//  float alphaSqrd = alpha * alpha;
-//  float cos2Theta = nDotH * nDotH;
-//  float tan2Theta = (1.0f - cos2Theta) / (cos2Theta + 1e-5f);
-//  
-//  return alphaSqrd / (PI * cos2Theta * pow((alphaSqrd + tan2Theta), 2.0f));
-//}
+float3 getIBLRadianceGGX(float3 n, float3 v, float roughness)
+{
+  float NdotV = clampedDot(n, v);
 
-//BRDFOutput
-//BRDF(in BRDFInput inData)
-//{
-//  BRDFOutput outData = (BRDFOutput) 0;
-  
-//  float halfDotV = dot(normalize(inData.viewDir + inData.lightDir), inData.normal);
-  
-//  float3 F = fresnelSchlick(inData.F0, halfDotV);
-//  float D = ndf_GGX(inData.nDotH, inData.roughness, inData.sigmaSqrd);
-//  float G = geometrySmith(inData.nDotV, inData.nDotL, inData.roughness);
-//  float3 specular = (D * G * F) / max(DELTA, 4.0f * inData.nDotV * inData.nDotL);
-//  specular *= inData.bHasSpecularPath ? inData.specularColor : 1.0f;
-  
-//  // Diffuse with energy conservation
-//  outData.diffuse = Lambert(F, inData.albedo.rgb, inData.metallic);
-//  outData.specular = specular;
-//  outData.fresnel = F;
-  
-//  return outData;
-//}
+  float3 texDimensions;
+  t_skyReflect.GetDimensions(0, texDimensions.x, texDimensions.y, texDimensions.z);
+  float lod = min(roughness * texDimensions.x, texDimensions.z);
 
-//float4 getSpecularSample(float3 reflection, float lod)
-//{
-//  float u_EnvIntensity = 1.0f; // Environment intensity, can be adjusted
-  
-//  float2 uv = getSkyBoxUV(normalize(mul(float4(reflection, 0.0f), matSkyRotation).xyz));
-//  // Sample the texture at the specified LOD level
-//  float4 texSample = t_skyReflect.SampleLevel(samplerLinearClamp, uv, lod);
-  
-//  texSample.rgb *= u_EnvIntensity; // Apply environment intensity
-//  return float4(texSample.rgb, 1.0f);
-//}
+  float3 reflection = normalize(reflect(-v, n));
+  float4 specularSample = getSpecularSample(reflection, lod);
 
-//float3 getIBLRadianceGGX(float3 n, float3 v, float roughness)
-//{
-//  float NdotV = clampedDot(n, v);
+  return specularSample.rgb;
+}
+
+float3
+getIBLGGXFresnel(float3 n, float3 v, float roughness, float3 F0, float specularWeight)
+{
+  // Roughness dependent Fresnel
+  float nDotV = clampedDot(n, v);
+  float2 brdfSamplePoint = clamp(float2(nDotV, 1.0f - roughness), 0.0f, 1.0f);
+  float2 f_ab = t_brdfLUT.SampleLevel(samplerPointClamp, brdfSamplePoint, 0);
+  float3 Fr = max(1.0f - roughness, F0) - F0;
+  float3 kS = F0 + Fr * pow(1.0f - nDotV, 5.0f);
+  float3 FssEss = specularWeight * (kS * f_ab.x + f_ab.y);
   
-//  float3 texDimensions;
-//  t_skyReflect.GetDimensions(0, texDimensions.x, texDimensions.y, texDimensions.z);
-//  float lod = min((roughness * (texDimensions.x - 1)) + 1.0f, texDimensions.z);
+  // Multiple scattering
+  float Ems = (1.0f - (f_ab.x + f_ab.y));
+  float3 F_avg = specularWeight * (F0 + (1.0F - F0) / 21.0F);
+  float3 FmsEms = Ems * FssEss * F_avg / (1.0f - F_avg * Ems);
   
-//  float3 reflection = normalize(reflect(-v, n));
-//  float4 specularSample = getSpecularSample(reflection, lod);
-  
-//  return specularSample.rgb;
-//}
+  return FssEss + FmsEms;
+}
+
+float3
+getDiffuseLight(float3 n)
+{
+  float envIntensity = 1.0f;
+  float2 dir = getSkyBoxUV(n);
+  float3 texSample = t_diffIrr.SampleLevel(samplerAnisotropicClamp, dir, 0).rgb;
+  texSample.rgb *= envIntensity; // Apply environment intensity
+  return texSample;
+}
 
 [numthreads(32, 32, 1)]
 void CSMain(uint3 dtID : SV_DispatchThreadID)
@@ -297,7 +227,6 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 propMap = t_propMap.Load(int3(dtID.xy, 0));
   float4 ao = t_aoMap.Load(int3(dtID.xy, 0));
   float4 shadows = t_shadowMap.Load(int3(dtID.xy, 0));
-  //float depthStencil = t_depthStencil.Load(int3(dtID.xy, 0));
   
   float3 albedo = color.rgb;
   float metalness = propMap.r;
@@ -309,18 +238,6 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
     return;
   }
-  //if (normalMap.w == 0)
-  //{
-  //  t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
-  //  return;
-  //}
-  
-  //if (depthStencil >= 0.9999f)
-  //{
-  //  color = t_skyMap.Load(uint3(dtID.xy, 0));
-  //  t_outputMap[dtID.xy] = float4(color.rgb, 1.0f);
-  //  return;
-  //}
   
   normal = normal * 2.0f - 1.0f;
   float4 posWorld = depth;
@@ -331,17 +248,17 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float3 R = reflect(-viewDirection, normal);
   float nDotV = saturate(dot(normal, viewDirection));
   
-  //float3 irradiance = t_diffIrrCube.SampleLevel(samplerLinearClamp, normal, 0).rgb;
-  float3 irradiance = getDiffuseIrradiance(normal);
-  float3 diffuseIBL = irradiance * albedo;
+  float3 diffuseIBL = getDiffuseLight(normal) * (albedo / PI);
   
-  //float3 prefilteredColor = t_specPreCube.SampleLevel(samplerLinearClamp,
-  //                                                    R,
-  //                                                    roughness * MAX_REFLECTION_LOD).rgb;
-  //float2 brdf = t_brdfLUT.SampleLevel(samplerLinearClamp, float2(nDotV, roughness), 0).rg;
-  //float3 specularIBL = prefilteredColor * (F0 * brdf.x + brdf.y);
+  float3 specularMetal = getIBLRadianceGGX(normal, viewDirection, prefRoughness);
+  float3 metalFresnel = getIBLGGXFresnel(normal,
+                                         viewDirection,
+                                         prefRoughness,
+                                         albedo,
+                                         1.0f);
+  metalFresnel = metalFresnel * specularMetal;
   
-  float3 ambientLight = diffuseIBL; //+ specularIBL;
+  float3 ambientLight = diffuseIBL + metalFresnel;
   
   // === Direct Lighting ===
   float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
@@ -355,22 +272,12 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
                                          F0);
   
   float3 directLight = (specular + albedo) * NdL * lightIntensity;
-  //float3 finalColor = ((((diffuse + specular) * lightIntensity * NdL) + ambientLight) * ao.r);
 
   // === Shadows ===
   float4 lightWorldPos = mul(posWorld, lightView);
   lightWorldPos = mul(lightWorldPos, lightProj);
   lightWorldPos.xyz /= lightWorldPos.w;
   lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
-  
-  //float2 shadowCoord = lightWorldPos.xy;
-  //shadowCoord.y = 1.0f - shadowCoord.y;
-  //float shadowFactor = 1.0f;
-  //if(shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
-  //   shadowCoord.y < 0.0f || shadowCoord.x > 1.0f) {
-  //  t_outputMap[dtID.xy] = float4(ambientLight, 1.0f);
-  //  return;
-  //}
   
   float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
   float shadowFactor = 1.0f;
@@ -387,10 +294,6 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
   }
   
-  //shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
-  //finalColor *= shadowFactor;
-  
   float3 finalColor = (ambientLight + directLight * shadowFactor) * ao.r;
-  
   t_outputMap[dtID.xy] = float4(finalColor, 1.0f);
 }

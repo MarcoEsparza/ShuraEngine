@@ -380,9 +380,13 @@ ResourceManager::onStartUp()
 {
   auto white = cast::rePointer<ImageResource>(loadResourceFromFile(
                                               Path("resources/White.png")));
+  auto normal = cast::rePointer<ImageResource>(loadResourceFromFile(
+                                              Path("resources/textures/normal.png")));
   auto pCube = cast::rePointer<StaticMeshResource>(loadResourceFromFile(
                                                    Path("resources/models/cube.fbx")));
   pCube->m_materials[0]->baseColor = white->texture;
+  pCube->m_materials[0]->normal = normal->texture;
+  pCube->m_materials[0]->m_properties.bHasNormalMap = true;
 }
 
 SPtr<Resource>
@@ -535,6 +539,8 @@ ResourceManager::loadTextureFromFile(const String& fileName)
     stbi_image_free(data);
   }
   
+  pImage->width = width;
+  pImage->height = height;
   pImage->setName(file);
 
   m_loadedResources[pImage->getName()] = pImage;

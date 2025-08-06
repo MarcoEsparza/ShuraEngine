@@ -1,98 +1,17 @@
 #include "ShaderConstants.hlsl"
 
-Texture2DArray<float4> t_envCube : register(t0);
-RWTexture2DArray<float4> t_output : register(u0);
+Texture2D<float4> t_envMap : register(t0);
+RWTexture2D<float4> t_output : register(u0);
 
-#define SAMPLE_COUNT 1024
-#define CUBEMAP_SIZE 1024
-
-float3
-texCoordToDir(uint faceIndex, float2 uv)
+cbuffer PrefilterConstants : register(b2)
 {
-  uv = uv * 2.0f - 1.0f; // Map from [0,1] to [-1,1]
-
-  float3 dir = 0;
-  if (faceIndex == 0)
-  {
-    dir = float3(1.0, -uv.y, -uv.x);
-  }
-  else if (faceIndex == 1)
-  {
-    dir = float3(-1.0, -uv.y, uv.x);
-  }
-  else if (faceIndex == 2)
-  {
-    dir = float3(uv.x, 1.0, uv.y);
-  }
-  else if (faceIndex == 3)
-  {
-    dir = float3(uv.x, -1.0, -uv.y);
-  }
-  else if (faceIndex == 4)
-  {
-    dir = float3(uv.x, -uv.y, 1.0);
-  }
-  else if (faceIndex == 5)
-  {
-    dir = float3(-uv.x, -uv.y, -1.0);
-  }
-  
-  return normalize(dir);
-}
-
-void
-directionToCubeUV(float3 dir, out uint faceIndex, out float2 uv)
-{
-  float3 absDir = abs(dir);
-  
-  if (absDir.x > absDir.y && absDir.x > absDir.z)
-  {
-    if (dir.x > 0)
-    {
-      // +X
-      faceIndex = 0;
-      uv = float2(-dir.z, -dir.y) / absDir.x;
-    }
-    else
-    {
-      // -X
-      faceIndex = 1;
-      uv = float2(dir.z, -dir.y) / absDir.x;
-    }
-  }
-  else if (absDir.y > absDir.x && absDir.y > absDir.z)
-  {
-    if (dir.y > 0)
-    {
-      // +Y
-      faceIndex = 2;
-      uv = float2(dir.x, dir.z) / absDir.y;
-    }
-    else
-    {
-      // -Y
-      faceIndex = 3;
-      uv = float2(dir.x, -dir.z) / absDir.y;
-    }
-  }
-  else
-  {
-    if (dir.z > 0)
-    {
-      // +Z
-      faceIndex = 4;
-      uv = float2(dir.x, -dir.y) / absDir.z;
-    }
-    else
-    {
-      // -Z
-      faceIndex = 5;
-      uv = float2(-dir.x, -dir.y) / absDir.z;
-    }
-  }
-  
-  uv = (uv * 0.5f + 0.5f); // Map from [-1,1] to [0,1]
-}
+  uint width;
+  uint height;
+  uint samples;
+  float roughness;
+  float mipmapLevels;
+  float3 pcPadding; // Padding to 16 bytes
+};
 
 // ----------------------------------------------------------------------------
 
@@ -100,35 +19,62 @@ directionToCubeUV(float3 dir, out uint faceIndex, out float2 uv)
 void
 CSMain(uint3 dtID : SV_DispatchThreadID)
 {
-  float faceIndex = dtID.z;
-  float2 uv = (dtID.xy + 0.5f) / CUBEMAP_SIZE; // Convert to [0,1] range
-  
-  float3 N = normalize(texCoordToDir(faceIndex, uv));
-  float3 R = N;
-  float3 V = R;
-  
-  float totalWeight = 0.0f;
-  float3 prefilteredColor = float3(0.0f, 0.0f, 0.0f);
-  
-  for(uint i = 0; i < SAMPLE_COUNT; ++i) {
-    float2 Xi = hammersley(i, SAMPLE_COUNT);
-    float3 H = importanceSampleGGX(Xi, N, 0.5f); // Roughness is set to 0.5 for this example
-    float3 L = normalize(2.0f * dot(V, H) * H - V);
-    
-    float NdotL = max(dot(N, L), 0.0f);
-    if (NdotL > 0.0f) {
-      float2 sampleUV;
-      uint sampleFaceIndex;
-      directionToCubeUV(L, sampleFaceIndex, sampleUV);
-      float3 sampleColor = t_envCube.Load(int4(sampleUV * CUBEMAP_SIZE, sampleFaceIndex, 0)).rgb;
-      prefilteredColor += sampleColor * NdotL;
-      
-      //prefilteredColor += t_envCube.SampleLevel(samplerLinearClamp, L, 0).rgb * NdotL;
-      totalWeight += NdotL;
-    }
+  if (dtID.x >= width || dtID.y >= height)
+  {
+    return;
   }
   
-  prefilteredColor /= totalWeight;
+  float2 texCoord = float2((dtID.x + 0.5f) / width, (dtID.y + 0.5f) / height);
+  float px = t2p(texCoord.x, width);
+  float py = t2p(texCoord.y, height);
   
-  t_output[uint3(dtID.xy, uint(faceIndex))] = float4(prefilteredColor, 1.0f);
+  float3 normal = sphericalEnvMapToDirection(texCoord);
+  float3x3 tbn = getNormalFrame(normal);
+  float3 viewDir = normal;
+  
+  float3 result = float3(0.0f, 0.0f, 0.0f);
+  float totalWeight = 0.0f;
+  float alpha = roughness * roughness;
+  
+  // Get number of mips
+  float adaptFactor = saturate(roughness + mipmapLevels / 8.0f);
+  float maxBrightness = lerp(1.0f, 2.0f, adaptFactor);
+  
+  for (uint n = 0u; n < samples; ++n)
+  {
+    // GGX samples
+    float3 rnd = random_pcg3d(uint3(uint(px), uint(py), n));
+    float phi = 2.0f * PI * rnd.x;
+    float u = rnd.y;
+    
+    float theta = acos(sqrt((1.0f - u) / (1.0f + (alpha * alpha - 1.0f) * u)));
+    float3 posLocal = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+    float3 H = mul(posLocal, tbn);
+    float3 L = 2.0f * dot(viewDir, H) * H - viewDir;
+    
+    float nDotL = dot(normal, L);
+    if (nDotL > 0.0f)
+    {
+      float2 uv = directionToSphericalEnvMap(L);
+      float3 radiance = pow(t_envMap.SampleLevel(samplerLinearClamp, uv, mipmapLevels).rgb, 1.0f);
+      
+      // === HDR brightness clamping ===
+      float lum = dot(radiance, float3(0.2126f, 0.7152f, 0.0722f));
+      float maxC = max(radiance.r, max(radiance.g, radiance.b));
+      float brightness = max(lum, maxC * 0.5f);
+      
+      if (brightness < maxBrightness)
+      {
+        radiance *= (maxBrightness / brightness);
+      }
+      
+      result += radiance * nDotL;
+      totalWeight += nDotL;
+    }
+  }
+
+  result = (totalWeight > 0.0f) ? (result / totalWeight) : float3(0.0f, 0.0f, 0.0f);
+  //result /= PI;
+  //result *= 11.0f;
+  t_output[dtID.xy] = float4(result, 1.0f);
 }

@@ -23,6 +23,7 @@
 #include "shLinearColor.h"
 #include "shGraphicTypes.h"
 #include "shMatrix4.h"
+#include "shVector2i.h"
 
 #define MAX_CONSTANT_BUFFER_SLOTS                             14
 #define MAX_SHADER_RESOURCE_VIEW_SLOTS                        128
@@ -149,6 +150,21 @@ struct ShaderData {
   float roughness = 0.0f;
   uint32 cubeFace = 0.0f;
   Vector2 padding = { 0.0f, 0.0f };
+};
+
+struct PrefilteredCB
+{
+  uint32 width = 0;
+  uint32 height = 0;
+  uint32 samples = 0;
+  float roughness = 0.0f;
+  float mipmapLevels = 0.0f;
+  Vector3 padding = Vector3::ZERO;
+
+  PrefilteredCB() = default;
+  PrefilteredCB(uint32 w, uint32 h, uint32 s, float r, float m)
+    : width(w), height(h), samples(s), roughness(r), mipmapLevels(m)
+  {}
 };
 
 /**
@@ -357,6 +373,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   SPtr<ConstantBuffer> m_pPBRData;
 
+  SPtr<ConstantBuffer> m_pPreCB;
+
   /**
   *  @brief Main Constant Buffer.
   */
@@ -370,6 +388,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   MainBufferData m_mainBufferData;
 
   ShaderData m_shaderData;
+
+  PrefilteredCB m_prefilteredCB;
 
   SPtr<SamplerState> m_pSamplerLinearWrap;
   SPtr<SamplerState> m_pSamplerPointWrap;
@@ -392,6 +412,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @brief Screen size.
   */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
+
+  Vector2i m_skyboxDimension = { 0, 0 };
 };
 
 FORCEINLINE MainBufferData&

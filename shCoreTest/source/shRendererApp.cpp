@@ -72,7 +72,7 @@ RendererApp::onCreate()
   m_camera = Camera(Vector3(0.0f, 0.0f, -3.0f),
                     Vector3(0.0f, 0.0f, 0.0f),
                     Vector3::UP,
-                    30.0f * Math::DEG2RAD,
+                    50.0f * Math::DEG2RAD,
                     m_screenSize.x,
                     m_screenSize.y,
                     0.1f,

@@ -5,15 +5,10 @@ SamplerState samplerLinearClamp : register(s3);
 SamplerState samplerPointClamp : register(s4);
 SamplerState samplerAnisotropicClamp : register(s5);
 
-#ifndef PI
-#define PI 3.14159265359
-#endif
-#ifndef RECIPROCAL_PI
+#define PI 3.14159265358979323f
 #define RECIPROCAL_PI 1.0f / 3.14159265359
-#endif
-#ifndef RECIPROCAL_2PI
 #define RECIPROCAL_2PI 1.0f / (2 * 3.14159265359)
-#endif
+#define INV_PI 0.31830988618379067239521257108191f
 
 // ----------------------------------------------------------------------------
 
@@ -170,9 +165,8 @@ radicalInverse_VdC(uint bits)
   bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
   bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
   bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-  
-  //return float(bits) * (1.0f / float(4294967296.0));
-  return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+  bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+  return float(bits) * 2.3283064365386963e-10f; // / 0x100000000
 }
 
 // ----------------------------------------------------------------------------
@@ -185,25 +179,139 @@ hammersley(uint i, uint N)
 
 // ----------------------------------------------------------------------------
 
-float3
-importanceSampleGGX(float2 Xi, float3 N, float roughness)
+//-----------------------------------------------------------------------------
+// Shader functions used by IblImportanceSamplingDiffuse.fx                    
+//-----------------------------------------------------------------------------
+//
+// Derived from GGX example in:
+// http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
+// Image Based Lighting.
+//
+float3 importanceSampleDiffuse(float2 Xi, float3 N)
+{
+  float CosTheta = 1.0f - Xi.y;
+  float SinTheta = sqrt(1.0f - CosTheta * CosTheta);
+  float Phi = 2.0f * PI * Xi.x;
+
+  float3 H;
+  H.x = SinTheta * cos(Phi);
+  H.y = SinTheta * sin(Phi);
+  H.z = CosTheta;
+
+  float3 UpVector = abs(N.z) < 0.999f ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
+  float3 TangentX = normalize(cross(UpVector, N));
+  float3 TangentY = cross(N, TangentX);
+
+  return TangentX * H.x + TangentY * H.y + N * H.z;
+}
+
+//------------------------------------------------------------------------------------//
+// Used by IblBrdf.hlsl generation and IblImportanceSamplingSpecular.fx               //
+// Inputs:                                                                            //
+//   Spherical hammersley generated coordinate and roughness.                         //
+//   Roughness                                                                        //
+//   Normal                                                                           //
+// Base on GGX example in:                                                            //
+// http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
+//------------------------------------------------------------------------------------//
+float3 importanceSampleGGX(float2 Xi, float roughness, float3 N)
 {
   float a = roughness * roughness;
-  float phi = 2.0f * PI * Xi.x;
-  float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
-  float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
-  
-  // from spherical coordinates to cartesian coordinates
+
+  float Phi = 2 * PI * Xi.x;
+  float CosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
+  float SinTheta = sqrt(1 - CosTheta * CosTheta);
+
   float3 H;
-  H.x = cos(phi) * sinTheta;
-  H.y = sin(phi) * sinTheta;
-  H.z = cosTheta;
-  
-  // from tangent-space vector to world-space sample vector
-  float3 up = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
-  float3 tangent = normalize(cross(up, N));
-  float3 bitangent = cross(N, tangent);
-  
-  float3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
-  return normalize(sampleVec);
+  H.x = SinTheta * cos(Phi);
+  H.y = SinTheta * sin(Phi);
+  H.z = CosTheta;
+
+  float3 UpVector = abs(N.z) < 0.999f ? float3(0, 0, 1) : float3(1, 0, 0);
+  float3 TangentX = normalize(cross(UpVector, N));
+  float3 TangentY = cross(N, TangentX);
+
+  return TangentX * H.x + TangentY * H.y + N * H.z;
+}
+
+//------------------------------------------------------------------------------------//
+// Shader functions used by IblImportanceSamplingSpecular.fx                          //
+//------------------------------------------------------------------------------------//
+// D(h) for GGX.
+// http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
+float specularD(float roughness, float NoH)
+{
+  float r2 = roughness * roughness;
+  float NoH2 = NoH * NoH;
+  float a = 1.0f / (3.14159f * r2 * pow(NoH, 4.0f));
+  float b = exp((NoH2 - 1.0f) / r2 * NoH2);
+  return a * b;
+}
+
+float4
+sumSpecular(float3 hdrPixel, float NoL, float4 result)
+{
+  result.xyz += (hdrPixel * NoL);
+  result.w += NoL;
+  return result;
+}
+
+// Sum the diffuse term while iterating over all samples.
+float4
+sumDiffuse(float3 diffuseSample, float NoV, float4 result)
+{
+  result.xyz += diffuseSample;
+  result.w++;
+  return result;
+}
+
+float
+t2p(float t, int noOfPixels)
+{
+  return (t * float(noOfPixels - 0.5f));
+}
+
+float3
+sphericalEnvMapToDirection(float2 uv)
+{
+  // Convert spherical coordinates to Cartesian coordinates
+  float theta = PI * (1.0f - uv.y); // azimuthal angle
+  float phi = 2.0f * PI * (0.5f - uv.x); // polar angle
+  return float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+}
+
+float2
+directionToSphericalEnvMap(float3 dir)
+{
+  float phi = -atan2(dir.y, dir.x); // azimuthal angle
+  float theta = acos(dir.z);
+  float s = 0.5f - phi / (2.0f * PI);
+  float t = 1.0f - theta / PI;
+  return float2(s, t);
+}
+
+float3
+random_pcg3d(uint3 v)
+{
+  v = v * 1664525u + 1013904223u;
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v ^= v >> 16u;
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  return float3(v) / float(0xffffffffu);
+}
+
+float3x3
+getNormalFrame(float3 normal)
+{
+  float3 someVec = float3(1.0f, 0.0f, 0.0f);
+  float dd = dot(someVec, normal);
+  float3 tangent = (1.0f - abs(dd) > 1e-6f) ?
+                   normalize(cross(someVec, normal)) :
+                   float3(0.0f, 1.0f, 0.0f);
+  float3 bitangent = cross(normal, tangent);
+  return float3x3(tangent, bitangent, normal);
 }

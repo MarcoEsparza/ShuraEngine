@@ -48,5 +48,8 @@ class ImageResource : public Resource
   *  @brief Image texture.
   */
   SPtr<Texture2D> texture;
+
+  uint32 width = 0;
+  uint32 height = 0;
 };
 }
