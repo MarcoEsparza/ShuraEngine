@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/09
+*  @date    2025/07/18
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -18,10 +18,9 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
-#include "shGraphicsManager.h"
+#include <shGraphicsManager.h>
 
 #include "shDX11Buffers.h"
-//#include "shDX11Device.h"
 #include "shDX11InputLayout.h"
 #include "shDX11Shader.h"
 #include "shDX11Texture.h"
@@ -49,25 +48,17 @@ class DX11GraphicsManager : public GraphicsManager
 
   /***************************************************************************/
   /*
-  *  Functions
+  *  Functions: Init and clears
   */
   /***************************************************************************/
  public:
-  /********************
-  *  Init and clears
-  ********************/
-
   /**
-  *  @brief Initialize the graphics manager.
-  * 
-  *  @param Screen& pScreen
-  *  @param bool bAntiliasing
-  *  @param SAMPLE_DESC& sample
+  *  @copydoc shEngineSDK::GraphicsManager::initManager()
   */
   void
-  internalInit(const WPtr<Screen> pScreen,
-               const bool bAntiliasing,
-               const SampleDesc& sample) override;
+  initManager(const WPtr<Screen> pScreen,
+              const bool bAntiliasing,
+              const SampleDesc& sample) override;
 
   /**
   *  @brief Clear the render target with given LinearColor.
@@ -76,25 +67,24 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param LinearColor& color
   */
   void
-  internalClearRenderTarget(const WPtr<Texture2D> pTarget,
-                            const LinearColor& color) override;
+  clearRenderTarget(const WPtr<Texture2D> pTarget, const LinearColor& color) override;
 
   /**
   *  @brief Clear the depth stencil.
   * 
-  *  @param SPtr<DepthStencilView> pDepthSV
+  *  @param WPtr<Texture2D> pDepthSV
   */
   void
-  internalClearDepthStencil(const WPtr<Texture2D> pDepthSV,
-                            uint32 flags,
-                            float depth,
-                            uint8 stencil) override;
+  clearDepthStencil(const WPtr<Texture2D> pDepthSV,
+                    const uint32 flags,
+                    const float depth,
+                    const uint8 stencil) override;
 
   /**
   *  @brief Present the swapchain.
   */
   void
-  internalPresent(uint32 syncInterval, uint32 flags) override;
+  present(uint32 syncInterval, uint32 flags) override;
 
   /********************
   *  Getters
@@ -106,7 +96,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<RenderTargetView>
   */
   WPtr<Texture2D>
-  internalGetMainRenderTargetView() const override;
+  getMainRenderTargetView() const override;
 
   /**
   *  @brief Returns the Depth Stencil View.
@@ -114,7 +104,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<DepthStencilView>
   */
   WPtr<Texture2D>
-  internalGetMainDepthStencil() const override;
+  getMainDepthStencil() const override;
 
   /********************
   *  Creates
@@ -129,8 +119,8 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayout(const Vector<InputDesc>& desc,
-                            const WPtr<VertexShader> pVShader) override;
+  createInputLayout(const Vector<InputDesc>& desc,
+                    const WPtr<VertexShader> pVShader) override;
 
   /**
   *  @brief Creates Input Layout from VertexShader.
@@ -140,7 +130,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<InputLayout>
   */
   virtual SPtr<InputLayout>
-  internalCreateInputLayoutFromShader(const WPtr<VertexShader> pPShader) override;
+  createInputLayoutFromShader(const WPtr<VertexShader> pPShader) override;
 
   /**
   *  @brief Creates a DX11 Vertex Shader.
@@ -153,10 +143,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<VertexShader>
   */
   virtual SPtr<VertexShader>
-  internalCreateVertexShader(const String& fileName,
-                             const String& entryPoint,
-                             const String& shaderModel,
-                             const Vector<ShaderMacro>& macros) override;
+  createVertexShader(const String& fileName,
+                     const String& entryPoint,
+                     const String& shaderModel,
+                     const Vector<ShaderMacro>& macros) override;
 
   /**
   *  @brief Creates a DX11 Pixel Shader.
@@ -169,10 +159,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<PixelShader>
   */
   virtual SPtr<PixelShader>
-  internalCreatePixelShader(const String& fileName,
-                             const String& entryPoint,
-                             const String& shaderModel,
-                             const Vector<ShaderMacro>& macros) override;
+  createPixelShader(const String& fileName,
+                    const String& entryPoint,
+                    const String& shaderModel,
+                    const Vector<ShaderMacro>& macros) override;
 
   /**
   *  @brief Creates a DX11 Geometry Shader.
@@ -185,10 +175,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<GeometryShader>
   */
   virtual SPtr<GeometryShader>
-  internalCreateGeometryShader(const String& fileName,
-                             const String& entryPoint,
-                             const String& shaderModel,
-                             const Vector<ShaderMacro>& macros) override;
+  createGeometryShader(const String& fileName,
+                       const String& entryPoint,
+                       const String& shaderModel,
+                       const Vector<ShaderMacro>& macros) override;
 
   /**
   *  @brief Creates a DX11 Compute Shader.
@@ -201,10 +191,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<ComputeShader>
   */
   virtual SPtr<ComputeShader>
-  internalCreateComputeShader(const String& fileName,
-                             const String& entryPoint,
-                             const String& shaderModel,
-                             const Vector<ShaderMacro>& macros) override;
+  createComputeShader(const String& fileName,
+                      const String& entryPoint,
+                      const String& shaderModel,
+                      const Vector<ShaderMacro>& macros) override;
 
   /**
   *  @brief Creates a Vertex Buffer with given vertices.
@@ -229,8 +219,8 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<IndexBuffer>
   */
   SPtr<IndexBuffer>
-  internalCreateIndexBuffer(const Vector<uint32>& indices,
-                            const uint32 usage) override;
+  createIndexBuffer(const Vector<uint32>& indices,
+                    const uint32 usage) override;
 
   /**
   *  @brief Creates a constant buffer with given data.
@@ -242,9 +232,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<ConstantBuffer>
   */
   SPtr<ConstantBuffer>
-  internalCreateConstantBuffer(const uint32 bufferSize,
-                               const uint32 usage,
-                               const void* pData) override;
+  createConstantBuffer(const uint32 bufferSize,
+                       const uint32 usage,
+                       const void* pData) override;
 
   /**
   *  @brief Creates a Sampler State.
@@ -255,7 +245,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<SamplerState>
   */
   SPtr<SamplerState>
-  internalCreateSamplerState(const uint32 filter, const uint32 textAddress) override;
+  createSamplerState(const uint32 filter, const uint32 textAddress) override;
 
   /**
   *  @brief Creates a Texture2D from file with given route.
@@ -265,10 +255,11 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTextureFromFile(const void* pData,
-                                const int32 width,
-                                const int32 height,
-                                const int32 bpp) override;
+  createTextureFromFile(const String& fileName,
+                        const void* pData,
+                        const uint32 width,
+                        const uint32 height,
+                        const uint32 bpp) override;
 
   /**
   *  @brief Creates a Texture2D from a dds file.
@@ -278,7 +269,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTextureFromDDS(const String& fileName) override;
+  createTextureFromDDS(const String& fileName) override;
 
   /**
   *  @brief Creates a Texture2D.
@@ -292,12 +283,26 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateTexture2D(const uint32 width,
-                          const uint32 height,
-                          const uint32 format,
-                          const uint32 usage,
-                          const uint32 bindFlags,
-                          const uint32 mipLevels) override;
+  createTexture2D(const uint32 width,
+                  const uint32 height,
+                  const uint32 format = TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+                  const uint32 usage = USAGE::kDefault,
+                  const uint32 bindFlags = BIND_FLAGS::kShaderResource,
+                  const uint32 mipLevels = 1,
+                  const uint32 arraySize = 1) override;
+
+  SPtr<Texture3D>
+  createTexture3D(const Vector3 size,
+                  const uint32 format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                  const Vector<LinearColor>* data = nullptr,
+                  const uint32 usage = USAGE::kDefault) override;
+
+  /*SPtr<Texture2D>
+  createTexture2DArray(const uint32 width,
+                       const uint32 height,
+                       const uint32 arraySize = 6,
+                       const uint32 format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                       const uint32 usage = USAGE::kDefault) override;*/
 
   /**
   *  @brief Creates an error Texture2D.
@@ -305,7 +310,13 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  internalCreateErrorTexture() override;
+  createErrorTexture() override;
+
+  SPtr<Texture2D>
+  createDefaultNormalTexture() override;
+
+  SPtr<Texture2D>
+  createBlackTexture() override;
 
   /**
   *  @brief Creates a blend state.
@@ -315,8 +326,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<BlendState>
   */
   SPtr<BlendState>
-  internalCreateBlendState(const BlendDesc& blendDesc,
-                           const LinearColor& blendFactor) override;
+  createBlendState(const BlendDesc& blendDesc, const LinearColor& blendFactor) override;
 
   /**
   *  @brief Creates a rasterizer state.
@@ -326,7 +336,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<RasterizerState>
   */
   SPtr<RasterizerState>
-  internalCreateRasterizerState(const RasterizerDesc& rasterizerDesc) override;
+  createRasterizerState(const RasterizerDesc& rasterizerDesc) override;
 
   /**
   *  @brief Creates a depth stencil state.
@@ -336,7 +346,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<DepthStencilState>
   */
   SPtr<DepthStencilState>
-  internalCreateDepthStencilState(const DepthStencilDesc& depthSDesc) override;
+  createDepthStencilState(const DepthStencilDesc& depthSDesc) override;
 
   /**
   *  @brief GenerateMips for a texture.
@@ -344,7 +354,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<Texture2D>& pTexture
   */
   void
-  internalGenerateMips(const WPtr<Texture2D> pTexture) override;
+  generateMips(const WPtr<Texture2D> pTexture) override;
 
   /********************
   *  Update
@@ -358,9 +368,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 dataSize
   */
   void
-  internalUpdateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
-                               const void* pData,
-                               const uint32 dataSize) override;
+  updateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
+                       const void* pData,
+                       const uint32 dataSize) override;
 
   /**
   *  @brief Update a given Texture2D with given data.
@@ -371,10 +381,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 bpp
   */
   void
-  internalUpdateTexture2D(WPtr<Texture2D> pTexture,
-                          uint8* pData,
-                          uint32 width,
-                          uint32 bpp) override;
+  updateTexture2D(WPtr<Texture2D> pTexture,
+                  uint8* pData,
+                  uint32 width,
+                  uint32 bpp) override;
 
   /**
   *  @brief Update the screen size.
@@ -382,7 +392,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<Screen>& pScreen
   */
   virtual void
-  internalUpdateScreenSize(const Vector2& size) override;
+  updateScreenSize(const Vector2& size) override;
 
   void
   updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
@@ -396,7 +406,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param String&  filePath
   */
   void
-  internalSaveTextureToDDS(const WPtr<Texture2D> pTexture, const String& filePath) override;
+  saveTextureToDDS(const WPtr<Texture2D> pTexture, const String& filePath) override;
 
   /********************
   *  Setters
@@ -408,7 +418,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param Viewport& vp
   */
   void
-  internalSetViewport(const Viewport& vp) override;
+  setViewport(const Viewport& vp) override;
 
   /**
   *  @brief Set the render targets with number of views.
@@ -418,8 +428,8 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numViews
   */
   void
-  internalSetRenderTargets(const Vector<RenderTarget>& pRenderTVs,
-                           const WPtr<Texture2D> pDepthSV) override;
+  setRenderTargets(const Vector<RenderTarget>& pRenderTVs,
+                   const WPtr<Texture2D> pDepthSV) override;
 
   /**
   *  @brief Sets the Input Layout.
@@ -427,7 +437,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<InputLayout> pInput
   */
   void
-  internalSetInputLayout(const WPtr<InputLayout> pInput) override;
+  setInputLayout(const WPtr<InputLayout> pInput) override;
 
   /**
   *  @brief Sets a Vertex Buffer with given start slot, number of buffers and its offset.
@@ -438,10 +448,10 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 offset = 0
   */
   void
-  internalSetVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
-                           const uint32 startSlot,
-                           const uint32 numBuffers,
-                           const uint32 offset) override;
+  setVertexBuffers(const WPtr<VertexBuffer> pVBuffer,
+                   const uint32 startSlot,
+                   const uint32 numBuffers,
+                   const uint32 offset) override;
 
   /**
   *  @brief Sets a Index Buffer with given offset.
@@ -450,8 +460,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 offset = 0
   */
   void
-  internalSetIndexBuffers(const WPtr<IndexBuffer> pIBuffer,
-                          const uint32 offset) override;
+  setIndexBuffers(const WPtr<IndexBuffer> pIBuffer, const uint32 offset) override;
 
   /**
   *  @brief Sets a Constant Buffer for the vertex shader with given start slot
@@ -462,9 +471,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numBuffers = 1
   */
   void
-  internalVSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
-                               const uint32 startSlot,
-                               const uint32 numBuffers) override;
+  vsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+                       const uint32 startSlot,
+                       const uint32 numBuffers) override;
 
   /**
   *  @brief Sets a Constant Buffer for the pixel shader with given start slot
@@ -475,9 +484,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numBuffers = 1
   */
   void
-  internalPSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
-                               const uint32 startSlot,
-                               const uint32 numBuffers) override;
+  psSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+                       const uint32 startSlot,
+                       const uint32 numBuffers) override;
 
   /**
   *  @brief Sets a Constant Buffer for the geometry shader with given start slot
@@ -488,9 +497,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numBuffers = 1
   */
   void
-  internalGSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
-                               const uint32 startSlot,
-                               const uint32 numBuffers) override;
+  gsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+                       const uint32 startSlot,
+                       const uint32 numBuffers) override;
 
   /**
   *  @brief Sets a Constant Buffer for the compute shader with given start slot
@@ -501,9 +510,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numBuffers = 1
   */
   void
-  internalCSSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
-                               const uint32 startSlot,
-                               const uint32 numBuffers) override;
+  csSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
+                       const uint32 startSlot,
+                       const uint32 numBuffers) override;
 
   /**
   *  @brief Sets the primitive topology.
@@ -511,7 +520,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 primitive = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST 4
   */
   void
-  internalSetPrimitiveTopology(const uint32 primitive) override;
+  setPrimitiveTopology(const uint32 primitive) override;
 
   /**
   *  @brief Sets the Vertex Shader.
@@ -521,9 +530,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numClassInstances
   */
   virtual void
-  internalSetVertexShader(const WPtr<VertexShader> pVShader,
-                           const void* ppClassInstances,
-                           const uint32 numClassInstances) override;
+  setVertexShader(const WPtr<VertexShader> pVShader,
+                  const void* ppClassInstances,
+                  const uint32 numClassInstances) override;
 
   /**
   *  @brief Sets the Pixel Shader.
@@ -533,9 +542,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numClassInstances = 0
   */
   virtual void
-  internalSetPixelShader(const WPtr<PixelShader> pPShader,
-                         const void* ppClassInstances = nullptr,
-                         const uint32 numClassInstances = 0) override;
+  setPixelShader(const WPtr<PixelShader> pPShader,
+                 const void* ppClassInstances = nullptr,
+                 const uint32 numClassInstances = 0) override;
 
   /**
   *  @brief Sets the Geometry Shader.
@@ -545,9 +554,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numClassInstances = 0
   */
   virtual void
-  internalSetGeometryShader(const WPtr<GeometryShader> pGShader,
-                            const void* ppClassInstances = nullptr,
-                            const uint32 numClassInstances = 0) override;
+  setGeometryShader(const WPtr<GeometryShader> pGShader,
+                    const void* ppClassInstances = nullptr,
+                    const uint32 numClassInstances = 0) override;
 
   /**
   *  @brief Sets the Compute Shader.
@@ -557,9 +566,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numClassInstances = 0
   */
   virtual void
-  internalSetComputeShader(const WPtr<ComputeShader> pCShader,
-                           const void* ppClassInstances = nullptr,
-                           const uint32 numClassInstances = 0) override;
+  setComputeShader(const WPtr<ComputeShader> pCShader,
+                   const void* ppClassInstances = nullptr,
+                   const uint32 numClassInstances = 0) override;
 
   /**
   *  @brief Sets a shader resource to the pixel shader.
@@ -569,9 +578,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numViews = 1
   */
   void
-  internalPSSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
-                                  const uint32 startSlot,
-                                  const uint32 numViews) override;
+  psSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+                          const uint32 startSlot,
+                          const uint32 numViews) override;
 
   /**
   *  @brief Sets a shader resource to the compute shader.
@@ -581,9 +590,33 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numViews
   */
   void
-  internalCSSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
-                                  const uint32 startSlot,
-                                  const uint32 numViews) override;
+  csSetShaderResourceView(const WPtr<Texture2D> pShaderRV,
+                          const uint32 startSlot,
+                          const uint32 numViews) override;
+
+  /**
+  *  @brief Sets a 3D shader resource to the pixel shader.
+  *
+  *  @param SPtr<Texture3D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  psSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1) override;
+
+  /**
+  *  @brief Sets a 3D shader resource to the compute shader.
+  *
+  *  @param SPtr<Texture3D>& pShaderRV
+  *  @param uint32 startSlot = 0
+  *  @param uint32 numViews = 1
+  */
+  void
+  csSetShaderResourceView(const WPtr<Texture3D> pShaderRV,
+                          const uint32 startSlot = 0,
+                          const uint32 numViews = 1) override;
 
   /**
   *  @brief Sets a shader resource.
@@ -594,8 +627,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32* count
   */
   void
-  internalSetUnorderedAccessView(const UnorderedAccess& pUAVs,
-                                 const uint32 startSlot) override;
+  setUnorderedAccessView(const UnorderedAccess& pUAVs, const uint32 startSlot) override;
 
   /**
   *  @brief Sets the Sampler State to the pixel shader.
@@ -605,9 +637,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numSamplers = 1
   */
   void
-  internalPSSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
-                            const uint32 startSlot,
-                            const uint32 numSamplers) override;
+  psSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
+                    const uint32 startSlot,
+                    const uint32 numSamplers) override;
 
   /**
   *  @brief Sets the Sampler State to the compute shader.
@@ -617,7 +649,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 numSamplers
   */
   void
-  internalCSSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
+  csSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
                             const uint32 startSlot,
                             const uint32 numSamplers) override;
 
@@ -628,7 +660,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param Vector4& blendFactor
   */
   void
-  internalSetBlendState(const WPtr<BlendState> pBlendState) override;
+  setBlendState(const WPtr<BlendState> pBlendState) override;
 
   /**
   *  @brief Sets the rasterizer state to the device context.
@@ -636,7 +668,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param SPtr<RasterizerState>& pRasterizerState
   */
   void
-  internalSetRasterizerState(const WPtr<RasterizerState> pRasterizerState) override;
+  setRasterizerState(const WPtr<RasterizerState> pRasterizerState) override;
 
   /**
   *  @brief Sets the depth stencil state to the device context.
@@ -645,7 +677,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint8 stencilRef
   */
   void
-  internalSetDepthStencilState(const WPtr<DepthStencilState> pDepthSState,
+  setDepthStencilState(const WPtr<DepthStencilState> pDepthSState,
                                const uint8 stencilRef) override;
 
   /**
@@ -654,7 +686,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param Rect& scissorClip
   */
   void
-  internalSetScissorRects(const Rect& scissorClip) override;
+  setScissorRects(const Rect& scissorClip) override;
 
   /**
   *  @brief Draw with vertices info.
@@ -663,7 +695,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 startVertexLocation
   */
   void
-  internalDraw(const uint32 vertexCount, const uint32 startVertexLocation) override;
+  draw(const uint32 vertexCount, const uint32 startVertexLocation) override;
 
   /**
   *  @brief Draw with indices and vertices info.
@@ -673,9 +705,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 baseVertexLocation
   */
   void
-  internalDrawIndexed(const uint32 indexCount,
-                      const uint32 startIndexLocation,
-                      const uint32 baseVertexLocation) override;
+  drawIndexed(const uint32 indexCount,
+              const uint32 startIndexLocation,
+              const uint32 baseVertexLocation) override;
 
   /**
   *  @brief Dispatch compute shader.
@@ -685,9 +717,9 @@ class DX11GraphicsManager : public GraphicsManager
   *  @param uint32 threadGroupCountZ
   */
   void
-  internalDispatch(const uint32 threadGroupCountX,
-                   const uint32 threadGroupCountY,
-                   const uint32 threadGroupCountZ) override;
+  dispatch(const uint32 threadGroupCountX,
+           const uint32 threadGroupCountY,
+           const uint32 threadGroupCountZ) override;
 
   /***************************************************************************/
   /*

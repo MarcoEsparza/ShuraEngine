@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shDegree.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/19
+*  @date    2025/07/15
 *  @brief   Class for angles which value is in degrees.
 *
 *  Class for angles which value is in degrees.
 *
 * @bug      No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
@@ -46,25 +46,27 @@ class SH_UTILITY_EXPORT Degree
   * 
   *  @param float f
   */
-  explicit Degree(const float f) : m_degree(f) {}
+  Degree(const float f)
+    : m_degree(f)
+  {}
 
   /**
   *  @brief Constructor for degrees with a Radian.
   * 
   *  @param Radian& r
   */
-  Degree(const Radian& r);
+  explicit Degree(const Radian& r);
 
   /**
   *  @brief Default destructor.
   */
   ~Degree() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Return the value in radians.
@@ -82,19 +84,18 @@ class SH_UTILITY_EXPORT Degree
   FORCEINLINE float
   getValueOnDegrees() const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Operator overload
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Assign other Degree value to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree&
+  *  @param const Degree&: Degree to assign to this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object.
   */
   Degree&
   operator=(const Degree&) = default;
@@ -102,10 +103,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Assign a Radian value to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Radian& r
+  *  @param const Radian& r: Radian to assign to this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object.
   */
   Degree&
   operator=(const Radian& r);
@@ -113,10 +113,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Assign a float value to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-float f
+  *  @param const float f: Float value to assign to this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object.
   */
   FORCEINLINE Degree&
   operator=(const float f);
@@ -124,10 +123,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Adds this value and another Degree value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to add to this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after addition.
   */
   FORCEINLINE Degree
   operator+(const Degree& d) const;
@@ -135,7 +133,7 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Return this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object.
   */
   FORCEINLINE const Degree&
   operator+() const;
@@ -143,10 +141,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Subtracts Adds this value and another Degree value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to subtract from this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after subtraction.
   */
   FORCEINLINE Degree
   operator-(const Degree& d) const;
@@ -162,10 +159,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Multiply this value and another Degree value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to multiply with this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after multiplication.
   */
   FORCEINLINE Degree
   operator*(const Degree& d) const;
@@ -173,10 +169,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Divide this value and another Degree value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to divide this by.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after division.
   */
   FORCEINLINE Degree
   operator/(const Degree& d) const;
@@ -184,10 +179,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Adds this value and a Radian value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Radian& r
+  *  @param const Radian& r: Radian to add to this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after addition.
   */
   FORCEINLINE Degree
   operator+(const Radian& r) const;
@@ -195,10 +189,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Subtract this value and a Radian value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Radian& r
+  *  @param const Radian& r: Radian to subtract from this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after subtraction.
   */
   FORCEINLINE Degree
   operator-(const Radian& r) const;
@@ -206,10 +199,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Multiply this value and a Radian value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Radian& r
+  *  @param const Radian& r: Radian to multiply with this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after multiplication.
   */
   FORCEINLINE Degree
   operator*(const Radian& r) const;
@@ -217,10 +209,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Divide this value and a Radian value.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Radian& r
+  *  @param const Radian& r: Radian to divide this by.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after division.
   */
   FORCEINLINE Degree
   operator/(const Radian& r) const;
@@ -228,10 +219,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Adds this value and a float.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-float f
+  *  @param float f: Float to add to this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after addition.
   */
   FORCEINLINE Degree
   operator+(float f) const;
@@ -239,10 +229,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Subtracts this value and a float.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-float f
+  *  @param float f: Float to subtract from this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after subtraction.
   */
   FORCEINLINE Degree
   operator-(float f) const;
@@ -250,10 +239,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Multiply this value and a float.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-float f
+  *  @param float f: Float to multiply with this.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after multiplication.
   */
   FORCEINLINE Degree
   operator*(float f) const;
@@ -261,10 +249,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Divide this value and a float.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-float f
+  *  @param float f: Float to divide this by.
   * 
-  *  @return Degree
+  *  @return Degree: Resulting Degree after division.
   */
   FORCEINLINE Degree
   operator/(float f) const;
@@ -272,10 +259,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Adds another Degree to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to add to this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object after addition.
   */
   FORCEINLINE Degree&
   operator+=(const Degree& d);
@@ -283,10 +269,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Subtratcs another Degree to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to subtract from this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object after subtraction.
   */
   FORCEINLINE Degree&
   operator-=(const Degree& d);
@@ -294,10 +279,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Multiply another Degree to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to multiply with this.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object after multiplication.
   */
   FORCEINLINE Degree&
   operator*=(const Degree& d);
@@ -305,10 +289,9 @@ class SH_UTILITY_EXPORT Degree
   /**
   *  @brief Divide another Degree to this.
   * 
-  *  @param lValue-Degree&
-  *  @param rValue-Degree& d
+  *  @param const Degree& d: Degree to divide this by.
   * 
-  *  @return Degree&
+  *  @return Degree&: Reference to this Degree object after division.
   */
   FORCEINLINE Degree&
   operator/=(const Degree& d);
@@ -739,11 +722,11 @@ class SH_UTILITY_EXPORT Degree
     return lf > rd.m_degree;
   }
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  private:
   /**
   *  @brief Value on degrees.
@@ -751,11 +734,11 @@ class SH_UTILITY_EXPORT Degree
   float m_degree = 0.0f;
 };
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Implementations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 FORCEINLINE float
 Degree::getValueOnDegrees() const

@@ -114,7 +114,7 @@ Asset::loadResourceFromAsset(Path filePath)
                      resMan.loadResourceFromFile(Path(mat->baseColorPath)));
       }
       else {
-        pBaseColor->texture = graphMan.createErrorTexturre();
+        pBaseColor->texture = graphMan.createErrorTexture();
       }
 
       auto pMetallic = sh_reinterpretPCast<ImageResource>(

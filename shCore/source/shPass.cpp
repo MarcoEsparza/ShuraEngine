@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/07/17
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -10,7 +10,6 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
@@ -202,8 +201,8 @@ Pass::setPass() const
 
   // Set states
   if (m_pSamplerState) {
-    graphMan.setPSSamplerState(m_pSamplerState);
-    graphMan.setCSSamplerState(m_pSamplerState);
+    graphMan.psSetSamplerState(m_pSamplerState);
+    graphMan.csSetSamplerState(m_pSamplerState);
   }
   if (m_pRasterState) {
     graphMan.setRasterizerState(m_pRasterState);

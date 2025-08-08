@@ -1,7 +1,5 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState samplerLinear : register(s0);
-SamplerState samplerClamp : register(s1);
 Texture2D<float4> t_inputMap : register(t0);
 Texture2D<float4> t_texture1 : register(t1);
 RWTexture2D<float4> t_outputMap : register(u0);
@@ -57,8 +55,8 @@ BrightCS( uint3 dtID : SV_DispatchThreadID )
   //float4 color = t_inputMap.Load(int3(colorUV, 0));
   //float luminance = t_texture1.Load(uint3(luminanceUV, 0)).r;
   
-  float3 color = t_inputMap.SampleLevel(samplerClamp, uv, 0).rgb;
-  float luminance = t_texture1.SampleLevel(samplerClamp, uv, 0).r;
+  float3 color = t_inputMap.SampleLevel(samplerLinearClamp, uv, 0).rgb;
+  float luminance = t_texture1.SampleLevel(samplerLinearClamp, uv, 0).r;
   
   //t_outputMap[dtID.xy] = float4(luminance.xxx, 1.0f);
   //return;
@@ -83,6 +81,6 @@ AddMixCS( uint3 dtID : SV_DispatchThreadID )
   //                                      t_texture1.Load(uint3(dtID.xy, 0))));
   
   t_outputMap[dtID.xy] = 0.5f * (t_inputMap.Load(float3(dtID.xy, mipLevel0)) +
-                         t_texture1.SampleLevel(samplerClamp, (dtID.xy + 0.5f) /
+                         t_texture1.SampleLevel(samplerLinearClamp, (dtID.xy + 0.5f) /
                          float2(dimensions.x, dimensions.y), mipLevel1));
 }

@@ -18,6 +18,7 @@
 /*************************************************************/
 #include "shSceneGraph.h"
 #include "shGraphicsManager.h"
+#include "shResourceManager.h"
 #include "shMeshComponent.h"
 #include "shAnimatorComponent.h"
 
@@ -42,14 +43,29 @@ SceneGraph::createEmptyObject(const String& objectName)
   return newObject;
 }
 
+SPtr<GameObject>
+SceneGraph::createCubeObject()
+{
+  ResourceManager& resourceMan = g_resourceMan();
+
+  auto newObject = sh_makeShared<GameObject>();
+  newObject->name = "Cube";
+  auto meshComponent = sh_makeShared<StaticMeshComponent>();
+  auto pCube = cast::rePointer<StaticMeshResource>(resourceMan.getResource("cube.fbx"));
+  meshComponent->setMeshData(pCube);
+  newObject->addComponent(meshComponent);
+  addObject(newObject);
+  return newObject;
+}
+
 void
 SceneGraph::addObject(const SPtr<GameObject>& object)
 {
   m_gameObjects.push_back(object);
 }
 
-const Vector<SPtr<GameObject>>&
-SceneGraph::getGameObjectList() const
+Vector<SPtr<GameObject>>&
+SceneGraph::getGameObjectList()
 {
   return m_gameObjects;
 }

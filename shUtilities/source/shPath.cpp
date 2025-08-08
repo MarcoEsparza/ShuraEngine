@@ -1,22 +1,21 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shPath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/16
+*  @date    2025/07/15
 *  @brief   Path class, to use for every path in the disk.
 *
 *  Path class, to use for every path in the disk.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
-#pragma once
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPath.h"
 
 namespace shEngineSDK {
@@ -28,19 +27,6 @@ Path::Path(const String& filePath)
 Path::Path(const char* filePath)
 {
   m_path = filePath;
-}
-
-const char*
-Path::c_str() const
-{
-  auto ret = m_path.string().c_str();
-  return ret;
-}
-
-const wchar_t*
-Path::wc_str() const
-{
-  return m_path.wstring().c_str();
 }
 
 String

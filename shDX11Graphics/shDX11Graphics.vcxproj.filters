@@ -27,9 +27,6 @@
     <ClInclude Include="include\shDX11Buffers.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\shDX11Device.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="include\shDX11InputLayout.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>

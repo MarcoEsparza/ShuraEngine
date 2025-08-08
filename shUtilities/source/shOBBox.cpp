@@ -1,65 +1,29 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shBoxOBB.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/05
+*  @date    2025/07/15
 *  @brief   Math class for Oriented Bounding-Box.
 *
 *  Math class for Oriented Bounding-Box.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shOBBox.h"
 #include "shMatrix3.h"
 
 namespace shEngineSDK {
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Functions
 */
-/*************************************************************/
-
-void
-OBBox::setCenter(const Vector3& _center)
-{
-  center = _center;
-}
-
-void
-OBBox::setRotation(const Quaternion& _rotation)
-{
-  rotation = _rotation;
-}
-
-void
-OBBox::setExtent(const Vector3& _extent)
-{
-  extent = _extent;
-}
-
-Vector3
-OBBox::getCenter() const
-{
-  return center;
-}
-
-Quaternion
-OBBox::getRotation() const
-{
-  return rotation;
-}
-
-Vector3
-OBBox::getExtent() const
-{
-  return extent;
-}
+/*****************************************************************************/
 
 void
 OBBox::projectOnAxis(const Vector3& axis, float& min, float& max) const

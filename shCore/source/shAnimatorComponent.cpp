@@ -1,31 +1,30 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shAnimatorComponent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/08
+*  @date    2025/07/17
 *  @brief   Component in charge of contain and play animations.
 *
 *  Component in charge of contain and play animations.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
-#pragma once
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shAnimatorComponent.h"
-#include "shMath.h"
+#include <shMath.h>
 
 namespace shEngineSDK {
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Non class functions
 */
-/*************************************************************/
+/*****************************************************************************/
 
 /**
 *  @brief Gets normalized value for Lerp & Slerp.
@@ -211,21 +210,21 @@ interpolateScaling(const BoneTransformTrack* btt, float animTime)
 void
 AnimatorComponent::updateAnimation(const float elapsedTime)
 {
-  deltaTime = elapsedTime;
+  m_deltaTime = elapsedTime;
   
-  if (currentAnim) {
-    currentTime += currentAnim->ticksPerSecond * elapsedTime;
-    currentTime = Math::fmod(currentTime, currentAnim->duration);
-    calculateBoneTransform(currentAnim->rootNode, Matrix4::IDENTITY);
+  if (m_currentAnim) {
+    m_currentTime += m_currentAnim->ticksPerSecond * elapsedTime;
+    m_currentTime = Math::fmod(m_currentTime, m_currentAnim->duration);
+    calculateBoneTransform(m_currentAnim->rootNode, Matrix4::IDENTITY);
   }
 }
 
 void
 AnimatorComponent::setCurrentAnimation(const SPtr<AnimationResource>& anim)
 {
-  currentAnim = anim;
-  currentTime = 0.0f;
-  finalBoneTransforms.resize(currentAnim->skeletonData->boneCount);
+  m_currentAnim = anim;
+  m_currentTime = 0.0f;
+  m_finalBoneTransforms.resize(m_currentAnim->skeletonData->boneCount);
 }
 
 void
@@ -234,12 +233,12 @@ AnimatorComponent::calculateBoneTransform(const AnimationNodeData& node, const M
   String nodeName = node.name;
   Matrix4 nodeTransform = node.transformation;
 
-  BoneTransformTrack* btt = currentAnim->findBone(nodeName);
+  BoneTransformTrack* btt = m_currentAnim->findBone(nodeName);
 
   if (btt) {
-    Matrix4 translation = interpolatePosition(btt, currentTime);
-    Matrix4 rotation = interpolateRotation(btt, currentTime);
-    Matrix4 scaling = interpolateScaling(btt, currentTime);
+    Matrix4 translation = interpolatePosition(btt, m_currentTime);
+    Matrix4 rotation = interpolateRotation(btt, m_currentTime);
+    Matrix4 scaling = interpolateScaling(btt, m_currentTime);
     btt->localTransform = translation * rotation * scaling;
     
     nodeTransform = btt->localTransform;
@@ -247,12 +246,12 @@ AnimatorComponent::calculateBoneTransform(const AnimationNodeData& node, const M
 
   const Matrix4 globalTransform = parentTransform * nodeTransform;
 
-  auto& boneInfoMap = currentAnim->skeletonData->boneInfoMap;
+  auto& boneInfoMap = m_currentAnim->skeletonData->boneInfoMap;
 
   if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
     int32 index = boneInfoMap[nodeName].id;
     Matrix4 offset = boneInfoMap[nodeName].offset;
-    finalBoneTransforms[index] = globalTransform * offset;
+    m_finalBoneTransforms[index] = globalTransform * offset;
   }
 
   for (auto& child : node.children) {

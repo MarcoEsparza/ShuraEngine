@@ -1,15 +1,9 @@
 #include "ShaderConstants.hlsl"
 
 Texture2D t_colorMap : register(t0);
-Texture2D t_normalMap : register(t1);
-Texture2D t_skyboxlMap : register(t2);
+Texture2D t_depthMap : register(t1);
+Texture2D t_skyboxMap : register(t2);
 RWTexture2D<float4> t_outputMap : register(u0);
-
-//cbuffer Viewport : register(b0)
-//{
-//  float2 ScreenSize;
-//  float2 unused;
-//}
 
 [numthreads(32, 32, 1)]
 void
@@ -19,12 +13,14 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
     return;
   }
 
-  float4 normal = t_normalMap.Load(uint3(dtID.xy, 0));
-  float len = length(normal.xyz);
+  //float2 uv = (dtID.xy + 0.5f) / screenSize;
+
+  float depth = t_depthMap.Load(uint3(dtID.xy, 0));
   float4 color;
     
-  if(len < 0.001f) {
-    color = t_skyboxlMap.Load(uint3(dtID.xy, 0));
+  if (depth >= 0.9999f)
+  {
+    color = t_skyboxMap.Load(uint3(dtID.xy, 0));
   }
   else {
     color = t_colorMap.Load(uint3(dtID.xy, 0));

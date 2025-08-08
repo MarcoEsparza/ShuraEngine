@@ -1,33 +1,30 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shEventEnums.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/11/02
+*  @date    2025/07/17
 *  @brief   Enumerators for screen events.
 *
 *  Enumerators for screen events.
 *
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 
 namespace shEngineSDK {
 /**
-*  @brief Type of event namespace.
+*  @brief Type of event.
 */
 namespace EVENT_TYPE {
-/**
-*  @brief Type of event enumeration.
-*/
-enum SH_CORE_EXPORT E
+enum E
 {
   kNone = 0,
   kClose,
@@ -49,13 +46,10 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief State of a button press namespace.
+*  @brief State of a button press.
 */
 namespace BUTTON_STATE {
-/**
-*  @brief State of a button press enumeration.
-*/
-enum SH_CORE_EXPORT E
+enum E
 {
   kPressed = 0,
   kReleased,
@@ -64,13 +58,10 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief Mouse inputs namespace.
+*  @brief Mouse inputs.
 */
 namespace MOUSE_INPUT {
-/**
-*  @brief Mouse inputs enumeration.
-*/
-enum SH_CORE_EXPORT E
+enum E
 {
   kLeft = 0,
   kRight,
@@ -82,13 +73,10 @@ enum SH_CORE_EXPORT E
 }
 
 /**
-*  @brief Key event namespace.
+*  @brief Key event.
 */
 namespace KEY {
-/**
-*  @brief Key event enumeration.
-*/
-enum SH_CORE_EXPORT E
+enum E
 {
   kEscape = 0,
   kNum1,

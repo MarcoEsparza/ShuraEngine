@@ -2,7 +2,7 @@
 /*
 *  @file    shFMODAudioManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/07/16
 *  @brief   Audio FMOD plugin.
 *
 *  Audio FMOD plugin.
@@ -26,6 +26,8 @@
 #include "shFMODSound.h"
 #include "shFMODChannel.h"
 #include "shFMODChannelGroup.h"
+
+#include <shException.h>
 
 #if USING_FMOD
 #include <fmod.hpp>
@@ -91,7 +93,7 @@ FMODAudioManager::onShutDown()
 }
 
 SPtr<Sound>
-FMODAudioManager::internalCreateSound(const Path& filePath)
+FMODAudioManager::createSound(const Path& filePath)
 {
 #if USING_FMOD
   auto pSound = sh_makeShared<FMODSound>();
@@ -107,13 +109,14 @@ FMODAudioManager::internalCreateSound(const Path& filePath)
 
   return pSound;
 #else
+  SH_UNREFERENCED_PARAMETER(filePath);
   SH_ASSERT("FMOD is not enabled in this build");
 #endif // USING_FMOD
   return nullptr;
 }
 
 void
-FMODAudioManager::internalUpdate()
+FMODAudioManager::update()
 {
 #if USING_FMOD
   SH_ASSERT(m_system);
@@ -124,7 +127,7 @@ FMODAudioManager::internalUpdate()
 }
 
 void
-FMODAudioManager::internalPlaySound(const SPtr<Sound>& pSound)
+FMODAudioManager::playSound(const SPtr<Sound>& pSound)
 {
 #if USING_FMOD
   auto pFMODSound = reinterpret_pointer_cast<FMODSound>(pSound);
@@ -149,8 +152,7 @@ FMODAudioManager::internalPlaySound(const SPtr<Sound>& pSound)
 }
 
 void
-FMODAudioManager::internalSetChannelGroupVolume(const CHANNEL_TYPE::E channel,
-                                                const float volume)
+FMODAudioManager::setChannelGroupVolume(const CHANNEL_TYPE::E channel, const float volume)
 {
 #if USING_FMOD
   m_chGroups[channel]->m_channelGroup->setVolume(volume);

@@ -173,9 +173,9 @@ Gizmos::drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& 
   const Vector3 camPos = camera.getPosition();
   const float maxScale = Math::max(InTfrm.getScale().x,
                                    Math::max(InTfrm.getScale().y, InTfrm.getScale().z));
-  const float radius = sphere.getRadius() * maxScale;
+  const float radius = sphere.radius * maxScale;
 
-  const float distance = Vector3::distance(sphere.getCenter(), camPos);
+  const float distance = Vector3::distance(sphere.center, camPos);
   const Vector2 viewDims = Vector2(camera.getWidth(), camera.getHeight());
   const float focalLength = Math::min(viewDims.x, viewDims.y);
   const float numVertexRatio = focalLength * radius / distance;

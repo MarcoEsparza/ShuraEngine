@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/30
+*  @date    2025/07/15
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -29,14 +29,16 @@ class SH_UTILITY_EXPORT Plane
   *  @brief Default constructor.
   */
   Plane() = default;
+
   /**
   *  @brief Constructor to initialize plane values.
   * 
-  *  @param const Vector3& _normal: Desired normal.
-  *  @param const float _distance: Desired distance.
+  *  @param const Vector3& normal: Desired normal.
+  *  @param const float distance: Desired distance.
   */
-  Plane(const Vector3& _normal, const float _distance)
-          : normal(_normal), distance(_distance) {}
+  Plane(const Vector3& normal, const float distance)
+    : normal(normal), distance(distance)
+  {}
   /**
   *  @brief Default destructor.
   */
@@ -47,45 +49,13 @@ class SH_UTILITY_EXPORT Plane
   *  Functions
   */
   /***************************************************************************/
-
-  /**
-  *  @brief Set the normal value for the plane.
-  *
-  *  @param const Vector3& _normal: Desired normal value.
-  */
-  void
-  setNormal(const Vector3& _normal);
-
-  /**
-  *  @brief Set the distance for the plane.
-  *
-  *  @param const float _distance: Desired distance.
-  */
-  void
-  setDistance(const float _distance);
-
-  /**
-  *  @brief Returns plane normal.
-  *
-  *  @return Vector3
-  */
-  Vector3
-  getNormal() const;
-
-  /**
-  *  @brief Returns plane distance.
-  *
-  *  @return float
-  */
-  float
-  getDistance() const;
-
+ public:
   /**
   *  @brief Projects a point to the plane distance.
   *
-  *  @param Vector3& point
+  *  @param Vector3& point: Point to project.
   *
-  *  @return float
+  *  @return float: Projected point.
   */
   float
   pointToPlaneDistance(const Vector3& point) const;
@@ -93,9 +63,9 @@ class SH_UTILITY_EXPORT Plane
   /**
   *  @brief Evaluates a point with the plane.
   *
-  *  @param Vector3& point
+  *  @param Vector3& point: Point to evaluate.
   *
-  *  @return float
+  *  @return float: Evaluation result.
   */
   float
   evaluate(const Vector3& point) const;

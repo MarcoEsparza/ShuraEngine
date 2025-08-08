@@ -1,6 +1,5 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
 Texture2D t_posMap : register(t0);
 Texture2D t_normalMap : register(t1);
 
@@ -12,12 +11,12 @@ struct PS_INPUT
 
 float3 getPosition(in float2 uv)
 {
-  return t_posMap.Sample(textureSampler, uv).rgb;
+  return t_posMap.Sample(samplerLinearWrap, uv).rgb;
 }
 
 float4 getNormal(in float2 uv)
 {
-  float4 normal = t_normalMap.Sample(textureSampler, uv);
+  float4 normal = t_normalMap.Sample(samplerLinearWrap, uv);
   normal.xyz = normal.xyz * 2.0f - 1.0f;
   return normal;
 }

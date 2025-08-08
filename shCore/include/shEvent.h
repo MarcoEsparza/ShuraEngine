@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shEvent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/20
+*  @date    2025/07/17
 *  @brief   Event class.
 *
 *  Event class.
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shEventEnums.h"
 #include "shEventData.h"
@@ -38,7 +38,9 @@ class SH_CORE_EXPORT Event
   * 
   *  @param shEVENT_TYPE::E _type: Type of event.
   */
-  explicit FORCEINLINE Event(const EVENT_TYPE::E& _type) : type(_type) {}
+  explicit FORCEINLINE Event(const EVENT_TYPE::E& _type)
+    : type(_type)
+  {}
 
   /**
   *  @brief Focus Event constructor.

@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shVector4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/17
+*  @date    2025/07/15
 *  @brief   Vector4 with float.
 *
 *  Vector4 with float.
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
@@ -24,11 +24,6 @@ class Vector3;
 
 /*
 *  @brief Vector4 with float.
-*  
-*  @brief Sample usage:
-*  @brief Vector4 myVector4;
-*  @brief Vector4 myVector4(1.0f, 1.0f);
-*  @brief Vector4* ptrVector4 = new Vector4(); The constructor may take arguments.
 */
 class SH_UTILITY_EXPORT Vector4
 {
@@ -41,13 +36,14 @@ class SH_UTILITY_EXPORT Vector4
   /**
   *  @brief Constructor to initialize values to the given numbers.
   *
-  *  @param float _x: X value.
-  *  @param float _y: Y value.
-  *  @param float _z: Z value.
-  *  @param float _w: W value.
+  *  @param float x: X value.
+  *  @param float y: Y value.
+  *  @param float z: Z value.
+  *  @param float w: W value.
   */
-  Vector4(const float _x, const float _y, const float _z, const float _w) :
-          x(_x), y(_y), z(_z), w(_w) {}
+  Vector4(const float x, const float y, const float z, const float w)
+    : x(x), y(y), z(z), w(w)
+  {}
 
   /**
   *  @brief Constructor with a given vec3 and a w component.
@@ -68,12 +64,12 @@ class SH_UTILITY_EXPORT Vector4
   */
   ~Vector4() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
-
+  /***************************************************************************/
+ public:
   /**
   *  @brief Calculates the dot product of this Vector4 and a given Vector4.
   *
@@ -118,19 +114,18 @@ class SH_UTILITY_EXPORT Vector4
   Vector4
   lerp(const Vector4& other, const float time) const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Operator overload
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Operator to sum a Vector4 values and other Vector4 values.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-Vector4.
+  *  @param const Vector4& other: Vector4 to sum with this Vector4.
   *
-  *  @return Vector4.
+  *  @return Vector4: The result of the sum of this Vector4 and the other Vector4.
   */
   FORCEINLINE Vector4
   operator+(const Vector4& other) const;
@@ -138,10 +133,9 @@ class SH_UTILITY_EXPORT Vector4
   /**
   *  @brief Operator to substract a Vector4 values and other Vector4 values.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-Vector4.
+  *  @param const Vector4& other: Vector4 to substract from this Vector4.
   *
-  *  @return Vector4.
+  *  @return Vector4: The result of the substraction of this Vector4 and the other Vector4.
   */
   FORCEINLINE Vector4
   operator-(const Vector4& other) const;
@@ -149,10 +143,9 @@ class SH_UTILITY_EXPORT Vector4
   /**
   *  @brief Operator to multiply the values of a Vector4 with a float.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-float.
+  *  @param const float delta: The value to multiply with this Vector4.
   *
-  *  @return Vector4 The result of the multiplication.
+  *  @return Vector4: The result of the multiplication.
   */
   FORCEINLINE Vector4
   operator*(const float delta) const;
@@ -161,10 +154,9 @@ class SH_UTILITY_EXPORT Vector4
   *  @brief Operator to sum a Vector4 values and other Vector4 values and store
   *         the result in the first Vector4.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-Vector4.
+  *  @param const Vector4& other: Vector4 to sum with this Vector4.
   * 
-  *  @return Vector4 This.
+  *  @return Vector4: This Vector4 with the result of the sum.
   */
   FORCEINLINE Vector4&
   operator+=(const Vector4& other);
@@ -173,10 +165,9 @@ class SH_UTILITY_EXPORT Vector4
   *  @brief Operator to substract a Vector4 values and other Vector4 values and
   *         store the result in the first Vector4.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-Vector4.
+  *  @param const Vector4& other: Vector4 to substract from this Vector4.
   * 
-  *  @return Vector4 This.
+  *  @return Vector4: This with the result of the substraction.
   */
   FORCEINLINE Vector4&
   operator-=(const Vector4& other);
@@ -184,10 +175,9 @@ class SH_UTILITY_EXPORT Vector4
   /**
   *  @brief Operator to compere if two Vector4 are equal.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-Vector4.
+  *  @param const Vector4& other: Vector4 to compere with this Vector4.
   * 
-  *  @return Vector4 This.
+  *  @return Vector4: This if both are equal, false otherwise.
   */
   FORCEINLINE bool
   operator==(const Vector4& other);
@@ -195,19 +185,18 @@ class SH_UTILITY_EXPORT Vector4
   /**
   *  @brief Operator to compere if two Vector4 are different.
   *
-  *  @param lValue-Vector4.
-  *  @param rValue-Vector4.
+  *  @param const Vector4& other: Vector4 to compere with this Vector4.
   * 
-  *  @return Vector4 This.
+  *  @return Vector4: This if both are different, false otherwise.
   */
   FORCEINLINE bool
   operator!=(const Vector4& other);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   * @brief Vector4 X value.
@@ -230,11 +219,11 @@ class SH_UTILITY_EXPORT Vector4
   float w;
 };
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Implementations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 FORCEINLINE Vector4
 Vector4::operator+(const Vector4& other) const

@@ -30,8 +30,10 @@
     <ClInclude Include="include\shChannelGroup.h" />
     <ClInclude Include="include\shColliderComponent.h" />
     <ClInclude Include="include\shComponent.h" />
+    <ClInclude Include="include\shCubeMap.h" />
     <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
+    <ClInclude Include="include\shFileExplorer.h" />
     <ClInclude Include="include\shFrustum.h" />
     <ClInclude Include="include\shGameObject.h" />
     <ClInclude Include="include\shGizmos.h" />
@@ -41,7 +43,6 @@
     <ClInclude Include="include\shMeshResource.h" />
     <ClInclude Include="include\shMeshComponent.h" />
     <ClInclude Include="include\shCamera.h" />
-    <ClInclude Include="include\shDevice.h" />
     <ClInclude Include="include\shBuffers.h" />
     <ClInclude Include="include\shEvent.h" />
     <ClInclude Include="Include\shEventData.h" />
@@ -74,8 +75,10 @@
     <ClCompile Include="source\shAudioManager.cpp" />
     <ClCompile Include="source\shBaseApp.cpp" />
     <ClCompile Include="source\shCamera.cpp" />
+    <ClCompile Include="source\shCubeMap.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
+    <ClCompile Include="source\shFileExplorerWin32.cpp" />
     <ClCompile Include="source\shFrustum.cpp" />
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGizmos.cpp" />

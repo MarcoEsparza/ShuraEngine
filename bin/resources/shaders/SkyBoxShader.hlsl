@@ -1,65 +1,47 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
-Texture2D t_skybox : register(t0);
+Texture2D<float4> t_skybox : register(t0);
+RWTexture2D<float4> t_outputMap : register(u0);
 
-#ifndef PI
-#define PI 3.14159265359
-#endif
-#ifndef RECIPROCAL_PI
-#define RECIPROCAL_PI 1.0f / 3.14159265359
-#endif
-#ifndef RECIPROCAL_2PI
-#define RECIPROCAL_2PI 1.0f / (2 * 3.14159265359)
-#endif
-
-//cbuffer VP : register(b0)
-//{
-//  float4x4 matView;
-//  float4x4 matProj;
-//}
-
-struct VS_INPUT
+cbuffer PrefilterConstants : register(b2)
 {
-  float3 Position : POSITION;
+  uint width;
+  uint height;
+  uint samples;
+  float roughness;
+  float mipmapLevels;
+  float3 pcPadding; // Padding to 16 bytes
 };
 
-struct PS_INPUT
+[numthreads(32, 32, 1)]
+void
+CSMain(uint3 dtID : SV_DispatchThreadID)
 {
-  float4 Position : SV_Position;
-  float3 Texcoord : TEXCOORD0;
-};
-
-float2 getSkyBoxUV(float3 dir)
-{
-  float u = -atan2(dir.z, dir.x) * RECIPROCAL_2PI + 0.5f;
-  float v = acos(dir.y) * RECIPROCAL_PI;
-  return float2(u, v);
-}
-
-PS_INPUT main(VS_INPUT input)
-{
-  PS_INPUT output = (PS_INPUT) 0;
-    
-  matrix newViewMatrix = matViewTranspose;
+  float2 ndc = dtID.xy / screenSize * 2.0f - 1.0f;
+  ndc.y = -ndc.y;
+  float4 clipSpacePos = float4(ndc, 1.0f, 1.0f);
+  
+  matrix newViewMatrix = matView;
   newViewMatrix[3] = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    
-  float4 pos = float4(input.Position, 1.0f);
-  pos = mul(pos, newViewMatrix);
+  
+  float4 pos = mul(clipSpacePos, newViewMatrix);
   pos = float4(pos.xyz, 1.0f);
-    
+  
   pos = mul(pos, matProjectionTranspose);
   pos.z = pos.w;
-  output.Position = pos;
-  output.Texcoord = input.Position.xyz;
-    
-  return output;
-}
+  
+  float3 dir = normalize(pos.xyz);
+  float2 skyUV = getSkyBoxUV(dir);
+  uint mip = mipmapLevels;
+  float3 color = float3(0.0f, 0.0f, 0.0f);
+  
+  color = t_skybox.SampleLevel(samplerLinearClamp, skyUV, mip).xyz;
+  
+  //float mipFloor = floor(mip);
+  //float mipFrac = mip - mipFloor;
+  //float3 color1 = t_skybox.SampleLevel(samplerLinearClamp, skyUV, mipFloor).xyz;
+  //float3 color2 = t_skybox.SampleLevel(samplerLinearClamp, skyUV, mipFloor + 1).xyz;
+  //color = lerp(color1, color2, mipFrac);
 
-float4 mainPS(PS_INPUT input) : SV_TARGET
-{
-  float2 uv = getSkyBoxUV(normalize(input.Texcoord));
-    
-  float3 color = t_skybox.Sample(textureSampler, uv).xyz;
-  return float4(color, 1.0f);
+  t_outputMap[dtID.xy] = float4(color, 1.0f);
 }

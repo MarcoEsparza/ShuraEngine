@@ -2,7 +2,7 @@
 /*
 *  @file    imgui_impl_shura.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/11
+*  @date    2025/07/20
 *  @brief   ImGui implementation for Shura Engine.
 *
 *  ImGui implementation for Shura Engine.
@@ -17,10 +17,16 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shScreen.h"
-#include "shVector2.h"
+#include <shPrerequisitesCore.h>
+#include <shScreen.h>
+#include <shVector2.h>
+#include <shEventEnums.h>
+
+#define IMGUI_ENABLE_VIEWPORTS
+#define IMGUI_HAS_DOCK
+
 #include "imgui.h"
+#include "externals/imgui_internal.h"
 
 namespace shEngineSDK {
 
@@ -62,13 +68,15 @@ void
 ImGui_ImplShura_NewFrame();
 
 void
-ImGui_ImplShura_AddKeyEvent(const KEY::E key, const bool bPressed);
+ImGui_ImplShura_AddKeyEvent(const KEY::E key,
+                            const bool bPressed,
+                            const ModifierState modifier);
 
 void
 ImGui_ImplShura_AddMousePosEvent(const Vector2& mousePos);
 
 void
-ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked);
+ImGui_ImplShura_AddMouseButtonEvent(const bool bClicked, MOUSE_INPUT::E button);
 
 void
 ImGui_ImplShura_AddMouseWheelEvent(const float wheel,

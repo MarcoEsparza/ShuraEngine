@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shPlatformDefines.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2025/07/15
 *  @brief   Basic definitions are meant to describe the target platform
 *
 *  This definitions are meant to describe the target platform
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
-
+/*****************************************************************************/
 #pragma once
-/*************************************************************/
+
+/*****************************************************************************/
 /*
 *  Initial platform/compiler-related stuf to set.
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #define SH_PLATFORM_WIN32       1                 // Windows Platform
 #define SH_PLATFORM_LINUX       2                 // Linux Platform
@@ -46,11 +46,11 @@
 
 #define SH_DEBUG_DETAILED_SYMBOLS   1
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Compiler type and version
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if defined(__clang__)
 #   define SH_COMPILER SH_COMPILER_CLANG
@@ -93,11 +93,11 @@
 #   pragma error "No known compiler. "
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  See if we can use __forceinline or if we need to use __inline instead
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if SH_COMPILER == SH_COMPILER_MSVC
 # if SH_COMP_VER >= 1200
@@ -120,11 +120,11 @@
 # endif
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Finds the current platform
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if defined (__WIN32__) || defined (_WIN32)
 # define SH_PLATFORM SH_PLATFORM_WIN32
@@ -137,11 +137,11 @@
 #   pragma error "No known compiler. "
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Finds the arquitecture type
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if defined (__x86_x64__) || defined(_M_X64)|| defined(__amd64__) || defined(__amd64)
 # define SH_ARCH_TYPE SH_ARQUITECTURE_X86_64
@@ -149,35 +149,25 @@
 # define SH_ARCH_TYPE SH_ARQUITECTURE_X86_32
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Memory alignment macros
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if SH_COMPILER == SH_COMPILER_MSVC
-# define MS_ALIGN(n) __declspec(align(n))
-# ifndef GCC_PACK
-#  define GCC_PACK(n)
-# endif
-# ifndef GCC_ALIGN
-#  define GCC_ALIGN(n)
-# endif
-#elif (SH_COMPILER == SH_COMPILER_GNUC)
-# define MS_ALIGN(n)
-# define GCC_PACK(n)
-# define GCC_ALIGN(n) __attribute__((__aligned__(n)))
+# define ALIGN_AS(n) __declspec(align(n))
+#elif (SH_COMPILER == SH_COMPILER_GNUC) || (SH_COMPILER == SH_COMPILER_CLANG)
+# define ALIGN_AS(n) __attribute__((aligned(n)))
 #else
-# define MS_ALIGN
-# define GCC_PACK(n) __attribute__((packed, aligned(n)))
-# define GCC_ALIGN(n) __attribute__((__aligned__(n)))
+# define ALIGN_AS(n) __attribute__((aligned(n)))
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * For throw override (deprecated on c++11 but VS does not have handle
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if SH_COMPILER == SH_COMPILER_MSVC
 # define _NOEXCEPT noexcept
@@ -189,11 +179,11 @@
 # define _NOEXCEPT
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Library export specifics
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 # if SH_COMPILER == SH_COMPILER_MSVC
@@ -211,9 +201,9 @@
 #   define SH_UTILITY_EXPORT
 #  else
 #   if defined(SH_UTILITY_EXPORTS)
-#    define SH_UTILITY_EXPORT __attribute__(dllexport)
+#    define SH_UTILITY_EXPORT __attribute__((dllexport))
 #   else
-#    define SH_UTILITY_EXPORT __attribute__(dllimport)
+#    define SH_UTILITY_EXPORT __attribute__((dllimport))
 #   endif
 #  endif
 # endif
@@ -228,17 +218,17 @@
 # if SH_COMPILER == SH_COMPILER_MSVC
 #  define SH_PLUGIN_EXPORT __declspec(dllexport)
 # else
-#  define SH_PLUGIN_EXPORT __attribute__(dllexport)
+#  define SH_PLUGIN_EXPORT __attribute__((dllexport))
 # endif
 #else
 #  define SH_PLUGIN_EXPORT __attribute__((visibility("default")))
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Windows specifics settings
 */
-/*************************************************************/
+/*****************************************************************************/
 
 // Win32
 #if SH_PLATFORM == SH_PLATFORM_WIN32
@@ -252,11 +242,11 @@
 # endif
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Linux-Apple specifics settings
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if SH_PLATFORM == SH_PLATFORM_LINUX || SH_PLATFORM == SH_PLATFORM_OSX
 
@@ -271,11 +261,11 @@
 # endif
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Definition of debug macros
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #if SH_DEBUG_MODE
 # define SH_DEBUG_ONLY(x) x
@@ -285,19 +275,19 @@
 # define SH_ASSERT(x)
 #endif
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Extern
 */
-/*************************************************************/
+/*****************************************************************************/
 
 #define SH_EXTERN extern "C"
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 * Disable some compiler warnings
 */
-/*************************************************************/
+/*****************************************************************************/
 
 // If we're compiling with Visual Studio
 #if SH_COMPILER == SH_COMPILER_MSVC

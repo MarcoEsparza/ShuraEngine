@@ -2,7 +2,7 @@
 /*
 *  @file    shLogger.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/07/15
 *  @brief   Module to do debug logs on console.
 *
 *  Module to do debug logs on console.
@@ -46,7 +46,7 @@ class SH_UTILITY_EXPORT Logger : public Module<Logger>
   /**
   *  @brief Log into console.
   * 
-  *  @param String& logStr
+  *  @param logStr String to log into console.
   */
   void
   Log(const String& logStr);

@@ -1,26 +1,26 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shTransformComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/18
+*  @date    2025/07/17
 *  @brief   Transform Component class.
 *
 *  Transform Component class.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shComponent.h"
-#include "shMatrix4.h"
-#include "shVector3.h"
+#include <shMatrix4.h>
+#include <shVector3.h>
 
 namespace shEngineSDK {
 /**
@@ -39,11 +39,11 @@ class SH_CORE_EXPORT TransformComponent : public Component
   */
   ~TransformComponent() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Gets the transform data.
@@ -101,19 +101,30 @@ class SH_CORE_EXPORT TransformComponent : public Component
   void
   setScale(const Vector3& scale);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  private:
   /**
   *  @brief Transform data.
   */
   Transform m_transform;
 
+  /**
+  *  @brief Position vector.
+  */
   Vector3 m_position;
+
+  /**
+  *  @brief Rotation vector.
+  */
   Vector3 m_rotation;
+
+  /**
+  *  @brief Scale vector.
+  */
   Vector3 m_scale;
 };
 }

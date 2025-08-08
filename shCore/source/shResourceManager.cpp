@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/07/18
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -26,6 +26,10 @@
 #include "shSkeletonResource.h"
 #include "shAnimationResource.h"
 #include "shAsset.h"
+#include "shCubeMap.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "externals/stb_image.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -371,6 +375,20 @@ ResourceManager::~ResourceManager()
   m_loadedResources.clear();
 }
 
+void
+ResourceManager::onStartUp()
+{
+  auto white = cast::rePointer<ImageResource>(loadResourceFromFile(
+                                              Path("resources/White.png")));
+  auto normal = cast::rePointer<ImageResource>(loadResourceFromFile(
+                                              Path("resources/textures/normal.png")));
+  auto pCube = cast::rePointer<StaticMeshResource>(loadResourceFromFile(
+                                                   Path("resources/models/cube.fbx")));
+  //pCube->m_materials[0]->baseColor = white->texture;
+  //pCube->m_materials[0]->normal = normal->texture;
+  //pCube->m_materials[0]->m_properties.bHasNormalMap = true;
+}
+
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {
@@ -391,6 +409,9 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   }
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
     resource = loadModelFromFile(filePath.toString());
+  }
+  else if (filePath.compareExtensions({ ".cube" })) {
+    resource = loadCubeMapFromFile(filePath.toString());
   }
   else {
     return nullptr;
@@ -488,18 +509,40 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   auto pImage = sh_makeShared<ImageResource>();
 
-  pImage->texture = graphMan.createTextureFromFile(fileName);
+  int32 width = 0;
+  int32 height = 0;
+  int32 bpp = 0;
 
-  SystemPath file = fileName;
-  pImage->setName(file.filename().string());
+  SystemPath path = fileName;
+  String file = path.filename().string();
+
+  if (path.extension() == ".hdr") {
+    float* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, 4);
+    pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+
+    stbi_image_free(data);
+  }
+  else {
+    //int32 reqComp = STBI_rgb_alpha;
+    //if (path.extension() == ".jpg") {
+    //  reqComp = STBI_rgb;
+    //}
+    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+    stbi_image_free(data);
+  }
+  
+  pImage->width = width;
+  pImage->height = height;
+  pImage->setName(file);
 
   m_loadedResources[pImage->getName()] = pImage;
 
-  SystemPath path = file.filename();
+  path = file;
   path.replace_extension(".dds");
   String saveTex = "resources/assets/textures/" + path.string();
 
-  graphMan.saveTextureToDDS(pImage->texture, saveTex);
+  //graphMan.saveTextureToDDS(pImage->texture, saveTex);
 
   Path texPath(saveTex);
   pImage->setPath(texPath);
@@ -523,6 +566,17 @@ ResourceManager::loadTextureFromDDS(const String& filename)
   pImage->setPath(texPath);
 
   return pImage;
+}
+
+SPtr<Resource>
+ResourceManager::loadCubeMapFromFile(const String& fileName)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  auto pCubeMap = sh_makeShared<CubeMap>();
+  SystemPath file = fileName;
+  pCubeMap->setName(file.filename().string());
+  pCubeMap->loadFromFile(fileName);
+  return pCubeMap;
 }
 
 SPtr<Resource>
@@ -563,7 +617,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   if (diffCount == 0) {
     // Create error texture
     pMeshMat->m_properties.bHasDiffuseMap = true;
-    pMeshMat->baseColor = graphMan.createErrorTexturre();
+    pMeshMat->baseColor = graphMan.createErrorTexture();
   }
   else {
     pMeshMat->m_properties.bHasDiffuseMap = true;
@@ -578,7 +632,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   }
 
   if (normCount == 0) {
-    pMeshMat->m_properties.bHasNormalMap = false;
+    pMeshMat->m_properties.bHasNormalMap = true;
+    pMeshMat->normal = graphMan.createDefaultNormalTexture();
   }
   else {
     pMeshMat->m_properties.bHasNormalMap = true;
@@ -594,6 +649,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 
   if (metalCount == 0) {
     pMeshMat->m_properties.bHasMetalnessMap = false;
+    pMeshMat->metallic = graphMan.createBlackTexture();
   }
   else {
     pMeshMat->m_properties.bHasMetalnessMap = true;
@@ -609,6 +665,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 
   if (roughCount == 0) {
     pMeshMat->m_properties.bHasRoughnessMap = false;
+    pMeshMat->roughness = graphMan.createBlackTexture();
   }
   else {
     pMeshMat->m_properties.bHasRoughnessMap = true;

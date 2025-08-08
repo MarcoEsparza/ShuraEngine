@@ -18,7 +18,7 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesFMODAudio.h"
-#include "shSound.h"
+#include <shSound.h>
 
 namespace FMOD
 {

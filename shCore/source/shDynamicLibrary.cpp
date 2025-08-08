@@ -1,21 +1,21 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shDynamicLibrary.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/07/17
 *  @brief   Dynamic Library object.
 *
 *  Dynamic Library object.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shDynamicLibrary.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -55,9 +55,10 @@ DynamicLibrary::unload()
   }
 }
 
-void*
-DynamicLibrary::getSymbol(const String& symbolName)
+void*  
+DynamicLibrary::getSymbol(const String& symbolName)  
 {
-  return static_cast<void*>(DYNAMIC_LIBRARY_GET_SYMBOL(m_dynLibHandler, symbolName.c_str()));
+  auto symbol = DYNAMIC_LIBRARY_GET_SYMBOL(m_dynLibHandler, symbolName.c_str());
+  return reinterpret_cast<void*>(symbol);
 }
 }

@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shQuaternion.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/11
-*  @brief   Quaternion for rotations
+*  @date    2025/07/15
+*  @brief   Quaternion class for rotations and transformations.
 *
-*  Quaternion for rotations
+*  Quaternion class for rotations and transformations.
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 #include "shVector3.h"
 
@@ -24,11 +24,7 @@ namespace shEngineSDK {
 class Matrix3;
 
 /**
-*  @brief Quaternion for rotations
-* 
-*  @brief Sample usage:
-*  @brief Quaternion quat;
-*  @brief Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
+*  @brief Quaternion class for rotations and transformations.
 */
 class SH_UTILITY_EXPORT Quaternion
 {
@@ -42,13 +38,14 @@ class SH_UTILITY_EXPORT Quaternion
   *  @brief Constructor to initialize values to the given numbers.
   *  @note Recommended to initialize in radians.
   *  
-  *  @param float _w: W value.
-  *  @param float _x: X value.
-  *  @param float _y: Y value.
-  *  @param float _z: Z value.
+  *  @param float w: W value.
+  *  @param float x: X value.
+  *  @param float y: Y value.
+  *  @param float z: Z value.
   */
-  Quaternion(float _w, float _x, float _y, float _z) :
-             w(_w), x(_x), y(_y), z(_z) {}
+  Quaternion(float w, float x, float y, float z)
+    : w(w), x(x), y(y), z(z)
+  {}
 
   /**
   *  @brief Constructor from euler degrees to Quaternion radians.
@@ -79,12 +76,12 @@ class SH_UTILITY_EXPORT Quaternion
   */
   ~Quaternion() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
-
+  /***************************************************************************/
+ public:
   /**
   *  @brief Transform Quaternion angles from radians to euler degrees in Vector3.
   * 
@@ -248,19 +245,18 @@ class SH_UTILITY_EXPORT Quaternion
   static Quaternion
   fromBivector(const Vector3& vector);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Operator overload
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
-  *  @brief Quaternion sum.
+  *  @brief Quaternion sum operator.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Quaternion.
+  *  @param const Quaternion& other: Quaternion to sum with this.
   *
-  *  @return Quaternion
+  *  @return Quaternion: Result of the sum of this Quaternion and other Quaternion.
   */
   FORCEINLINE Quaternion
   operator+(const Quaternion& other) const;
@@ -268,10 +264,9 @@ class SH_UTILITY_EXPORT Quaternion
   /**
   *  @brief Quaternion substraction.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Quaternion.
+  *  @param const Quaternion& other: Quaternion to substract from this.
   *
-  *  @return Quaternion
+  *  @return Quaternion: Result of the substraction of this Quaternion and other Quaternion.
   */
   FORCEINLINE Quaternion
   operator-(const Quaternion& other) const;
@@ -279,10 +274,9 @@ class SH_UTILITY_EXPORT Quaternion
   /**
   *  @brief Quaternion multiplication with another Quaternion.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Quaternion.
+  *  @param const Quaternion& other: Quaternion to multiply with this.
   *
-  *  @return Quaternion
+  *  @return Quaternion: Result of the multiplication of this Quaternion and other Quaternion.
   */
   FORCEINLINE Quaternion
   operator*(const Quaternion& other) const;
@@ -290,10 +284,9 @@ class SH_UTILITY_EXPORT Quaternion
   /**
   *  @brief Quaternion multiplication with a float value.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Quaternion.
+  *  @param const float delta: Float value to multiply with this Quaternion.
   *
-  *  @return Quaternion
+  *  @return Quaternion: Result of the multiplication of this Quaternion and the float value.
   */
   FORCEINLINE Quaternion
   operator*(const float delta) const;
@@ -301,10 +294,9 @@ class SH_UTILITY_EXPORT Quaternion
   /**
   *  @brief Quaternion multiplication with an axis.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Vector3.
+  *  @param const Vector3& axis: Axis to multiply with this Quaternion.
   *
-  *  @return Vector3
+  *  @return Vector3: Result of the multiplication of this Quaternion and the axis Vector3.
   */
   FORCEINLINE Vector3
   operator*(const Vector3& axis) const;
@@ -312,10 +304,9 @@ class SH_UTILITY_EXPORT Quaternion
   /**
   *  @brief Quaternion multiplication with a Matrix3.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Matrix3.
+  *  @param const Matrix3& mat: Matrix3 to multiply with this Quaternion.
   *
-  *  @return Matrix3
+  *  @return Matrix3: Result of the multiplication of this Quaternion and the Matrix3.
   */
   Matrix3
   operator*(const Matrix3& mat) const;
@@ -324,10 +315,9 @@ class SH_UTILITY_EXPORT Quaternion
   *  @brief Operator to sum a Quaternion values and other Quaternion values and
   *         store the result in the first Quaternion.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Quaternion.
+  *  @param const Quaternion& other: Quaternion to sum with this.
   *
-  *  @return Quaternion
+  *  @return Quaternion&: Reference to this Quaternion after the sum operation.
   */
   FORCEINLINE Quaternion&
   operator+=(const Quaternion& other);
@@ -336,19 +326,18 @@ class SH_UTILITY_EXPORT Quaternion
   *  @brief Operator to sum a Quaternion values and other Quaternion values and
   *         store the result in the first Quaternion.
   *
-  *  @param lValue-Quaternion.
-  *  @param rValue-Quaternion.
+  *  @param const Quaternion& other: Quaternion to substract from this.
   *
-  *  @return Quaternion
+  *  @return Quaternion&: Reference to this Quaternion after the substraction operation.
   */
   FORCEINLINE Quaternion&
   operator-=(const Quaternion& other);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   * @brief Quaternion W value. Real part.
@@ -370,11 +359,11 @@ class SH_UTILITY_EXPORT Quaternion
   */
   float z;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Static Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   * @brief Identity Quaternion value.
@@ -392,11 +381,11 @@ class SH_UTILITY_EXPORT Quaternion
   static const Quaternion UNIT;
 };
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Implementations
 */
-/*************************************************************/
+/*****************************************************************************/
 
 FORCEINLINE Quaternion
 Quaternion::operator+(const Quaternion& other) const
@@ -419,11 +408,6 @@ Quaternion::operator-(const Quaternion& other) const
 FORCEINLINE Quaternion
 Quaternion::operator*(const Quaternion& other) const
 {
-  // w = (w1 * w2) - (x1 * x2) - (y1 * y2) - (z1 * z2)
-  // x = (w1 * x2) + (x1 * w2) + (y1 * z2) - (z1 * y2)
-  // y = (w1 * y2) - (x1 * z2) + (y1 * w2) + (z1 * x2)
-  // z = (w1 * z2) + (x1 * y2) - (y1 * x2) + (z1 * w2)
-
   return Quaternion((w * other.w) - (x * other.x) - (y * other.y) - (z * other.z),
                     (w * other.x) + (x * other.w) + (y * other.z) - (z * other.y),
                     (w * other.y) - (x * other.z) + (y * other.w) + (z * other.x),

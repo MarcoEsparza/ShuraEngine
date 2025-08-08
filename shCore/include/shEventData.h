@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shEventData.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/02/20
+*  @date    2025/07/17
 *  @brief   Event data types.
 *
 *  Event data types.
 *
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shEventEnums.h"
 
@@ -33,7 +33,8 @@ struct SH_CORE_EXPORT ModifierState
                             const bool _alt = false,
                             const bool _shift = false,
                             const bool _meta = false)
-                            : ctrl(_ctrl), alt(_alt), shift(_shift), meta(_meta) {}
+    : ctrl(_ctrl), alt(_alt), shift(_shift), meta(_meta)
+  {}
 
   /**
   *  @brief Control keyboard modifier.
@@ -66,7 +67,9 @@ struct SH_CORE_EXPORT FocusData
   *
   *  @param bool _focused
   */
-  explicit FORCEINLINE FocusData(const bool _focused) : focused(_focused) {}
+  explicit FORCEINLINE FocusData(const bool _focused)
+    : focused(_focused)
+  {}
 
   /**
   *  @brief Is focused?
@@ -87,7 +90,8 @@ struct SH_CORE_EXPORT ResizeData
   *  @param bool _resizing
   */
   FORCEINLINE ResizeData(const uint32 _width, const uint32 _height, const bool _resizing)
-                         : width(_width), height(_height), resizing(_resizing) {}
+    : width(_width), height(_height), resizing(_resizing)
+  {}
 
   /**
   *  @brief Screen width.
@@ -115,7 +119,9 @@ struct SH_CORE_EXPORT DpiData
   *
   *  @param float _scale
   */
-  explicit FORCEINLINE DpiData(const float _scale) : scale(_scale) {}
+  explicit FORCEINLINE DpiData(const float _scale)
+    : scale(_scale)
+  {}
 
   /**
   *  @brief Dpi screen scale.
@@ -138,7 +144,8 @@ struct SH_CORE_EXPORT KeyboardData
   FORCEINLINE KeyboardData(const KEY::E _key,
                            const BUTTON_STATE::E _state,
                            const ModifierState& _modifiers)
-                           : key(_key), state(_state), modifiers(_modifiers) {}
+    : key(_key), state(_state), modifiers(_modifiers)
+  {}
 
   /**
   *  @brief Key to interact.
@@ -169,8 +176,8 @@ struct SH_CORE_EXPORT MouseRawData
   */
   FORCEINLINE MouseRawData(const int32 _deltaX,
                            const int32 _deltaY)
-                           : deltaX(_deltaX),
-                             deltaY(_deltaY) {}
+    : deltaX(_deltaX), deltaY(_deltaY)
+  {}
 
   /**
   *  @brief
@@ -204,12 +211,13 @@ struct SH_CORE_EXPORT MouseMoveData
                             const uint32 _screenY,
                             const int32 _deltaX,
                             const int32 _deltaY)
-                            : x(_x),
-                              y(_y),
-                              screenX(_screenX),
-                              screenY(_screenY),
-                              deltaX(_deltaX),
-                              deltaY(_deltaY) {}
+    : x(_x),
+      y(_y),
+      screenX(_screenX),
+      screenY(_screenY),
+      deltaX(_deltaX),
+      deltaY(_deltaY)
+  {}
 
   /**
   * @brief Position in window in X axis.
@@ -257,9 +265,8 @@ struct SH_CORE_EXPORT MouseInputData
   FORCEINLINE MouseInputData(const MOUSE_INPUT::E _button,
                              const BUTTON_STATE::E _state,
                              const ModifierState& _modifiers)
-                             : button(_button),
-                               state(_state),
-                               modifiers(_modifiers) {}
+    : button(_button), state(_state), modifiers(_modifiers)
+  {}
 
   /**
   *  @brief Button to interact.
@@ -289,7 +296,8 @@ struct SH_CORE_EXPORT MouseWheelData
   *  @param ModifierState& _modifiers
   */
   FORCEINLINE MouseWheelData(const double _delta, const ModifierState& _modifiers)
-                             : delta(_delta), modifiers(_modifiers) {}
+    : delta(_delta), modifiers(_modifiers)
+  {}
 
   /**
   *  @brief Mouse wheel move up or down.
@@ -315,8 +323,8 @@ struct SH_CORE_EXPORT MouseHWheelData
   *  @param ModifierState& _modifiers
   */
   FORCEINLINE MouseHWheelData(const double _delta, const ModifierState& _modifiers)
-    : delta(_delta), modifiers(_modifiers) {
-  }
+    : delta(_delta), modifiers(_modifiers)
+  {}
 
   /**
   *  @brief Mouse wheel move up or down.

@@ -1,24 +1,22 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
 Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
 Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
 Texture2D t_aoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
-Texture2D t_skyMap : register(t6);
+Texture2D t_depthStencil : register(t6);
+//Texture2D t_skybox : register(t7);
+Texture2D t_brdfLUT : register(t7);
+Texture2D t_diffIrr : register(t8);
+Texture2D t_skyReflect : register(t9);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-#ifndef PCF_KERNEL_SIZE
 #define PCF_KERNEL_SIZE 5
-#endif
-#ifndef DELTA
 #define DELTA 0.00000001
-#endif
-#ifndef PI
-#define PI 3.14159265359
-#endif
+#define SAMPLE_DELTA 0.2f
+#define MAX_REFLECTION_LOD 5.0f
 
 cbuffer Light : register(b2)
 {
@@ -31,10 +29,14 @@ cbuffer LightCam : register(b3)
   float4x4 lightProj;
 }
 
-struct PS_INPUT
+cbuffer PrefilterConstants : register(b4)
 {
-  float4 Position : SV_POSITION;
-  float2 Texcoord : TEXCOORD0;
+  uint width;
+  uint height;
+  uint samples;
+  float prefRoughness;
+  float mipmapLevels;
+  float3 pcPadding; // Padding to 16 bytes
 };
 
 float
@@ -52,17 +54,11 @@ pcFiltering(float2 uv,
     {
     
       float2 offset = float2(x, y) * texelSize;
-      //float sampledDepth = t_shadowMap.Sample(textureSampler, uv + offset).r;
       float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
 
       sampledDepth = sampledDepth * 0.5f + 0.5f;
       float shadowIntensity = 0.8f; // Change to a variable in constant buffer
       shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
-      //if (depth - shadowBias > sampledDepth)
-      //{
-      //  shadow += 1.0f;
-      //}
-      //++sampleCount;
     }
   }
     
@@ -130,16 +126,79 @@ float3 cookTorrenceSpecular(float3 normal,
   float nDotV = saturate(dot(normal, viewDirection));
   float nDotH = saturate(dot(normal, H));
   float vDotH = saturate(dot(viewDirection, H));
-    
+
   float alpha = roughness * roughness;
-  //float D = D_Beckmann(nDotH, alpha);
-  float D = D_BlinnPhong(nDotH, roughness);
+  float D = D_Beckmann(nDotH, alpha);
+  //float D = D_BlinnPhong(nDotH, roughness);
   //float G = geometrySmith(nDotV, nDotL, roughness);
   float G = geomSmith(nDotV, nDotL, roughness);
-  float F = fresnelSchlick(F0, vDotH);
-    
+  float3 F = fresnelSchlick(F0, vDotH);
+
   float denominator = 4.0f * nDotV * nDotL + 1e-5f;
   return (D * G * F) / denominator;
+}
+
+float3
+Lambert(float3 fresnel, float3 albedo, float metallic)
+{
+  // Lambertian diffuse reflectance with energy conservation
+  float3 diffuse = (1.0f - fresnel) * albedo * (1.0f - metallic);
+  return diffuse;
+}
+
+float4 getSpecularSample(float3 reflection, float lod)
+{
+  float u_EnvIntensity = 1.0f; // Environment intensity, can be adjusted
+  
+  float2 uv = getSkyBoxUV(normalize(reflection));
+  // Sample the texture at the specified LOD level
+  float4 texSample = t_skyReflect.SampleLevel(samplerAnisotropicClamp, uv, lod);
+
+  texSample.rgb *= u_EnvIntensity; // Apply environment intensity
+  return float4(texSample.rgb, 1.0f);
+}
+
+float3 getIBLRadianceGGX(float3 n, float3 v, float roughness)
+{
+  float NdotV = clampedDot(n, v);
+
+  float3 texDimensions;
+  t_skyReflect.GetDimensions(0, texDimensions.x, texDimensions.y, texDimensions.z);
+  float lod = min(roughness * texDimensions.x, texDimensions.z);
+
+  float3 reflection = normalize(reflect(-v, n));
+  float4 specularSample = getSpecularSample(reflection, lod);
+
+  return specularSample.rgb;
+}
+
+float3
+getIBLGGXFresnel(float3 n, float3 v, float roughness, float3 F0, float specularWeight)
+{
+  // Roughness dependent Fresnel
+  float nDotV = clampedDot(n, v);
+  float2 brdfSamplePoint = clamp(float2(nDotV, 1.0f - roughness), 0.0f, 1.0f);
+  float2 f_ab = t_brdfLUT.SampleLevel(samplerPointClamp, brdfSamplePoint, 0);
+  float3 Fr = max(1.0f - roughness, F0) - F0;
+  float3 kS = F0 + Fr * pow(1.0f - nDotV, 5.0f);
+  float3 FssEss = specularWeight * (kS * f_ab.x + f_ab.y);
+  
+  // Multiple scattering
+  float Ems = (1.0f - (f_ab.x + f_ab.y));
+  float3 F_avg = specularWeight * (F0 + (1.0F - F0) / 21.0F);
+  float3 FmsEms = Ems * FssEss * F_avg / (1.0f - F_avg * Ems);
+  
+  return FssEss + FmsEms;
+}
+
+float3
+getDiffuseLight(float3 n)
+{
+  float envIntensity = 1.0f;
+  float2 dir = getSkyBoxUV(n);
+  float3 texSample = t_diffIrr.SampleLevel(samplerAnisotropicClamp, dir, 0).rgb;
+  texSample *= envIntensity; // Apply environment intensity
+  return texSample;
 }
 
 [numthreads(32, 32, 1)]
@@ -168,51 +227,66 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
     return;
   }
-  //float normalLen = length(normalMap.xyz);
-  //if(normalLen < 0.001f) {
-  //  t_outputMap[dtID.xy] = float4(t_skyMap.Load(uint3(dtID.xy, 0)).rgb, 1.0f);
+  //if (normalMap.w == 1.0f)
+  //{
+  //  t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  //  return;
   //}
-  if (normalMap.w == 0)
-  {
-    t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
-    return;
-  }
   
   normal = normal * 2.0f - 1.0f;
   float4 posWorld = depth;
-  
-  // Light calculations
-  float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
   float3 viewDirection = normalize(viewPos.xyz - posWorld.xyz);
-  float NdL = saturate(dot(normal, lightDir));
-  
   float3 F0 = lerp(0.04, albedo, metalness);
   
-  float3 ambientLight = 0.15f * albedo;
+  // === IBL ===
+  float3 R = reflect(-viewDirection, normal);
+  float nDotV = saturate(dot(normal, viewDirection));
   
-  float3 specular = cookTorrenceSpecular(normal, viewDirection, lightDir, roughness, F0);
-  float3 finalColor = ((((albedo + specular) * lightIntensity * NdL) + ambientLight) * ao.r);
+  float3 diffuseIBL = getDiffuseLight(normal) * (albedo / PI);
   
-  // Shadow calculation
-  float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
+  float3 specularMetal = getIBLRadianceGGX(normal, viewDirection, roughness);
+  float3 metalFresnel = getIBLGGXFresnel(normal,
+                                         viewDirection,
+                                         roughness,
+                                         F0,
+                                         1.0f);
+  metalFresnel *= specularMetal;
+  
+  float3 ambientLight = diffuseIBL + metalFresnel;
+  
+  // === Direct Lighting ===
+  float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
+  float NdL = saturate(dot(normal, lightDir));
+  
+  float3 specular = cookTorrenceSpecular(normal,
+                                         viewDirection,
+                                         lightDir,
+                                         roughness,
+                                         F0);
+  
+  float3 directLight = (specular + albedo) * NdL * lightIntensity;
+
+  // === Shadows ===
+  float4 lightWorldPos = mul(posWorld, lightView);
+  lightWorldPos = mul(lightWorldPos, lightProj);
   lightWorldPos.xyz /= lightWorldPos.w;
   lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
   
-  float2 shadowCoord = lightWorldPos.xy;
-  shadowCoord.y = 1.0f - shadowCoord.y;
+  float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
   float shadowFactor = 1.0f;
-  if(shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
-     shadowCoord.y < 0.0f || shadowCoord.x > 1.0f) {
-    t_outputMap[dtID.xy] = float4(ambientLight, 1.0f);
-    return;
-  }
-  
   float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
-  
   float texelSize = 1.0f / shadowMapSize;
   
-  shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
+  if (shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
+      shadowCoord.y < 0.0f || shadowCoord.y > 1.0f)
+  {
+    shadowFactor = 0.0f;
+  }
+  else
+  {
+    shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
+  }
   
-  finalColor *= shadowFactor;
+  float3 finalColor = (ambientLight + directLight * shadowFactor) * ao.r;
   t_outputMap[dtID.xy] = float4(finalColor, 1.0f);
 }
