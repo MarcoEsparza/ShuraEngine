@@ -29,12 +29,7 @@ cbuffer LightCam : register(b3)
   float4x4 lightProj;
 }
 
-cbuffer skyboxConstants : register(b4)
-{
-  float4x4 matSkyRotation;
-}
-
-cbuffer PrefilterConstants : register(b5)
+cbuffer PrefilterConstants : register(b4)
 {
   uint width;
   uint height;
@@ -124,7 +119,6 @@ float3 cookTorrenceSpecular(float3 normal,
                             float3 viewDirection,
                             float3 lightDirection,
                             float roughness,
-                            float metallic,
                             float3 F0)
 {
   float3 H = normalize(viewDirection + lightDirection);
@@ -139,10 +133,6 @@ float3 cookTorrenceSpecular(float3 normal,
   //float G = geometrySmith(nDotV, nDotL, roughness);
   float G = geomSmith(nDotV, nDotL, roughness);
   float3 F = fresnelSchlick(F0, vDotH);
-  
-  //float kS = F;
-  //float kD = float3(1.0f) - kS;
-  //kD *= (1.0f - metallic);
 
   float denominator = 4.0f * nDotV * nDotL + 1e-5f;
   return (D * G * F) / denominator;
@@ -159,8 +149,7 @@ Lambert(float3 fresnel, float3 albedo, float metallic)
 float4 getSpecularSample(float3 reflection, float lod)
 {
   float u_EnvIntensity = 1.0f; // Environment intensity, can be adjusted
-
-  //float2 uv = getSkyBoxUV(normalize(mul(float4(reflection, 0.0f), matSkyRotation).xyz));
+  
   float2 uv = getSkyBoxUV(normalize(reflection));
   // Sample the texture at the specified LOD level
   float4 texSample = t_skyReflect.SampleLevel(samplerAnisotropicClamp, uv, lod);
@@ -208,7 +197,7 @@ getDiffuseLight(float3 n)
   float envIntensity = 1.0f;
   float2 dir = getSkyBoxUV(n);
   float3 texSample = t_diffIrr.SampleLevel(samplerAnisotropicClamp, dir, 0).rgb;
-  texSample.rgb *= envIntensity; // Apply environment intensity
+  texSample *= envIntensity; // Apply environment intensity
   return texSample;
 }
 
@@ -238,6 +227,11 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
     return;
   }
+  //if (normalMap.w == 1.0f)
+  //{
+  //  t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  //  return;
+  //}
   
   normal = normal * 2.0f - 1.0f;
   float4 posWorld = depth;
@@ -250,13 +244,13 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   
   float3 diffuseIBL = getDiffuseLight(normal) * (albedo / PI);
   
-  float3 specularMetal = getIBLRadianceGGX(normal, viewDirection, prefRoughness);
+  float3 specularMetal = getIBLRadianceGGX(normal, viewDirection, roughness);
   float3 metalFresnel = getIBLGGXFresnel(normal,
                                          viewDirection,
-                                         prefRoughness,
-                                         albedo,
+                                         roughness,
+                                         F0,
                                          1.0f);
-  metalFresnel = metalFresnel * specularMetal;
+  metalFresnel *= specularMetal;
   
   float3 ambientLight = diffuseIBL + metalFresnel;
   
@@ -268,7 +262,6 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
                                          viewDirection,
                                          lightDir,
                                          roughness,
-                                         metalness,
                                          F0);
   
   float3 directLight = (specular + albedo) * NdL * lightIntensity;

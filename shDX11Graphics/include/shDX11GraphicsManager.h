@@ -312,6 +312,12 @@ class DX11GraphicsManager : public GraphicsManager
   SPtr<Texture2D>
   createErrorTexture() override;
 
+  SPtr<Texture2D>
+  createDefaultNormalTexture() override;
+
+  SPtr<Texture2D>
+  createBlackTexture() override;
+
   /**
   *  @brief Creates a blend state.
   *

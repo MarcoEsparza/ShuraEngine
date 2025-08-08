@@ -183,5 +183,7 @@ class SH_CORE_EXPORT GameObject
   Vector<SPtr<GameObject>> childs;
 
   WPtr<GameObject> parent;
+
+  bool m_bActive = true;
 };
 }

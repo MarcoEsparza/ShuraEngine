@@ -35,6 +35,8 @@
 #include <shColliderComponent.h>
 #include <shRigidbodyComponent.h>
 
+#include <shImageResource.h>
+
 #include <shMeshResource.h>
 
 #define COLOR_LIMIT                                           255.0f
@@ -59,6 +61,12 @@ GUI::init(const WPtr<Screen> pScreen)
   ImGui::StyleColorsDark();
 
   m_camSpeed = 100.0f;
+  m_camFov = 30.0f;
+  m_lightPos = { 0.0f, 100.0f, 0.0f, 1.0f };
+  m_lightTarget = Vector3::ZERO;
+  m_lcamNear = 0.1f;
+  m_lcamFar = 1000.0f;
+  m_lcamSize = 1000.0f;
 }
 
 void
@@ -230,7 +238,7 @@ GUI::setRendererSettings()
   }
   if (ImGui::CollapsingHeader("Tone Mapping")) {
     const char* toneMapType[] = {
-      "Reinhard", "ACES", "Uncharted2", "AgX", "Guardians-LogC4(LUT)",
+      "Reinhard", "ACES", "Uncharted2", "AgX", "Guardians-LogC4(LUT)", "LBK-K-Tone",
     };
     int32 toneMapIndex = static_cast<int32>(rendererSettings.toneMappingIndex);
     ImGui::Combo("##ToneMappingCombo",
@@ -290,8 +298,74 @@ GUI::setRendererSettings()
     rendererSettings.maxB = maxB * NORM_COLOR;
   }
 
+  if (ImGui::CollapsingHeader("Shadows")) {
+    if (ImGui::CollapsingHeader("Light settings")) {
+      // Light Position
+      ImGui::Text("Light Pos:");
+      // Position X
+      ImGui::SameLine(80.0f);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("x##LPosX", &m_lightPos.x, 1.0f);
+      ImGui::PopStyleColor(3);
+      // Position Y
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("y##LPosY", &m_lightPos.y, 1.0f);
+      ImGui::PopStyleColor(3);
+      // Position Z
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 1.0f);
+      ImGui::PopStyleColor(3);
+
+      // Light Target
+      ImGui::Text("Light Target:");
+      // Position X
+      ImGui::SameLine(80.0f);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("x##LTarX", &m_lightTarget.x, 1.0f);
+      ImGui::PopStyleColor(3);
+      // Position Y
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("y##LTarY", &m_lightTarget.y, 1.0f);
+      ImGui::PopStyleColor(3);
+      // Position Z
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+      ImGui::SetNextItemWidth(50.0f);
+      ImGui::DragFloat("z##LTarZ", &m_lightTarget.z, 1.0f);
+      ImGui::PopStyleColor(3);
+
+      ImGui::Spacing();
+      ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 0.1f);
+      ImGui::Spacing();
+      ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
+      ImGui::Spacing();
+      ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
+    }
+  }
+
   if (ImGui::CollapsingHeader("Camera Settings")) {
     ImGui::DragFloat("Camera Speed", &m_camSpeed, 1.0f, 1.0f, 300.0f);
+    ImGui::DragFloat("Camera FOV", &m_camFov, 1.0f, 1.0f, 180.0f);
   }
 
   ImGui::End();
@@ -518,6 +592,7 @@ GUI::setComponentInspector()
 {
   ImGui::Begin("Inspector");
   if (m_pActiveGameObject) {
+    ImGui::Checkbox("Active", &m_pActiveGameObject->m_bActive);
     showTransformComponent();
     for (auto& pComponent : m_pActiveGameObject->components) {
       COMPONENT_TYPE::E type = pComponent->getType();
@@ -708,6 +783,8 @@ GUI::showTransformComponent()
 void
 GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
 {
+  ResourceManager& resMan = g_resourceMan();
+
   if (wpSMesh.expired()) {
     return;
   }
@@ -715,6 +792,9 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
   auto pMesh = wpSMesh.lock();
 
   if (ImGui::CollapsingHeader("Static Mesh Component")) {
+    if (ImGui::Button("Save Mesh to cache")) {
+      resMan.saveResourceToAsset(pMesh->m_mesh);
+    }
     ImGui::Text("Material Count: %d",
       static_cast<uint32>(pMesh->m_mesh->m_materials.size()));
     uint32 vertexCount = 0;
@@ -746,6 +826,9 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
 void
 GUI::showMaterialInspector(const WPtr<Material> wpMat)
 {
+  ResourceManager& resMan = g_resourceMan();
+  FileExplorer& fileExp = g_fileExplorer();
+
   if (wpMat.expired()) {
     return;
   }
@@ -756,13 +839,26 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pMetallic = currentMat->metallic;
   auto& pRoughness = currentMat->roughness;
 
+  bool bHasAlpha = currentMat->m_properties.bHasAlphaTest;
+  ImGui::Checkbox("Alpha testing", &bHasAlpha);
+  currentMat->m_properties.bHasAlphaTest = bHasAlpha;
+
   // Base Color
-  ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
-  /*if(ImGui::ImageButton("##BaseColorSelection",
+  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
+  if(ImGui::ImageButton("##BaseColorSelection",
                         reinterpret_cast<ImTextureID*>(&pBaseColor),
                         ImVec2(64, 64))) {
-
-  }*/
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::rePointer<ImageResource>(pRes);
+      if (pImg) {
+        pBaseColor = pImg->texture;
+      }
+    }
+  }
   ImGui::SameLine();
   String buttonID = "##ColorButton" + currentMat->name;
   Vector3& baseColor = currentMat->baseColorFactor;
@@ -792,14 +888,42 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   }
 
   // Normal
-  ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
+  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
+  if (ImGui::ImageButton("##NormalSelection",
+    reinterpret_cast<ImTextureID*>(&pNormal),
+    ImVec2(64, 64))) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::rePointer<ImageResource>(pRes);
+      if (pImg) {
+        pNormal = pImg->texture;
+      }
+    }
+  }
   ImGui::SameLine();
   bool bHasNormalMap = currentMat->m_properties.bHasNormalMap;
   ImGui::Checkbox("Normal", &bHasNormalMap);
   currentMat->m_properties.bHasNormalMap = bHasNormalMap;
 
   // Metallic
-  ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
+  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
+  if (ImGui::ImageButton("##MetallicSelection",
+    reinterpret_cast<ImTextureID*>(&pMetallic),
+    ImVec2(64, 64))) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::rePointer<ImageResource>(pRes);
+      if (pImg) {
+        pMetallic = pImg->texture;
+      }
+    }
+  }
   ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Metallic Factor",
@@ -813,7 +937,21 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.bHasMetalnessMap = bHasMetallicMap;
 
   // Roughness
-  ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
+  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
+  if (ImGui::ImageButton("##RoughnessSelection",
+    reinterpret_cast<ImTextureID*>(&pRoughness),
+    ImVec2(64, 64))) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::rePointer<ImageResource>(pRes);
+      if (pImg) {
+        pRoughness = pImg->texture;
+      }
+    }
+  }
   ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Roughness Factor",

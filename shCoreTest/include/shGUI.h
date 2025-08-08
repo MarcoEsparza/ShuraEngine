@@ -20,6 +20,7 @@
 #include "shPrerequisitesUtilities.h"
 #include <shVector2.h>
 #include <shVector3.h>
+#include <shVector4.h>
 
 namespace shEngineSDK {
 class Screen;
@@ -129,6 +130,37 @@ class GUI
   uint32 m_fpsCountGUI = 0;
 
   float m_camSpeed = 0.0f;
+  float m_camFov = 0.0f;
+
+  /**
+  *  @brief Light position.
+  */
+  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Light camera target.
+  */
+  Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
+
+  /**
+  *  @brief Light camera near.
+  */
+  float m_lcamNear = 0.0f;
+
+  /**
+  *  @brief Light camera far.
+  */
+  float m_lcamFar = 0.0f;
+
+  /**
+  *  @brief Light camera size.
+  */
+  float m_lcamSize = 0.0f;
+
+  /**
+  *  @brief Size of shadow texture.
+  */
+  float m_shadowTexSize = 0;
 };
 
 FORCEINLINE void

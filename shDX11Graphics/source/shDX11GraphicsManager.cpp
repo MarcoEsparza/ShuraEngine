@@ -816,14 +816,14 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
     pitch = width * 16;
   }
   else {
-    format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
   }
   auto pTexture = cast::rePointer<DX11Texture2D>(createTexture2D(width,
                                                                  height,
                                                                  format,
                                                                  D3D11_USAGE_DEFAULT,
                                                                  D3D11_BIND_SHADER_RESOURCE,
-                                                                 0));
+                                                                 1));
   
   m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
   
@@ -1116,6 +1116,85 @@ DX11GraphicsManager::createErrorTexture()
   throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
                                                     nullptr,
                                                     &pTexture->m_pShaderRV));
+
+  return pTexture;
+}
+
+SPtr<Texture2D>
+DX11GraphicsManager::createDefaultNormalTexture()
+{
+  auto pTexture = sh_makeShared<DX11Texture2D>();
+  uint32 normalSize = 128;
+  Vector<uint32> pixels;
+  //Vector<LinearColor> pixels;
+  pixels.resize(normalSize * normalSize);
+  for (uint32 y = 0; y < normalSize; ++y) {
+    for (uint32 x = 0; x < normalSize; ++x) {
+      float u = static_cast<float>(x) / (normalSize - 1);
+      float v = static_cast<float>(y) / (normalSize - 1);
+      // Generate a simple blue normal map
+      pixels[y * normalSize + x] = 0xFFFF8080; // RGB: (128, 128, 255)
+    }
+  }
+
+  D3D11_TEXTURE2D_DESC desc = {};
+  desc.Width = normalSize;
+  desc.Height = normalSize;
+  desc.MipLevels = 1;
+  desc.ArraySize = 1;
+  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.SampleDesc.Count = 1;
+  desc.Usage = D3D11_USAGE_IMMUTABLE;
+  desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+  D3D11_SUBRESOURCE_DATA initData = {};
+  initData.pSysMem = pixels.data();
+  initData.SysMemPitch = normalSize * sizeof(uint32);
+
+  throwIfFailed(m_pDevice->CreateTexture2D(&desc, &initData, &pTexture->m_pTexture2D));
+
+  throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+                                                    nullptr,
+                                                    &pTexture->m_pShaderRV));
+
+  return pTexture;
+}
+
+SPtr<Texture2D> DX11GraphicsManager::createBlackTexture()
+{
+  auto pTexture = sh_makeShared<DX11Texture2D>();
+  uint32 size = 8;
+  Vector<uint32> pixels;
+  //Vector<LinearColor> pixels;
+  pixels.resize(size * size);
+  for (uint32 y = 0; y < size; ++y) {
+    for (uint32 x = 0; x < size; ++x) {
+      float u = static_cast<float>(x) / (size - 1);
+      float v = static_cast<float>(y) / (size - 1);
+      // Generate a simple blue normal map
+      pixels[y * size + x] = 0xFF000000; // RGB: (128, 128, 255)
+    }
+  }
+
+  D3D11_TEXTURE2D_DESC desc = {};
+  desc.Width = size;
+  desc.Height = size;
+  desc.MipLevels = 1;
+  desc.ArraySize = 1;
+  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.SampleDesc.Count = 1;
+  desc.Usage = D3D11_USAGE_IMMUTABLE;
+  desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+  D3D11_SUBRESOURCE_DATA initData = {};
+  initData.pSysMem = pixels.data();
+  initData.SysMemPitch = size * sizeof(uint32);
+
+  throwIfFailed(m_pDevice->CreateTexture2D(&desc, &initData, &pTexture->m_pTexture2D));
+
+  throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
+    nullptr,
+    &pTexture->m_pShaderRV));
 
   return pTexture;
 }

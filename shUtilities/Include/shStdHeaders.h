@@ -228,4 +228,14 @@ st(const from& fromObje)
 {
   return static_cast<to>(fromObje);
 }
+
+/*
+*  @brief Function to const cast any object.
+*/
+template<typename to, typename from>
+to
+ct(const from& fromObje)
+{
+  return const_cast<to>(fromObje);
+}
 }

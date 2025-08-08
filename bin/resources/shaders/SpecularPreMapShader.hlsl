@@ -15,7 +15,7 @@ cbuffer PrefilterConstants : register(b2)
 
 // ----------------------------------------------------------------------------
 
-[numthreads(32, 32, 1)]
+[numthreads(8, 8, 1)]
 void
 CSMain(uint3 dtID : SV_DispatchThreadID)
 {
@@ -38,7 +38,8 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
   
   // Get number of mips
   float adaptFactor = saturate(roughness + mipmapLevels / 8.0f);
-  float maxBrightness = lerp(0.0f, 1.0f, adaptFactor);
+  float maxBrightness = lerp(20.0f, 80.0f, adaptFactor);
+  //float maxBrightness = lerp(0.0f, 1.0f, adaptFactor);
   
   for (uint n = 0u; n < samples; ++n)
   {
@@ -63,7 +64,7 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
       float maxC = max(radiance.r, max(radiance.g, radiance.b));
       float brightness = max(lum, maxC * 0.5f);
       
-      if (brightness < maxBrightness)
+      if (brightness > maxBrightness)
       {
         radiance *= (maxBrightness / brightness);
       }
@@ -73,12 +74,8 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
     }
   }
 
-  result = (totalWeight > 0.0f) ? (result / totalWeight) : float3(0.0f, 1.0f, 0.0f);
-  //if(mipmapLevels > 0.0f)
-  //{
-  //  result = float3(0.0f, 1.0f, 0.0f);
-  //}
-  //result /= PI;
-  //result *= 11.0f;
+  result = (totalWeight > 0.0f) ? (result / totalWeight) : 0.0f;
+  float energyCompensation = 1.0f / (1.0f + 0.5f * roughness);
+  result *= energyCompensation; // Compensate for energy loss due to roughness
   t_output[dtID.xy] = float4(result, 1.0f);
 }

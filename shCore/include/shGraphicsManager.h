@@ -347,6 +347,12 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual SPtr<Texture2D>
   createErrorTexture() = 0;
 
+  virtual SPtr<Texture2D>
+  createDefaultNormalTexture() = 0;
+
+  virtual SPtr<Texture2D>
+  createBlackTexture() = 0;
+
   /**
   *  @brief Creates a blend state.
   *

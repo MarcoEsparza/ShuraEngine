@@ -384,9 +384,9 @@ ResourceManager::onStartUp()
                                               Path("resources/textures/normal.png")));
   auto pCube = cast::rePointer<StaticMeshResource>(loadResourceFromFile(
                                                    Path("resources/models/cube.fbx")));
-  pCube->m_materials[0]->baseColor = white->texture;
-  pCube->m_materials[0]->normal = normal->texture;
-  pCube->m_materials[0]->m_properties.bHasNormalMap = true;
+  //pCube->m_materials[0]->baseColor = white->texture;
+  //pCube->m_materials[0]->normal = normal->texture;
+  //pCube->m_materials[0]->m_properties.bHasNormalMap = true;
 }
 
 SPtr<Resource>
@@ -518,23 +518,16 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   if (path.extension() == ".hdr") {
     float* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, 4);
-    //Vector<float> pImgData(width * height * 4);
-    //for(int32 i = 0; i < width * height; i+=4) {
-    //  pImgData[i + 0] = data[i + 0]; // R
-    //  pImgData[i + 1] = data[i + 1]; // G
-    //  pImgData[i + 2] = data[i + 2]; // B
-    //  pImgData[i + 3] = 1.0f; //(bpp == 4) ? data[i * bpp + 3] : 1.0f; // A
-    //}
     pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
 
     stbi_image_free(data);
   }
   else {
-    int32 reqComp = STBI_rgb_alpha;
-    if (path.extension() == ".jpg") {
-      //reqComp = STBI_rgb;
-    }
-    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, reqComp);
+    //int32 reqComp = STBI_rgb_alpha;
+    //if (path.extension() == ".jpg") {
+    //  reqComp = STBI_rgb;
+    //}
+    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
     pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
     stbi_image_free(data);
   }
@@ -549,7 +542,7 @@ ResourceManager::loadTextureFromFile(const String& fileName)
   path.replace_extension(".dds");
   String saveTex = "resources/assets/textures/" + path.string();
 
-  graphMan.saveTextureToDDS(pImage->texture, saveTex);
+  //graphMan.saveTextureToDDS(pImage->texture, saveTex);
 
   Path texPath(saveTex);
   pImage->setPath(texPath);
@@ -639,7 +632,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   }
 
   if (normCount == 0) {
-    pMeshMat->m_properties.bHasNormalMap = false;
+    pMeshMat->m_properties.bHasNormalMap = true;
+    pMeshMat->normal = graphMan.createDefaultNormalTexture();
   }
   else {
     pMeshMat->m_properties.bHasNormalMap = true;
@@ -655,6 +649,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 
   if (metalCount == 0) {
     pMeshMat->m_properties.bHasMetalnessMap = false;
+    pMeshMat->metallic = graphMan.createBlackTexture();
   }
   else {
     pMeshMat->m_properties.bHasMetalnessMap = true;
@@ -670,6 +665,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 
   if (roughCount == 0) {
     pMeshMat->m_properties.bHasRoughnessMap = false;
+    pMeshMat->roughness = graphMan.createBlackTexture();
   }
   else {
     pMeshMat->m_properties.bHasRoughnessMap = true;

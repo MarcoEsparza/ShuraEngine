@@ -44,6 +44,7 @@ class ConstantBuffer;
 class SceneGraph;
 class SamplerState;
 class CubeMap;
+class GameObject;
 
 /**
 *  @brief Render target information structure.
@@ -232,6 +233,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   drawStaticMeshOnScene();
 
+  void
+  drawStaticMesh(const WPtr<GameObject> pGO);
+
   /**
   *  @brief Sets the resource view from PBRMaterial.
   * 
@@ -411,9 +415,11 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   SPtr<SamplerState> m_pSamplerAnisotropicClamp;
 
   SPtr<CubeMap> m_pLutTexture;
-  //SPtr<Texture2D> m_pEnvTexture;
-  //SPtr<Texture2D> m_pCubeTexture;
-  //SPtr<Texture2D> m_pSpecularPreMap;
+  SPtr<CubeMap> m_pLutLBK;
+
+  SPtr<Texture2D> m_pBRDF;
+  SPtr<Texture2D> m_pDiffIrr;
+  SPtr<Texture2D> m_pSpecularPreMap;
 
   /**
   *  @brief Shadow map texture size.

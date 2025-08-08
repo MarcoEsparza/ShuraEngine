@@ -28,7 +28,8 @@ SkyBoxComponent::setSkyBoxResource(const WPtr<ImageResource>& skyBoxResource)
 
   if (auto res = skyBoxResource.lock()) {
     if (m_skyBoxResource) {
-      m_skyBoxResource.reset();
+      //m_skyBoxResource.reset();
+      m_skyBoxResource = nullptr;
     }
     m_skyBoxResource = sh_reinterpretPCast<ImageResource>(res);
     graphMan.generateMips(m_skyBoxResource->texture);
