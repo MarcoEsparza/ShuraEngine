@@ -2,7 +2,7 @@
 /*
 *  @file    shPath.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/07/15
 *  @brief   Path class, to use for paths in the disk.
 *
 *  Path class, to use for paths in the disk.
@@ -56,17 +56,6 @@ class SH_UTILITY_EXPORT Path
   */
   /*************************************************************/
  public:
-  /**
-  *  @brief Gets the content of the Path in const char*.
-  * 
-  *  @return const char*
-  */
-  const char*
-  c_str() const;
-
-  const wchar_t*
-  wc_str() const;
-
   /**
   *  @brief Gets the content of the Path in string.
   * 

@@ -1,6 +1,6 @@
 #include "ShaderConstants.hlsl"
 
-SamplerState textureSampler : register(s0);
+//SamplerState textureSampler : register(s0);
 Texture2D t_baseColor : register(t0);
 Texture2D t_normal : register(t1);
 Texture2D t_metallic : register(t2);
@@ -88,7 +88,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   }
   else
   {
-    output.Color = t_baseColor.Sample(textureSampler, input.Tex);
+    output.Color = t_baseColor.Sample(samplerLinearWrap, input.Tex);
     output.Color = output.Color * float4(baseColorFactor, 1.0f);
   }
     
@@ -101,19 +101,25 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   }
 
   //float3 fvNormal = float3(0.0f, 0.0f, 0.0f);
-  //if (materialProps.bHasNormalMap)
-  //{
-  //  fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
-  //}
-  float3 fvNormal = t_normal.Sample(textureSampler, input.Tex).xyz * 2.0f - 1.0f;
-  fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
-  output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  if (materialProps.bHasNormalMap)
+  {
+    float3 fvNormal = t_normal.Sample(samplerLinearWrap, input.Tex).xyz * 2.0f - 1.0f;
+    fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
+    output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  }
+  else
+  {
+    //float3 fvNormal = normalize(input.Normal);
+    float3 fvNormal = float3(1.0f, 1.0f, 1.0f);
+    fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
+    output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+  }
     
   output.Depth = float4(input.Depth.xyz, 1.0f);
     
   if (materialProps.bHasMetallicMap)
   {
-    output.Properties.r = t_metallic.Sample(textureSampler, input.Tex);
+    output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex);
   }
   else
   {
@@ -122,11 +128,17 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   
   if(materialProps.bHasRoughnessMap)
   {
-    output.Properties.b = t_roughness.Sample(textureSampler, input.Tex);
+    output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex);
+    
   }
   else
   {
     output.Properties.b = metallicRoughnessFactors.y; // roughness factor
+  }
+  
+  if (materialProps.bInvertRoughness)
+  {
+    output.Properties.b = 1.0f - output.Properties.b;
   }
   
   return output;

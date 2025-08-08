@@ -26,6 +26,7 @@
     <ClCompile Include="source\imgui_tables.cpp" />
     <ClCompile Include="source\imgui_widgets.cpp" />
     <ClCompile Include="Source\shCoreTestMain.cpp" />
+    <ClCompile Include="source\shGUI.cpp" />
     <ClCompile Include="source\shRendererApp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +37,7 @@
     <ClInclude Include="include\externals\imstb_textedit.h" />
     <ClInclude Include="include\externals\imstb_truetype.h" />
     <ClInclude Include="include\imgui_impl_shura.h" />
+    <ClInclude Include="include\shGUI.h" />
     <ClInclude Include="include\shRendererApp.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

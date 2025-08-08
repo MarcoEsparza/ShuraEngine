@@ -58,6 +58,9 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   SPtr<GameObject>
   createEmptyObject(const String& objectName);
 
+  SPtr<GameObject>
+  createCubeObject();
+
   /**
   *  @brief Adds a object to the scene.
   * 
@@ -71,8 +74,8 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   * 
   *  @return const Vector<SPtr<GameObject>>&
   */
-  const Vector<SPtr<GameObject>>&
-  getGameObjectList() const;
+  Vector<SPtr<GameObject>>&
+  getGameObjectList();
 
   const Vector<SPtr<StaticMeshComponent>>
   getStaticMeshComponentInScene() const;

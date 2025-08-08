@@ -1,29 +1,28 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shGameObject.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/07/17
 *  @brief   Game Object class.
 *
 *  Game Object class.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
-#pragma once
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shGameObject.h"
 #include "shMeshComponent.h"
 #include "shMeshResource.h"
-#include "shMath.h"
-#include "shRadian.h"
+#include <shMath.h>
+#include <shRadian.h>
 
-using std::reinterpret_pointer_cast;
+using std::find;
 
 namespace shEngineSDK {
 GameObject::~GameObject()
@@ -48,7 +47,7 @@ GameObject::addComponent(const SPtr<Component>& comp)
 void
 GameObject::removeComponent(const SPtr<Component>& comp)
 {
-  components.erase(std::find(components.begin(), components.end(), comp));
+  components.erase(find(components.begin(), components.end(), comp));
 }
 
 void
@@ -60,7 +59,7 @@ GameObject::addChild(const SPtr<GameObject>& child)
 void
 GameObject::removeChild(const SPtr<GameObject>& child)
 {
-  childs.erase(std::find(childs.begin(), childs.end(), child));
+  childs.erase(find(childs.begin(), childs.end(), child));
 }
 
 Vector3

@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/13
+*  @date    2025/07/17
 *  @brief   Render module.
 *
 *  Render module.
@@ -10,7 +10,6 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
@@ -20,13 +19,19 @@
 #include "shRenderManager.h"
 #include "shGraphicsManager.h"
 #include "shSceneGraph.h"
+#include "shResourceManager.h"
 #include "shMeshComponent.h"
 #include "shSkyBoxComponent.h"
+#include "shImageResource.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
 #include "shPass.h"
 #include "shMatrix4.h"
 #include "shStringID.h"
+#include "shPath.h"
+#include "shTexture.h"
+#include "shCubeMap.h"
+#include "shMath.h"
 
 #define PBRBufferSize 32 // Size of the PBR material constant buffer
 #define LUMINANCE_MAP_SIZE 512.0f // Size of the luminance map
@@ -38,6 +43,12 @@
 #define BLURH_THREADS_Y 64
 #define BLURV_THREADS_X 64
 #define BLURV_THREADS_Y 4
+
+#define TEXTURE8K_WIDTH 8192
+#define TEXTURE4K_WIDTH 4096
+
+#define CUBE_MAP_SIZE 1024 // Size of the cube map texture
+#define NUM_CUBE_MAP_FACES 6 // Number of faces in a cube map
 
 namespace shEngineSDK {
 RenderManager::~RenderManager()
@@ -53,6 +64,7 @@ void
 RenderManager::onStartUp()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  ResourceManager& resMan = g_resourceMan();
 
   // Blend state for alpha testing
   BlendDesc blendDesc = {};
@@ -112,7 +124,8 @@ RenderManager::onStartUp()
   m_renderTargetMap[StringID("LightCMap").getID()] = RenderTargetInfo("LightCMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
 
-  m_renderTargetMap[StringID("SkyBoxMap").getID()] = RenderTargetInfo("SkyBoxMap");
+  m_renderTargetMap[StringID("SkyBoxMap").getID()] = RenderTargetInfo("SkyBoxMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
 
   m_renderTargetMap[StringID("TempMap").getID()] = RenderTargetInfo("TempMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
@@ -125,22 +138,22 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("ShadowMap").getID()] = RenderTargetInfo("ShadowMap",
     TEXTURE_FORMAT::kR32_TYPELESS,
-    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1,
+    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1, 1,
     m_shadowMapSize, m_shadowMapSize, false);
 
   m_renderTargetMap[StringID("ShadowTemp").getID()] = RenderTargetInfo("ShadowTemp",
     TEXTURE_FORMAT::kR32_FLOAT,
-    BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1,
+    BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1, 1,
     m_shadowMapSize, m_shadowMapSize, false);
 
   m_renderTargetMap[StringID("LuminanceMap").getID()] = RenderTargetInfo("LuminanceMap",
     TEXTURE_FORMAT::kR32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, 0,
+    fullUAVBindFlags, USAGE::kDefault, 0, 1,
     LUMINANCE_MAP_SIZE, LUMINANCE_MAP_SIZE, false);
 
   m_renderTargetMap[StringID("BrightMap").getID()] = RenderTargetInfo("BrightMap",
     TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS,
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS, 1,
     0.5f, 0.5f);
 
   m_renderTargetMap[StringID("AdditiveMap").getID()] = RenderTargetInfo("AdditiveMap",
@@ -157,8 +170,50 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[StringID("HistogramMap").getID()] = RenderTargetInfo("HistogramMap",
     TEXTURE_FORMAT::kR32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, 1,
+    fullUAVBindFlags, USAGE::kDefault, 1, 1,
     HISTOGRAM_MAP_SIZE, 3, false);
+
+  m_renderTargetMap[StringID("GbufferDepth").getID()] = RenderTargetInfo("GbufferDepth",
+    TEXTURE_FORMAT::kR32_TYPELESS,
+    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1);
+
+  /*m_renderTargetMap[StringID("CubeMap").getID()] = RenderTargetInfo("CubeMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, NUM_CUBE_MAP_FACES, CUBE_MAP_SIZE, CUBE_MAP_SIZE, false);
+
+  m_renderTargetMap[StringID("DiffIrrMap").getID()] = RenderTargetInfo("DiffIrrMap",
+    TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 0, 1, 256.0f, 128.0f, false);
+
+  m_renderTargetMap[StringID("BRDFLut").getID()] = RenderTargetInfo("BRDFLut",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 1, 1, 256.0f, 256.0f, false);
+
+  m_renderTargetMap[StringID("SpecPreMap").getID()] = RenderTargetInfo("SpecPreMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+    BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+    USAGE::kDefault, 0, 1);*/
+
+  m_pDiffIrr = graphMan.createTexture2D(256, 128,
+                        TEXTURE_FORMAT::kR16G16B16A16_FLOAT,
+                        USAGE::kDefault,
+                        BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+                        0, 1);
+
+  auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
+  if (pLut) {
+    m_pLutTexture = cast::rePointer<CubeMap>(pLut);
+    m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
+  }
+
+  auto pLut1 = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/LBK-K-Tone_33.cube"));
+  if (pLut1) {
+    m_pLutLBK = cast::rePointer<CubeMap>(pLut1);
+    m_shaderData.lutSize = static_cast<float>(m_pLutLBK->getLutSize());
+  }
 }
 
 void
@@ -188,7 +243,8 @@ RenderManager::createRenderTextures()
                                          rtiInfo.format,
                                          rtiInfo.usage,
                                          rtiInfo.bFlags,
-                                         rtiInfo.mipLevels);
+                                         rtiInfo.mipLevels,
+                                         rtiInfo.arraySize);
     m_renderTargetMap[StringID(rtiInfo.name).getID()].pTexture = pTex;
   }
 }
@@ -263,12 +319,15 @@ RenderManager::createPasses()
 
   // Skybox
   auto pSkyBoxShader = sh_makeShared<Pass>();
-  pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+  /*pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
                                 "main",
                                 "vs_5_0");
   pSkyBoxShader->setPShaderInfo("resources/shaders/SkyBoxShader.hlsl",
                                 "mainPS",
-                                "ps_5_0");
+                                "ps_5_0");*/
+  pSkyBoxShader->setCShaderInfo("resources/shaders/SkyBoxShader.hlsl",
+                                "CSMain",
+                                "cs_5_0");
   pSkyBoxShader->compileShader();
 
   // Final shader
@@ -334,6 +393,34 @@ RenderManager::createPasses()
                             "cs_5_0");
   pPPShader->compileShader();
 
+  // Shader to calculate cube maps
+  auto pCubeMapShader = sh_makeShared<Pass>();
+  pCubeMapShader->setCShaderInfo("resources/shaders/CubeMapShader.hlsl",
+                                 "CSMain",
+                                 "cs_5_0");
+  pCubeMapShader->compileShader();
+
+  // Irradiance cube shader
+  auto pIrrCubeShader = sh_makeShared<Pass>();
+  pIrrCubeShader->setCShaderInfo("resources/shaders/IrradianceCubeShader.hlsl",
+                                 "CSMain",
+                                 "cs_5_0");
+  pIrrCubeShader->compileShader();
+
+  // Specular Prefiltered Cubemap shader
+  auto pSPreCubeMap = sh_makeShared<Pass>();
+  pSPreCubeMap->setCShaderInfo("resources/shaders/SpecularPreMapShader.hlsl",
+                               "CSMain",
+                               "cs_5_0");
+  pSPreCubeMap->compileShader();
+
+  // BRDF LUT shader
+  auto pBRDFShader = sh_makeShared<Pass>();
+  pBRDFShader->setCShaderInfo("resources/shaders/BRDFShader.hlsl",
+                              "CSMain",
+                              "cs_5_0");
+  pBRDFShader->compileShader();
+
   // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -398,9 +485,19 @@ RenderManager::createPasses()
   planeDepthSDesc.stencilEnable = false;
 
   // States creation
-  auto pSamplerLinear = graphMan.createSamplerState();
-  m_pSamplerClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
-                                                TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerLinearWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
+                                                     TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerPointWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
+                                                    TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerAnisotropicWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
+                                                          TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerLinearClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
+                                                      TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerPointClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
+                                                     TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerAnisotropicClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
+                                                           TEXTURE_ADDRESS_MODE::kClamp);
+
   auto pRasterState = graphMan.createRasterizerState(rasterDesc);
   auto pBlendState = graphMan.createBlendState(blendDesc);
   auto pDepthStencil = graphMan.createDepthStencilState(depthSDesc);
@@ -408,43 +505,43 @@ RenderManager::createPasses()
   // Fill pass info
   // GBuffer
   pGbufferShader->generateInputLayout();
-  pGbufferShader->setSamplerState(pSamplerLinear);
+  //pGbufferShader->setSamplerState(m_pSamplerLinearWrap);
   pGbufferShader->setRasterizerState(pRasterState);
   pGbufferShader->setBlendState(pBlendState);
   pGbufferShader->setDepthStencilState(pDepthStencil);
 
   // Lightning
-  pLightCS->setSamplerState(pSamplerLinear);
+  //pLightCS->setSamplerState(m_pSamplerLinearWrap);
 
   // AO
-  pAOShader->setSamplerState(pSamplerLinear);
+  //pAOShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Shadow Map
   pSMapShader->generateInputLayout();
-  pSMapShader->setSamplerState(pSamplerLinear);
+  //pSMapShader->setSamplerState(m_pSamplerLinearWrap);
   pSMapShader->setRasterizerState(pRasterState);
   pSMapShader->setBlendState(pBlendState);
   pSMapShader->setDepthStencilState(pDepthStencil);
 
   // SkyBox Map
-  pSkyBoxShader->generateInputLayout();
-  pSkyBoxShader->setSamplerState(pSamplerLinear);
-  pSkyBoxShader->setRasterizerState(pRasterState);
-  pSkyBoxShader->setBlendState(pBlendState);
-  pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
+  //pSkyBoxShader->generateInputLayout();
+  //pSkyBoxShader->setSamplerState(m_pSamplerLinearWrap);
+  //pSkyBoxShader->setRasterizerState(pRasterState);
+  //pSkyBoxShader->setBlendState(pBlendState);
+  //pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
 
   // Final
-  pFinalShader->setSamplerState(pSamplerLinear);
+  //pFinalShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Plane vs
   pPlaneVS->generateInputLayout();
   pPlaneVS->setDepthStencilStateFromDesc(planeDepthSDesc);
 
   // ToneMap
-  pToneMapShader->setSamplerState(pSamplerLinear);
+  //pToneMapShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Bright
-  pBrightShader->setSamplerState(pSamplerLinear);
+  //pBrightShader->setSamplerState(m_pSamplerLinearWrap);
 
   // Save passes
   m_passes[StringID("GBufferShader").getID()] = pGbufferShader;
@@ -465,6 +562,10 @@ RenderManager::createPasses()
   m_passes[StringID("ToneMapShader").getID()] = pToneMapShader;
   m_passes[StringID("PPShader").getID()] = pPPShader;
   m_passes[StringID("AddMixShader").getID()] = pAddMixShader;
+  m_passes[StringID("CubeMapShader").getID()] = pCubeMapShader;
+  m_passes[StringID("IrrCubeShader").getID()] = pIrrCubeShader;
+  m_passes[StringID("SpecularPreMapShader").getID()] = pSPreCubeMap;
+  m_passes[StringID("BRDFShader").getID()] = pBRDFShader;
 }
 
 SPtr<Pass>
@@ -475,6 +576,19 @@ RenderManager::getPass(const String& passName)
 
   if (pPass != m_passes.end()) {
     return (*pPass).second;
+  }
+
+  return nullptr;
+}
+
+SPtr<Texture2D>
+RenderManager::getTexture(const String& texName)
+{
+  StringID strID(texName);
+  auto pTex = m_renderTargetMap.find(strID.getID());
+
+  if (pTex != m_renderTargetMap.end()) {
+    return (*pTex).second.pTexture;
   }
 
   return nullptr;
@@ -505,53 +619,62 @@ RenderManager::drawStaticMeshOnScene()
 
   for (auto& gameObject : scene.getGameObjectList()) {
     for (auto& component : gameObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-        auto meshComponent = sh_reinterpretPCast<StaticMeshComponent>(component);
+      drawStaticMesh(gameObject);
+    }
+  }
+}
 
-        graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
-        graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+void
+RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
+{
+  if( pGO.expired() ) {
+    return;
+  }
+  GraphicsManager& graphMan = g_graphicsMan();
 
-        Transform modelT = gameObject->transform.getTransform();
-        graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+  auto pGameObject = pGO.lock();
 
-        uint32 indexCount = 0;
-        uint32 vertexCount = 0;
-        auto& meshResource = meshComponent->m_mesh;
-        for (auto& mesh : meshResource->m_meshes) {
-          if (!meshResource->m_materials[mesh.materialIndex]->m_properties.bHasAlphaTest) {
-            setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
-            graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
-          }
-          indexCount += mesh.numIndices;
-          vertexCount += mesh.numVertices;
+  for (auto& component : pGameObject->components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
+        pGameObject->m_bActive) {
+      auto meshComponent = cast::rePointer<StaticMeshComponent>(component);
+
+      graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
+      graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+
+      Transform modelT = pGameObject->transform.getTransform();
+      graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+
+      uint32 indexCount = 0;
+      uint32 vertexCount = 0;
+      auto& meshResource = meshComponent->m_mesh;
+      for (auto& mesh : meshResource->m_meshes) {
+        uint32 matIndex = mesh.materialIndex;
+        bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
+        if (!bHasAlphaTest) {
+          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
+        indexCount += mesh.numIndices;
+        vertexCount += mesh.numVertices;
+      }
+      indexCount = 0;
+      vertexCount = 0;
+      for (auto& mesh : meshResource->m_meshes) {
+        uint32 matIndex = mesh.materialIndex;
+        bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
+        if (bHasAlphaTest) {
+          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+        }
+        indexCount += mesh.numIndices;
+        vertexCount += mesh.numVertices;
       }
     }
   }
-  for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
-        auto meshComponent = sh_reinterpretPCast<StaticMeshComponent>(component);
 
-        graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
-        graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
-
-        Transform modelT = gameObject->transform.getTransform();
-        graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
-
-        uint32 indexCount = 0;
-        uint32 vertexCount = 0;
-        auto& meshResource = meshComponent->m_mesh;
-        for (auto& mesh : meshResource->m_meshes) {
-          if (meshResource->m_materials[mesh.materialIndex]->m_properties.bHasAlphaTest) {
-            setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
-            graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
-          }
-          indexCount += mesh.numIndices;
-          vertexCount += mesh.numVertices;
-        }
-      }
-    }
+  for (auto& pChild : pGameObject->childs) {
+    drawStaticMesh(pChild);
   }
 }
 
@@ -653,6 +776,11 @@ RenderManager::renderScene()
   auto& pAdditiveMap = m_renderTargetMap[StringID("AdditiveMap").getID()];
   auto& pBHBlur = m_renderTargetMap[StringID("BHBlur").getID()];
   auto& pBVBlur = m_renderTargetMap[StringID("BVBlur").getID()];
+  auto& pGbufferDepth = m_renderTargetMap[StringID("GbufferDepth").getID()];
+  //auto& pCubeMap = m_renderTargetMap[StringID("CubeMap").getID()];
+  //auto& pDiffIrrMap = m_renderTargetMap[StringID("DiffIrrMap").getID()];
+  //auto& pSpecPreMap = m_renderTargetMap[StringID("SpecPreMap").getID()];
+  //auto& pBRDFMap = m_renderTargetMap[StringID("BRDFLut").getID()];
   //auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
@@ -661,6 +789,8 @@ RenderManager::renderScene()
   uint32 dispatchX = threadGroups(screenWidth, DEFAULT_THREADS);
   uint32 dispatchY = threadGroups(screenHeight, DEFAULT_THREADS);
   uint32 dispatchZ = 1;
+
+  uint32 cubeDispatch = threadGroups(CUBE_MAP_SIZE, DEFAULT_THREADS);
 
   Viewport normalVP = {};
   normalVP.width = m_screenDimension.x;
@@ -710,6 +840,7 @@ RenderManager::renderScene()
   /*              GBuffer              */
   /*************************************/
   graphMan.setViewport(normalVP);
+  graphMan.clearDepthStencil(pGbufferDepth.pTexture);
   graphMan.clearRenderTarget(pDepthMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pNormalMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pColorMap.pTexture, LinearColor::BLACK);
@@ -718,8 +849,9 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{pDepthMap.pTexture},
                              {pNormalMap.pTexture},
                              {pColorMap.pTexture},
-                             {pPropMap.pTexture }}, pDepthSV);
+                             {pPropMap.pTexture }}, pGbufferDepth.pTexture);
   m_passes[StringID("GBufferShader").getID()]->setPass();
+  setSamplers();
   drawStaticMeshOnScene();
   cleanShaderObjects();
 
@@ -731,6 +863,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{ pOutput }}, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("AOShader").getID()]->setPass();
+  setSamplers();
   graphMan.psSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.psSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.draw(3, 0);
@@ -745,6 +878,7 @@ RenderManager::renderScene()
   pOutput = pHBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HBlurShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
@@ -760,6 +894,7 @@ RenderManager::renderScene()
   pOutput = pVBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("VBlurShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   /*graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
@@ -769,45 +904,55 @@ RenderManager::renderScene()
   cleanShaderObjects();
 
   /*************************************/
+  /*              Sky Box              */
+  /*************************************/
+  uint32 numMipLevels = 0;
+  uint32 maxSize = Math::max(m_skyboxDimension.x, m_skyboxDimension.y);
+  for (uint32 i = 0; i < maxSize; ++i) {
+    if (maxSize >> i < 32) {
+      break;
+    }
+    ++numMipLevels;
+  }
+  float normMip = Math::clamp(m_prefilteredCB.roughness, 0.0f, 1.0f);
+  m_prefilteredCB.mipmapLevels = normMip * (numMipLevels - 1) + 0.5f;
+  updatePrefilteredIBLBuffer();
+
+  m_passes[StringID("SkyBoxShader").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetConstantBuffers(m_pPreCB, 2);
+  graphMan.csSetShaderResourceView(m_pSpecularPreMap, 0);
+  graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+
+  cleanShaderObjects();
+
+  float tempRoughness = m_prefilteredCB.roughness;
+  m_prefilteredCB.roughness = 0.0f;
+  updatePrefilteredIBLBuffer();
+  m_prefilteredCB.roughness = tempRoughness;
+
+  /*************************************/
   /*             Lightning             */
   /*************************************/
   pOutput = pLightCMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LightCS").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetConstantBuffers(m_pPreCB, 4);
   graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
   graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
   graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
   graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 5);
-  //graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 6);
+  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 6);
+  //graphMan.csSetShaderResourceView(m_pEnvTexture, 7);
+  graphMan.csSetShaderResourceView(m_pBRDF, 7);
+  graphMan.csSetShaderResourceView(m_pDiffIrr, 8);
+  graphMan.csSetShaderResourceView(m_pSpecularPreMap, 9);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
-
-  /*************************************/
-  /*              Sky Box              */
-  /*************************************/
-  graphMan.clearRenderTarget(pSkyBoxMap.pTexture, LinearColor::BLACK);
-  graphMan.setRenderTargets({{ pSkyBoxMap.pTexture }}, pDepthSV);
-  m_passes[StringID("SkyBoxShader").getID()]->setPass();
-
-  WPtr<Texture2D> pSbTex;
-  for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kSkyBox) {
-        auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(component);
-        graphMan.setVertexBuffers(pSkyBox->getVertexBuffer());
-        graphMan.setIndexBuffers(pSkyBox->getIndexBuffer());
-        pSbTex = pSkyBox->getMaterial()->baseColor;
-        graphMan.psSetShaderResourceView(pSbTex, 0);
-
-        uint32 numIndices = static_cast<uint32>(pSkyBox->getIndices().size());
-        graphMan.drawIndexed(numIndices, 0, 0);
-      }
-    }
-  }
-
   cleanShaderObjects();
 
   /*************************************/
@@ -816,8 +961,9 @@ RenderManager::renderScene()
   pOutput = pTempMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ASBShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
-  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 1);
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
@@ -826,11 +972,12 @@ RenderManager::renderScene()
   /*************************************/
   /*             Luminance             */
   /*************************************/
-  pInput = pTempMap.pTexture;
+  pInput = pLightCMap.pTexture;
   pOutput = pLuminance.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LuminanceShader").getID()]->setPass();
-  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  setSamplers();
+  graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();
@@ -843,6 +990,7 @@ RenderManager::renderScene()
   pOutput = pBrightMap.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("BrightShader").getID()]->setPass();
+  setSamplers();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pInput, 1);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
@@ -880,7 +1028,8 @@ RenderManager::renderScene()
       pInput = pAdditiveMap.pTexture;
       //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
       m_passes[StringID("AddMixShader").getID()]->setPass();
-      graphMan.setCSSamplerState(m_pSamplerClamp, 1);
+      setSamplers();
+      //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
       graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
       graphMan.setUnorderedAccessView({ pAdditiveMap.pTexture, mipLevel0 }, 0);
@@ -897,6 +1046,7 @@ RenderManager::renderScene()
     //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     m_passes[StringID("HBlurShader").getID()]->setPass();
     //m_passes[StringID("HBlurCS").getID()]->setPass();
+    setSamplers();
     graphMan.csSetShaderResourceView(pInput, 0);
     graphMan.setUnorderedAccessView({ pBHBlur.pTexture, mipLevel0 }, 0);
     /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
@@ -913,6 +1063,7 @@ RenderManager::renderScene()
     //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     m_passes[StringID("VBlurShader").getID()]->setPass();
     //m_passes[StringID("VBlurCS").getID()]->setPass();
+    setSamplers();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
     graphMan.setUnorderedAccessView({ pBVBlur.pTexture, mipLevel0 }, 0);
     /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
@@ -930,29 +1081,50 @@ RenderManager::renderScene()
   m_mainBufferData.screenSize.x = m_screenDimension.x;
   m_mainBufferData.screenSize.y = m_screenDimension.y;
   graphMan.updateConstantBuffer(m_pMainBuffer, &m_mainBufferData, sizeof(MainBufferData));
+
+  SPtr<Texture3D> pLutTex;
+  int32 index = static_cast<int32>(m_shaderData.toneMappingIndex);
+  if (index == 4) {
+    m_shaderData.lutSize = m_pLutTexture->getLutSize();
+    pLutTex = m_pLutTexture->getTexture();
+  }
+  else if (index == 5) {
+    m_shaderData.lutSize = m_pLutLBK->getLutSize();
+    pLutTex = m_pLutLBK->getTexture();
+    m_shaderData.toneMappingIndex = 4.0f;
+  }
+  else {
+    m_shaderData.lutSize = 0;
+    pLutTex = nullptr;
+  }
+  updateShaderDataBuffer();
+
   //pInput = pVBlurMap.pTexture;
   //pOutput = pToneMap.pTexture;
   graphMan.setViewport(normalVP);
 
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("ToneMapShader").getID()]->setPass();
-  graphMan.setCSSamplerState(m_pSamplerClamp, 1);
+  setSamplers();
+  //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
   graphMan.csSetShaderResourceView(pLuminance.pTexture, 2);
+  graphMan.csSetShaderResourceView(pLutTex, 3);
   graphMan.setUnorderedAccessView({ pToneMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
 
+  m_shaderData.toneMappingIndex = cast::st<float>(index);
+  updateShaderDataBuffer();
+
   /*************************************/
   /*            PostProcess            */
   /*************************************/
-  //pInput = pTempMap.pTexture;
-  //pOutput = pPPMap.pTexture;
-  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("PPShader").getID()]->setPass();
+  setSamplers();
 
   graphMan.csSetShaderResourceView(pToneMap.pTexture, 0);
   graphMan.setUnorderedAccessView({ pPPMap.pTexture }, 0);
@@ -967,6 +1139,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{ pMainTarget }}, pDepthSV);
   m_passes[StringID("PlaneShader").getID()]->setPass();
   m_passes[StringID("FinalShader").getID()]->setPass();
+  setSamplers();
 
   graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
 
@@ -979,6 +1152,7 @@ RenderManager::renderScene()
   /*************************************/
   /*graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("HistogramShader").getID()]->setPass();
+  setSamplers();
 
   graphMan.csSetShaderResourceView(pPPMap.pTexture, 0);
   graphMan.setUnorderedAccessView(pHistogramMap.pTexture, 0);
@@ -990,6 +1164,136 @@ RenderManager::renderScene()
   graphMan.dispatch(dx, dy, dz);
 
   cleanShaderObjects();*/
+}
+
+void
+RenderManager::computeIBL()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  SceneGraph& scene = g_sceneGraph();
+
+  //auto& pCubeMap = m_renderTargetMap[StringID("CubeMap").getID()];
+  //auto& pDiffIrrMap = m_renderTargetMap[StringID("DiffIrrMap").getID()];
+  //auto& pSpecPreMap = m_renderTargetMap[StringID("SpecPreMap").getID()];
+
+  m_pSpecularPreMap = nullptr;
+  m_skyboxDimension.x = TEXTURE8K_WIDTH;
+  m_skyboxDimension.y = TEXTURE4K_WIDTH;
+
+  SPtr<ImageResource> pSbImg;
+  for (auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kSkyBox) {
+        auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(component);
+        pSbImg = pSkyBox->getSkyBoxResource();
+        break;
+      }
+    }
+  }
+
+  m_skyboxDimension.x = cast::st<int32>(pSbImg->width);
+  m_skyboxDimension.y = cast::st<int32>(pSbImg->height);
+  uint32 numMipLevels = 0;
+  uint32 maxSize = Math::max(m_skyboxDimension.x, m_skyboxDimension.y);
+  for (uint32 i = 0; i < maxSize; ++i) {
+    if (maxSize >> i < 32) {
+      break;
+    }
+    ++numMipLevels;
+  }
+
+  /*pSpecPreMap.width = cast::st<float>(m_skyboxDimension.x);
+  pSpecPreMap.height = cast::st<float>(m_skyboxDimension.y);
+  pSpecPreMap.format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT;
+  pSpecPreMap.usage = USAGE::kDefault;
+  pSpecPreMap.bFlags = BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess;
+  pSpecPreMap.mipLevels = numMipLevels;
+  pSpecPreMap.arraySize = 1;
+  pSpecPreMap.bUseScaledSize = false;*/
+  
+  m_pSpecularPreMap = graphMan.createTexture2D(cast::st<float>(m_skyboxDimension.x),
+                               cast::st<float>(m_skyboxDimension.y),
+                               TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                               USAGE::kDefault,
+                               BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+                               numMipLevels);
+
+  m_prefilteredCB.width = 256;
+  m_prefilteredCB.height = 128;
+  m_prefilteredCB.samples = TEXTURE4K_WIDTH;
+  m_prefilteredCB.roughness = 0.0f;
+  m_prefilteredCB.mipmapLevels = 0.0f;
+
+  m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
+  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+
+  /*************************************/
+  /*            Irradiance             */
+  /*************************************/
+  m_passes[StringID("IrrCubeShader").getID()]->setPass();
+  setSamplers();
+  graphMan.csSetConstantBuffers(m_pPreCB, 2);
+  graphMan.csSetShaderResourceView(pSbImg->texture, 0);
+  graphMan.setUnorderedAccessView({ m_pDiffIrr }, 0);
+  graphMan.dispatch(threadGroups(256, 16),
+                    threadGroups(128, 16),
+                    1);
+
+  cleanShaderObjects();
+
+  graphMan.generateMips(m_pDiffIrr);
+
+  /*************************************/
+  /*      Specular Prefiltered Map     */
+  /*************************************/
+  PrefilteredCB specPreCB = {};
+
+  for (int32 mip = 0; mip < numMipLevels; ++mip) {
+    Vector2i preSize = Vector2i(m_skyboxDimension.x >> mip, m_skyboxDimension.y >> mip);
+    Vector2i dispatchSize = Vector2i(threadGroups(preSize.x, 8),
+                                     threadGroups(preSize.y, 8));
+
+    specPreCB.width = preSize.x;
+    specPreCB.height = preSize.y;
+    specPreCB.samples = 4096;
+    specPreCB.mipmapLevels = cast::st<float>(mip);
+    specPreCB.roughness = (mip == 0) ? 0.0f :
+      Math::clamp(cast::st<float>(mip) / cast::st<float>(numMipLevels - 1), 0.0f, 1.0f);
+
+    graphMan.updateConstantBuffer(m_pPreCB, &specPreCB, sizeof(PrefilteredCB));
+
+    m_passes[StringID("SpecularPreMapShader").getID()]->setPass();
+    setSamplers();
+    graphMan.csSetConstantBuffers(m_pPreCB, 2);
+    graphMan.csSetShaderResourceView(pSbImg->texture, 0);
+    graphMan.setUnorderedAccessView({ m_pSpecularPreMap, mip }, 0);
+    graphMan.dispatch(dispatchSize.x, dispatchSize.y, 1);
+
+    cleanShaderObjects();
+  }
+
+  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+}
+
+void
+RenderManager::computeBRDF()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  
+  m_pBRDF = graphMan.createTexture2D(256, 256,
+                                     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
+                                     USAGE::kDefault,
+                                     BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
+                                     1, 1);
+  
+  uint32 lutDispatch = threadGroups(256, 16);
+
+  m_passes[StringID("BRDFShader").getID()]->setPass();
+  setSamplers();
+  graphMan.setUnorderedAccessView({ m_pBRDF }, 0);
+  graphMan.dispatch(lutDispatch, lutDispatch, 1);
+
+  cleanShaderObjects();
 }
 
 void
@@ -1079,6 +1383,44 @@ RenderManager::cleanShaderObjects()
   cleanPSConstantBuffers();
   cleanGSConstantBuffers();
   cleanCSConstantBuffers();
+}
+
+void
+RenderManager::updateShaderDataBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (m_pShaderDataBuffer == nullptr) {
+    m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
+  }
+
+  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
+}
+
+void
+RenderManager::updatePrefilteredIBLBuffer()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+}
+
+void
+RenderManager::setSamplers()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  graphMan.psSetSamplerState(m_pSamplerLinearWrap, 0);
+  graphMan.psSetSamplerState(m_pSamplerPointWrap, 1);
+  graphMan.psSetSamplerState(m_pSamplerAnisotropicWrap, 2);
+  graphMan.psSetSamplerState(m_pSamplerLinearClamp, 3);
+  graphMan.psSetSamplerState(m_pSamplerPointClamp, 4);
+  graphMan.psSetSamplerState(m_pSamplerAnisotropicClamp, 5);
+
+  graphMan.csSetSamplerState(m_pSamplerLinearWrap, 0);
+  graphMan.csSetSamplerState(m_pSamplerPointWrap, 1);
+  graphMan.csSetSamplerState(m_pSamplerAnisotropicWrap, 2);
+  graphMan.csSetSamplerState(m_pSamplerLinearClamp, 3);
+  graphMan.csSetSamplerState(m_pSamplerPointClamp, 4);
+  graphMan.csSetSamplerState(m_pSamplerAnisotropicClamp, 5);
 }
 
 void

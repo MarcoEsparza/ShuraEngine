@@ -1,29 +1,35 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shGraphicsTypes.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/04
+*  @date    2025/07/16
 *  @brief   Structs and enums for graphics manager.
 *
 *  Structs and enums for graphics manager.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shVector2.h"
-#include "shVector3.h"
-#include "shVector4.h"
-#include "shMatrix4.h"
+#include <shVector2.h>
+#include <shVector3.h>
+#include <shVector4.h>
+#include <shMatrix4.h>
 
 namespace shEngineSDK {
+/*****************************************************************************/
+/*
+*  Forward declarations
+*/
+/*****************************************************************************/
+
 class Texture2D;
 
 /**
@@ -31,15 +37,28 @@ class Texture2D;
 */
 struct SH_CORE_EXPORT SampleDesc
 {
+  /**
+  *  @brief Default constructor for SampleDesc.
+  */
   SampleDesc() = default;
 
+  /**
+  *  @brief Constructor for SampleDesc with parameters.
+  */
   SampleDesc(uint32 _count, uint32 _quality)
   {
     count = _count;
     quality = _quality;
   }
 
+  /**
+  *  @brief Copy constructor for SampleDesc.
+  */
   uint32 count = 0;
+
+  /**
+  *  @brief Copy constructor for SampleDesc.
+  */
   uint32 quality = 0;
 };
 
@@ -47,10 +66,10 @@ struct SH_CORE_EXPORT SampleDesc
 *  @brief Enumerator for suppoerted graphic apis.
 */
 namespace GRAPHIC_API {
-enum SH_CORE_EXPORT E
+enum E
 {
-  kDX11 = 0,
-  kOGL
+  kDX11 = 0,                                // DirectX 11 API
+  kOGL = 1,                                 // OpenGL API
 };
 }
 
@@ -58,16 +77,16 @@ enum SH_CORE_EXPORT E
 *  @brief Input Layout types enumerator namespace.
 */
 namespace INPUT_LAYOUT_TYPES {
-enum SH_CORE_EXPORT E
+enum E
 {
-  kPosition = 0,
-  kNormal,
-  kTexcoord,
-  kTangents,
-  kBitangents,
-  kBoneIndices,
-  kBoneWieghts,
-  kColor
+  kPosition = 0,                       // Position in 3D space
+  kNormal,                             // Normal vector for lighting calculations
+  kTexcoord,                           // Texture coordinates for mapping textures
+  kTangents,                           // Tangent vector for normal mapping
+  kBitangents,                         // Bitangent vector for normal mapping
+  kBoneIndices,                        // Indices of bones affecting the vertex
+  kBoneWieghts,                        // Weights of bones affecting the vertex
+  kColor = 8,                          // Color information for the vertex
 };
 }
 
@@ -76,12 +95,39 @@ enum SH_CORE_EXPORT E
 */
 struct SH_CORE_EXPORT VertexData
 {
+  /**
+  *  @brief Position in 3D space.
+  */
   Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
+
+  /**
+  *  @brief Normal vector for lighting calculations.
+  */
   Vector3 normal = Vector3(0.0f, 0.0f, 0.0f);
+
+  /**
+  *  @brief Texture coordinates for mapping textures.
+  */
   Vector2 tex = Vector2(0.0f, 0.0f);
+
+  /**
+  *  @brief Tangent vector for normal mapping.
+  */
   Vector3 tangents = Vector3(0.0f, 0.0f, 0.0f);
+
+  /**
+  *  @brief Bitangent vector for normal mapping.
+  */
   Vector3 bitangents = Vector3(0.0f, 0.0f, 0.0f);
+
+  /**
+  *  @brief Indices of bones affecting the vertex.
+  */
   Vector4 boneIds = Vector4(-1.0f, -1.0f, -1.0f, -1.0f);
+
+  /**
+  *  @brief Weights of bones affecting the vertex.
+  */
   Vector4 boneWeights = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 };
 
@@ -90,8 +136,19 @@ struct SH_CORE_EXPORT VertexData
 */
 struct SH_CORE_EXPORT GUIVertexData
 {
+  /**
+  *  @brief Position in 2D space.
+  */
   Vector2 position = Vector2(0.0f, 0.0f);
+
+  /**
+  *  @brief Texture coordinates for mapping textures.
+  */
   Vector2 texcoord = Vector2(0.0f, 0.0f);
+
+  /**
+  *  @brief Color information for the vertex.
+  */
   uint32 color = 0;
 };
 
@@ -100,11 +157,34 @@ struct SH_CORE_EXPORT GUIVertexData
 */
 struct SH_CORE_EXPORT Viewport
 {
+  /**
+  *  @brief Width of the viewport.
+  */
   float width = 0.0f;
+
+  /**
+  *  @brief Height of the viewport.
+  */
   float height = 0.0f;
+
+  /**
+  *  @brief Minimum depth of the viewport.
+  */
   float minDepth = 0.0f;
+
+  /**
+  *  @brief Maximum depth of the viewport.
+  */
   float maxDepth = 0.0f;
+
+  /**
+  *  @brief Top-left X coordinate of the viewport.
+  */
   float topLeftX = 0.0f;
+
+  /**
+  *  @brief Top-left Y coordinate of the viewport.
+  */
   float topLeftY = 0.0f;
 };
 
@@ -112,10 +192,13 @@ struct SH_CORE_EXPORT Viewport
 *  @brief Filters enumerator.
 */
 namespace SAMPLER_FILTER {
-enum SH_CORE_EXPORT E
+enum E
 {
+  // Point sampling for minification, magnification, and mipmapping
   kFilterMinMagMipPoint = 0,
+  // Linear sampling for minification, magnification, and mipmapping
   kFilterMinMagMipLinear = 21,
+  // Anisotropic filtering for improved quality at oblique angles
   kFilterAnisotropic = 85
 };
 }
@@ -124,13 +207,13 @@ enum SH_CORE_EXPORT E
 *  @brief Address mode.
 */
 namespace TEXTURE_ADDRESS_MODE {
-enum SH_CORE_EXPORT E
+enum E
 {
-  kWrap = 1,
-  kMirror,
-  kClamp,
-  kBorder,
-  kMirrorOnce
+  kWrap = 1,         // Wraps texture coordinates to repeat the texture
+  kMirror,           // Mirrors texture coordinates to create a mirrored effect
+  kClamp,            // Clamps texture coordinates to the edge of the texture
+  kBorder,           // Uses a border color for texture coordinates outside the range [0, 1]
+  kMirrorOnce        // Mirrors texture coordinates once, then clamps them
 };
 }
 
@@ -138,7 +221,7 @@ enum SH_CORE_EXPORT E
 *  @brief Current supported formats.
 */
 namespace TEXTURE_FORMAT {
-enum SH_CORE_EXPORT E
+enum E
 {
   kUnknown                                                = 0,
   kR32G32B32A32_TYPELESS                                  = 1,
@@ -207,18 +290,18 @@ enum SH_CORE_EXPORT E
 *  @brief Flags.
 */
 namespace BIND_FLAGS {
-enum SH_CORE_EXPORT E
+enum E
 {
-  kVertexBuffer = 0x1L,
-  kIndexBuffer = 0x2L,
-  kConstantBuffer = 0x4L,
-  kShaderResource = 0x8L,
-  kStreamOutput = 0x10L,
-  kRenderTarget = 0x20L,
-  kDepthStencil = 0x40L,
-  kUnorderedAccess = 0x80L,
-  kDecoder = 0x200L,
-  kVideoEncoder = 0x400L
+  kVertexBuffer            = 0x1L,         // Vertex buffer for input assembly stage
+  kIndexBuffer             = 0x2L,         // Index buffer for input assembly stage
+  kConstantBuffer          = 0x4L,         // Constant buffer for shader stages
+  kShaderResource          = 0x8L,         // Shader resource for read-only access in shaders
+  kStreamOutput            = 0x10L,        // Stream output for geometry shader stage
+  kRenderTarget            = 0x20L,        // Render target for output merger stage
+  kDepthStencil            = 0x40L,        // Depth-stencil buffer for output merger stage
+  kUnorderedAccess         = 0x80L,        // Unordered access view for compute shader stage
+  kDecoder                 = 0x200L,       // Decoder for video processing
+  kVideoEncoder            = 0x400L        // Video encoder for video processing
 };
 }
 
@@ -226,12 +309,12 @@ enum SH_CORE_EXPORT E
 *  @brief Usage enumerator.
 */
 namespace USAGE {
-enum SH_CORE_EXPORT E
+enum E
 {
-  kDefault = 0,
-  kImmutable,
-  kDynamic,
-  kStaging
+  kDefault = 0,  // Default usage for resources that are frequently accessed by the GPU
+  kImmutable,    // Immutable usage for resources that are created once and not modified
+  kDynamic,      // Dynamic usage for resources that are frequently updated by the CPU
+  kStaging // Staging usage for resources that are used for data transfer between CPU and GPU
 };
 }
 
@@ -239,7 +322,7 @@ enum SH_CORE_EXPORT E
 *  @brief Supported topology.
 */
 namespace PRIMITIVE_TOPOLOGY {
-enum SH_CORE_EXPORT E
+enum E
 {
   kUndefined = 0,
   kPointList,
@@ -253,7 +336,7 @@ enum SH_CORE_EXPORT E
 *  @brief Clear flags.
 */
 namespace CLEAR_FLAGS {
-enum SH_CORE_EXPORT E
+enum E
 {
   kDepth = 1,
   kStencil
@@ -265,8 +348,19 @@ enum SH_CORE_EXPORT E
 */
 struct SH_CORE_EXPORT InputDesc
 {
+  /**
+  *  @brief Type of the input layout.
+  */
   INPUT_LAYOUT_TYPES::E type;
+
+  /**
+  *  @brief Format of the input layout.
+  */
   uint32 format;
+
+  /**
+  *  @brief Size of the input layout.
+  */
   uint32 size;
 };
 
@@ -274,7 +368,7 @@ struct SH_CORE_EXPORT InputDesc
 *  @brief Texture type for resource.
 */
 namespace TEXTURE_TYPE {
-enum SH_CORE_EXPORT E
+enum E
 {
   kNone = 0,
   kDiffuse,
@@ -307,7 +401,7 @@ enum SH_CORE_EXPORT E
 *  @brief Blend options.
 */
 namespace BLEND {
-enum SH_CORE_EXPORT E
+enum E
 {
   kZero = 1,
   kOne = 2,
@@ -333,7 +427,7 @@ enum SH_CORE_EXPORT E
 *  @brief Blend operations.
 */
 namespace BLEND_OP {
-enum SH_CORE_EXPORT E
+enum E
 {
   kAdd = 1,
   kSubtract = 2,

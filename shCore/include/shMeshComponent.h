@@ -2,7 +2,7 @@
 /*
 *  @file    shMeshComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/07/16
 *  @brief   Mesh component classes.
 *
 *  Mesh component classes.
@@ -19,6 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shComponent.h"
+#include <shMatrix4.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -30,7 +31,6 @@ class Material;
 class StaticMeshResource;
 class SkeletalMeshResource;
 class SkeletonResource;
-class Matrix4;
 class VertexBuffer;
 class IndexBuffer;
 class ConstantBuffer;
@@ -161,8 +161,14 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   */
   SPtr<IndexBuffer> m_indexBuffer;
 
+  /**
+  *  @brief Constant Buffer for bones data.
+  */
   SPtr<ConstantBuffer> m_bonesBuffer;
 
+  /**
+  *  @brief Current pose of the skeleton.
+  */
   Vector<Matrix4> m_currentPose;
 };
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shPlane.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/30
+*  @date    2025/07/15
 *  @brief   Math class for plane figure.
 *
 *  Math class for plane figure.
@@ -24,30 +24,6 @@ namespace shEngineSDK {
 *  Functions
 */
 /*****************************************************************************/
-
-void
-Plane::setNormal(const Vector3& _normal)
-{
-  normal = _normal;
-}
-
-void
-Plane::setDistance(const float _distance)
-{
-  distance = _distance;
-}
-
-Vector3
-Plane::getNormal() const
-{
-  return normal;
-}
-
-float
-Plane::getDistance() const
-{
-  return distance;
-}
 
 float
 Plane::pointToPlaneDistance(const Vector3& point) const

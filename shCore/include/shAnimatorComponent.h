@@ -1,27 +1,27 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shAnimatorComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/15
+*  @date    2025/07/16
 *  @brief   Component in charge of contain and play animations.
 *
 *  Component in charge of contain and play animations.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shComponent.h"
 #include "shAnimationResource.h"
 #include "shSkeletonResource.h"
-#include "shMatrix4.h"
+#include <shMatrix4.h>
 
 namespace shEngineSDK {
 /**
@@ -40,11 +40,11 @@ class AnimatorComponent : public Component
   */
   ~AnimatorComponent() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Updates the current animation.
@@ -72,30 +72,30 @@ class AnimatorComponent : public Component
   void
   calculateBoneTransform(const AnimationNodeData& node, const Matrix4& parentTransform);
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief The current animation.
   */
-  SPtr<AnimationResource> currentAnim;
+  SPtr<AnimationResource> m_currentAnim;
 
   /**
   *  @brief The current time for the animation.
   */
-  float currentTime = 0.0f;
+  float m_currentTime = 0.0f;
 
   /**
   *  @brief The time for the animator.
   */
-  float deltaTime = 0.0f;
+  float m_deltaTime = 0.0f;
 
   /**
   *  @brief Final skeleton trsnformation.
   */
-  Vector<Matrix4> finalBoneTransforms;
+  Vector<Matrix4> m_finalBoneTransforms;
 };
 }

@@ -1,8 +1,8 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shMatrix4.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/11
+*  @date    2025/07/15
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -10,23 +10,23 @@
 *
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shMatrix4.h"
 #include "shMath.h"
 #include "shRadian.h"
 
 namespace shEngineSDK {
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Static variables
 */
-/*************************************************************/
+/*****************************************************************************/
 
 const Matrix4 Matrix4::IDENTITY = Matrix4(1.0f, 0.0f, 0.0f, 0.0f,
                                           0.0f, 1.0f, 0.0f, 0.0f,
@@ -38,34 +38,11 @@ const Matrix4 Matrix4::ZEROMATRIX = Matrix4(0.0f, 0.0f, 0.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 0.0f,
                                             0.0f, 0.0f, 0.0f, 0.0f);
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Constructors
 */
-/*************************************************************/
-
-Matrix4::Matrix4(const Matrix4& other)
-{
-  m[0][0] = other.m[0][0];
-  m[0][1] = other.m[0][1];
-  m[0][2] = other.m[0][2];
-  m[0][3] = other.m[0][3];
-
-  m[1][0] = other.m[1][0];
-  m[1][1] = other.m[1][1];
-  m[1][2] = other.m[1][2];
-  m[1][3] = other.m[1][3];
-
-  m[2][0] = other.m[2][0];
-  m[2][1] = other.m[2][1];
-  m[2][2] = other.m[2][2];
-  m[2][3] = other.m[2][3];
-
-  m[3][0] = other.m[3][0];
-  m[3][1] = other.m[3][1];
-  m[3][2] = other.m[3][2];
-  m[3][3] = other.m[3][3];
-}
+/*****************************************************************************/
 
 Matrix4::Matrix4(const Quaternion& quat)
 {
@@ -168,19 +145,19 @@ RotationZMatrix::RotationZMatrix(const float radAngle)
   m[3][3] = 1.0f;
 }
 
-MatrixRotationAxis::MatrixRotationAxis(Vector3 axis, float angle)
+MatrixRotationAxis::MatrixRotationAxis(const Vector3& axis, float angle)
 {
   SH_ASSERT(!axis.isZero());
   SH_ASSERT(!axis.containsNaN());
 
-  axis.normalize();
+  Vector3 normAxis = axis.getNormalized();
 
   //Compute rotation matrix from axis and angle
   float s = Math::sin(Radian(angle));
   float c = Math::cos(Radian(angle));
   float t = 1.0f - c;
 
-  float x = axis.x;  float y = axis.y;  float z = axis.z;
+  float x = normAxis.x;  float y = normAxis.y;  float z = normAxis.z;
 
   float tx = t * x;    float ty = t * y;    float tz = t * z;
   float txy = tx * y;  float txz = tx * z;  float tyz = ty * z;
@@ -281,41 +258,19 @@ OrthographicProjectionMatrix::OrthographicProjectionMatrix(const float left,
   m[3][1] = 0.0f;
   m[3][2] = 0.0f;
   m[3][3] = 1.0f;
-
-  /*float width = 1.0f / (right - left);
-  float height = 1.0f / (top - bottom);
-  float depth = 1.0f / (farZ - nearZ);
-
-  m[0][0] = 2.0f * width;
-  m[0][1] = 0.0f;
-  m[0][2] = 0.0f;
-  m[0][3] = 0.0f;
-
-  m[1][0] = 0.0f;
-  m[1][1] = 2.0f * height;
-  m[1][2] = 0.0f;
-  m[1][3] = 0.0f;
-
-  m[2][0] = 0.0f;
-  m[2][1] = 0.0f;
-  m[2][2] = depth;
-  m[2][3] = 0.0f;
-
-  m[3][0] = -(right + left) * width;
-  m[3][1] = -(top + bottom) * height;
-  m[3][2] = -nearZ * depth;
-  m[3][3] = 1.0f;*/
 }
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Functions
 */
-/*************************************************************/
+/*****************************************************************************/
 
 void
-Matrix4::transpose(const Matrix4& other)
+Matrix4::transpose()
 {
+  Matrix4 other = *this;
+
   for (int8 i = 0; i < 4; ++i)
   {
     for (int8 j = 0; j < 4; ++j)
@@ -326,17 +281,17 @@ Matrix4::transpose(const Matrix4& other)
 }
 
 Matrix4
-Matrix4::getTransposed()
+Matrix4::getTransposed() const
 {
-  Matrix4 other = *this;
+  Matrix4 other = Matrix4::IDENTITY;
 
   for (int8 i = 0; i < 4; ++i) {
     for (int8 j = 0; j < 4; ++j) {
-      m[j][i] = other.m[i][j];
+      other.m[j][i] = m[i][j];
     }
   }
 
-  return *this;
+  return other;
 }
 
 Matrix4
@@ -484,15 +439,18 @@ Matrix4::createTranslationMatrix(const Vector3& vec) const
 Matrix4
 Matrix4::quaternionToMatrix(const Quaternion& quat) const
 {
-  const float p00 = 1.0f - (2.0f * (Math::pow(quat.y, 2.0f))) - (2.0f * (Math::pow(quat.z, 2.0f)));
+  const float p00 = 1.0f - (2.0f * (Math::pow(quat.y, 2.0f))) -
+                    (2.0f * (Math::pow(quat.z, 2.0f)));
   const float p01 = (2.0f * (quat.x * quat.y)) - (2.0f * (quat.w * quat.z));
   const float p02 = (2.0f * (quat.x * quat.z)) + (2.0f * (quat.w * quat.y));
   const float p10 = (2.0f * (quat.x * quat.y)) + (2.0f * (quat.w * quat.z));
-  const float p11 = 1.0f - (2.0f * (Math::pow(quat.x, 2.0f))) - (2.0f * (Math::pow(quat.z, 2.0f)));
+  const float p11 = 1.0f - (2.0f * (Math::pow(quat.x, 2.0f))) -
+                    (2.0f * (Math::pow(quat.z, 2.0f)));
   const float p12 = (2.0f * (quat.y * quat.z)) - (2.0f * (quat.w * quat.x));
   const float p20 = (2.0f * (quat.x * quat.z)) - (2.0f * (quat.w * quat.y));
   const float p21 = (2.0f * (quat.y * quat.z)) + (2.0f * (quat.w * quat.x));
-  const float p22 = 1.0f - (2.0f * (Math::pow(quat.x, 2.0f))) - (2.0f * (Math::pow(quat.y, 2.0f)));
+  const float p22 = 1.0f - (2.0f * (Math::pow(quat.x, 2.0f))) -
+                    (2.0f * (Math::pow(quat.y, 2.0f)));
 
   return Matrix4(p00, p01, p02, 0.0f,
                  p10, p11, p12, 0.0f,
@@ -596,14 +554,6 @@ Transform::setPosition(const Vector3& position)
 void
 Transform::setRotation(const Vector3& rotation)
 {
-  /*const Matrix4 xAxis = Matrix4::createRotationXMatrix(Radian(rotation.x));
-  const Matrix4 yAxis = Matrix4::createRotationYMatrix(Radian(rotation.y));
-  const Matrix4 zAxis = Matrix4::createRotationZMatrix(Radian(rotation.z));
-
-  *this *= zAxis;
-  *this *= yAxis;
-  *this *= xAxis;*/
-
   const Matrix4 xAxis = MatrixRotationAxis(Vector3::RIGHT, rotation.x);
   const Matrix4 yAxis = MatrixRotationAxis(Vector3::UP, rotation.y);
   const Matrix4 zAxis = MatrixRotationAxis(Vector3::FORWARD, rotation.z);
@@ -632,10 +582,6 @@ Transform::getRotation() const
 {
   auto q = toQuaternion();
   return q.toEulerAngles();
-  //const float yaw = Math::atan2(Radian(m[0][2]), Radian(m[2][2]));
-  //const float pitch = Math::asin(Radian(-m[1][2]));
-  //const float roll = Math::atan2(Radian(m[1][0]), Radian(m[1][1]));
-  //return Vector3(yaw, pitch, roll);
 }
 
 Vector3

@@ -2,7 +2,7 @@
 /*
 *  @file    shSkyBoxComponent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/08/06
 *  @brief
 *
 *
@@ -18,21 +18,29 @@
 /*****************************************************************************/
 #include "shSkyBoxComponent.h"
 #include "shGraphicsManager.h"
+#include "shImageResource.h"
 
 namespace shEngineSDK {
 void
-SkyBoxComponent::setVertices(const Vector<Vector3>& vertices)
+SkyBoxComponent::setSkyBoxResource(const WPtr<ImageResource>& skyBoxResource)
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  m_vertices = vertices;
-  m_vBuffer = graphMan.createVertexBuffer(m_vertices);
-}
 
-void
-SkyBoxComponent::setIndices(const Vector<uint32>& indices)
+  if (auto res = skyBoxResource.lock()) {
+    if (m_skyBoxResource) {
+      //m_skyBoxResource.reset();
+      m_skyBoxResource = nullptr;
+    }
+    m_skyBoxResource = sh_reinterpretPCast<ImageResource>(res);
+    graphMan.generateMips(m_skyBoxResource->texture);
+  }
+  else {
+    //SH_LOG_ERROR("Failed to set skybox resource: Resource is expired or invalid.");
+  }
+}
+const SPtr<ImageResource>&
+SkyBoxComponent::getSkyBoxResource() const
 {
-  GraphicsManager& graphMan = g_graphicsMan();
-  m_indices = indices;
-  m_iBuffer = graphMan.createIndexBuffer(m_indices);
+  return m_skyBoxResource;
 }
 }

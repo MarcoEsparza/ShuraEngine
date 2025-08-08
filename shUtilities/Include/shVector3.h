@@ -2,10 +2,10 @@
 /*
 *  @file    shVector3.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/05
-*  @brief   Vector3 with float
+*  @date    2025/07/15
+*  @brief   Vector3 with float.
 *
-*  Vector3 with float
+*  Vector3 with float.
 * 
 *  @bug     No bug known
 */
@@ -24,12 +24,7 @@ class Radian;
 class Matrix3;
 
 /**
-*  @brief Vector3 with float
-* 
-*  @brief Sample usage:
-*  @brief Vector3 myVector3;
-*  @brief Vector3 myVector3(1.0f, 1.0f);
-*  @brief Vector3* ptrVector3 = new Vector3(); The constructor may take arguments.
+*  @brief Vector3 with float.
 */
 class SH_UTILITY_EXPORT Vector3
 {
@@ -42,16 +37,18 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Constructor to initialize values to the given numbers.
   *
-  *  @param float _x: X value.
-  *  @param float _y: Y value.
-  *  @param float _z: Z value.
+  *  @param float x: X value.
+  *  @param float y: Y value.
+  *  @param float z: Z value.
   */
-  Vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+  Vector3(float x, float y, float z)
+    : x(x), y(y), z(z)
+  {}
 
   /**
   *  @brief Copy constructor
   *
-  *  @param Vector3 _other: The Vector3 to be copied.
+  *  @param const Vector3& other: The Vector3 to be copied.
   */
   Vector3(const Vector3& other);
 
@@ -239,10 +236,9 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Operator to sum a Vector3 values and other Vector3 values.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-Vector3.
+  *  @param const Vector3& other: The Vector3 to sum with this Vector3.
   *
-  *  @return Vector3
+  *  @return Vector3: The result of the sum of the two Vector3s.
   */
   FORCEINLINE Vector3
   operator+(const Vector3& other) const;
@@ -250,10 +246,9 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Operator to sum a Vector3 values and a constant.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-float.
+  *  @param const float delta: The constant to sum with this Vector3.
   *
-  *  @return Vector3
+  *  @return Vector3: The result of the sum of the Vector3 and the constant.
   */
   FORCEINLINE Vector3
   operator+(const float delta) const;
@@ -261,10 +256,9 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Operator to substract a Vector3 values and other Vector3 values.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-Vector3.
+  *  @param const Vector3& other: The Vector3 to substract from this Vector3.
   *
-  *  @return Vector3
+  *  @return Vector3: The result of the substraction of the two Vector3s.
   */
   FORCEINLINE Vector3
   operator-(const Vector3& other) const;
@@ -272,7 +266,7 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Change Vector3 values sign.
   *
-  *  @return Vector3
+  *  @return Vector3: The Vector3 with all values negated.
   */
   FORCEINLINE Vector3
   operator-() const;
@@ -280,10 +274,9 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Operator to multiply the values of a Vector3 with a float.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-float.
+  *  @param const float delta: The float to multiply with this Vector3.
   *
-  *  @return Vector3 The result of the multiplication
+  *  @return Vector3: The result of the multiplication
   */
   FORCEINLINE Vector3
   operator*(const float delta) const;
@@ -301,9 +294,9 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Operator to multiply the values of a Vector3 with another Vector3.
   *
-  *  @param Vector3: The Vector3 to multiply.
+  *  @param const Vector3& other: The Vector3 to multiply.
   *
-  *  @return Vector3 The result of the multiplication
+  *  @return Vector3: The result of the multiplication
   */
   FORCEINLINE Vector3
   operator*(const Vector3& other) const;
@@ -311,10 +304,9 @@ class SH_UTILITY_EXPORT Vector3
   /**
   *  @brief Operator to divide the values of a Vector3 with a float.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-float.
+  *  @param const Vector3& other: The Vector3 to divide.
   *
-  *  @return Vector3 The result of the division
+  *  @return Vector3: The result of the division
   */
   FORCEINLINE Vector3
   operator/(const float delta) const;
@@ -323,10 +315,9 @@ class SH_UTILITY_EXPORT Vector3
   *  @brief Operator to sum a Vector3 values and other Vector3 values and store
   *         the result in the first Vector3.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-Vector3.
+  *  @param const Vector3& other: The Vector3 to sum with this Vector3.
   * 
-  *  @return Vector3 This.
+  *  @return Vector3&: This Vector3 with the result of the sum.
   */
   FORCEINLINE Vector3&
   operator+=(const Vector3& other);
@@ -335,17 +326,30 @@ class SH_UTILITY_EXPORT Vector3
   *  @brief Operator to substract a Vector3 values and other Vector3 values and
   *         store the result in the first Vector3.
   *
-  *  @param lValue-Vector3.
-  *  @param rValue-Vector3.
+  *  @param const Vector3& other: The Vector3 to substract from this Vector3.
   * 
-  *  @return Vector3 This.
+  *  @return Vector3&: This Vector3 with the result of the substraction.
   */
   FORCEINLINE Vector3&
   operator-=(const Vector3& other);
 
+  /**
+  *  @brief Operator to multiply the values of a Vector3 with another Vector3
+  *
+  *  @param const Vector3& other: The Vector3 to multiply from this Vector3.
+  *
+  *  @return Vector3&: This Vector3 with the result of the multiplication.
+  */
   FORCEINLINE Vector3&
   operator*=(const Vector3& other);
 
+  /**
+  *  @brief Operator to check if two Vector3s are not equal.
+  *
+  *  @param const Vector3& other: The Vector3 to compare with this Vector3.
+  *
+  *  @return bool: True if the two Vector3s are not equal, false otherwise.
+  */
   FORCEINLINE bool
   operator!=(const Vector3& other);
 

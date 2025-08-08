@@ -1,20 +1,20 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shException.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/10
+*  @date    2025/07/16
 *  @brief   Base exception class
 *
 *  Base exception class
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
 namespace shEngineSDK {
@@ -59,5 +59,5 @@ class Exception : public std::exception
 /**
 *  @brief Used to avoid warnings and errors for unreferenced parameters.
 */
-#define SH_UNREFERENCED_PARAMETER(x) x
+#define SH_UNREFERENCED_PARAMETER(x) (void)(x)
 }

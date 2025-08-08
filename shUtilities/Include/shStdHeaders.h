@@ -1,8 +1,8 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shStdHeaders.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/07/22
 *  @brief   Header for the STD libraries
 *
 *  This file includes the most common and required STL objects.
@@ -11,47 +11,47 @@
 * 
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  C type objects
 */
-/*************************************************************/
+/*****************************************************************************/
 #include <cmath>
 #include <assert.h>
 #include <algorithm>
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Types
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPlatformTypes.h"
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  STL Containers
 */
-/*************************************************************/
+/*****************************************************************************/
 #include <array>
 #include <vector>
 #include <unordered_map>
 #include <queue>
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Standard Containers defined as own
 */
-/*************************************************************/
+/*****************************************************************************/
 #include <filesystem>
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  C++ Stream Stuff
 */
-/*************************************************************/
+/*****************************************************************************/
 #include <fstream>
 #include <iostream>
 
@@ -196,4 +196,46 @@ struct hash<string>
     return hash ^ (hash >> 16);
   }
 };
+}
+
+namespace cast {
+/*
+*  @brief Function to reinterpret a shared pointer.
+*/
+template<typename to, typename from>
+std::shared_ptr<to>
+rePointer(const std::shared_ptr<from>& pFrom)
+{
+  return std::reinterpret_pointer_cast<to>(pFrom);
+}
+
+/*
+*  @brief Function to reinterpret cast any object.
+*/
+template<typename to, typename from>
+to
+re(const from& fromObje)
+{
+  return reinterpret_cast<to>(fromObje);
+}
+
+/*
+*  @brief Function to static cast any object.
+*/
+template<typename to, typename from>
+to
+st(const from& fromObje)
+{
+  return static_cast<to>(fromObje);
+}
+
+/*
+*  @brief Function to const cast any object.
+*/
+template<typename to, typename from>
+to
+ct(const from& fromObje)
+{
+  return const_cast<to>(fromObje);
+}
 }

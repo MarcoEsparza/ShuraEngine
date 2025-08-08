@@ -1,20 +1,20 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shBoxOBB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/30
+*  @date    2025/07/15
 *  @brief   Math class for Oriented Bounding-Box.
 *
 *  Math class for Oriented Bounding-Box.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 #include "shQuaternion.h"
 #include "shVector3.h"
@@ -33,74 +33,27 @@ class SH_UTILITY_EXPORT OBBox
   /**
   *  @brief Constructor that initialize box values.
   * 
-  *  @param Vector3& _center: Center values.
-  *  @param Quaternion& _rotation: Rotation values.
-  *  @param Vector3& _extent: Extent values.
+  *  @param Vector3& center: Center values.
+  *  @param Quaternion& rotation: Rotation values.
+  *  @param Vector3& extent: Extent values.
   */
-  OBBox(const Vector3& _center,
-           const Quaternion& _rotation,
-           const Vector3 _extent)
-           : center(_center), rotation(_rotation), extent(_extent) {}
+  OBBox(const Vector3& center,
+        const Quaternion& rotation,
+        const Vector3 extent)
+    : center(center), rotation(rotation), extent(extent)
+  {}
   
   /**
   *  @brief Default destructor.
   */
   ~OBBox() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
-
-  /**
-  *  @brief Sets box center.
-  *
-  *  @param Vector3& _center
-  */
-  void
-  setCenter(const Vector3& _center);
-
-  /**
-  *  @brief Sets box rotation.
-  *
-  *  @param Quaternion& _rotation
-  */
-  void
-  setRotation(const Quaternion& _rotation);
-
-  /**
-  *  @brief Sets box extent.
-  *
-  *  @param Vector3& _extent
-  */
-  void
-  setExtent(const Vector3& _extent);
-
-  /**
-  *  @brief Returns box center.
-  * 
-  *  @return Vector3
-  */
-  Vector3
-  getCenter() const;
-
-  /**
-  *  @brief Returns box rotation.
-  *
-  *  @return Quaternion
-  */
-  Quaternion
-  getRotation() const;
-
-  /**
-  *  @brief Returns box extent.
-  *
-  *  @return Vector3
-  */
-  Vector3
-  getExtent() const;
-
+  /***************************************************************************/
+ public:
   /**
   *  @brief Project the box corners on the axis.
   *
@@ -132,14 +85,19 @@ class SH_UTILITY_EXPORT OBBox
   Array<Vector3, 8>
   getCorners() const;
 
+  /**
+  *  @brief Calculate the box vertices.
+  * 
+  *  @return Vector<Vector3> Return the vertices.
+  */
   Vector<Vector3>
   getVertices() const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Box center.

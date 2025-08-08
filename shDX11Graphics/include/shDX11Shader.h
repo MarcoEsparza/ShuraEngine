@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Shader.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2025/07/17
 *  @brief   DirectX11 Program Shader class wrapper.
 *
 *  DirectX11 Program Shader class wrapper.
@@ -18,7 +18,7 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesDX11Graphics.h"
-#include "shShader.h"
+#include <shShader.h>
 
 namespace shEngineSDK {
 /**

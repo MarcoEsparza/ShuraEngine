@@ -19,7 +19,7 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shResource.h"
-#include "shMatrix4.h"
+#include <shMatrix4.h>
 
 namespace shEngineSDK {
 /**
@@ -53,7 +53,7 @@ namespace shEngineSDK {
 //  Vector<Bone> children;
 //};
 
-struct BoneInfo
+struct SH_CORE_EXPORT ALIGN_AS(16) BoneInfo
 {
   /**
   *  @brief Bone ID.
@@ -74,7 +74,7 @@ struct BoneInfo
 /**
 *  @brief Skeleton info class.
 */
-class SkeletonResource : public Resource
+class SH_CORE_EXPORT SkeletonResource : public Resource
 {
  public:
   /**

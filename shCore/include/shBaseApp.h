@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/07/16
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -18,11 +18,11 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shException.h"
 #include "shScreen.h"
 #include "shGraphicTypes.h"
-#include "shVector2i.h"
-#include "shLinearColor.h"
+#include <shVector2i.h>
+#include <shLinearColor.h>
+#include <shException.h>
 
 namespace shEngineSDK {
 /**
@@ -34,17 +34,18 @@ class SH_CORE_EXPORT BaseApp
   /**
   *  @brief Constructor to initialize screen.
   * 
-  *  @param ScreenDesc& desc
-  *  @param GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11
-  *  @param SampleDesc& sample = SampleDesc(1, 1)
+  *  @param const ScreenDesc& desc
+  *  @param const SampleDesc& sample = SampleDesc(1, 1)
+  *  @param const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11
   */
   BaseApp(const ScreenDesc& desc,
           const GRAPHIC_API::E dllGAPI = GRAPHIC_API::kDX11,
           const SampleDesc& sample = SampleDesc(1, 1))
-          : m_screenDesc(desc),
-            m_graphicAPI(dllGAPI),
-            m_sample(sample),
-            m_backgroundColor(LinearColor(0.0f, 0.0f, 0.0f)) {}
+    : m_sample(sample),
+      m_screenDesc(desc),
+      m_graphicAPI(dllGAPI),
+      m_backgroundColor(LinearColor(0.0f, 0.0f, 0.0f))
+  {}
 
   /**
   *  @brief Default destructor.
@@ -76,7 +77,7 @@ class SH_CORE_EXPORT BaseApp
   * 
   *  @return ScreenDesc
   */
-  FORCEINLINE ScreenDesc
+  FORCEINLINE const ScreenDesc&
   getScreenDescription() const;
 
  protected:
@@ -335,7 +336,7 @@ BaseApp::setBackgroundColor(const LinearColor& color)
   m_backgroundColor = color;
 }
 
-FORCEINLINE ScreenDesc
+FORCEINLINE const ScreenDesc&
 BaseApp::getScreenDescription() const
 {
   return m_screenDesc;

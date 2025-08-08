@@ -2,7 +2,7 @@
 /*
 *  @file    shAudioManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/27
+*  @date    2025/07/16
 *  @brief   Audio engine module.
 *
 *  Audio engine module.
@@ -19,8 +19,8 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shAudioTypes.h"
-#include "shModule.h"
-#include "shPath.h"
+#include <shModule.h>
+#include <shPath.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -56,73 +56,34 @@ class SH_CORE_EXPORT AudioManager : public Module<AudioManager>
   /**
   *  @brief Default constructor.
   */
-  void
-  update();
+  virtual void
+  update() = 0;
 
   /**
   *  @brief Create a sound with the given path.
   * 
-  *  @param Path& filePath
+  *  @param const Path& filePath
   * 
   *  @return SPtr<Sound>
   */
-  SPtr<Sound>
-  createSound(const Path& filePath);
+  virtual SPtr<Sound>
+  createSound(const Path& filePath) = 0;
 
   /**
   *  @brief Play sound
   *
   *  @param SPtr<Sound>& pSound
   */
-  void
-  playSound(const SPtr<Sound>& pSound);
+  virtual void
+  playSound(const SPtr<Sound>& pSound) = 0;
 
   /**
   *  @brief Sets volume in a channel group.
   *
-  *  @param CHANNEL_TYPE::E channel
-  *  @param float volume
-  */
-  void
-  setChannelGroupVolume(const CHANNEL_TYPE::E channel, const float volume);
-
-  /***************************************************************************/
-  /*
-  *  Internal functions
-  */
-  /***************************************************************************/
- protected:
-  /**
-  *  @brief Plugin internal function.
-  *
-  *  @param Path& filePath
-  *
-  *  @return SPtr<Sound>
-  */
-  virtual SPtr<Sound>
-  internalCreateSound(const Path& filePath) = 0;
-
-  /**
-  *  @brief Plugin internal function.
+  *  @param const CHANNEL_TYPE::E channel
+  *  @param const float volume
   */
   virtual void
-  internalUpdate() = 0;
-
-  /**
-  *  @brief Plugin internal function.
-  *
-  *  @param SPtr<Sound>& pSound
-  */
-  virtual void
-  internalPlaySound(const SPtr<Sound>& pSound) = 0;
-
-  /**
-  *  @brief Plugin internal function.
-  *
-  *  @param CHANNEL_TYPE::E channel
-  *  @param float volume
-  */
-  virtual void
-  internalSetChannelGroupVolume(const CHANNEL_TYPE::E channel, const float volume) = 0;
+  setChannelGroupVolume(const CHANNEL_TYPE::E channel, const float volume) = 0;
 };
 }

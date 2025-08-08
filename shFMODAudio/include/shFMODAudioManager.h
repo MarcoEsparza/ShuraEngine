@@ -1,26 +1,26 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shFMODAudioManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/03/28
+*  @date    2025/07/16
 *  @brief   Audio FMOD plugin.
 *
 *  Audio FMOD plugin.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesFMODAudio.h"
-#include "shAudioManager.h"
-#include "shModule.h"
-#include "shPath.h"
+#include <shAudioManager.h>
+#include <shModule.h>
+#include <shPath.h>
 
 namespace FMOD
 {
@@ -54,6 +54,11 @@ class FMODAudioManager : public AudioManager
   */
   virtual ~FMODAudioManager() = default;
 
+  /***************************************************************************/
+  /*
+  *  Protected Functions
+  */
+  /***************************************************************************/
  protected:
   /**
   *  @brief Event called when module is started.
@@ -75,13 +80,13 @@ class FMODAudioManager : public AudioManager
   *  @return SPtr<Sound>
   */
   SPtr<Sound>
-  internalCreateSound(const Path& filePath) override;
+  createSound(const Path& filePath) override;
 
   /**
   *  @brief Internal function to update plugin.
   */
   void
-  internalUpdate() override;
+  update() override;
 
   /**
   *  @brief Internal function to play sound.
@@ -89,7 +94,7 @@ class FMODAudioManager : public AudioManager
   *  @param SPtr<Sound>& pSound
   */
   void
-  internalPlaySound(const SPtr<Sound>& pSound) override;
+  playSound(const SPtr<Sound>& pSound) override;
 
   /**
   *  @brief Internal function to set channel group volume.
@@ -98,8 +103,13 @@ class FMODAudioManager : public AudioManager
   *  @param float volume
   */
   void
-  internalSetChannelGroupVolume(const CHANNEL_TYPE::E channel, const float volume) override;
+  setChannelGroupVolume(const CHANNEL_TYPE::E channel, const float volume) override;
 
+  /***************************************************************************/
+  /*
+  *  Private Functions
+  */
+  /***************************************************************************/
  private:
   /**
   *  @brief Fill a given channel group.
@@ -119,6 +129,11 @@ class FMODAudioManager : public AudioManager
   SPtr<FMODChannel>
   getUnusedChannelOnGroup(const SPtr<FMODChannelGroup>& pFMODChG);
 
+  /***************************************************************************/
+  /*
+  *  Variables
+  */
+  /***************************************************************************/
  private:
   /**
   *  @brief FMOD System.

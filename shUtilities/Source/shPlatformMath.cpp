@@ -1,8 +1,8 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shPlatformMath.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/14
+*  @date    2025/07/15
 *  @brief   Math class wrapper, suing the STD. compatible with Windows, Linux
 *           and OSX.
 *
@@ -10,13 +10,13 @@
 *
 * @bug      No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPlatformMath.h"
 #include "shVector3.h"
 #include "shVector2.h"
@@ -32,11 +32,11 @@
 #include "shCollisionInfo.h"
 
 namespace shEngineSDK {
- /*************************************************************/
- /*
- *  Static variables
- */
- /*************************************************************/
+/*****************************************************************************/
+/*
+*  Static variables
+*/
+/*****************************************************************************/
 
 const float PlatformMath::PI = 2 * asin(Radian(1.0f));
 
@@ -52,11 +52,11 @@ const float PlatformMath::SMALL_NUMBER = (1.e-6f);
 
 const float PlatformMath::KINDA_SMALL_NUMBER = (1.e-4f);
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Functions
 */
-/*************************************************************/
+/*****************************************************************************/
 
 float
 PlatformMath::sqrt(const float value)
@@ -132,11 +132,11 @@ PlatformMath::is_NaN(const float value)
   return std::isnan(value);
 }
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Trigonometric functions
 */
-/*************************************************************/
+/*****************************************************************************/
 
 float
 PlatformMath::cos(const Radian& radian)
@@ -216,11 +216,11 @@ PlatformMath::atanh(const Radian& radian)
   return std::atanh(radian.getValueOnRadians());
 }
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Figures
 */
-/*************************************************************/
+/*****************************************************************************/
 
 bool
 PlatformMath::intersect(const Vector3& point, const AABBox& box, CollisionInfo& colInfo)
@@ -312,7 +312,6 @@ PlatformMath::intersect(const Vector3& point, const OBBox& obb, CollisionInfo& c
   else {
     // Point is inside of the obb
     // Calculate normal and min depth
-    Vector3 localDiff = localPoint - clampedLocal;
     Vector3 axes[3] = { obb.rotation.rotate(Vector3::RIGHT),
                         obb.rotation.rotate(Vector3::UP),
                         obb.rotation.rotate(Vector3::FORWARD) };
@@ -352,9 +351,9 @@ PlatformMath::intersect(const Vector3& point, const OBBox& box)
   float projUp = localPoint.dot(up);
   float projForward = localPoint.dot(forward);
 
-  if (projRight < -box.extent.x || projRight > box.extent.x &&
-    projUp < -box.extent.y || projUp > box.extent.y &&
-    projForward < -box.extent.z || projForward > box.extent.z) {
+  if ((projRight < -box.extent.x || projRight > box.extent.x) &&
+      (projUp < -box.extent.y || projUp > box.extent.y) &&
+      (projForward < -box.extent.z || projForward > box.extent.z)) {
     return false;
   }
 
@@ -903,7 +902,6 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& co
 
   // Test on multiple points along the segment
   const int steps = 10;
-  float tMin = 0.0f;
   float minDistSq = FLT_MAX;
   Vector3 bestP = Vector3::ZERO;
   Vector3 bestQ = Vector3::ZERO;
@@ -918,7 +916,6 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& co
     float distSq = (q - p).lenghtSq();
     if (distSq < minDistSq) {
       minDistSq = distSq;
-      tMin = t;
       bestP = p;
       bestQ = q;
     }
@@ -958,7 +955,6 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap)
 
   // Test on multiple points along the segment
   const int steps = 10;
-  float tMin = 0.0f;
   float minDistSq = FLT_MAX;
   Vector3 bestP = Vector3::ZERO;
   Vector3 bestQ = Vector3::ZERO;
@@ -973,7 +969,6 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap)
     float distSq = (q - p).lenghtSq();
     if (distSq < minDistSq) {
       minDistSq = distSq;
-      tMin = t;
       bestP = p;
       bestQ = q;
     }

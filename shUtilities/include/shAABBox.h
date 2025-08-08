@@ -1,20 +1,20 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shBoxAAB.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/30
+*  @date    2025/07/15
 *  @brief   Math class for Axis-Aligned Bounding-Box.
 *
 *  Math class for Axis-Aligned Bounding-Box.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 #include "shVector3.h"
 
@@ -29,24 +29,26 @@ class SH_UTILITY_EXPORT AABBox
   *  @brief Default constructor.
   */
   AABBox() = default;
+
   /**
   *  @brief Constructor to initialize box values.
   * 
-  *  @param const Vector3& _min
-  *  @param const Vector3& _max
+  *  @param const Vector3& _min: Minimum values for X, Y and Z position.
+  *  @param const Vector3& _max: Maximum values for X, Y and Z position.
   */
   AABBox(const Vector3& _min, const Vector3& _max);
+
   /**
   *  @brief Default destructor.
   */
   ~AABBox() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
-
+  /***************************************************************************/
+ public:
   /**
   *  @brief Set the min values for the box.
   *
@@ -62,22 +64,6 @@ class SH_UTILITY_EXPORT AABBox
   */
   void
   setSize(const Vector3& size);
-
-  /**
-  *  @brief Returns box min position values.
-  *
-  *  @return Vector3
-  */
-  Vector3
-  getMinPosition() const;
-
-  /**
-  *  @brief Returns box max position values.
-  * 
-  *  @return Vector3
-  */
-  Vector3
-  getMaxPosition() const;
 
   /**
   *  @brief Returns box vertices.
@@ -105,11 +91,11 @@ class SH_UTILITY_EXPORT AABBox
   void
   projectOnAxis(const Vector3& axis, float& _min, float& _max) const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief Minimum values for X, Y and Z position

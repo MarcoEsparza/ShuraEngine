@@ -52,7 +52,8 @@ struct MaterialProperties
   uint32 bWireframeEnabled : 1;
   uint32 bCanCastShadows : 1;
   uint32 bCanReceiveShadows : 1;
-  uint32 Unused : 18;
+  uint32 bInvertRoughness : 1;
+  uint32 Unused : 17;
 }; //GCC_ALIGN(16)
 
 /**

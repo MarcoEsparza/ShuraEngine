@@ -1,20 +1,20 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shCapsule.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/06
+*  @date    2025/07/15
 *  @brief   Math class for capsule figure.
 *
 *  Math class for capsule figure.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 #include "shVector3.h"
 
@@ -29,6 +29,7 @@ class SH_UTILITY_EXPORT Capsule
   *  @brief Default constructor.
   */
   Capsule() = default;
+
   /**
   *  @brief Constructor that initialize the capsule values.
   * 
@@ -40,37 +41,23 @@ class SH_UTILITY_EXPORT Capsule
           const Vector3& _center,
           const Vector3& _direction,
           const float _height)
-          : radius(_radius),
-            center(_center),
-            direction(_direction),
-            height(_height) {}
+    : radius(_radius),
+      center(_center),
+      direction(_direction),
+      height(_height)
+  {}
+
   /**
   *  @brief Default destructor.
   */
   ~Capsule() = default;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
-
-  /**
-  *  @brief Set the capsule radius.
-  *  
-  *  @param const float& _radius: Set the radius.
-  */
-  void
-  setRadius(const float _radius);
-
-  /**
-  *  @brief Returns capsule radius.
-  *
-  *  @return float
-  */
-  float
-  getRadius();
-
+  /***************************************************************************/
+ public:
   /**
   *  @brief Project the capsule on the axis.
   *
@@ -81,11 +68,11 @@ class SH_UTILITY_EXPORT Capsule
   void
   projectOnAxis(const Vector3& axis, float& min, float& max) const;
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Variables
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
   /**
   *  @brief The radius of the capsule figure.

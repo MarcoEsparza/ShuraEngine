@@ -2,10 +2,10 @@
 /*
 *  @file    shFrustum.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/30
-*  @brief
+*  @date    2025/07/17
+*  @brief   Frustum class for camera view frustum calculations.
 *
-*
+*  Frustum class for camera view frustum calculations.
 *
 *  @bug     Camera movement not working properly.
 */
@@ -82,34 +82,34 @@ Frustum::calculatePlanes(const Matrix4& view, const Matrix4& proj)
   Vector3 bottomNormal = ((p8 - p7).cross(p3 - p7)).getNormalized();
 
   // Set planes
-  m_near.setNormal(nearNormal);
-  m_near.setDistance(-((nearNormal.x * p1.x) +
+  m_near.normal = nearNormal;
+  m_near.distance = -((nearNormal.x * p1.x) +
                      (nearNormal.y * p1.y) +
-                     (nearNormal.z * p1.z)));
+                     (nearNormal.z * p1.z));
 
-  m_far.setNormal(farNormal);
-  m_far.setDistance(-((farNormal.x * p5.x) +
-                    (farNormal.y * p5.y) +
-                    (farNormal.z * p5.z)));
+  m_far.normal = farNormal;
+  m_far.distance = -((farNormal.x * p5.x) +
+                   (farNormal.y * p5.y) +
+                   (farNormal.z * p5.z));
 
-  m_left.setNormal(leftNormal);
-  m_left.setDistance(-((leftNormal.x * p5.x) +
+  m_left.normal = leftNormal;
+  m_left.distance =  -((leftNormal.x * p5.x) +
                      (leftNormal.y * p5.y) +
-                     (leftNormal.z * p5.z)));
+                     (leftNormal.z * p5.z));
 
-  m_right.setNormal(rightNormal);
-  m_right.setDistance(-((rightNormal.x * p2.x) +
-                      (rightNormal.y * p2.y) +
-                      (rightNormal.z * p2.z)));
+  m_right.normal = rightNormal;
+  m_right.distance = -((rightNormal.x * p2.x) +
+                     (rightNormal.y * p2.y) +
+                     (rightNormal.z * p2.z));
 
-  m_top.setNormal(topNormal);
-  m_top.setDistance(-((topNormal.x * p5.x) +
-                    (topNormal.y * p5.y) +
-                    (topNormal.z * p5.z)));
+  m_top.normal = topNormal;
+  m_top.distance = -((topNormal.x * p5.x) +
+                   (topNormal.y * p5.y) +
+                   (topNormal.z * p5.z));
 
-  m_bottom.setNormal(bottomNormal);
-  m_bottom.setDistance(-((bottomNormal.x * p7.x) +
-                       (bottomNormal.y * p7.y) +
-                       (bottomNormal.z * p7.z)));
+  m_bottom.normal = bottomNormal;
+  m_bottom.distance = -((bottomNormal.x * p7.x) +
+                      (bottomNormal.y * p7.y) +
+                      (bottomNormal.z * p7.z));
 }
 }

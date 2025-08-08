@@ -18,7 +18,7 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesFMODAudio.h"
-#include "shChannelGroup.h"
+#include <shChannelGroup.h>
 
 namespace FMOD
 {

@@ -23,6 +23,7 @@
 #include "shLinearColor.h"
 #include "shGraphicTypes.h"
 #include "shMatrix4.h"
+#include "shVector2i.h"
 
 #define MAX_CONSTANT_BUFFER_SLOTS                             14
 #define MAX_SHADER_RESOURCE_VIEW_SLOTS                        128
@@ -38,9 +39,12 @@ class Material;
 class Pass;
 class BlendState;
 class Texture2D;
+class Texture3D;
 class ConstantBuffer;
 class SceneGraph;
 class SamplerState;
+class CubeMap;
+class GameObject;
 
 /**
 *  @brief Render target information structure.
@@ -53,11 +57,12 @@ struct RenderTargetInfo
     uint32 bFlags = BIND_FLAGS::kRenderTarget | BIND_FLAGS::kShaderResource,
     uint32 usage = USAGE::kDefault,
     uint32 mipLevels = 1,
+    uint32 arraySize = 1,
     float width = 1.0f,
     float height = 1.0f,
     bool bUseScaledSize = true)
     : name(name), format(format), usage(usage), bFlags(bFlags), mipLevels(mipLevels),
-    width(width), height(height), bUseScaledSize(bUseScaledSize)
+    arraySize(arraySize), width(width), height(height), bUseScaledSize(bUseScaledSize)
   {}
 
   String name;
@@ -65,6 +70,7 @@ struct RenderTargetInfo
   uint32 usage = 0;
   uint32 bFlags = 0;
   uint32 mipLevels = 1;
+  uint32 arraySize = 1;
   float width = 1.0f;
   float height = 1.0f;
   bool bUseScaledSize = true;
@@ -88,6 +94,9 @@ struct MainBufferData
   Matrix4 inverseProjectionMatrix = Matrix4::IDENTITY;
   Matrix4 inverseTransposeProjectionMatrix = Matrix4::IDENTITY;
 
+  Matrix4 inverseViewProjMatrix = Matrix4::IDENTITY;
+  Matrix4 inverseTransposeViewProjMatrix = Matrix4::IDENTITY;
+
   // Viewport dimensions.
   Vector2 screenSize = { 0.0f, 0.0f };
   float nearPlane = 0.0f;
@@ -109,35 +118,54 @@ struct MainBufferData
 */
 struct ShaderData {
   // Ambient occlusion data.
-  float sampleRadius = 0.0f;
-  float aoScale = 0.0f;
-  float aoBias = 0.0f;
-  float aoIntensity = 0.0f;
+  float sampleRadius = 1.0f;
+  float aoScale = 1.0f;
+  float aoBias = 0.01f;
+  float aoIntensity = 1.0f;
 
   // ShadowMap
-  float shadowMapSize = 0.0f;
+  float shadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
 
   // Tone mapping data.
   float toneMappingIndex = 0.0f;
   float lutSize = 0.0f;
-  float whitePoint = 0.0f;
-  float bloomMultiplier = 0.0f;
-  float brightThreshold = 0.0f;
+  float whitePoint = 1.0f;
+  float bloomMultiplier = 1.0f;
+  float brightThreshold = 1.0f;
 
   // Post-processing data.
   float minR = 0.0f;
-  float maxR = 0.0f;
+  float maxR = 1.0f;
   float minG = 0.0f;
-  float maxG = 0.0f;
+  float maxG = 1.0f;
   float minB = 0.0f;
-  float maxB = 0.0f;
+  float maxB = 1.0f;
 
   // Mip levels for texture sampling.
   float mipLevel0 = 0.0f;
   float mipLevel1 = 0.0f;
   
-  float lightIntensity = 0.0f;
-  float middleGrey = 0.0f;
+  float lightIntensity = 1.0f;
+  float middleGrey = 1.0f;
+
+  float roughness = 0.0f;
+  uint32 cubeFace = 0.0f;
+  Vector2 padding = { 0.0f, 0.0f };
+};
+
+struct PrefilteredCB
+{
+  uint32 width = 0;
+  uint32 height = 0;
+  uint32 samples = 0;
+  float roughness = 0.0f;
+  float mipmapLevels = 0.0f;
+  Vector3 padding = Vector3::ZERO;
+
+  PrefilteredCB() = default;
+  PrefilteredCB(uint32 w, uint32 h, uint32 s, float r, float m)
+    : width(w), height(h), samples(s), roughness(r), mipmapLevels(m)
+  {}
 };
 
 /**
@@ -190,6 +218,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   SPtr<Pass>
   getPass(const String& passName);
 
+  SPtr<Texture2D>
+  getTexture(const String& texName);
+
   /**
   *  @brief Recompile the shaders on the storaged passes.
   */
@@ -201,6 +232,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   drawStaticMeshOnScene();
+
+  void
+  drawStaticMesh(const WPtr<GameObject> pGO);
 
   /**
   *  @brief Sets the resource view from PBRMaterial.
@@ -215,6 +249,12 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   renderScene();
+
+  void
+  computeIBL();
+
+  void
+  computeBRDF();
 
   /**
   *  @brief Clean the PS shader resource view slots.
@@ -278,6 +318,15 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   cleanShaderObjects();
 
+  void
+  updateShaderDataBuffer();
+
+  void
+  updatePrefilteredIBLBuffer();
+
+  void
+  setSamplers();
+
   /**
   *  @brief Set the shadow map texture size.
   * 
@@ -300,11 +349,17 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   FORCEINLINE ShaderData&
   getShaderData();
 
+  FORCEINLINE PrefilteredCB&
+  getPrefilteredIBLData();
+
   FORCEINLINE SPtr<ConstantBuffer>&
   getMainBuffer();
 
   FORCEINLINE SPtr<ConstantBuffer>&
   getShaderDataBuffer();
+
+  FORCEINLINE SPtr<ConstantBuffer>&
+  getPrefilteredIBLCB();
 
  private:
   /**
@@ -334,6 +389,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   SPtr<ConstantBuffer> m_pPBRData;
 
+  SPtr<ConstantBuffer> m_pPreCB;
+
   /**
   *  @brief Main Constant Buffer.
   */
@@ -348,7 +405,21 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   ShaderData m_shaderData;
 
-  SPtr<SamplerState> m_pSamplerClamp;
+  PrefilteredCB m_prefilteredCB;
+
+  SPtr<SamplerState> m_pSamplerLinearWrap;
+  SPtr<SamplerState> m_pSamplerPointWrap;
+  SPtr<SamplerState> m_pSamplerAnisotropicWrap;
+  SPtr<SamplerState> m_pSamplerLinearClamp;
+  SPtr<SamplerState> m_pSamplerPointClamp;
+  SPtr<SamplerState> m_pSamplerAnisotropicClamp;
+
+  SPtr<CubeMap> m_pLutTexture;
+  SPtr<CubeMap> m_pLutLBK;
+
+  SPtr<Texture2D> m_pBRDF;
+  SPtr<Texture2D> m_pDiffIrr;
+  SPtr<Texture2D> m_pSpecularPreMap;
 
   /**
   *  @brief Shadow map texture size.
@@ -359,6 +430,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @brief Screen size.
   */
   Vector2 m_screenDimension = { 0.0f, 0.0f };
+
+  Vector2i m_skyboxDimension = { 0, 0 };
 };
 
 FORCEINLINE MainBufferData&
@@ -373,6 +446,12 @@ RenderManager::getShaderData()
   return m_shaderData;
 }
 
+FORCEINLINE PrefilteredCB&
+RenderManager::getPrefilteredIBLData()
+{
+  return m_prefilteredCB;
+}
+
 FORCEINLINE SPtr<ConstantBuffer>&
 RenderManager::getMainBuffer()
 {
@@ -383,6 +462,12 @@ FORCEINLINE SPtr<ConstantBuffer>&
 RenderManager::getShaderDataBuffer()
 {
   return m_pShaderDataBuffer;
+}
+
+FORCEINLINE SPtr<ConstantBuffer>&
+RenderManager::getPrefilteredIBLCB()
+{
+  return m_pPreCB;
 }
 
 /**
