@@ -105,6 +105,9 @@ class RendererApp : public BaseApp
   */
   void
   onUpdate() override;
+  
+  void
+  onFixedUpdate() override;
 
   /**
   *  @brief Override function to add functionallity on app render.
@@ -238,6 +241,12 @@ class RendererApp : public BaseApp
 
   void
   tempLoad();
+
+  void
+  playScene();
+
+  void
+  restartScene();
 
   /***************************************************************************/
   /*
@@ -421,5 +430,9 @@ class RendererApp : public BaseApp
   bool bIsSoundPlaying = false;
 
   GUI m_gui;
+
+  bool m_bPlayScene = false;
+
+  Vector<SPtr<GameObject>> m_tempGameObjects;
 };
 }

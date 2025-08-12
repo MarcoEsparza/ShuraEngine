@@ -29,6 +29,8 @@
 #include "imgui_impl_shura.h"
 #include "shStringID.h"
 
+#include <shPhysicsManager.h>
+
 #include "shPath.h"
 #include "shImageResource.h"
 #include "shMeshResource.h"
@@ -41,6 +43,9 @@
 
 #include "shRadian.h"
 #include "shVector4.h"
+
+//#include <shRigidbody.h>
+#include <shRigidbodyComponent.h>
 
 #include "shSound.h"
 
@@ -75,18 +80,10 @@ RendererApp::onCreate()
                     2000.0f);
 
   // Imgui initialize
-  //IMGUI_CHECKVERSION();
-  //ImGui::CreateContext();
-  //ImGui_ImplShura_Init(getScreen());
-  //ImGui::StyleColorsDark();
   m_gui.init(getScreen());
 
-  // Load images
-  //Path whitePNG("resources/White.png");
-  //g_resourceMan().loadResourceFromFile(whitePNG);
-
   // Load resources
-  //loadPistol();
+  loadPistol();
   loadSponza();
   loadSkybox();
   //loadCoat();
@@ -195,7 +192,6 @@ RendererApp::onUpdate()
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
-  //SceneGraph& scene = g_sceneGraph();
   Time& time = g_time();
 
   m_fpsTimer += time.getFrameDeltaTime();
@@ -291,6 +287,47 @@ RendererApp::onUpdate()
   m_delta = 0.0f;
   m_hdelta = 0.0f;
   m_lastMousePos = m_currentMousePos;
+
+  if(m_gui.m_bPlay != m_bPlayScene) {
+    m_bPlayScene = m_gui.m_bPlay;
+
+    if (m_bPlayScene) {
+      playScene();
+    }
+    else {
+      restartScene();
+    }
+  }
+}
+
+void
+RendererApp::onFixedUpdate()
+{
+  SceneGraph& scene = g_sceneGraph();
+  PhysicsManager& physicsMan = g_physicsMan();
+
+  if (m_bPlayScene) {
+    Vector<Rigidbody*> rigidbodies;
+    for (auto& gameObject : scene.getGameObjectList()) {
+      for (auto& component : gameObject->components) {
+        if (component->getType() == COMPONENT_TYPE::kRigidbody) {
+          auto rb = cast::rePointer<RigidbodyComponent>(component);
+          rigidbodies.push_back(&rb->m_rigidbody);
+        }
+      }
+    }
+    physicsMan.onUpdate(rigidbodies);
+
+    for (auto& gameObject : scene.getGameObjectList()) {
+      for (auto& component : gameObject->components) {
+        if (component->getType() == COMPONENT_TYPE::kRigidbody) {
+          auto rb = cast::rePointer<RigidbodyComponent>(component);
+          gameObject->move(rb->m_rigidbody.m_position);
+          gameObject->setRotation(rb->m_rigidbody.m_rotation.toEulerAngles());
+        }
+      }
+    }
+  }
 }
 
 void
@@ -302,7 +339,7 @@ RendererApp::onRender()
 
   graphMan.setPrimitiveTopology();
   renderMan.renderScene();
-  //gizmos.drawGizmos(m_camera);
+  gizmos.drawGizmos(m_camera);
   m_gui.render();
 }
 
@@ -628,7 +665,19 @@ RendererApp::loadPistol()
   //pCollider->m_collider.m_capsule.height = 1.0f;
   //pCollider->m_collider.m_capsule.direction = Vector3::ZERO;
 
+  auto pRigidbody = sh_makeShared<RigidbodyComponent>();
+  pRigidbody->m_rigidbody.m_mass = 1.0f;
+  pRigidbody->m_rigidbody.m_integrationType = INTEGRATION::kVerlet;
+  pRigidbody->m_rigidbody.m_colliderType = COLLIDER_TYPE::kOBBox;
+  pRigidbody->m_rigidbody.m_dragCoefficent = 0.1f;
+  pRigidbody->m_rigidbody.m_elasticity = 0.0f;
+  pRigidbody->m_rigidbody.m_friction = 0.5f;
+  pRigidbody->m_rigidbody.m_gravityScale = 1.0f;
+  pRigidbody->m_rigidbody.m_position = model->transform.getPosition();
+  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->transform.getRotation());
+
   model->addComponent(pCollider);
+  model->addComponent(pRigidbody);
 
   sceneG.addObject(model);
 }
@@ -651,6 +700,26 @@ RendererApp::loadSponza()
 
   model->transform.getTransform() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 0.25f);
+
+  auto pCollider = sh_makeShared<ColliderComponent>();
+  pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
+  pCollider->m_collider.m_box.center = Vector3::ZERO;
+  pCollider->m_collider.m_box.extent = Vector3(50.0f, 5.0f, 50.0f);
+  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;
+
+  auto pRigidbody = sh_makeShared<RigidbodyComponent>();
+  pRigidbody->m_rigidbody.m_mass = 1.0f;
+  pRigidbody->m_rigidbody.m_integrationType = INTEGRATION::kVerlet;
+  pRigidbody->m_rigidbody.m_colliderType = COLLIDER_TYPE::kOBBox;
+  pRigidbody->m_rigidbody.m_dragCoefficent = 0.1f;
+  pRigidbody->m_rigidbody.m_elasticity = 0.0f;
+  pRigidbody->m_rigidbody.m_friction = 0.5f;
+  pRigidbody->m_rigidbody.m_gravityScale = 0.0f;
+  pRigidbody->m_rigidbody.m_position = model->transform.getPosition();
+  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->transform.getRotation());
+
+  model->addComponent(pCollider);
+  model->addComponent(pRigidbody);
 
   sceneG.addObject(model);
 }
@@ -739,5 +808,19 @@ RendererApp::tempLoad()
   model->setScale(Vector3::ONE * 0.25f);
 
   sceneG.addObject(model);
+}
+
+void
+RendererApp::playScene()
+{
+  SceneGraph& scene = g_sceneGraph();
+  m_tempGameObjects = scene.getGameObjectList();
+}
+
+void
+RendererApp::restartScene()
+{
+  SceneGraph& scene = g_sceneGraph();
+  scene.getGameObjectList() = m_tempGameObjects;
 }
 }

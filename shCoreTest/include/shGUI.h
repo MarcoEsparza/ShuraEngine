@@ -161,6 +161,8 @@ class GUI
   *  @brief Size of shadow texture.
   */
   float m_shadowTexSize = 0;
+
+  bool m_bPlay = false;
 };
 
 FORCEINLINE void

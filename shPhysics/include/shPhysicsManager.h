@@ -58,11 +58,14 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
   /***************************************************************************/
  public:
 
+  /*void
+  setRigidbodies(const Vector<Rigidbody*>& rigidbodies);*/
+
   /**
   *  @brief Update function for the physics manager.
   */
   void
-  onUpdate();
+  onUpdate(Vector<Rigidbody*>& rigidbodies);
 
   /**
   *  @brief Sweep and Prune algorithm for broad-phase collision detection.
@@ -205,6 +208,9 @@ class SH_PHYSICS_EXPORT PhysicsManager : public Module <PhysicsManager>
   verletAngularIntegration(Rigidbody& rbdy,
                            const Quaternion& parentRotation,
                            const Vector3* nextAngularAccel = nullptr);
+
+ private:
+  //Vector<Rigidbody*> m_rigidbodies; ///< List of all rigidbodies in the physics manager.
 };
 
 /**

@@ -29,10 +29,27 @@
 using std::sort;
 
 namespace shEngineSDK {
+//void
+//PhysicsManager::setRigidbodies(const Vector<Rigidbody*>& rigidbodies)
+//{
+//  //m_rigidbodies.clear();
+//  m_rigidbodies = rigidbodies;
+//}
 void
-PhysicsManager::onUpdate()
+PhysicsManager::onUpdate(Vector<Rigidbody*>& rigidbodies)
 {
-  
+  // Perform broad-phase collision detection using Sweep and Prune
+  Vector<Pair<Rigidbody*, Rigidbody*>> possiblePairs = sweepAndPrune(rigidbodies);
+  // Iterate through the pairs and resolve collisions
+  for (const auto& pair : possiblePairs) {
+    Rigidbody* rb1 = pair.first;
+    Rigidbody* rb2 = pair.second;
+    // Check if the two rigidbodies are colliding
+    /*CollisionInfo info;
+    if (rb1->checkCollision(*rb2, info)) {
+      resolveCollision(rb1, rb2, info);
+    }*/
+  }
 }
 
 Vector<Pair<Rigidbody*, Rigidbody*>>

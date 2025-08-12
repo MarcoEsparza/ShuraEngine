@@ -118,14 +118,18 @@ GUI::update()
   ImGui::Begin("Scene");
   ImGui::PopStyleColor();
 
-  ImVec2 content_min = ImGui::GetWindowContentRegionMin();
+  if (ImGui::Button(m_bPlay ? "Stop" : "Play")) {
+    m_bPlay = !m_bPlay;
+  }
+
+  /*ImVec2 content_min = ImGui::GetWindowContentRegionMin();
   ImVec2 content_max = ImGui::GetWindowContentRegionMax();
   ImVec2 window_pos = ImGui::GetWindowPos();
 
   ImVec2 scene_pos = ImVec2(window_pos.x + content_min.x, window_pos.y + content_min.y);
   ImVec2 scene_size = ImVec2(content_max.x - content_min.x, content_max.y - content_min.y);
 
-  ImGui::SetCursorScreenPos(scene_pos);
+  ImGui::SetCursorScreenPos(scene_pos);*/
 
   //auto pScene = renderMan.getTexture("PPMap");
   //ImGui::Image(reinterpret_cast<ImTextureID*>(&pScene), scene_size);

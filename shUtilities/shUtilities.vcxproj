@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shAABBox.h" />
-    <ClInclude Include="include\shBivector.h" />
     <ClInclude Include="include\shMatrix3.h" />
     <ClInclude Include="Include\shOBBox.h" />
     <ClInclude Include="Include\shCapsule.h" />
@@ -42,7 +41,6 @@
     <ClInclude Include="Include\shQuaternion.h" />
     <ClInclude Include="include\shRadian.h" />
     <ClInclude Include="Include\shRect.h" />
-    <ClInclude Include="include\shRotor.h" />
     <ClInclude Include="include\shScriptManager.h" />
     <ClInclude Include="include\shScriptVector3.h" />
     <ClInclude Include="Include\shSphere.h" />
@@ -57,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shAABBox.cpp" />
-    <ClCompile Include="source\shBivector.cpp" />
     <ClCompile Include="source\shMatrix3.cpp" />
     <ClCompile Include="Source\shOBBox.cpp" />
     <ClCompile Include="Source\shCapsule.cpp" />
@@ -72,7 +69,6 @@
     <ClCompile Include="Source\shQuaternion.cpp" />
     <ClCompile Include="source\shRadian.cpp" />
     <ClCompile Include="Source\shRect.cpp" />
-    <ClCompile Include="source\shRotor.cpp" />
     <ClCompile Include="source\shScriptManager.cpp" />
     <ClCompile Include="Source\shSphere.cpp" />
     <ClCompile Include="source\shTime.cpp" />

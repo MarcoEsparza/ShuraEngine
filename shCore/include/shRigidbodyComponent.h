@@ -51,7 +51,7 @@ class SH_CORE_EXPORT RigidbodyComponent : public Component
   *  Variables
   */
   /***************************************************************************/
- private:
+ public:
   /**
   *  @brief Rigidbody instance for the physics system.
   */
