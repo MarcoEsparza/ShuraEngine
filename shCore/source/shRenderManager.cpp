@@ -1172,10 +1172,6 @@ RenderManager::computeIBL()
   GraphicsManager& graphMan = g_graphicsMan();
   SceneGraph& scene = g_sceneGraph();
 
-  //auto& pCubeMap = m_renderTargetMap[StringID("CubeMap").getID()];
-  //auto& pDiffIrrMap = m_renderTargetMap[StringID("DiffIrrMap").getID()];
-  //auto& pSpecPreMap = m_renderTargetMap[StringID("SpecPreMap").getID()];
-
   m_pSpecularPreMap = nullptr;
   m_skyboxDimension.x = TEXTURE8K_WIDTH;
   m_skyboxDimension.y = TEXTURE4K_WIDTH;
@@ -1201,15 +1197,6 @@ RenderManager::computeIBL()
     }
     ++numMipLevels;
   }
-
-  /*pSpecPreMap.width = cast::st<float>(m_skyboxDimension.x);
-  pSpecPreMap.height = cast::st<float>(m_skyboxDimension.y);
-  pSpecPreMap.format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT;
-  pSpecPreMap.usage = USAGE::kDefault;
-  pSpecPreMap.bFlags = BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess;
-  pSpecPreMap.mipLevels = numMipLevels;
-  pSpecPreMap.arraySize = 1;
-  pSpecPreMap.bUseScaledSize = false;*/
   
   m_pSpecularPreMap = graphMan.createTexture2D(cast::st<float>(m_skyboxDimension.x),
                                cast::st<float>(m_skyboxDimension.y),
@@ -1224,11 +1211,13 @@ RenderManager::computeIBL()
   m_prefilteredCB.roughness = 0.0f;
   m_prefilteredCB.mipmapLevels = 0.0f;
 
-  m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
+  if(m_pPreCB == nullptr) {
+    m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
+  }
   graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
 
   /*************************************/
-  /*            Irradiance             */
+  /*           Diff Irradiance         */
   /*************************************/
   m_passes[StringID("IrrCubeShader").getID()]->setPass();
   setSamplers();
@@ -1255,7 +1244,7 @@ RenderManager::computeIBL()
 
     specPreCB.width = preSize.x;
     specPreCB.height = preSize.y;
-    specPreCB.samples = 4096;
+    specPreCB.samples = TEXTURE4K_WIDTH;
     specPreCB.mipmapLevels = cast::st<float>(mip);
     specPreCB.roughness = (mip == 0) ? 0.0f :
       Math::clamp(cast::st<float>(mip) / cast::st<float>(numMipLevels - 1), 0.0f, 1.0f);

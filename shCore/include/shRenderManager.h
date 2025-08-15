@@ -149,7 +149,7 @@ struct ShaderData {
   float middleGrey = 1.0f;
 
   float roughness = 0.0f;
-  uint32 cubeFace = 0.0f;
+  uint32 cubeFace = 0;
   Vector2 padding = { 0.0f, 0.0f };
 };
 

@@ -83,11 +83,11 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  loadPistol();
-  loadSponza();
+  //loadPistol();
+  //loadSponza();
   loadSkybox();
   //loadCoat();
-  //tempLoad();
+  tempLoad();
 
   // Initialize light orthographic camera
   initLightCamera();
@@ -795,17 +795,17 @@ RendererApp::tempLoad()
   SceneGraph& sceneG = g_sceneGraph();
 
   auto modelRes = cast::rePointer<StaticMeshResource>(
-    resourceMan.loadResourceFromFile(Path("resources/models/Katana.fbx")));
+    resourceMan.loadResourceFromFile(Path("resources/models/scene.gltf")));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "Katana";
+  model->name = "Spartan";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);
 
   model->transform.getTransform() = Matrix4::IDENTITY;
-  model->setScale(Vector3::ONE * 0.25f);
+  model->setScale(Vector3::ONE);
 
   sceneG.addObject(model);
 }

@@ -21,7 +21,7 @@
 #include <shScreen.h>
 #include <shLinearColor.h>
 #include <shException.h>
-//#include "shMath.h"
+#include "shMath.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -807,6 +807,9 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
   SystemPath path(fileName);
   uint32 format = 0;
 
+  uint8* pDst = new uint8[width * height * 4]; // Allocate memory for RGBA format
+  memcpy(cast::ct<void*>(pData), &pDst, sizeof(pDst));
+
   //if(path.extension() == ".dds") {
   //  // If the file is a DDS, we will use the DDS loader
   //  return createTextureFromDDS(fileName);
@@ -816,6 +819,18 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
     pitch = width * 16;
   }
   else {
+    if (bpp == 3) {
+      const uint8* pSrc = cast::re<const uint8*>(pData);
+      for (uint32 i = 0; i < width * height; ++i) {
+        pDst[i * 4 + 0] = pSrc[i * 3 + 0]; // R
+        pDst[i * 4 + 1] = pSrc[i * 3 + 1]; // G
+        pDst[i * 4 + 2] = pSrc[i * 3 + 2]; // B
+        pDst[i * 4 + 3] = 255;     // A
+      }
+      //pData = data.data();
+      //memcpy(cast::ct<void*>(pData), data.data(), data.size());
+      pitch = width * 4; // Update pitch for RGBA format
+    }
     format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
   }
   auto pTexture = cast::rePointer<DX11Texture2D>(createTexture2D(width,
@@ -825,7 +840,12 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
                                                                  D3D11_BIND_SHADER_RESOURCE,
                                                                  1));
   
-  m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
+  if (path.extension() == ".hdr") {
+    m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
+  }
+  else {
+    m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pDst, pitch, 0);
+  }
   
   String texName = "t_" + fileName;
   String ShaderRes = "sr_" + fileName;
@@ -906,10 +926,10 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
       textureDesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
       if(texMipLevels == 0) {
         // If mipLevels is 0, we will auto-generate mipmaps
-        /*texMipLevels = static_cast<uint32>(Math::log2(Math::max(static_cast<float>(width),
-                                                      static_cast<float>(height)))) + 1;*/
+        texMipLevels = static_cast<uint32>(Math::log2(Math::max(static_cast<float>(width),
+                                                      static_cast<float>(height)))) + 1;
         // Temporary fix for log2, later we should use a proper log2 function
-        texMipLevels = static_cast<uint32>(std::log2(max(width, height)) + 1);
+        //texMipLevels = static_cast<uint32>(std::log2(max(width, height)) + 1);
         autoGenMipMaps = true;
       }
     }

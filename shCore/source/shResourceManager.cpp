@@ -69,7 +69,9 @@ namespace shEngineSDK {
 */
 /*************************************************************/
 
-const Vector<String> ResourceManager::MODEL_EXTENSIONS = { ".fbx", ".obj" };
+const Vector<String> ResourceManager::MODEL_EXTENSIONS = { ".fbx",
+                                                           ".obj",
+                                                           ".gltf" };
 const Vector<String> ResourceManager::IMAGE_EXTENSIONS = { ".png",
                                                            ".jpeg",
                                                            ".jpg",
@@ -527,7 +529,7 @@ ResourceManager::loadTextureFromFile(const String& fileName)
     //if (path.extension() == ".jpg") {
     //  reqComp = STBI_rgb;
     //}
-    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, 0);
     pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
     stbi_image_free(data);
   }
@@ -587,12 +589,22 @@ ResourceManager::loadModelFromFile(const String& fileName)
   const aiScene* pScene = fileImporter.ReadFile(fileName,
                                                 CUSTOM_AI_MAX_QUALITY_FLAG);
 
-  aiNode* node = pScene->mRootNode->mChildren[0];
-
-  if (node == nullptr) {
-    node = pScene->mRootNode->mChildren[1];
+  aiNode* rootNode = pScene->mRootNode;
+  if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
+      !pScene->mRootNode) {
+    //SH_LOG_ERROR("Assimp error: " + String(fileImporter.GetErrorString()));
+    return nullptr;
   }
-  aiMesh* mesh = pScene->mMeshes[node->mMeshes[0]];
+  if (pScene->mNumMeshes == 0) {
+    //SH_LOG_ERROR("Assimp error: No meshes found in the scene.");
+    return nullptr;
+  }
+  //if (pScene->mNumMaterials == 0) {
+  //  //SH_LOG_ERROR("Assimp error: No materials found in the scene.");
+  //  return nullptr;
+  //}
+  
+  aiMesh* mesh = pScene->mMeshes[0];
 
   if (mesh->HasBones()) {
     return createSkeletalMesh(pScene, fileName);

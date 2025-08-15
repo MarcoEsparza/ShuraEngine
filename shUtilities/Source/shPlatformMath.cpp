@@ -193,9 +193,9 @@ PlatformMath::atan(const Radian& radian)
 }
 
 float
-PlatformMath::atan2(const Radian& rad1, const Radian& rad2)
+PlatformMath::atan2(const Radian& radian1, const Radian& radian2)
 {
-  return std::atan2(rad1.getValueOnRadians(), rad2.getValueOnRadians());
+  return std::atan2(radian1.getValueOnRadians(), radian1.getValueOnRadians());
 }
 
 float

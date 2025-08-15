@@ -20,6 +20,17 @@
 /*****************************************************************************/
 #include "shPrerequisitesUtilities.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+  #undef min
+  #undef max
+  #if !defined(NOMINMAX) && defined(_MSC_VER)
+    #define NOMINMAX
+  #endif
+  #if defined(MINGW32)
+    #include <unistd.h>
+  #endif
+#endif
+
 namespace shEngineSDK {
 class Vector3;
 class Vector2;
@@ -291,7 +302,7 @@ public:
   *  @return float Arch Tangent from value.
   */
   static float
-  atan2(const Radian& rad1, const Radian& rad2);
+  atan2(const Radian& radian1, const Radian& radian2);
 
   /**
   *  @brief Hyperbolic arch cosine.

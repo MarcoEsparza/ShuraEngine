@@ -119,7 +119,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
     
   if (materialProps.bHasMetallicMap)
   {
-    output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex);
+    output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex).r;
   }
   else
   {
@@ -128,7 +128,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   
   if(materialProps.bHasRoughnessMap)
   {
-    output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex);
+    output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex).g;
     
   }
   else
