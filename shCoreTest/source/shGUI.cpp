@@ -235,10 +235,11 @@ GUI::setRendererSettings()
     renderMan.recompileShaders();
   }
   if (ImGui::CollapsingHeader("Ambient Occlusion")) {
-    ImGui::DragFloat("AO sampler rad", &rendererSettings.sampleRadius, 0.1f, 0.0f, 5.0f);
-    ImGui::DragFloat("AO scale", &rendererSettings.aoScale, 0.1f, 0.0f, 5.0f);
-    ImGui::DragFloat("AO bias", &rendererSettings.aoBias, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("AO intensity", &rendererSettings.aoIntensity, 0.1f, 0.0f, 5.0f);
+    ImGui::DragFloat("Sampler radius", &rendererSettings.sampleRadius,
+                     0.1f, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::DragFloat("Scale", &rendererSettings.aoScale, 0.1f, 0.0f, 5.0f);
+    ImGui::DragFloat("Bias", &rendererSettings.aoBias, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("Intensity", &rendererSettings.aoIntensity, 0.1f, 0.0f, 5.0f);
   }
   if (ImGui::CollapsingHeader("Tone Mapping")) {
     const char* toneMapType[] = {
@@ -416,7 +417,8 @@ FindSharedPtrInTree(GameObject* raw, const Vector<SPtr<GameObject>>& roots) {
 static void
 showSceneGraph(const SPtr<GameObject>& pNode,
                SPtr<GameObject>& pSelectedObj,
-               SPtr<GameObject>& renamingObj)
+               SPtr<GameObject>& renamingObj,
+               int32& matSelection)
 {
   SceneGraph& scene = g_sceneGraph();
 
@@ -464,6 +466,7 @@ showSceneGraph(const SPtr<GameObject>& pNode,
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
       pSelectedObj = pNode;
+      matSelection = -1; // Reset material selection when selecting a new object
     }
     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       renamingObj = pNode;
@@ -548,7 +551,7 @@ showSceneGraph(const SPtr<GameObject>& pNode,
 
   if (opened) {
     for (auto& child : pNode->childs) {
-      showSceneGraph(child, pSelectedObj, renamingObj);
+      showSceneGraph(child, pSelectedObj, renamingObj, matSelection);
     }
     ImGui::TreePop();
   }
@@ -585,7 +588,7 @@ GUI::setSceneGraph()
 
   // Draw hierarchy
   for (auto& gameObject : scene.getGameObjectList()) {
-    showSceneGraph(gameObject, m_pActiveGameObject, renamingObject);
+    showSceneGraph(gameObject, m_pActiveGameObject, renamingObject, m_selectedMat);
   }
 
   ImGui::End();
@@ -803,25 +806,41 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
       static_cast<uint32>(pMesh->m_mesh->m_materials.size()));
     uint32 vertexCount = 0;
     uint32 indexCount = 0;
-    for (uint32 j = 0; j < pMesh->m_mesh->m_meshes.size(); ++j) {
-      vertexCount += pMesh->m_mesh->m_meshes[j].numVertices;
-      indexCount += pMesh->m_mesh->m_meshes[j].numIndices;
+    for (uint32 i = 0; i < pMesh->m_mesh->m_meshes.size(); ++i) {
+      vertexCount += pMesh->m_mesh->m_meshes[i].numVertices;
+      indexCount += pMesh->m_mesh->m_meshes[i].numIndices;
     }
     ImGui::Text("Vertex Count: %d", vertexCount);
     ImGui::Text("Index Count: %d", indexCount);
 
-    for (int32 j = 0; j < pMesh->m_mesh->m_materials.size(); ++j) {
-      auto& currentMat = pMesh->m_mesh->m_materials[j];
-      String matName = "Material:" + currentMat->name;
-      //ImGui::Text(matName.c_str());
-      if (ImGui::Button(matName.c_str())) {
-        m_selectedMat = j;
-        m_bTexColor = false;
+    ImGui::Spacing();
+    if(ImGui::CollapsingHeader("Mesh Visibility")) {
+      for (auto& mesh : pMesh->m_mesh->m_meshes) {
+        //String text = mesh.name + " visible";
+        ImGui::Checkbox(mesh.name.c_str(), &mesh.bVisible); // Show visibility toggle for each mesh
       }
+    }
 
-      if (m_selectedMat >= 0 && m_selectedMat == j) {
-        //m_bTexColor = false;
+    ImGui::Spacing();
+    ImGui::Text("Materials:");
+    ImGui::Spacing();
+    for (int32 i = 0; i < pMesh->m_mesh->m_materials.size(); ++i) {
+      auto& currentMat = pMesh->m_mesh->m_materials[i];
+      String matName = "Material:" + currentMat->name;
+      bool bSelected = (m_selectedMat == i);
+
+      ImGui::SetNextItemOpen(bSelected, ImGuiCond_Always);
+      if (ImGui::CollapsingHeader(matName.c_str())) {
+        if (!bSelected) {
+          m_selectedMat = i;
+          m_bTexColor = false;
+        }
         showMaterialInspector(currentMat);
+      }
+      else {
+        if (bSelected) {
+          m_selectedMat = -1; // Deselect if the header is not open
+        }
       }
     }
   }
@@ -857,7 +876,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                          "PNGs(*.png)\0*.png\0",
                          "resources/textures/")) {
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::rePointer<ImageResource>(pRes);
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pBaseColor = pImg->texture;
       }
@@ -866,19 +885,21 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   ImGui::SameLine();
   String buttonID = "##ColorButton" + currentMat->name;
   Vector3& baseColor = currentMat->baseColorFactor;
-  if (ImGui::ColorButton(buttonID.c_str(), ImVec4(baseColor.x,
-                         baseColor.y,
-                         baseColor.z,
-                         1.0f)))
+  ImVec4 currentColor = ImVec4(baseColor.x,
+                               baseColor.y,
+                               baseColor.z,
+                               1.0f);
+  if (ImGui::ColorButton(buttonID.c_str(), currentColor))
   {
-    m_bTexColor = m_bTexColor ? false : true;
+    //m_bTexColor = m_bTexColor ? false : true;
+    ImGui::OpenPopup("ColorPickerPopup");
   }
   ImGui::SameLine();
   bool bHasDiffuseMap = currentMat->m_properties.bHasDiffuseMap;
   ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
   currentMat->m_properties.bHasDiffuseMap = bHasDiffuseMap;
 
-  if (m_bTexColor) {
+  /*if (m_bTexColor) {
     float texColor[3] = { baseColor.x, baseColor.y, baseColor.z };
     ImGui::Begin("Color Picker", 0, ImGuiWindowFlags_NoTitleBar);
     texColor[0] = baseColor.x;
@@ -889,7 +910,15 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     baseColor.y = texColor[1];
     baseColor.z = texColor[2];
     ImGui::End();
+  }*/
+
+  if (ImGui::BeginPopup("ColorPickerPopup")) {
+    ImGui::ColorPicker3("##picker", (float*)&currentColor);
+    ImGui::EndPopup();
   }
+  baseColor.x = currentColor.x;
+  baseColor.y = currentColor.y;
+  baseColor.z = currentColor.z;
 
   // Normal
   //ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
@@ -901,7 +930,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                          "PNGs(*.png)\0*.png\0",
                          "resources/textures/")) {
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::rePointer<ImageResource>(pRes);
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pNormal = pImg->texture;
       }
@@ -922,7 +951,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                          "PNGs(*.png)\0*.png\0",
                          "resources/textures/")) {
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::rePointer<ImageResource>(pRes);
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pMetallic = pImg->texture;
       }
@@ -950,7 +979,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                          "PNGs(*.png)\0*.png\0",
                          "resources/textures/")) {
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::rePointer<ImageResource>(pRes);
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pRoughness = pImg->texture;
       }
@@ -991,7 +1020,7 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
       String filePath;
       if(fileExp.openFile(filePath, ".hdr", "resources/textures/")) {
         auto pRes = resMan.loadResourceFromFile(Path(filePath));
-        auto pImg = cast::rePointer<ImageResource>(pRes);
+        auto pImg = cast::re_ptr<ImageResource>(pRes);
         if (pImg) {
           pSkyBox->setSkyBoxResource(pImg);
           renderMan.computeIBL();

@@ -380,11 +380,11 @@ ResourceManager::~ResourceManager()
 void
 ResourceManager::onStartUp()
 {
-  auto white = cast::rePointer<ImageResource>(loadResourceFromFile(
+  auto white = cast::re_ptr<ImageResource>(loadResourceFromFile(
                                               Path("resources/White.png")));
-  auto normal = cast::rePointer<ImageResource>(loadResourceFromFile(
+  auto normal = cast::re_ptr<ImageResource>(loadResourceFromFile(
                                               Path("resources/textures/normal.png")));
-  auto pCube = cast::rePointer<StaticMeshResource>(loadResourceFromFile(
+  auto pCube = cast::re_ptr<StaticMeshResource>(loadResourceFromFile(
                                                    Path("resources/models/cube.fbx")));
   //pCube->m_materials[0]->baseColor = white->texture;
   //pCube->m_materials[0]->normal = normal->texture;
@@ -490,13 +490,13 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
     pRes = loadTextureFromDDS(filePath.toString());
     return true;
   }
-  else if (filePath.compareExtensions({ ".sha" })) {
+  else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
     SystemPath path = filePath.toString();
     path.replace_extension(".sha");
-    SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
+    SystemPath fullPath = "resources/assets/models/" + path.filename().string();
 
     if (std::filesystem::exists(fullPath)) {
-      
+      pRes = loadModelFromCache(fullPath.string());
       return true;
     }
   }
@@ -546,7 +546,7 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   //graphMan.saveTextureToDDS(pImage->texture, saveTex);
 
-  Path texPath(saveTex);
+  Path texPath(fileName);
   pImage->setPath(texPath);
 
   return pImage;

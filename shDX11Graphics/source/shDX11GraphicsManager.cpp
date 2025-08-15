@@ -833,7 +833,7 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
     }
     format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
   }
-  auto pTexture = cast::rePointer<DX11Texture2D>(createTexture2D(width,
+  auto pTexture = cast::re_ptr<DX11Texture2D>(createTexture2D(width,
                                                                  height,
                                                                  format,
                                                                  D3D11_USAGE_DEFAULT,

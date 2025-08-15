@@ -83,8 +83,8 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  //loadPistol();
-  //loadSponza();
+  loadPistol();
+  loadSponza();
   loadSkybox();
   //loadCoat();
   tempLoad();
@@ -311,7 +311,7 @@ RendererApp::onFixedUpdate()
     for (auto& gameObject : scene.getGameObjectList()) {
       for (auto& component : gameObject->components) {
         if (component->getType() == COMPONENT_TYPE::kRigidbody) {
-          auto rb = cast::rePointer<RigidbodyComponent>(component);
+          auto rb = cast::re_ptr<RigidbodyComponent>(component);
           rigidbodies.push_back(&rb->m_rigidbody);
         }
       }
@@ -321,7 +321,7 @@ RendererApp::onFixedUpdate()
     for (auto& gameObject : scene.getGameObjectList()) {
       for (auto& component : gameObject->components) {
         if (component->getType() == COMPONENT_TYPE::kRigidbody) {
-          auto rb = cast::rePointer<RigidbodyComponent>(component);
+          auto rb = cast::re_ptr<RigidbodyComponent>(component);
           gameObject->move(rb->m_rigidbody.m_position);
           gameObject->setRotation(rb->m_rigidbody.m_rotation.toEulerAngles());
         }
@@ -640,7 +640,7 @@ RendererApp::loadPistol()
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
 
-  auto modelRes = cast::rePointer<StaticMeshResource>(
+  auto modelRes = cast::re_ptr<StaticMeshResource>(
                   resMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
 
   auto model = sh_makeShared<GameObject>();
@@ -688,7 +688,7 @@ RendererApp::loadSponza()
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
 
-  auto sponzaModelRes = cast::rePointer<StaticMeshResource>(
+  auto sponzaModelRes = cast::re_ptr<StaticMeshResource>(
                         resMan.loadModelFromCache("resources/assets/models/Sponza.sha"));
 
   auto model = sh_makeShared<GameObject>();
@@ -731,7 +731,7 @@ RendererApp::loadSkybox()
   SceneGraph& scene = g_sceneGraph();
 
   auto pTex = resMan.loadResourceFromFile(Path("resources/textures/shanghai_bund_4k.hdr"));
-  auto skyboxTx = cast::rePointer<ImageResource>(pTex);
+  auto skyboxTx = cast::re_ptr<ImageResource>(pTex);
 
   auto pSkyBox = sh_makeShared<SkyBoxComponent>();
   pSkyBox->setSkyBoxResource(skyboxTx);
@@ -749,7 +749,7 @@ RendererApp::loadCoat()
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& scene = g_sceneGraph();
 
-  auto modelRes = cast::rePointer<StaticMeshResource>(
+  auto modelRes = cast::re_ptr<StaticMeshResource>(
     resMan.loadResourceFromFile(Path("resources/models/export3dcoat.obj")));
 
   Path colorPath("resources/textures/export3dcoat_lambert3SG_color.tga");
@@ -757,10 +757,10 @@ RendererApp::loadCoat()
   Path metalPath("resources/textures/export3dcoat_lambert3SG_metalness.tga");
   Path normalPath("resources/textures/Emmisive_Eye_Class_Normal.png");
 
-  auto pAlbedo = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(colorPath));
-  auto pGloss = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(glossPath));
-  auto pMetal = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(metalPath));
-  auto pNormal = cast::rePointer<ImageResource>(resMan.loadResourceFromFile(normalPath));
+  auto pAlbedo = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(colorPath));
+  auto pGloss = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(glossPath));
+  auto pMetal = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(metalPath));
+  auto pNormal = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(normalPath));
 
   auto& pMat = modelRes->m_materials[0];
   pMat->baseColor = pAlbedo->texture;
@@ -794,7 +794,7 @@ RendererApp::tempLoad()
   ResourceManager& resourceMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
 
-  auto modelRes = cast::rePointer<StaticMeshResource>(
+  auto modelRes = cast::re_ptr<StaticMeshResource>(
     resourceMan.loadResourceFromFile(Path("resources/models/scene.gltf")));
 
   auto model = sh_makeShared<GameObject>();

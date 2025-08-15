@@ -51,7 +51,7 @@ SceneGraph::createCubeObject()
   auto newObject = sh_makeShared<GameObject>();
   newObject->name = "Cube";
   auto meshComponent = sh_makeShared<StaticMeshComponent>();
-  auto pCube = cast::rePointer<StaticMeshResource>(resourceMan.getResource("cube.fbx"));
+  auto pCube = cast::re_ptr<StaticMeshResource>(resourceMan.getResource("cube.fbx"));
   meshComponent->setMeshData(pCube);
   newObject->addComponent(meshComponent);
   addObject(newObject);

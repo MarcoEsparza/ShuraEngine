@@ -108,23 +108,45 @@ Asset::loadResourceFromAsset(Path filePath)
       mat->aoPath = line;
     
       auto pBaseColor = sh_makeShared<ImageResource>();
+      auto pMetallic = sh_makeShared<ImageResource>();
+      auto pRoughness = sh_makeShared<ImageResource>();
+      auto pNormal = sh_makeShared<ImageResource>();
+      auto pAO = sh_makeShared<ImageResource>();
 
       if (mat->baseColorPath != "") {
-        pBaseColor = sh_reinterpretPCast<ImageResource>(
+        pBaseColor = cast::re_ptr<ImageResource>(
                      resMan.loadResourceFromFile(Path(mat->baseColorPath)));
       }
       else {
         pBaseColor->texture = graphMan.createErrorTexture();
       }
-
-      auto pMetallic = sh_reinterpretPCast<ImageResource>(
-                       resMan.loadResourceFromFile(Path(mat->metallicPath)));
-      auto pRoughness = sh_reinterpretPCast<ImageResource>(
-                        resMan.loadResourceFromFile(Path(mat->roughnessPath)));
-      auto pNormal = sh_reinterpretPCast<ImageResource>(
-                     resMan.loadResourceFromFile(Path(mat->normalPath)));
-      auto pAO = sh_reinterpretPCast<ImageResource>(
-                 resMan.loadResourceFromFile(Path(mat->aoPath)));
+      if( mat->metallicPath != "") {
+        pMetallic = cast::re_ptr<ImageResource>(
+                    resMan.loadResourceFromFile(Path(mat->metallicPath)));
+      }
+      else {
+        pMetallic->texture = graphMan.createBlackTexture();
+      }
+      if (mat->roughnessPath != "") {
+        pRoughness = cast::re_ptr<ImageResource>(
+                     resMan.loadResourceFromFile(Path(mat->roughnessPath)));
+      }
+      else {
+        pRoughness->texture = graphMan.createBlackTexture();
+      }
+      if (mat->normalPath != "") {
+        pNormal = cast::re_ptr<ImageResource>(
+                  resMan.loadResourceFromFile(Path(mat->normalPath)));
+      }
+      else {
+        pNormal->texture = graphMan.createDefaultNormalTexture();
+      }
+      if (mat->aoPath != "") {
+        pAO = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(Path(mat->aoPath)));
+      }
+      else {
+        pAO->texture = graphMan.createBlackTexture();
+      }
     
       mat->baseColor = pBaseColor->texture;
       mat->metallic = pMetallic->texture;

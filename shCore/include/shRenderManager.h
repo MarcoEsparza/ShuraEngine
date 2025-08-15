@@ -236,6 +236,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   drawStaticMesh(const WPtr<GameObject> pGO);
 
+  void
+  drawTransparentStaticMesh(const WPtr<GameObject> pGO);
+
   /**
   *  @brief Sets the resource view from PBRMaterial.
   * 

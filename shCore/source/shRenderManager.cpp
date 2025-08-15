@@ -205,13 +205,13 @@ RenderManager::onStartUp()
 
   auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
   if (pLut) {
-    m_pLutTexture = cast::rePointer<CubeMap>(pLut);
+    m_pLutTexture = cast::re_ptr<CubeMap>(pLut);
     m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
   }
 
   auto pLut1 = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/LBK-K-Tone_33.cube"));
   if (pLut1) {
-    m_pLutLBK = cast::rePointer<CubeMap>(pLut1);
+    m_pLutLBK = cast::re_ptr<CubeMap>(pLut1);
     m_shaderData.lutSize = static_cast<float>(m_pLutLBK->getLutSize());
   }
 }
@@ -622,6 +622,11 @@ RenderManager::drawStaticMeshOnScene()
       drawStaticMesh(gameObject);
     }
   }
+  for (auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      drawTransparentStaticMesh(gameObject);
+    }
+  }
 }
 
 void
@@ -637,7 +642,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
   for (auto& component : pGameObject->components) {
     if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
         pGameObject->m_bActive) {
-      auto meshComponent = cast::rePointer<StaticMeshComponent>(component);
+      auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
 
       graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
       graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
@@ -651,19 +656,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
       for (auto& mesh : meshResource->m_meshes) {
         uint32 matIndex = mesh.materialIndex;
         bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
-        if (!bHasAlphaTest) {
-          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
-          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
-        }
-        indexCount += mesh.numIndices;
-        vertexCount += mesh.numVertices;
-      }
-      indexCount = 0;
-      vertexCount = 0;
-      for (auto& mesh : meshResource->m_meshes) {
-        uint32 matIndex = mesh.materialIndex;
-        bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
-        if (bHasAlphaTest) {
+        if (!bHasAlphaTest && mesh.bVisible) {
           setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
@@ -675,6 +668,48 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 
   for (auto& pChild : pGameObject->childs) {
     drawStaticMesh(pChild);
+  }
+}
+
+void
+RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
+{
+  if (pGO.expired()) {
+    return;
+  }
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  auto pGameObject = pGO.lock();
+
+  for (auto& component : pGameObject->components) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
+      pGameObject->m_bActive) {
+      auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
+
+      graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
+      graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+
+      Transform modelT = pGameObject->transform.getTransform();
+      graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+
+      uint32 indexCount = 0;
+      uint32 vertexCount = 0;
+      auto& meshResource = meshComponent->m_mesh;
+      for (auto& mesh : meshResource->m_meshes) {
+        uint32 matIndex = mesh.materialIndex;
+        bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
+        if (bHasAlphaTest && mesh.bVisible) {
+          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+        }
+        indexCount += mesh.numIndices;
+        vertexCount += mesh.numVertices;
+      }
+    }
+  }
+
+  for (auto& pChild : pGameObject->childs) {
+    drawTransparentStaticMesh(pChild);
   }
 }
 

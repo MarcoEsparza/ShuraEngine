@@ -31,6 +31,7 @@ struct SH_CORE_EXPORT MeshData
   String name;
   Vector<VertexData> vertices;
   Vector<uint32> indices;
+  bool bVisible = true;
 };
 
 struct SH_CORE_EXPORT SkeletalMeshData

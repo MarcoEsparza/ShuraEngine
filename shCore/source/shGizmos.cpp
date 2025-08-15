@@ -80,7 +80,7 @@ Gizmos::drawGizmos(const Camera& camera)
   for (auto& gameObject : scene.getGameObjectList()) {
     for (auto& component : gameObject->components) {
       if (component->getType() == COMPONENT_TYPE::kCollider) {
-        auto colliderComp = cast::rePointer<ColliderComponent>(component);
+        auto colliderComp = cast::re_ptr<ColliderComponent>(component);
         
         if (colliderComp->m_collider.m_type == COLLIDER_TYPE::kOBBox) {
           drawBox(colliderComp->m_collider.m_box, gameObject->transform.getTransform());

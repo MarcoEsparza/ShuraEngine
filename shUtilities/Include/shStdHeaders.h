@@ -204,7 +204,7 @@ namespace cast {
 */
 template<typename to, typename from>
 std::shared_ptr<to>
-rePointer(const std::shared_ptr<from>& pFrom)
+re_ptr(const std::shared_ptr<from>& pFrom)
 {
   return std::reinterpret_pointer_cast<to>(pFrom);
 }
