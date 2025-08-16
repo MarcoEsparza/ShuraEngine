@@ -85,6 +85,6 @@ class JointConstraint : public BasePhysicsConstraint
   /**
   *  @brief Constant error value for the constraint
   */
-  Vector3 m_errorConstant;
+  mutable Vector3 m_errorValue;
 };
 }

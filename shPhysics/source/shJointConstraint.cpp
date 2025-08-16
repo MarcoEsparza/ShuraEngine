@@ -38,7 +38,7 @@ JointConstraint::initRelativePositions(const Vector3& rw)
   const Vector3 p1 = m_rigidbodies[0]->getWorldPosition();
   const Vector3 p2 = m_rigidbodies[1]->getWorldPosition();
 
-  m_errorConstant = p1 + (m_rigidbodies[0]->m_rotation * m_r1) -
+  m_errorValue = p1 + (m_rigidbodies[0]->m_rotation * m_r1) -
                     p2 - (m_rigidbodies[1]->m_rotation * m_r2);
 }
 
@@ -54,7 +54,7 @@ JointConstraint::solve(float deltaTime)
   Matrix3 skew2 = Matrix3::getSkewSymmetric(m_r2);
 
   // Calculate the effective mass matrix
-  Matrix3 effMass = Matrix3::IDENTITY * m_rigidbodies[0]->m_invMass *
+  Matrix3 effMass = Matrix3::IDENTITY * m_rigidbodies[0]->m_invMass +
                     Matrix3::IDENTITY * m_rigidbodies[1]->m_invMass +
                     skew1 * m_rigidbodies[0]->getInvInertiaWorld() * skew1.getTranspose() +
                     skew2 * m_rigidbodies[1]->getInvInertiaWorld() * skew2.getTranspose();
@@ -64,7 +64,7 @@ JointConstraint::solve(float deltaTime)
   const Vector3 p1 = m_rigidbodies[0]->getWorldPosition();
   const Vector3 p2 = m_rigidbodies[1]->getWorldPosition();
 
-  Vector3 lambda = -m_errorConstant * effMassP;
+  Vector3 lambda = -m_errorValue * effMassP;
 
   m_rigidbodies[0]->applyImpulse(lambda, p1 + (m_rigidbodies[0]->m_rotation * m_r1));
   m_rigidbodies[1]->applyImpulse(-lambda, p2 + (m_rigidbodies[1]->m_rotation * m_r2));
@@ -73,6 +73,11 @@ JointConstraint::solve(float deltaTime)
 float
 JointConstraint::getError() const
 {
-  return m_errorConstant.lenghtSq();
+  const Vector3 p1 = m_rigidbodies[0]->getWorldPosition();
+  const Vector3 p2 = m_rigidbodies[1]->getWorldPosition();
+  m_errorValue = (p1 + (m_rigidbodies[0]->m_rotation * m_r1) -
+                  p2 - (m_rigidbodies[1]->m_rotation * m_r2));
+
+  return m_errorValue.lenghtSq();
 }
 }
