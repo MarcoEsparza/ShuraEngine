@@ -84,10 +84,10 @@ RendererApp::onCreate()
 
   // Load resources
   loadPistol();
-  loadSponza();
+  //loadSponza();
   loadSkybox();
   //loadCoat();
-  tempLoad();
+  //tempLoad();
 
   // Initialize light orthographic camera
   initLightCamera();
@@ -339,7 +339,7 @@ RendererApp::onRender()
 
   graphMan.setPrimitiveTopology();
   renderMan.renderScene();
-  gizmos.drawGizmos(m_camera);
+  //gizmos.drawGizmos(m_camera);
   m_gui.render();
 }
 

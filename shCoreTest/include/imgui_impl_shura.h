@@ -26,7 +26,7 @@
 #define IMGUI_HAS_DOCK
 
 #include "imgui.h"
-#include "externals/imgui_internal.h"
+#include "imgui_internal.h"
 
 namespace shEngineSDK {
 

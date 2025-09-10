@@ -32,7 +32,7 @@ SkyBoxComponent::setSkyBoxResource(const WPtr<ImageResource>& skyBoxResource)
       m_skyBoxResource = nullptr;
     }
     m_skyBoxResource = sh_reinterpretPCast<ImageResource>(res);
-    graphMan.generateMips(m_skyBoxResource->texture);
+    //graphMan.generateMips(m_skyBoxResource->texture);
   }
   else {
     //SH_LOG_ERROR("Failed to set skybox resource: Resource is expired or invalid.");

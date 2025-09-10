@@ -1007,7 +1007,7 @@ RenderManager::renderScene()
   /*************************************/
   /*             Luminance             */
   /*************************************/
-  pInput = pLightCMap.pTexture;
+  pInput = pTempMap.pTexture;
   pOutput = pLuminance.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   m_passes[StringID("LuminanceShader").getID()]->setPass();
