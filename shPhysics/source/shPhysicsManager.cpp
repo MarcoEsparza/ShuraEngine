@@ -45,10 +45,13 @@ PhysicsManager::onUpdate(Vector<Rigidbody*>& rigidbodies)
     Rigidbody* rb1 = pair.first;
     Rigidbody* rb2 = pair.second;
     // Check if the two rigidbodies are colliding
-    /*CollisionInfo info;
-    if (rb1->checkCollision(*rb2, info)) {
-      resolveCollision(rb1, rb2, info);
-    }*/
+    CollisionInfo info;
+    resolveCollision(rb1, rb2, info);
+  }
+  // Update rigidbody positions and orientations based on their velocities
+  
+  for (auto& rb : rigidbodies) {
+    verletAngularIntegration(*rb, Quaternion::IDENTITY);
   }
 }
 
