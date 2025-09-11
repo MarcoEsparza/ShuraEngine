@@ -34,6 +34,7 @@ struct aiScene;
 struct aiNode;
 struct aiMesh;
 struct aiMaterial;
+struct aiAnimation;
 
 namespace shEngineSDK {
  /*************************************************************/
@@ -260,6 +261,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   void
   proccessSkeletalMeshNode(const aiNode* node,
                            const aiScene* scene,
+                           SPtr<BoneHierarchy> boneNode,
                            SPtr<SkeletalMeshResource>& skeletalMesh,
                            SPtr<SkeletonResource>& skeleton);
 
@@ -282,6 +284,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   /*************************************************************/
 
+  void
+  checkModelAnimations(const aiScene* scene, SPtr<SkeletonResource>& skeleton);
+
   /**
   *  @brief Process the animation.
   * 
@@ -290,10 +295,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param uint32 index
   */
   void
-  proccessAnimation(const aiScene* scene,
-                    SPtr<AnimationResource>& animation,
-                    SPtr<SkeletonResource>& skeleton,
-                    uint32 index);
+  proccessAnimation(const aiAnimation* anim,
+                    SPtr<AnimationResource>& outAnimation);
 
   /*************************************************************/
   /*

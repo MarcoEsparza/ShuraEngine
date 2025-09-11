@@ -46,31 +46,12 @@ class AnimatorComponent : public Component
   */
   /***************************************************************************/
  public:
-  /**
-  *  @brief Updates the current animation.
-  * 
-  *  @param float elapsedTime
-  */
   void
-  updateAnimation(const float elapsedTime);
-
-  /**
-  *  @brief Select an animation to play.
-  * 
-  *  @param SPtr<AnimationResource>& anim
-  */
-  void
-  setCurrentAnimation(const SPtr<AnimationResource>& anim);
+  update(float deltaTime);
 
  private:
-  /**
-  *  @brief Calculates all bones transformations throgh the time.
-  * 
-  *  @param Bone& bone
-  *  @param Matrix4 parentTransform
-  */
   void
-  calculateBoneTransform(const AnimationNodeData& node, const Matrix4& parentTransform);
+  ReadNodeHierarchy(float time, const Matrix4& parentTransform);
 
   /***************************************************************************/
   /*
@@ -84,14 +65,14 @@ class AnimatorComponent : public Component
   SPtr<AnimationResource> m_currentAnim;
 
   /**
+  *  @brief Pointer to the animation skeleton.
+  */
+  SPtr<SkeletonResource> m_skeletonData;
+
+  /**
   *  @brief The current time for the animation.
   */
   float m_currentTime = 0.0f;
-
-  /**
-  *  @brief The time for the animator.
-  */
-  float m_deltaTime = 0.0f;
 
   /**
   *  @brief Final skeleton trsnformation.

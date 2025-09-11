@@ -104,14 +104,6 @@ GUI::update()
 
   ImGui::Begin("Console");
   ImGui::Text("Message1");
-  /*static char buffer[256] = "This is a test";
-  if (ImGui::InputText("##TestText",
-                       buffer,
-                       IM_ARRAYSIZE(buffer),
-                       ImGuiInputTextFlags_EnterReturnsTrue |
-                       ImGuiInputTextFlags_AutoSelectAll)) {
-  }
-  ImGui::Text(buffer);*/
   ImGui::End();
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));

@@ -730,7 +730,7 @@ RendererApp::loadSkybox()
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& scene = g_sceneGraph();
 
-  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/shanghai_bund_4k.hdr"));
+  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/castel_st_angelo_roof_2k.hdr"));
   auto skyboxTx = cast::re_ptr<ImageResource>(pTex);
 
   auto pSkyBox = sh_makeShared<SkyBoxComponent>();
