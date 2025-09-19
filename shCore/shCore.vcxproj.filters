@@ -326,5 +326,8 @@
     <ClCompile Include="source\shFileExplorerWin32.cpp">
       <Filter>Source Files\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="source\shSkeletonResource.cpp">
+      <Filter>Source Files\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

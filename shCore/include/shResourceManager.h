@@ -49,6 +49,7 @@ class StaticMeshResource;
 class SkeletalMeshResource;
 class SkeletonResource;
 class AnimationResource;
+struct BoneHierarchy;
 
 /**
 *  @brief Resource Manager module for loading all desired resources from files.

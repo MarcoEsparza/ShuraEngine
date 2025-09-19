@@ -103,32 +103,6 @@ struct SH_CORE_EXPORT ALIGN_AS(16) BoneAnimationChannel
 };
 
 /**
-*  @brief Struct for the file animation nodes.
-*/
-//struct AnimationNodeData
-//{
-//  /**
-//  *  @brief Node transform.
-//  */
-//  Matrix4 transformation = Matrix4::IDENTITY;
-//
-//  /**
-//  *  @brief Bone name.
-//  */
-//  String name;
-//
-//  /**
-//  *  @brief Number of children.
-//  */
-//  uint32 childrenCount = 0;
-//
-//  /**
-//  *  @brief Node children.
-//  */
-//  Vector<AnimationNodeData> children;
-//};
-
-/**
 *  @brief Animation resource, it cointains all info for one animation,
 *         it also have a pointer to the skeleton.
 */
@@ -169,6 +143,6 @@ class AnimationResource : public Resource
   /**
   *  @brief Pointer to the animation skeleton.
   */
-  WPtr<SkeletonResource> m_skeletonData;
+  //WPtr<SkeletonResource> m_skeletonData;
 };
 }

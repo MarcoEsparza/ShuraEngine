@@ -40,6 +40,8 @@
 #include "shSkyBoxComponent.h"
 #include "shColliderComponent.h"
 #include "shGizmos.h"
+#include "shAnimatorComponent.h"
+#include "shSkeletonResource.h"
 
 #include "shRadian.h"
 #include "shVector4.h"
@@ -83,11 +85,11 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  loadPistol();
+  //loadPistol();
   //loadSponza();
   loadSkybox();
   //loadCoat();
-  //tempLoad();
+  tempLoad();
 
   // Initialize light orthographic camera
   initLightCamera();
@@ -193,6 +195,7 @@ RendererApp::onUpdate()
   RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
   Time& time = g_time();
+  SceneGraph& scene = g_sceneGraph();
 
   m_fpsTimer += time.getFrameDeltaTime();
 
@@ -276,6 +279,15 @@ RendererApp::onUpdate()
   }
 
   updateMainBuffer();
+
+  for(auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kAnimator) {
+        auto animator = cast::re_ptr<AnimatorComponent>(component);
+        animator->update(time.getFrameDeltaTime());
+      }
+    }
+  }
 
   // Update audio
   if (bIsSoundPlaying) {
@@ -794,18 +806,22 @@ RendererApp::tempLoad()
   ResourceManager& resourceMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
 
-  auto modelRes = cast::re_ptr<StaticMeshResource>(
-    resourceMan.loadResourceFromFile(Path("resources/models/scene.gltf")));
+  auto modelRes = cast::re_ptr<SkeletalMeshResource>(
+    resourceMan.loadResourceFromFile(Path("resources/models/Breakdance Freezes.fbx")));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "Spartan";
-  auto modelMC = sh_makeShared<StaticMeshComponent>();
+  model->name = "BlueMan";
+  auto modelMC = sh_makeShared<SkeletalMeshComponent>();
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);
 
   model->transform.getTransform() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE);
+
+  auto animator = sh_makeShared<AnimatorComponent>();
+  animator->m_skeletonData = modelRes->m_skeleton;
+  //animator->m_currentAnim = animator->m_skeletonData->m_animations[0];
 
   sceneG.addObject(model);
 }

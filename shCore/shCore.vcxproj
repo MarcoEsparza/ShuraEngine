@@ -92,6 +92,7 @@
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
+    <ClCompile Include="source\shSkeletonResource.cpp" />
     <ClCompile Include="source\shSkyBoxComponent.cpp" />
     <ClCompile Include="source\shTransformComponent.cpp" />
   </ItemGroup>

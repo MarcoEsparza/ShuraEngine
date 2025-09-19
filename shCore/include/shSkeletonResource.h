@@ -22,6 +22,8 @@
 #include <shMatrix4.h>
 
 namespace shEngineSDK {
+class AnimationResource;
+
 /**
 *  @brief Struct for the bone info.
 */
@@ -47,7 +49,7 @@ struct SH_CORE_EXPORT BoneHierarchy
 {
   String name;
   Matrix4 transformation = Matrix4::IDENTITY;
-  Vector <SPtr<BoneHierarchy>> children;
+  Vector<SPtr<BoneHierarchy>> children;
 };
 
 /**
@@ -97,5 +99,7 @@ class SH_CORE_EXPORT SkeletonResource : public Resource
   *  @brief Bone container.
   */
   Vector<BoneInfo> m_bones;
+
+  Vector<WPtr<AnimationResource>> m_animations;
 };
 }

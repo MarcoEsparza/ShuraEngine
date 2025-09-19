@@ -147,11 +147,6 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   SPtr<SkeletalMeshResource> m_mesh;
 
   /**
-  *  @brief Resource with skeleton data.
-  */
-  SPtr<SkeletonResource> m_skeletonData;
-
-  /**
   *  @brief Vertex Buffer.
   */
   SPtr<VertexBuffer> m_vertexBuffer;
@@ -160,11 +155,6 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   *  @brief Index Buffer.
   */
   SPtr<IndexBuffer> m_indexBuffer;
-
-  /**
-  *  @brief Constant Buffer for bones data.
-  */
-  SPtr<ConstantBuffer> m_bonesBuffer;
 
   /**
   *  @brief Current pose of the skeleton.

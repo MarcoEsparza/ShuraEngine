@@ -23,6 +23,8 @@
 #include "shMaterial.h"
 
 namespace shEngineSDK {
+class SkeletonResource;
+
 struct SH_CORE_EXPORT MeshData
 {
   uint32 numVertices = 0;
@@ -116,5 +118,7 @@ class SH_CORE_EXPORT SkeletalMeshResource : public Resource
   *  @brief Mesh indices
   */
   Vector<uint32> m_indices;
+
+  SPtr<SkeletonResource> m_skeleton;
 };
 }

@@ -701,13 +701,7 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   m_loadedResources[skeleton->getName()] = skeleton;
 
   checkModelAnimations(scene, skeleton);
-  /*if (scene->HasAnimations()) {
-    auto animation = sh_makeShared<AnimationResource>();
-    scene->mNumAnimations;
-    proccessAnimation(scene, animation, skeleton, 0);
-    animation->setName(file.filename().string() + "Animation");
-    m_loadedResources[animation->getName()] = animation;
-  }*/
+  skeletalMesh->m_skeleton = skeleton;
 
   return skeletalMesh;
 }
@@ -799,11 +793,12 @@ ResourceManager::checkModelAnimations(const aiScene* scene, SPtr<SkeletonResourc
   if (scene->HasAnimations()) {
     for (uint32 i = 0; i < scene->mNumAnimations; ++i) {
       auto animation = sh_makeShared<AnimationResource>();
-      animation->m_skeletonData = skeleton;
+      //animation->m_skeletonData = skeleton;
       aiAnimation* anim = scene->mAnimations[i];
       proccessAnimation(anim, animation);
       String name = scene->mAnimations[i]->mName.C_Str();
       m_loadedResources[name] = animation;
+      skeleton->m_animations.push_back(animation);
     }
   }
 }
