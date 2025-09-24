@@ -231,13 +231,16 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @brief Draw all static meshes on scene
   */
   void
-  drawStaticMeshOnScene();
+  drawMeshesOnScene();
 
   void
   drawStaticMesh(const WPtr<GameObject> pGO);
 
   void
   drawTransparentStaticMesh(const WPtr<GameObject> pGO);
+
+  void
+  drawSkeletalMesh(const WPtr<GameObject> pGO);
 
   /**
   *  @brief Sets the resource view from PBRMaterial.

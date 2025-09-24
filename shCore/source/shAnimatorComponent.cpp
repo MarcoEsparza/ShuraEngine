@@ -18,25 +18,10 @@
 /*****************************************************************************/
 #include "shAnimatorComponent.h"
 #include "shGraphicsManager.h"
+#include "shTime.h"
 #include <shMath.h>
 
 namespace shEngineSDK {
-void
-AnimatorComponent::update(float deltaTime)
-{
-  if(m_currentAnim == nullptr || m_skeletonData == nullptr) {
-    return;
-  }
-
-  float tps = (m_currentAnim->m_ticksPerSecond != 0.0f) ?
-               m_currentAnim->m_ticksPerSecond : 25.0f;
-  m_currentTime += tps * deltaTime;
-  m_currentTime = Math::fmod(m_currentTime, m_currentAnim->m_duration);
-
-  readNodeHierarchy(m_currentTime, m_skeletonData->m_rootBone, Matrix4::IDENTITY);
-  updateCB();
-}
-
 void
 AnimatorComponent::readNodeHierarchy(float time,
                                      const SPtr<BoneHierarchy> node,
@@ -181,5 +166,24 @@ AnimatorComponent::updateCB()
   graphMan.updateConstantBuffer(m_boneTransformCB,
                                 &m_boneTransformData,
                                 sizeof(BoneTransformCB));
+}
+
+void
+AnimatorComponent::onUpdate()
+{
+  Time& time = g_time();
+  float deltaTime = time.getFrameDeltaTime();
+
+  if (m_currentAnim == nullptr || m_skeletonData == nullptr) {
+    return;
+  }
+
+  float tps = (m_currentAnim->m_ticksPerSecond != 0.0f) ?
+    m_currentAnim->m_ticksPerSecond : 25.0f;
+  m_currentTime += tps * deltaTime;
+  m_currentTime = Math::fmod(m_currentTime, m_currentAnim->m_duration);
+
+  readNodeHierarchy(m_currentTime, m_skeletonData->m_rootBone, Matrix4::IDENTITY);
+  updateCB();
 }
 }

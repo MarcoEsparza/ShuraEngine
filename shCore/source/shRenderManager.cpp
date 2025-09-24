@@ -602,7 +602,7 @@ void RenderManager::recompileShaders()
 }
 
 void
-RenderManager::drawStaticMeshOnScene()
+RenderManager::drawMeshesOnScene()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   SceneGraph& scene = g_sceneGraph();
@@ -627,12 +627,17 @@ RenderManager::drawStaticMeshOnScene()
       drawTransparentStaticMesh(gameObject);
     }
   }
+  for(auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      drawSkeletalMesh(gameObject);
+    }
+  }
 }
 
 void
 RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 {
-  if( pGO.expired() ) {
+  if(pGO.expired()) {
     return;
   }
   GraphicsManager& graphMan = g_graphicsMan();
@@ -710,6 +715,42 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
 
   for (auto& pChild : pGameObject->childs) {
     drawTransparentStaticMesh(pChild);
+  }
+}
+
+void
+RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
+{
+  if (pGO.expired()) {
+    return;
+  }
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  auto pGameObject = pGO.lock();
+
+  for (auto& component : pGameObject->components) {
+    if (component->getType() == COMPONENT_TYPE::kSkeletalMesh &&
+        pGameObject->m_bActive) {
+      auto meshComponent = cast::re_ptr<SkeletalMeshComponent>(component);
+
+      graphMan.setVertexBuffers(meshComponent->m_vertexBuffer);
+      graphMan.setIndexBuffers(meshComponent->m_indexBuffer);
+
+      Transform modelT = pGameObject->transform.getTransform();
+      graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+
+      uint32 indexCount = 0;
+      uint32 vertexCount = 0;
+      auto& meshResource = meshComponent->m_mesh;
+      for (auto& mesh : meshResource->m_meshes) {
+        uint32 matIndex = mesh.materialIndex;
+        setResourceViewFromPBRMaterial(meshResource->m_materials[matIndex]);
+        graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+        
+        indexCount += mesh.numIndices;
+        vertexCount += mesh.numVertices;
+      }
+    }
   }
 }
 
@@ -868,7 +909,7 @@ RenderManager::renderScene()
   graphMan.clearRenderTarget(pShadowTemp.pTexture, LinearColor::BLACK);
   graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pOutput);
   m_passes[StringID("SMapShader").getID()]->setPass();
-  drawStaticMeshOnScene();
+  drawMeshesOnScene();
   cleanShaderObjects();
 
   /*************************************/
@@ -887,7 +928,7 @@ RenderManager::renderScene()
                              {pPropMap.pTexture }}, pGbufferDepth.pTexture);
   m_passes[StringID("GBufferShader").getID()]->setPass();
   setSamplers();
-  drawStaticMeshOnScene();
+  drawMeshesOnScene();
   cleanShaderObjects();
 
   /*************************************/

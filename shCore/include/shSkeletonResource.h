@@ -45,7 +45,7 @@ struct SH_CORE_EXPORT ALIGN_AS(16) BoneInfo
   //Matrix4 finalTransformation = Matrix4::IDENTITY;
 };
 
-struct SH_CORE_EXPORT BoneHierarchy
+struct SH_CORE_EXPORT ALIGN_AS(16) BoneHierarchy
 {
   String name;
   Matrix4 transformation = Matrix4::IDENTITY;

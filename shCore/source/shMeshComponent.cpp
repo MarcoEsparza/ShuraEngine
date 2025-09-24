@@ -71,4 +71,9 @@ SkeletalMeshComponent::setMeshData(const SPtr<SkeletalMeshResource>& meshResourc
   m_vertexBuffer = graphMan.createVertexBuffer(skeletalVertex);
   m_indexBuffer = graphMan.createIndexBuffer(skeletalIndex);
 }
+
+void
+SkeletalMeshComponent::onUpdate()
+{
+}
 }

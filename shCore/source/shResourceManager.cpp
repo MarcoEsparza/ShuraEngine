@@ -461,7 +461,7 @@ ResourceManager::loadTextureFromDDS(const String& filename)
 SPtr<Resource>
 ResourceManager::loadCubeMapFromFile(const String& fileName)
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
   auto pCubeMap = sh_makeShared<CubeMap>();
   SystemPath file = fileName;
   pCubeMap->setName(file.filename().string());
@@ -479,7 +479,7 @@ ResourceManager::loadModelFromFile(const String& fileName)
 
   aiNode* rootNode = pScene->mRootNode;
   if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
-      !pScene->mRootNode) {
+      !rootNode) {
     //SH_LOG_ERROR("Assimp error: " + String(fileImporter.GetErrorString()));
     return nullptr;
   }
@@ -498,7 +498,7 @@ ResourceManager::loadModelFromFile(const String& fileName)
     return createSkeletalMesh(pScene, fileName);
   }
   else {
-    return createStaticMesh(fileName, pScene->mRootNode, pScene);
+    return createStaticMesh(fileName, rootNode, pScene);
   }
 }
 
@@ -687,7 +687,7 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   auto skeletalMesh = sh_makeShared<SkeletalMeshResource>();
   auto skeleton = sh_makeShared<SkeletonResource>();
 
-  skeletalMesh->m_materials.resize(scene->mNumMaterials);
+  //skeletalMesh->m_materials.resize(scene->mNumMaterials);
 
   auto rootBone = sh_makeShared<BoneHierarchy>();
   proccessSkeletalMeshNode(scene->mRootNode, scene, rootBone, skeletalMesh, skeleton);
@@ -744,17 +744,38 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   skeletalMesh->m_indices = getIndicesFromMesh(mesh, currentMeshInfo.numIndices);
 
   currentMeshInfo.name = mesh->mName.C_Str();
-  currentMeshInfo.materialIndex = mesh->mMaterialIndex;
+  //currentMeshInfo.materialIndex = mesh->mMaterialIndex;
 
   // Materials
-  if (skeletalMesh->m_materials[currentMeshInfo.materialIndex] == nullptr) {
-    auto meshMat = sh_makeShared<Material>();
+  /*if (skeletalMesh->m_materials[currentMeshInfo.materialIndex] == nullptr) {
+    auto meshMat = createMaterialFromFile(scene->mMaterials[mesh->mMaterialIndex]);
     auto& imgRes = m_loadedResources["White.png"];
     auto img = sh_reinterpretPCast<ImageResource>(imgRes);
     meshMat->baseColor = img->texture;
     auto mat = scene->mMaterials[mesh->mMaterialIndex];
     meshMat->name = mat->GetName().C_Str();
     skeletalMesh->m_materials[currentMeshInfo.materialIndex] = meshMat;
+  }*/
+
+  auto currentMat = createMaterialFromFile(scene->mMaterials[mesh->mMaterialIndex]);
+
+  if (skeletalMesh->m_materials.empty()) {
+    skeletalMesh->m_materials.push_back(currentMat);
+  }
+  else {
+    for (uint32 i = 0; i < skeletalMesh->m_materials.size(); ++i) {
+      auto& mat = skeletalMesh->m_materials[i];
+      if (currentMat->name == mat->name) {
+        currentMeshInfo.materialIndex = i;
+        break;
+      }
+      else {
+        if (i == skeletalMesh->m_materials.size() - 1) {
+          skeletalMesh->m_materials.push_back(currentMat);
+          currentMeshInfo.materialIndex = i + 1;
+        }
+      }
+    }
   }
 
   skeletalMesh->m_meshes.push_back(currentMeshInfo);

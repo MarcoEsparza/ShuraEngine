@@ -135,6 +135,10 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
   void
   setMeshData(const SPtr<SkeletalMeshResource>& meshResource);
 
+ protected:
+  void
+  onUpdate() override;
+
   /***************************************************************************/
   /*
   *  Variables

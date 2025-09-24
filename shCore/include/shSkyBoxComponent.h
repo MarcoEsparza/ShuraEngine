@@ -55,6 +55,10 @@ class SH_CORE_EXPORT SkyBoxComponent : public Component
   const SPtr<ImageResource>&
   getSkyBoxResource() const;
 
+ protected:
+  void
+  onUpdate() override {}
+
  private:
   /**
   *  @brief Resource for the skybox texture

@@ -79,7 +79,7 @@ struct SH_CORE_EXPORT KeyScale
 /**
 *  @brief Struct for animation bone transforms.
 */
-struct SH_CORE_EXPORT ALIGN_AS(16) BoneAnimationChannel
+struct SH_CORE_EXPORT BoneAnimationChannel
 {
   /**
   *  @brief Bone name.

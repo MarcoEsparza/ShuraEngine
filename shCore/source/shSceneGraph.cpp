@@ -87,6 +87,18 @@ SceneGraph::getStaticMeshComponentInScene() const
   return meshes;
 }
 
+void
+SceneGraph::update()
+{
+  for(auto& gameObject : m_gameObjects) {
+    if (gameObject->m_bActive) {
+      for (auto& component : gameObject->components) {
+        component->update();
+      }
+    }
+  }
+}
+
 SceneGraph& g_sceneGraph()
 {
   return SceneGraph::instance();

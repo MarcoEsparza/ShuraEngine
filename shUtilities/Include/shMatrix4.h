@@ -34,7 +34,7 @@ class Radian;
 /**
 *  @brief Matrix4x4, double array, use double brackets to access to the matrix values.
 */
-class SH_UTILITY_EXPORT ALIGN_AS(16) Matrix4
+class SH_UTILITY_EXPORT Matrix4
 {
  public:
   /**

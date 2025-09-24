@@ -78,6 +78,12 @@ class SH_CORE_EXPORT Component
   FORCEINLINE COMPONENT_TYPE::E
   getType() const { return m_type; }
 
+  /**
+  *  @brief Update function to be called every frame.
+  */
+  FORCEINLINE virtual void
+  update() { onUpdate(); }
+
   /*************************************************************/
   /*
   *  Variables
@@ -88,5 +94,11 @@ class SH_CORE_EXPORT Component
   *  @brief Component type.
   */
   COMPONENT_TYPE::E m_type = COMPONENT_TYPE::kCount;
+
+  /**
+  *  @brief Function to be implemented by derived classes.
+  */
+  virtual void
+  onUpdate() { }
 };
 }

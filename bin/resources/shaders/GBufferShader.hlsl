@@ -38,6 +38,8 @@ struct VS_INPUT
   float2 Tex : TEXCOORD0;
   float3 Tangent : TANGENT0;
   float3 Bitangent : BINORMAL0;
+  float4 BoneIDs : BLENDINDICES0;
+  float4 BoneWeights : BLENDWEIGHT0;
 };
 
 struct PS_INPUT

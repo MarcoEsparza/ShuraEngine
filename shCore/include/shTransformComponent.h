@@ -101,6 +101,10 @@ class SH_CORE_EXPORT TransformComponent : public Component
   void
   setScale(const Vector3& scale);
 
+ protected:
+  void
+  onUpdate() override {}
+
   /***************************************************************************/
   /*
   *  Variables

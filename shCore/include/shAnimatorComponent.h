@@ -26,7 +26,7 @@
 namespace shEngineSDK {
 class ConstantBuffer;
 
-struct BoneTransformCB
+struct SH_CORE_EXPORT BoneTransformCB
 {
   Matrix4 finalTransforms[100];
 };
@@ -34,7 +34,7 @@ struct BoneTransformCB
 /**
 *  @brief Component in charge of contain and play animations.
 */
-class AnimatorComponent : public Component
+class SH_CORE_EXPORT AnimatorComponent : public Component
 {
  public:
   /**
@@ -53,8 +53,6 @@ class AnimatorComponent : public Component
   */
   /***************************************************************************/
  public:
-  void
-  update(float deltaTime);
 
  private:
   void
@@ -96,6 +94,10 @@ class AnimatorComponent : public Component
     }
     return index;
   }
+
+ protected:
+  void
+  onUpdate() override;
 
   /***************************************************************************/
   /*

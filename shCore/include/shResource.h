@@ -24,7 +24,7 @@ namespace shEngineSDK {
 /**
 *  @brief Resource type.
 */
-namespace RESOURCE_TYPE{
+namespace RESOURCE_TYPE {
 enum E
 {
   kTexture = 0,

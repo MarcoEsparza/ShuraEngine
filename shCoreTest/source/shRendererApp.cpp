@@ -85,11 +85,11 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  //loadPistol();
+  loadPistol();
   //loadSponza();
   loadSkybox();
   //loadCoat();
-  tempLoad();
+  //tempLoad();
 
   // Initialize light orthographic camera
   initLightCamera();
@@ -195,7 +195,7 @@ RendererApp::onUpdate()
   RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
   Time& time = g_time();
-  SceneGraph& scene = g_sceneGraph();
+  //SceneGraph& scene = g_sceneGraph();
 
   m_fpsTimer += time.getFrameDeltaTime();
 
@@ -280,14 +280,16 @@ RendererApp::onUpdate()
 
   updateMainBuffer();
 
-  for(auto& gameObject : scene.getGameObjectList()) {
+  //scene.update();
+
+  /*for(auto& gameObject : scene.getGameObjectList()) {
     for (auto& component : gameObject->components) {
       if (component->getType() == COMPONENT_TYPE::kAnimator) {
         auto animator = cast::re_ptr<AnimatorComponent>(component);
         animator->update(time.getFrameDeltaTime());
       }
     }
-  }
+  }*/
 
   // Update audio
   if (bIsSoundPlaying) {
@@ -347,7 +349,7 @@ RendererApp::onRender()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
-  Gizmos& gizmos = Gizmos::instance();
+  //Gizmos& gizmos = Gizmos::instance();
 
   graphMan.setPrimitiveTopology();
   renderMan.renderScene();
@@ -656,7 +658,7 @@ RendererApp::loadPistol()
                   resMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "DrakeFire";
+  model->name = "Drakefire";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(modelRes);
@@ -665,11 +667,11 @@ RendererApp::loadPistol()
   model->transform.getTransform() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 5.0f);
 
-  auto pCollider = sh_makeShared<ColliderComponent>();
+  /*auto pCollider = sh_makeShared<ColliderComponent>();
   pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
   pCollider->m_collider.m_box.center = Vector3::ZERO;
   pCollider->m_collider.m_box.extent = Vector3(0.5f, 0.5f, 0.5f);
-  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;
+  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;*/
   //pCollider->m_collider.m_sphere.center = Vector3::ZERO;
   //pCollider->m_collider.m_sphere.radius = 0.5f;
   //pCollider->m_collider.m_capsule.center = Vector3::ZERO;
@@ -677,7 +679,7 @@ RendererApp::loadPistol()
   //pCollider->m_collider.m_capsule.height = 1.0f;
   //pCollider->m_collider.m_capsule.direction = Vector3::ZERO;
 
-  auto pRigidbody = sh_makeShared<RigidbodyComponent>();
+  /*auto pRigidbody = sh_makeShared<RigidbodyComponent>();
   pRigidbody->m_rigidbody.m_mass = 1.0f;
   pRigidbody->m_rigidbody.m_integrationType = INTEGRATION::kVerlet;
   pRigidbody->m_rigidbody.m_colliderType = COLLIDER_TYPE::kOBBox;
@@ -686,10 +688,10 @@ RendererApp::loadPistol()
   pRigidbody->m_rigidbody.m_friction = 0.5f;
   pRigidbody->m_rigidbody.m_gravityScale = 1.0f;
   pRigidbody->m_rigidbody.m_position = model->transform.getPosition();
-  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->transform.getRotation());
+  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->transform.getRotation());*/
 
-  model->addComponent(pCollider);
-  model->addComponent(pRigidbody);
+  //model->addComponent(pCollider);
+  //model->addComponent(pRigidbody);
 
   sceneG.addObject(model);
 }

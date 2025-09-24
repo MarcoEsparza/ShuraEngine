@@ -49,6 +49,10 @@ class SH_CORE_EXPORT ColliderComponent : public Component
   */
   ~ColliderComponent() = default;
 
+ protected:
+  void
+  onUpdate() override {}
+
   /***************************************************************************/
   /*
   *  Forward Declarations

@@ -46,6 +46,10 @@ class SH_CORE_EXPORT RigidbodyComponent : public Component
   /***************************************************************************/
  public:
 
+ protected:
+  void
+  onUpdate() override {}
+
   /***************************************************************************/
   /*
   *  Variables

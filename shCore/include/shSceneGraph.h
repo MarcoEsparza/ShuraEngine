@@ -80,6 +80,9 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   const Vector<SPtr<StaticMeshComponent>>
   getStaticMeshComponentInScene() const;
 
+  void
+  update();
+
   /*************************************************************/
   /*
   *  Functions
