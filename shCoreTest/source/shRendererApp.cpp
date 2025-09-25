@@ -20,6 +20,7 @@
 
 #include "shGraphicsManager.h"
 #include "shRenderManager.h"
+#include "shShaderManager.h"
 #include "shResourceManager.h"
 #include "shAudioManager.h"
 #include "shTime.h"
@@ -57,6 +58,7 @@ RendererApp::onCreate()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
+  ShaderManager& shaderMan = g_shaderMan();
   AudioManager& audioMan = AudioManager::instance();
 
   m_shadowTexSize = 2048.0f;
@@ -65,7 +67,7 @@ RendererApp::onCreate()
 
   // Initialize graphics
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
-  renderMan.createPasses();
+  shaderMan.createPipelinePasses();
   renderMan.setScreenSize(m_screenSize);
   renderMan.setShadowMapSize(m_shadowTexSize);
   renderMan.createRenderTextures();
@@ -104,79 +106,76 @@ RendererApp::onCreate()
 
   updateMainBuffer();
 
-  auto& pMainBuffer = renderMan.getMainBuffer();
-  auto& pShaderDataBuffer = renderMan.getShaderDataBuffer();
+  //auto& pMainBuffer = renderMan.getMainBuffer();
+  //auto& pShaderDataBuffer = renderMan.getShaderDataBuffer();
 
-  // GBuffer constant buffers
-  auto pBasicShader = renderMan.getPass("GBufferShader");
-  pBasicShader->addVSConstantBuffer(pMainBuffer, 0);
-  pBasicShader->addVSConstantBuffer(pShaderDataBuffer, 1);
+  
   // Shadow shader buffers
-  auto pSMapShader = renderMan.getPass("SMapShader");
-  pSMapShader->addCSConstantBuffer(pMainBuffer, 0);
-  pSMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  pSMapShader->addVSConstantBuffer(m_pLCBuffer, 3);
-  // Skybox shader buffers
-  auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
-  pSkyBoxShader->addCSConstantBuffer(pMainBuffer, 0);
-  // Lightning shader buffers
-  auto pLightCS = renderMan.getPass("LightCS");
-  pLightCS->addCSConstantBuffer(pMainBuffer, 0);
-  pLightCS->addCSConstantBuffer(pShaderDataBuffer, 1);
-  pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
-  pLightCS->addCSConstantBuffer(m_pLCBuffer, 3);
-  // Ambient occlusion buffers
-  auto pAOShader = renderMan.getPass("AOShader");
-  pAOShader->addPSConstantBuffer(pMainBuffer, 0);
-  pAOShader->addPSConstantBuffer(pShaderDataBuffer, 1);
-  // Post process buffers
-  auto pPPShader = renderMan.getPass("PPShader");
-  pPPShader->addCSConstantBuffer(pMainBuffer, 0);
-  pPPShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  // Tone map buffers
-  auto pToneMapShader = renderMan.getPass("ToneMapShader");
-  pToneMapShader->addCSConstantBuffer(pMainBuffer, 0);
-  pToneMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  // Luminance buffers
-  auto pLuminanceShader = renderMan.getPass("LuminanceShader");
-  pLuminanceShader->addCSConstantBuffer(pMainBuffer, 0);
-  pLuminanceShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  // Bright buffers
-  auto pBrightShader = renderMan.getPass("BrightShader");
-  pBrightShader->addCSConstantBuffer(pMainBuffer, 0);
-  pBrightShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  // AddMix buffers
-  auto pAddMix = renderMan.getPass("AddMixShader");
-  pAddMix->addCSConstantBuffer(pMainBuffer, 0);
-  pAddMix->addCSConstantBuffer(pShaderDataBuffer, 1);
-  // Blur buffers
-  auto pHBlurShader = renderMan.getPass("HBlurShader");
-  auto pVBlurShader = renderMan.getPass("VBlurShader");
-  pHBlurShader->addCSConstantBuffer(pMainBuffer, 0);
-  pHBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  pVBlurShader->addCSConstantBuffer(pMainBuffer, 0);
-  pVBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //auto pSMapShader = renderMan.getPass("SMapShader");
+  //pSMapShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pSMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //pSMapShader->addVSConstantBuffer(m_pLCBuffer, 3);
+  //// Skybox shader buffers
+  //auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
+  //pSkyBoxShader->addCSConstantBuffer(pMainBuffer, 0);
+  //// Lightning shader buffers
+  //auto pLightCS = renderMan.getPass("LightCS");
+  //pLightCS->addCSConstantBuffer(pMainBuffer, 0);
+  //pLightCS->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
+  //pLightCS->addCSConstantBuffer(m_pLCBuffer, 3);
+  //// Ambient occlusion buffers
+  //auto pAOShader = renderMan.getPass("AOShader");
+  //pAOShader->addPSConstantBuffer(pMainBuffer, 0);
+  //pAOShader->addPSConstantBuffer(pShaderDataBuffer, 1);
+  //// Post process buffers
+  //auto pPPShader = renderMan.getPass("PPShader");
+  //pPPShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pPPShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //// Tone map buffers
+  //auto pToneMapShader = renderMan.getPass("ToneMapShader");
+  //pToneMapShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pToneMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //// Luminance buffers
+  //auto pLuminanceShader = renderMan.getPass("LuminanceShader");
+  //pLuminanceShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pLuminanceShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //// Bright buffers
+  //auto pBrightShader = renderMan.getPass("BrightShader");
+  //pBrightShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pBrightShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //// AddMix buffers
+  //auto pAddMix = renderMan.getPass("AddMixShader");
+  //pAddMix->addCSConstantBuffer(pMainBuffer, 0);
+  //pAddMix->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //// Blur buffers
+  //auto pHBlurShader = renderMan.getPass("HBlurShader");
+  //auto pVBlurShader = renderMan.getPass("VBlurShader");
+  //pHBlurShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pHBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //pVBlurShader->addCSConstantBuffer(pMainBuffer, 0);
+  //pVBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
 
-  // Blur buffers
-  auto pHBlurCS = renderMan.getPass("HBlurCS");
-  auto pVBlurCS = renderMan.getPass("VBlurCS");
-  pHBlurCS->addCSConstantBuffer(pMainBuffer, 0);
-  pHBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
-  pVBlurCS->addCSConstantBuffer(pMainBuffer, 0);
-  pVBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //// Blur buffers
+  //auto pHBlurCS = renderMan.getPass("HBlurCS");
+  //auto pVBlurCS = renderMan.getPass("VBlurCS");
+  //pHBlurCS->addCSConstantBuffer(pMainBuffer, 0);
+  //pHBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //pVBlurCS->addCSConstantBuffer(pMainBuffer, 0);
+  //pVBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
 
-  auto pSPCubeMap = renderMan.getPass("SpecularPreMapShader");
-  pSPCubeMap->addCSConstantBuffer(pShaderDataBuffer, 1);
+  //auto pSPCubeMap = renderMan.getPass("SpecularPreMapShader");
+  //pSPCubeMap->addCSConstantBuffer(pShaderDataBuffer, 1);
 
-  // Final shader buffers
-  auto pFinalShader = renderMan.getPass("FinalShader");
-  pFinalShader->addPSConstantBuffer(pMainBuffer, 0);
-  // Histogram
-  auto pHistogramShader = renderMan.getPass("HistogramShader");
-  pHistogramShader->addCSConstantBuffer(pMainBuffer, 0);
-  // Add skybox
-  auto pASBShader = renderMan.getPass("ASBShader");
-  pASBShader->addCSConstantBuffer(pMainBuffer, 0);
+  //// Final shader buffers
+  //auto pFinalShader = renderMan.getPass("FinalShader");
+  //pFinalShader->addPSConstantBuffer(pMainBuffer, 0);
+  //// Histogram
+  //auto pHistogramShader = renderMan.getPass("HistogramShader");
+  //pHistogramShader->addCSConstantBuffer(pMainBuffer, 0);
+  //// Add skybox
+  //auto pASBShader = renderMan.getPass("ASBShader");
+  //pASBShader->addCSConstantBuffer(pMainBuffer, 0);
 
   renderMan.computeIBL();
 
@@ -434,6 +433,7 @@ void
 RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
 {
   SH_UNREFERENCED_PARAMETER(modifier);
+  ShaderManager& shaderMan = g_shaderMan();
 
   if (key == KEY::kW) {
     m_bFoward = false;
@@ -476,7 +476,7 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   }
 
   if (key == KEY::kC) {
-    g_renderMan().recompileShaders();
+    shaderMan.recompileShaders();
   }
 
   ImGui_ImplShura_AddKeyEvent(key, false, modifier);
@@ -599,11 +599,11 @@ void
 RendererApp::updateMainBuffer()
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  RenderManager& renderMan = g_renderMan();
+  ShaderManager& shaderMan = g_shaderMan();
   Time& time = g_time();
 
-  auto& pMainBuffer = renderMan.getMainBuffer();
-  auto& mbd = renderMan.getMainBufferData();
+  auto& pMainBuffer = shaderMan.m_pMainBuffer;
+  auto& mbd = shaderMan.m_mainBufferData;
   mbd.viewMatrix = m_camera.getView();
   mbd.transposeViewMatrix = m_camera.getView().getTransposed();
   mbd.inverseViewMatrix = m_camera.getView().getInversed();
@@ -630,10 +630,7 @@ RendererApp::updateMainBuffer()
   mbd.cosTime = Math::cos(Radian(mbd.time));
   mbd.sinTime = Math::sin(Radian(mbd.time));
 
-  if (!pMainBuffer) {
-    pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
-  }
-  graphMan.updateConstantBuffer(pMainBuffer, &mbd, sizeof(MainBufferData));
+  shaderMan.updateMainCB();
 }
 
 void
@@ -782,11 +779,11 @@ RendererApp::loadCoat()
   pMat->normal = pNormal->texture;
   pMat->roughness = pGloss->texture;
 
-  pMat->m_properties.bHasDiffuseMap = true;
-  pMat->m_properties.bHasMetalnessMap = true;
-  pMat->m_properties.bHasNormalMap = true;
-  pMat->m_properties.bHasRoughnessMap = true;
-  pMat->m_properties.bInvertRoughness = true;
+  //pMat->m_properties.bHasDiffuseMap = true;
+  //pMat->m_properties.bHasMetalnessMap = true;
+  //pMat->m_properties.bHasNormalMap = true;
+  //pMat->m_properties.bHasRoughnessMap = true;
+  //pMat->m_properties.bInvertRoughness = true;
 
   modelRes->m_meshes[0].materialIndex = 0;
 

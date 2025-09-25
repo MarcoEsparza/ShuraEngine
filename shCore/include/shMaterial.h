@@ -1,76 +1,74 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shMaterial.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/08
+*  @date    2025/09/24
 *  @brief   Material classes.
 *
 *  Material classes.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
-#include "shTexture.h"
-#include "shShader.h"
-#include "shVector3.h"
-#include "shVector2.h"
+#include "shResource.h"
+#include <shVector3.h>
+#include <shVector2.h>
 
 namespace shEngineSDK {
-namespace MATERIAL_TYPE {
-enum E
-{
-  kPBR = 0,
-  kTranslucent
-};
-}
+class Texture2D;
 
 /**
 *  @brief Matrial properties structure.
 */
-//MS_ALIGN(16)
 struct MaterialProperties
 {
-  uint32 bHasDiffuseMap : 1;
-  uint32 bHasSpecularMap : 1;
-  uint32 bHasNormalMap : 1;
-  uint32 bHasMetalnessMap : 1;
-  uint32 bHasRoughnessMap : 1;
-  uint32 bHasAmbientOcclusionMap : 1;
-  uint32 bHasEmissiveMap : 1;
-  uint32 bIsOpaque : 1;
-  uint32 bHasAlphaTest : 1;
-  uint32 bHasAlphaBlend : 1;
-  uint32 bIsDoubleSided : 1;
-  uint32 bWireframeEnabled : 1;
-  uint32 bCanCastShadows : 1;
-  uint32 bCanReceiveShadows : 1;
-  uint32 bInvertRoughness : 1;
-  uint32 Unused : 17;
-}; //GCC_ALIGN(16)
+  union
+  {
+    struct {
+      uint32 bHasDiffuseMap : 1;
+      uint32 bHasSpecularMap : 1;
+      uint32 bHasNormalMap : 1;
+      uint32 bHasMetalnessMap : 1;
+      uint32 bHasRoughnessMap : 1;
+      uint32 bHasAmbientOcclusionMap : 1;
+      uint32 bHasEmissiveMap : 1;
+      uint32 bIsOpaque : 1;
+      uint32 bHasAlphaTest : 1;
+      uint32 bHasAlphaBlend : 1;
+      uint32 bIsDoubleSided : 1;
+      uint32 bWireframeEnabled : 1;
+      uint32 bCanCastShadows : 1;
+      uint32 bCanReceiveShadows : 1;
+      uint32 bInvertRoughness : 1;
+      uint32 Unused : 17;
+    } flags;
+    uint32 value = 0;
+  } properties;
+};
 
 /**
 *  @brief Matrial Base.
 */
-class SH_CORE_EXPORT Material
+class SH_CORE_EXPORT Material : public Resource
 {
  public:
   /**
   *  @brief Default constructor.
   */
-  Material() = default;
+  Material() : Resource(RESOURCE_TYPE::kMaterial) {}
 
   /**
   *  @brief Constructor for material type.
   */
-  Material(MATERIAL_TYPE::E type) : m_type(type) {}
+  //Material(MATERIAL_TYPE::E type) : m_type(type) {}
 
   /**
   *  @brief Default destructor.
@@ -81,12 +79,12 @@ class SH_CORE_EXPORT Material
   /**
   *  @brief Material name.
   */
-  String name;
+  //String name;
 
   /**
   *  @brief Material type.
   */
-  MATERIAL_TYPE::E m_type = MATERIAL_TYPE::kPBR;
+  //MATERIAL_TYPE::E m_type = MATERIAL_TYPE::kPBR;
 
   /**
   *  @brief Material properties.

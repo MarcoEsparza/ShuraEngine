@@ -20,6 +20,7 @@
 #include "shMath.h"
 
 #include "shGraphicsManager.h"
+#include "shShaderManager.h"
 #include "shRenderManager.h"
 #include "shResourceManager.h"
 #include "shAudioManager.h"
@@ -145,6 +146,7 @@ BaseApp::initManagers()
 {
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
   ResourceManager::startUp();
+  ShaderManager::startUp();
   RenderManager::startUp();
   Gizmos::startUp();
   ScriptManager::startUp();
@@ -269,6 +271,7 @@ BaseApp::destroyManagers()
   Time::shutDown();
   Gizmos::shutDown();
   RenderManager::shutDown();
+  ShaderManager::shutDown();
   AudioManager::shutDown();
   GraphicsManager::shutDown();
 }

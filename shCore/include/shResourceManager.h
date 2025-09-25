@@ -194,7 +194,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Material>
   createMaterialFromFile(const aiMaterial* pMat);
 
-  
+  SPtr<Material>
+  isMaterialLoaded(const String& materialName);
 
   /*************************************************************/
   /*

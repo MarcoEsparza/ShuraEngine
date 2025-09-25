@@ -22,6 +22,7 @@
 
 //#include <shGraphicsManager.h>
 #include <shRenderManager.h>
+#include <shShaderManager.h>
 #include <shSceneGraph.h>
 #include <shResourceManager.h>
 #include <shFileExplorer.h>
@@ -216,7 +217,8 @@ void
 GUI::setRendererSettings()
 {
   RenderManager& renderMan = g_renderMan();
-  auto& rendererSettings = renderMan.getShaderData();
+  ShaderManager& shaderMan = g_shaderMan();
+  auto& rendererSettings = shaderMan.m_shaderData;
 
   ImGui::Begin("RendererSettings");
   String strCount = std::to_string(m_fpsCountGUI);
@@ -224,7 +226,7 @@ GUI::setRendererSettings()
   ImGui::Text(text.c_str());
   ImGui::SetNextItemWidth(150.0f);
   if (ImGui::Button("Recompile Shaders")) {
-    renderMan.recompileShaders();
+    shaderMan.recompileShaders();
   }
   if (ImGui::CollapsingHeader("Ambient Occlusion")) {
     ImGui::DragFloat("Sampler radius", &rendererSettings.sampleRadius,
@@ -818,7 +820,7 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     ImGui::Spacing();
     for (int32 i = 0; i < pMesh->m_mesh->m_materials.size(); ++i) {
       auto& currentMat = pMesh->m_mesh->m_materials[i];
-      String matName = "Material:" + currentMat->name;
+      String matName = "Material:" + currentMat->getName();
       bool bSelected = (m_selectedMat == i);
 
       ImGui::SetNextItemOpen(bSelected, ImGuiCond_Always);
@@ -854,9 +856,9 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pMetallic = currentMat->metallic;
   auto& pRoughness = currentMat->roughness;
 
-  bool bHasAlpha = currentMat->m_properties.bHasAlphaTest;
+  bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
-  currentMat->m_properties.bHasAlphaTest = bHasAlpha;
+  currentMat->m_properties.properties.flags.bHasAlphaTest = bHasAlpha;
 
   // Base Color
   //ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
@@ -875,7 +877,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
   ImGui::SameLine();
-  String buttonID = "##ColorButton" + currentMat->name;
+  String buttonID = "##ColorButton" + currentMat->getName();
   Vector3& baseColor = currentMat->baseColorFactor;
   ImVec4 currentColor = ImVec4(baseColor.x,
                                baseColor.y,
@@ -887,9 +889,9 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     ImGui::OpenPopup("ColorPickerPopup");
   }
   ImGui::SameLine();
-  bool bHasDiffuseMap = currentMat->m_properties.bHasDiffuseMap;
+  bool bHasDiffuseMap = currentMat->m_properties.properties.flags.bHasDiffuseMap;
   ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
-  currentMat->m_properties.bHasDiffuseMap = bHasDiffuseMap;
+  currentMat->m_properties.properties.flags.bHasDiffuseMap = bHasDiffuseMap;
 
   /*if (m_bTexColor) {
     float texColor[3] = { baseColor.x, baseColor.y, baseColor.z };
@@ -929,9 +931,9 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
   ImGui::SameLine();
-  bool bHasNormalMap = currentMat->m_properties.bHasNormalMap;
+  bool bHasNormalMap = currentMat->m_properties.properties.flags.bHasNormalMap;
   ImGui::Checkbox("Normal", &bHasNormalMap);
-  currentMat->m_properties.bHasNormalMap = bHasNormalMap;
+  currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
 
   // Metallic
   //ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
@@ -957,9 +959,9 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     0.0f,
     1.0f);
   ImGui::SameLine();
-  bool bHasMetallicMap = currentMat->m_properties.bHasMetalnessMap;
+  bool bHasMetallicMap = currentMat->m_properties.properties.flags.bHasMetalnessMap;
   ImGui::Checkbox("Metallic", &bHasMetallicMap);
-  currentMat->m_properties.bHasMetalnessMap = bHasMetallicMap;
+  currentMat->m_properties.properties.flags.bHasMetalnessMap = bHasMetallicMap;
 
   // Roughness
   //ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
@@ -985,15 +987,16 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     0.0f,
     1.0f);
   ImGui::SameLine();
-  bool bHasRoughnessMap = currentMat->m_properties.bHasRoughnessMap;
+  bool bHasRoughnessMap = currentMat->m_properties.properties.flags.bHasRoughnessMap;
   ImGui::Checkbox("Roughness", &bHasRoughnessMap);
-  currentMat->m_properties.bHasRoughnessMap = bHasRoughnessMap;
+  currentMat->m_properties.properties.flags.bHasRoughnessMap = bHasRoughnessMap;
 }
 
 void
 GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
 {
   RenderManager& renderMan = g_renderMan();
+  ShaderManager& shaderMan = g_shaderMan();
   ResourceManager& resMan = g_resourceMan();
   FileExplorer& fileExp = g_fileExplorer();
 
@@ -1003,7 +1006,7 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
   auto pSkyBox = wpSkyBox.lock();
   if (ImGui::CollapsingHeader("SkyBox Component")) {
     if (ImGui::DragFloat("Skyblur",
-                         &renderMan.getPrefilteredIBLData().roughness,
+                         &shaderMan.m_prefilteredCB.roughness,
                          0.01, 0.0f, 1.0f)) {
       renderMan.updatePrefilteredIBLBuffer();
     }

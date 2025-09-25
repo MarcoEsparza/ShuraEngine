@@ -63,6 +63,7 @@
     <ClInclude Include="include\shEventEnums.h" />
     <ClInclude Include="Include\shScreenEventHandle.h" />
     <ClInclude Include="include\shShader.h" />
+    <ClInclude Include="include\shShaderManager.h" />
     <ClInclude Include="include\shSkeletonResource.h" />
     <ClInclude Include="include\shSkyBoxComponent.h" />
     <ClInclude Include="include\shSound.h" />
@@ -70,6 +71,7 @@
     <ClInclude Include="include\shTransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\shShaderManager.cpp" />
     <ClCompile Include="source\shAnimatorComponent.cpp" />
     <ClCompile Include="source\shAsset.cpp" />
     <ClCompile Include="source\shAudioManager.cpp" />
@@ -83,6 +85,7 @@
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGizmos.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
+    <ClCompile Include="source\shMaterial.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
     <ClCompile Include="source\shOCLManager.cpp" />
     <ClCompile Include="source\shPass.cpp" />

@@ -95,7 +95,7 @@ Asset::loadResourceFromAsset(Path filePath)
       String line;
       getline(file, line);
       getline(file, line);
-      mat->name = line;
+      mat->setName(line);
       getline(file, line);
       mat->baseColorPath = line;
       getline(file, line);
@@ -202,7 +202,7 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
 
   for (auto& mat : pStaticMesh->m_materials) {
     file.write(reinterpret_cast<char*>(&mat->m_properties), sizeof(MaterialProperties));
-    file << "\n" << mat->name << "\n";
+    file << "\n" << mat->getName() << "\n";
     file << mat->baseColorPath << "\n";
     file << mat->metallicPath << "\n";
     file << mat->roughnessPath << "\n";
@@ -258,7 +258,7 @@ Asset::loadStaticMesh(sh_fstream& file)
     String line;
     getline(file, line);
     getline(file, line);
-    mat->name = line;
+    mat->setName(line);
     getline(file, line);
     mat->baseColorPath = line;
     getline(file, line);

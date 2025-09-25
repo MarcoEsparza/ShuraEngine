@@ -33,6 +33,7 @@ enum E
   kSkeleton,
   kAnmimation,
   kCubeMap,
+  kMaterial,
 
   kCount
 };

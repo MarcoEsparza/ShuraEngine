@@ -103,6 +103,9 @@
     <Filter Include="Source Files\OpenCL">
       <UniqueIdentifier>{7da05ee0-8833-47e3-8e76-93cfd3ec0500}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Material">
+      <UniqueIdentifier>{7350573e-da4f-403d-b0ae-7c5adcb5b485}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -252,6 +255,9 @@
     <ClInclude Include="include\shFileExplorer.h">
       <Filter>Header Files\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\shShaderManager.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -328,6 +334,12 @@
     </ClCompile>
     <ClCompile Include="source\shSkeletonResource.cpp">
       <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="include\shShaderManager.cpp">
+      <Filter>Source Files\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shMaterial.cpp">
+      <Filter>Source Files\Material</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

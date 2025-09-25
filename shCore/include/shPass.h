@@ -396,25 +396,11 @@ class SH_CORE_EXPORT Pass
   */
   String m_csModel;
 
+ public:
   /**
   *  @brief Vertex Shader macros.
   */
-  Vector<ShaderMacro> m_vsMacros;
-
-  /**
-  *  @brief Pixel Shader macros.
-  */
-  Vector<ShaderMacro> m_psMacros;
-
-  /**
-  *  @brief Geometry Shader macros.
-  */
-  Vector<ShaderMacro> m_gsMacros;
-
-  /**
-  *  @brief Compute Shader macros.
-  */
-  Vector<ShaderMacro> m_csMacros;
+  Vector<ShaderMacro> m_macros;
 };
 
 /*****************************************************************************/

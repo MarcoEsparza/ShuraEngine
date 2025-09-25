@@ -30,7 +30,6 @@ Pass::setVShaderInfo(const String& shaderPath,
   m_vsPath = shaderPath;
   m_vsEntryPoint = entry;
   m_vsModel = model;
-  m_vsMacros = macros;
 }
 
 void
@@ -42,7 +41,6 @@ Pass::setPShaderInfo(const String& shaderPath,
   m_psPath = shaderPath;
   m_psEntryPoint = entry;
   m_psModel = model;
-  m_psMacros = macros;
 }
 
 void
@@ -54,7 +52,6 @@ Pass::setGShaderInfo(const String& shaderPath,
   m_gsPath = shaderPath;
   m_gsEntryPoint = entry;
   m_gsModel = model;
-  m_gsMacros = macros;
 }
 
 void
@@ -66,7 +63,6 @@ Pass::setCShaderInfo(const String& shaderPath,
   m_csPath = shaderPath;
   m_csEntryPoint = entry;
   m_csModel = model;
-  m_csMacros = macros;
 }
 
 void
@@ -125,7 +121,7 @@ Pass::compileShader()
     m_pVShader = graphMan.createVertexShader(m_vsPath,
                                              m_vsEntryPoint,
                                              m_vsModel,
-                                             m_vsMacros);
+                                             m_macros);
   }
 
   // Reset pointer if there's already a Pixel Shader in it.
@@ -137,7 +133,7 @@ Pass::compileShader()
     m_pPShader = graphMan.createPixelShader(m_psPath,
                                             m_psEntryPoint,
                                             m_psModel,
-                                            m_psMacros);
+                                            m_macros);
   }
 
   // Reset pointer if there's already a Geometry Shader in it.
@@ -149,7 +145,7 @@ Pass::compileShader()
     m_pGShader = graphMan.createGeometryShader(m_gsPath,
                                                m_gsEntryPoint,
                                                m_gsModel,
-                                               m_gsMacros);
+                                               m_macros);
   }
 
   // Reset pointer if there's already a Compute Shader in it.
@@ -161,7 +157,7 @@ Pass::compileShader()
     m_pCShader = graphMan.createComputeShader(m_csPath,
                                               m_csEntryPoint,
                                               m_csModel,
-                                              m_csMacros);
+                                              m_macros);
   }
 }
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2025/09/24
 *  @brief   Render module.
 *
 *  Render module.
@@ -20,8 +20,11 @@
 #include "shGraphicsManager.h"
 #include "shSceneGraph.h"
 #include "shResourceManager.h"
+#include "shShaderManager.h"
+
 #include "shMeshComponent.h"
 #include "shSkyBoxComponent.h"
+#include "shGameObject.h"
 #include "shImageResource.h"
 #include "shMeshResource.h"
 #include "shMaterial.h"
@@ -51,45 +54,25 @@
 #define NUM_CUBE_MAP_FACES 6 // Number of faces in a cube map
 
 namespace shEngineSDK {
-RenderManager::~RenderManager()
-{
-  for (auto& pass : m_passes) {
-    pass.second.reset();
-  }
-
-  m_passes.clear();
-}
-
 void
 RenderManager::onStartUp()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resMan = g_resourceMan();
 
-  // Blend state for alpha testing
-  BlendDesc blendDesc = {};
-  blendDesc.alphaToCoverageEnable = false;
-  blendDesc.independentBlendEnable = false;
-  blendDesc.renderTarget[0].blendEnable = true;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
-  blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
-  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-  m_pAlphaTestBS = graphMan.createBlendState(blendDesc);
-
-  // General blend state
-  blendDesc.renderTarget[0].blendEnable = true;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-  m_pBasicBS = graphMan.createBlendState(blendDesc);
+  // Smplertates creation
+  m_pSamplerLinearWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
+                                                     TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerPointWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
+                                                    TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerAnisotropicWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
+                                                          TEXTURE_ADDRESS_MODE::kWrap);
+  m_pSamplerLinearClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
+                                                      TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerPointClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
+                                                     TEXTURE_ADDRESS_MODE::kClamp);
+  m_pSamplerAnisotropicClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
+                                                           TEXTURE_ADDRESS_MODE::kClamp);
 
   // Create model transform constant buffer
   m_pModelTransform = graphMan.createConstantBuffer(sizeof(Matrix4));
@@ -101,8 +84,7 @@ RenderManager::onStartUp()
                           BIND_FLAGS::kUnorderedAccess;
 
   m_pPBRData = graphMan.createConstantBuffer(PBRBufferSize);
-  m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
-  m_pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
+  
 
   // Textures info
   m_renderTargetMap[StringID("DepthMap").getID()] = RenderTargetInfo("DepthMap",
@@ -206,13 +188,13 @@ RenderManager::onStartUp()
   auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
   if (pLut) {
     m_pLutTexture = cast::re_ptr<CubeMap>(pLut);
-    m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
+    //m_shaderData.lutSize = static_cast<float>(m_pLutTexture->getLutSize());
   }
 
   auto pLut1 = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/LBK-K-Tone_33.cube"));
   if (pLut1) {
     m_pLutLBK = cast::re_ptr<CubeMap>(pLut1);
-    m_shaderData.lutSize = static_cast<float>(m_pLutLBK->getLutSize());
+    //m_shaderData.lutSize = static_cast<float>(m_pLutLBK->getLutSize());
   }
 }
 
@@ -249,338 +231,6 @@ RenderManager::createRenderTextures()
   }
 }
 
-void
-RenderManager::createPasses()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-
-  // Init pass shaders
-  // GBuffer
-  auto pGbufferShader = sh_makeShared<Pass>();
-  pGbufferShader->setVShaderInfo("resources/shaders/GBufferShader.hlsl",
-                                 "main",
-                                 "vs_5_0");
-  pGbufferShader->setPShaderInfo("resources/shaders/GBufferShader.hlsl",
-                                 "mainPS",
-                                 "ps_5_0");
-  pGbufferShader->compileShader();
-
-  // Lightning
-  auto pLightCS = sh_makeShared<Pass>();
-  pLightCS->setCShaderInfo("resources/shaders/LightCShader.hlsl",
-                           "CSMain",
-                           "cs_5_0");
-  pLightCS->compileShader();
-
-  // AO
-  auto pAOShader = sh_makeShared<Pass>();
-  pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
-                            "mainPS",
-                            "ps_5_0");
-  pAOShader->compileShader();
-
-  // HBlur
-  auto pHBlurShader = sh_makeShared<Pass>();
-  pHBlurShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                               "HBlurCS",
-                               "cs_5_0");
-  pHBlurShader->compileShader();
-
-  // VBlur
-  auto pVBlurShader = sh_makeShared<Pass>();
-  pVBlurShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                               "VBlurCS",
-                               "cs_5_0");
-  pVBlurShader->compileShader();
-
-  // HBlur
-  auto pHBlurCS = sh_makeShared<Pass>();
-  pHBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                           "HBlur_CS",
-                           "cs_5_0");
-  pHBlurCS->compileShader();
-
-  // VBlur
-  auto pVBlurCS = sh_makeShared<Pass>();
-  pVBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "VBlur_CS",
-                            "cs_5_0");
-  pVBlurCS->compileShader();
-
-  // Shadow map
-  auto pSMapShader = sh_makeShared<Pass>();
-  pSMapShader->setVShaderInfo("resources/shaders/SMapShader.hlsl",
-                              "main",
-                              "vs_5_0");
-  pSMapShader->setPShaderInfo("resources/shaders/SMapShader.hlsl",
-                              "mainPS",
-                              "ps_5_0");
-  pSMapShader->compileShader();
-
-  // Skybox
-  auto pSkyBoxShader = sh_makeShared<Pass>();
-  /*pSkyBoxShader->setVShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                                "main",
-                                "vs_5_0");
-  pSkyBoxShader->setPShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                                "mainPS",
-                                "ps_5_0");*/
-  pSkyBoxShader->setCShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                                "CSMain",
-                                "cs_5_0");
-  pSkyBoxShader->compileShader();
-
-  // Final shader
-  auto pFinalShader = sh_makeShared<Pass>();
-  pFinalShader->setPShaderInfo("resources/shaders/FinalShader.hlsl",
-                               "mainPS",
-                               "ps_5_0");
-  pFinalShader->compileShader();
-
-  // Plane Vertex shader
-  auto pPlaneVS = sh_makeShared<Pass>();
-  pPlaneVS->setVShaderInfo("resources/shaders/PlaneVertexShader.hlsl",
-                           "main",
-                           "vs_5_0");
-  pPlaneVS->compileShader();
-
-  // Histogram shader
-  auto pHistogramShader = sh_makeShared<Pass>();
-  pHistogramShader->setCShaderInfo("resources/shaders/HistogramShader.hlsl",
-                                   "CSMain",
-                                   "cs_5_0");
-  pHistogramShader->compileShader();
-
-  // Add skybox shader
-  auto pASBShader = sh_makeShared<Pass>();
-  pASBShader->setCShaderInfo("resources/shaders/AddSkyboxShader.hlsl",
-                             "CSMain",
-                             "cs_5_0");
-  pASBShader->compileShader();
-
-  // Luminance shader
-  auto pLuminanceShader = sh_makeShared<Pass>();
-  pLuminanceShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                   "LuminanceCS",
-                                   "cs_5_0");
-  pLuminanceShader->compileShader();
-
-  // Bright shader
-  auto pBrightShader = sh_makeShared<Pass>();
-  pBrightShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                "BrightCS",
-                                "cs_5_0");
-  pBrightShader->compileShader();
-
-  // ToneMap shader
-  auto pToneMapShader = sh_makeShared<Pass>();
-  pToneMapShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                                 "ToneMapCS",
-                                 "cs_5_0");
-  pToneMapShader->compileShader();
-
-  // AddMix shader
-  auto pAddMixShader = sh_makeShared<Pass>();
-  pAddMixShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                "AddMixCS",
-                                "cs_5_0");
-  pAddMixShader->compileShader();
-
-  // PostProcess shader
-  auto pPPShader = sh_makeShared<Pass>();
-  pPPShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "PostProcessCS",
-                            "cs_5_0");
-  pPPShader->compileShader();
-
-  // Shader to calculate cube maps
-  auto pCubeMapShader = sh_makeShared<Pass>();
-  pCubeMapShader->setCShaderInfo("resources/shaders/CubeMapShader.hlsl",
-                                 "CSMain",
-                                 "cs_5_0");
-  pCubeMapShader->compileShader();
-
-  // Irradiance cube shader
-  auto pIrrCubeShader = sh_makeShared<Pass>();
-  pIrrCubeShader->setCShaderInfo("resources/shaders/IrradianceCubeShader.hlsl",
-                                 "CSMain",
-                                 "cs_5_0");
-  pIrrCubeShader->compileShader();
-
-  // Specular Prefiltered Cubemap shader
-  auto pSPreCubeMap = sh_makeShared<Pass>();
-  pSPreCubeMap->setCShaderInfo("resources/shaders/SpecularPreMapShader.hlsl",
-                               "CSMain",
-                               "cs_5_0");
-  pSPreCubeMap->compileShader();
-
-  // BRDF LUT shader
-  auto pBRDFShader = sh_makeShared<Pass>();
-  pBRDFShader->setCShaderInfo("resources/shaders/BRDFShader.hlsl",
-                              "CSMain",
-                              "cs_5_0");
-  pBRDFShader->compileShader();
-
-  // Raster state
-  RasterizerDesc rasterDesc = {};
-  rasterDesc.fillMode = FILL_MODE::kSolid;
-  rasterDesc.cullMode = CULL_MODE::kNone;
-  rasterDesc.frontCounterClockwise = false;
-  rasterDesc.depthBias = 0;
-  rasterDesc.depthBiasClamp = 0.0f;
-  rasterDesc.slopeScaledDepthBias = 0.0f;
-  rasterDesc.depthClipEnable = true;
-  rasterDesc.scissorEnable = false;
-  rasterDesc.multisampleEnable = false;
-  rasterDesc.antialiasedLineEnable = false;
-
-  // Blend state
-  BlendDesc blendDesc = {};
-  blendDesc.renderTarget[0].blendEnable = true;
-  blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlend = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-  blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
-  blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-  blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-
-  // Basic depth stencil state
-  DepthStencilDesc depthSDesc = {};
-  depthSDesc.depthEnable = true;
-  depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
-  depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
-  depthSDesc.stencilEnable = true;
-  depthSDesc.stencilReadMask = 0xFF;
-  depthSDesc.stencilWriteMask = 0xFF;
-  depthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
-  depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
-  depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
-
-  // Depth stencil state for sky box
-  DepthStencilDesc skyBoxDepth = {};
-  skyBoxDepth.depthEnable = false;
-  skyBoxDepth.depthWriteMask = DEPTH_WRITE_MASK::kZero;
-  skyBoxDepth.depthFunc = COMPARISON_FUNC::kLessEqual;
-  skyBoxDepth.stencilEnable = true;
-  skyBoxDepth.stencilReadMask = 0xFF;
-  skyBoxDepth.stencilWriteMask = 0xFF;
-  skyBoxDepth.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  skyBoxDepth.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  skyBoxDepth.frontFace.stencilPassOp = STENCIL_OP::kReplace;
-  skyBoxDepth.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  skyBoxDepth.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  skyBoxDepth.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  skyBoxDepth.backFace.stencilPassOp = STENCIL_OP::kReplace;
-  skyBoxDepth.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
-
-  // Dpeth stencil state for planes
-  DepthStencilDesc planeDepthSDesc = depthSDesc;
-  planeDepthSDesc.depthEnable = false;
-  planeDepthSDesc.stencilEnable = false;
-
-  // States creation
-  m_pSamplerLinearWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
-                                                     TEXTURE_ADDRESS_MODE::kWrap);
-  m_pSamplerPointWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
-                                                    TEXTURE_ADDRESS_MODE::kWrap);
-  m_pSamplerAnisotropicWrap = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
-                                                          TEXTURE_ADDRESS_MODE::kWrap);
-  m_pSamplerLinearClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipLinear,
-                                                      TEXTURE_ADDRESS_MODE::kClamp);
-  m_pSamplerPointClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterMinMagMipPoint,
-                                                     TEXTURE_ADDRESS_MODE::kClamp);
-  m_pSamplerAnisotropicClamp = graphMan.createSamplerState(SAMPLER_FILTER::kFilterAnisotropic,
-                                                           TEXTURE_ADDRESS_MODE::kClamp);
-
-  auto pRasterState = graphMan.createRasterizerState(rasterDesc);
-  auto pBlendState = graphMan.createBlendState(blendDesc);
-  auto pDepthStencil = graphMan.createDepthStencilState(depthSDesc);
-
-  // Fill pass info
-  // GBuffer
-  pGbufferShader->generateInputLayout();
-  //pGbufferShader->setSamplerState(m_pSamplerLinearWrap);
-  pGbufferShader->setRasterizerState(pRasterState);
-  pGbufferShader->setBlendState(pBlendState);
-  pGbufferShader->setDepthStencilState(pDepthStencil);
-
-  // Lightning
-  //pLightCS->setSamplerState(m_pSamplerLinearWrap);
-
-  // AO
-  //pAOShader->setSamplerState(m_pSamplerLinearWrap);
-
-  // Shadow Map
-  pSMapShader->generateInputLayout();
-  //pSMapShader->setSamplerState(m_pSamplerLinearWrap);
-  pSMapShader->setRasterizerState(pRasterState);
-  pSMapShader->setBlendState(pBlendState);
-  pSMapShader->setDepthStencilState(pDepthStencil);
-
-  // SkyBox Map
-  //pSkyBoxShader->generateInputLayout();
-  //pSkyBoxShader->setSamplerState(m_pSamplerLinearWrap);
-  //pSkyBoxShader->setRasterizerState(pRasterState);
-  //pSkyBoxShader->setBlendState(pBlendState);
-  //pSkyBoxShader->setDepthStencilStateFromDesc(skyBoxDepth);
-
-  // Final
-  //pFinalShader->setSamplerState(m_pSamplerLinearWrap);
-
-  // Plane vs
-  pPlaneVS->generateInputLayout();
-  pPlaneVS->setDepthStencilStateFromDesc(planeDepthSDesc);
-
-  // ToneMap
-  //pToneMapShader->setSamplerState(m_pSamplerLinearWrap);
-
-  // Bright
-  //pBrightShader->setSamplerState(m_pSamplerLinearWrap);
-
-  // Save passes
-  m_passes[StringID("GBufferShader").getID()] = pGbufferShader;
-  m_passes[StringID("AOShader").getID()] = pAOShader;
-  m_passes[StringID("HBlurShader").getID()] = pHBlurShader;
-  m_passes[StringID("VBlurShader").getID()] = pVBlurShader;
-  m_passes[StringID("HBlurCS").getID()] = pVBlurShader;
-  m_passes[StringID("VBlurCS").getID()] = pVBlurShader;
-  m_passes[StringID("LightCS").getID()] = pLightCS;
-  m_passes[StringID("SMapShader").getID()] = pSMapShader;
-  m_passes[StringID("SkyBoxShader").getID()] = pSkyBoxShader;
-  m_passes[StringID("FinalShader").getID()] = pFinalShader;
-  m_passes[StringID("PlaneShader").getID()] = pPlaneVS;
-  m_passes[StringID("HistogramShader").getID()] = pHistogramShader;
-  m_passes[StringID("ASBShader").getID()] = pASBShader;
-  m_passes[StringID("LuminanceShader").getID()] = pLuminanceShader;
-  m_passes[StringID("BrightShader").getID()] = pBrightShader;
-  m_passes[StringID("ToneMapShader").getID()] = pToneMapShader;
-  m_passes[StringID("PPShader").getID()] = pPPShader;
-  m_passes[StringID("AddMixShader").getID()] = pAddMixShader;
-  m_passes[StringID("CubeMapShader").getID()] = pCubeMapShader;
-  m_passes[StringID("IrrCubeShader").getID()] = pIrrCubeShader;
-  m_passes[StringID("SpecularPreMapShader").getID()] = pSPreCubeMap;
-  m_passes[StringID("BRDFShader").getID()] = pBRDFShader;
-}
-
-SPtr<Pass>
-RenderManager::getPass(const String& passName)
-{
-  StringID strID(passName);
-  auto pPass = m_passes.find(strID.getID());
-
-  if (pPass != m_passes.end()) {
-    return (*pPass).second;
-  }
-
-  return nullptr;
-}
-
 SPtr<Texture2D>
 RenderManager::getTexture(const String& texName)
 {
@@ -594,18 +244,15 @@ RenderManager::getTexture(const String& texName)
   return nullptr;
 }
 
-void RenderManager::recompileShaders()
-{
-  for(auto& pPass : m_passes) {
-    pPass.second->compileShader();
-  }
-}
-
 void
 RenderManager::drawMeshesOnScene()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   SceneGraph& scene = g_sceneGraph();
+  ShaderManager& shaderMan = g_shaderMan();
+
+  graphMan.vsSetConstantBuffers(shaderMan.m_pMainBuffer, 0);
+  graphMan.vsSetConstantBuffers(shaderMan.m_pShaderDataBuffer, 1);
 
   if (m_pModelTransform) {
     graphMan.vsSetConstantBuffers(m_pModelTransform, 2);
@@ -641,6 +288,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
     return;
   }
   GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
 
   auto pGameObject = pGO.lock();
 
@@ -659,10 +307,11 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
       uint32 vertexCount = 0;
       auto& meshResource = meshComponent->m_mesh;
       for (auto& mesh : meshResource->m_meshes) {
-        uint32 matIndex = mesh.materialIndex;
-        bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
+        auto& material = meshResource->m_materials[mesh.materialIndex];
+        shaderMan.getPassFromMaterial(material->m_properties)->setPass();
+        bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
         if (!bHasAlphaTest && mesh.bVisible) {
-          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+          setResourceViewFromPBRMaterial(material);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
         indexCount += mesh.numIndices;
@@ -683,6 +332,7 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
     return;
   }
   GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
 
   auto pGameObject = pGO.lock();
 
@@ -701,10 +351,11 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
       uint32 vertexCount = 0;
       auto& meshResource = meshComponent->m_mesh;
       for (auto& mesh : meshResource->m_meshes) {
-        uint32 matIndex = mesh.materialIndex;
-        bool bHasAlphaTest = meshResource->m_materials[matIndex]->m_properties.bHasAlphaTest;
+        auto& material = meshResource->m_materials[mesh.materialIndex];
+        shaderMan.getPassFromMaterial(material->m_properties)->setPass();
+        bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
         if (bHasAlphaTest && mesh.bVisible) {
-          setResourceViewFromPBRMaterial(meshResource->m_materials[mesh.materialIndex]);
+          setResourceViewFromPBRMaterial(material);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
         indexCount += mesh.numIndices;
@@ -725,6 +376,7 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
     return;
   }
   GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
 
   auto pGameObject = pGO.lock();
 
@@ -743,8 +395,9 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
       uint32 vertexCount = 0;
       auto& meshResource = meshComponent->m_mesh;
       for (auto& mesh : meshResource->m_meshes) {
-        uint32 matIndex = mesh.materialIndex;
-        setResourceViewFromPBRMaterial(meshResource->m_materials[matIndex]);
+        auto& material = meshResource->m_materials[mesh.materialIndex];
+        shaderMan.getPassFromMaterial(material->m_properties)->setPass();
+        setResourceViewFromPBRMaterial(material);
         graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         
         indexCount += mesh.numIndices;
@@ -759,9 +412,9 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
-  if (pMat->m_type != MATERIAL_TYPE::kPBR) {
+  /*if (pMat->m_type != MATERIAL_TYPE::kPBR) {
     return;
-  }
+  }*/
 
   struct PBRMaterialData {
     Vector3 baseColorFactor;
@@ -802,12 +455,12 @@ RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
     graphMan.psSetShaderResourceView(pMat->ao, 4);
   }
 
-  if (pMat->m_properties.bHasAlphaTest) {
+  /*if (pMat->m_properties.properties.flags.bHasAlphaTest) {
     graphMan.setBlendState(m_pAlphaTestBS);
   }
   else {
     graphMan.setBlendState(m_pBasicBS);
-  }
+  }*/
 }
 
 static uint32
@@ -825,6 +478,7 @@ RenderManager::renderScene()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   SceneGraph& scene = g_sceneGraph();
+  ShaderManager& shaderMan = g_shaderMan();
 
   SPtr<Texture2D> pOutput;
   SPtr<Texture2D> pInput;
@@ -908,7 +562,7 @@ RenderManager::renderScene()
   graphMan.clearDepthStencil(pOutput);
   graphMan.clearRenderTarget(pShadowTemp.pTexture, LinearColor::BLACK);
   graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pOutput);
-  m_passes[StringID("SMapShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("SMapShader").getID()]->setPass();
   drawMeshesOnScene();
   cleanShaderObjects();
 
@@ -926,7 +580,7 @@ RenderManager::renderScene()
                              {pNormalMap.pTexture},
                              {pColorMap.pTexture},
                              {pPropMap.pTexture }}, pGbufferDepth.pTexture);
-  m_passes[StringID("GBufferShader").getID()]->setPass();
+  //m_passes[StringID("GBufferShader").getID()]->setPass();
   setSamplers();
   drawMeshesOnScene();
   cleanShaderObjects();
@@ -937,8 +591,8 @@ RenderManager::renderScene()
   pOutput = pAOMap.pTexture;
   graphMan.clearRenderTarget(pOutput, LinearColor::BLACK);
   graphMan.setRenderTargets({{ pOutput }}, pDepthSV);
-  m_passes[StringID("PlaneShader").getID()]->setPass();
-  m_passes[StringID("AOShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("PlaneShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("AOShader").getID()]->setPass();
   setSamplers();
   graphMan.psSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.psSetShaderResourceView(pNormalMap.pTexture, 1);
@@ -948,12 +602,14 @@ RenderManager::renderScene()
   /*************************************/
   /*        AO Horizontal Blur         */
   /*************************************/
-  m_shaderData.mipLevel0 = 1;
-  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
+  shaderMan.m_shaderData.mipLevel0 = 1;
+  graphMan.updateConstantBuffer(shaderMan.m_pShaderDataBuffer,
+                                &shaderMan.m_shaderData,
+                                sizeof(ShaderData));
   pInput = pAOMap.pTexture;
   pOutput = pHBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("HBlurShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("HBlurShader").getID()]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
@@ -969,7 +625,7 @@ RenderManager::renderScene()
   pInput = pHBlurMap.pTexture;
   pOutput = pVBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("VBlurShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("VBlurShader").getID()]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
@@ -990,32 +646,32 @@ RenderManager::renderScene()
     }
     ++numMipLevels;
   }
-  float normMip = Math::clamp(m_prefilteredCB.roughness, 0.0f, 1.0f);
-  m_prefilteredCB.mipmapLevels = normMip * (numMipLevels - 1) + 0.5f;
-  updatePrefilteredIBLBuffer();
+  float normMip = Math::clamp(shaderMan.m_prefilteredCB.roughness, 0.0f, 1.0f);
+  shaderMan.m_prefilteredCB.mipmapLevels = normMip * (numMipLevels - 1) + 0.5f;
+  shaderMan.updatePrefilterShaderCB();
 
-  m_passes[StringID("SkyBoxShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("SkyBoxShader").getID()]->setPass();
   setSamplers();
-  graphMan.csSetConstantBuffers(m_pPreCB, 2);
+  graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
   graphMan.csSetShaderResourceView(m_pSpecularPreMap, 0);
   graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
 
-  float tempRoughness = m_prefilteredCB.roughness;
-  m_prefilteredCB.roughness = 0.0f;
-  updatePrefilteredIBLBuffer();
-  m_prefilteredCB.roughness = tempRoughness;
+  float tempRoughness = shaderMan.m_prefilteredCB.roughness;
+  shaderMan.m_prefilteredCB.roughness = 0.0f;
+  shaderMan.updatePrefilterShaderCB();
+  shaderMan.m_prefilteredCB.roughness = tempRoughness;
 
   /*************************************/
   /*             Lightning             */
   /*************************************/
   pOutput = pLightCMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("LightCS").getID()]->setPass();
+  shaderMan.m_passes[StringID("LightCS").getID()]->setPass();
   setSamplers();
-  graphMan.csSetConstantBuffers(m_pPreCB, 4);
+  graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 4);
   graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
@@ -1036,7 +692,7 @@ RenderManager::renderScene()
   /*************************************/
   pOutput = pTempMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("ASBShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("ASBShader").getID()]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 1);
@@ -1051,7 +707,7 @@ RenderManager::renderScene()
   pInput = pTempMap.pTexture;
   pOutput = pLuminance.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("LuminanceShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("LuminanceShader").getID()]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
@@ -1065,7 +721,7 @@ RenderManager::renderScene()
   pInput = pLuminance.pTexture;
   pOutput = pBrightMap.pTexture;
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("BrightShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("BrightShader").getID()]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pInput, 1);
@@ -1089,12 +745,12 @@ RenderManager::renderScene()
     int32 height = static_cast<int32>(static_cast<int32>(screenHeight) >> (mipLevel0 + 1));
 
     // Update buffers
-    m_mainBufferData.screenSize.x = static_cast<float>(width);
-    m_mainBufferData.screenSize.y = static_cast<float>(height);
-    m_shaderData.mipLevel0 = static_cast<float>(mipLevel0);
-    m_shaderData.mipLevel1 = static_cast<float>(mipLevel1);
-    graphMan.updateConstantBuffer(m_pMainBuffer, &m_mainBufferData, sizeof(MainBufferData));
-    graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
+    shaderMan.m_mainBufferData.screenSize.x = static_cast<float>(width);
+    shaderMan.m_mainBufferData.screenSize.y = static_cast<float>(height);
+    shaderMan.m_shaderData.mipLevel0 = static_cast<float>(mipLevel0);
+    shaderMan.m_shaderData.mipLevel1 = static_cast<float>(mipLevel1);
+    shaderMan.updateMainCB();
+    shaderMan.updateShaderDataCB();
 
     /*************************************/
     /*            Additive Mix           */
@@ -1103,7 +759,7 @@ RenderManager::renderScene()
     if (i > 0) {
       pInput = pAdditiveMap.pTexture;
       //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-      m_passes[StringID("AddMixShader").getID()]->setPass();
+      shaderMan.m_passes[StringID("AddMixShader").getID()]->setPass();
       setSamplers();
       //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
@@ -1120,7 +776,7 @@ RenderManager::renderScene()
     /*          Horizontal Blur          */
     /*************************************/
     //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-    m_passes[StringID("HBlurShader").getID()]->setPass();
+    shaderMan.m_passes[StringID("HBlurShader").getID()]->setPass();
     //m_passes[StringID("HBlurCS").getID()]->setPass();
     setSamplers();
     graphMan.csSetShaderResourceView(pInput, 0);
@@ -1137,7 +793,7 @@ RenderManager::renderScene()
     /*            Vetical Blur           */
     /*************************************/
     //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-    m_passes[StringID("VBlurShader").getID()]->setPass();
+    shaderMan.m_passes[StringID("VBlurShader").getID()]->setPass();
     //m_passes[StringID("VBlurCS").getID()]->setPass();
     setSamplers();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
@@ -1154,33 +810,33 @@ RenderManager::renderScene()
   /*************************************/
   /*             Tone Map              */
   /*************************************/
-  m_mainBufferData.screenSize.x = m_screenDimension.x;
-  m_mainBufferData.screenSize.y = m_screenDimension.y;
-  graphMan.updateConstantBuffer(m_pMainBuffer, &m_mainBufferData, sizeof(MainBufferData));
+  shaderMan.m_mainBufferData.screenSize.x = m_screenDimension.x;
+  shaderMan.m_mainBufferData.screenSize.y = m_screenDimension.y;
+  shaderMan.updateMainCB();
 
   SPtr<Texture3D> pLutTex;
-  int32 index = static_cast<int32>(m_shaderData.toneMappingIndex);
+  int32 index = static_cast<int32>(shaderMan.m_shaderData.toneMappingIndex);
   if (index == 4) {
-    m_shaderData.lutSize = m_pLutTexture->getLutSize();
+    shaderMan.m_shaderData.lutSize = m_pLutTexture->getLutSize();
     pLutTex = m_pLutTexture->getTexture();
   }
   else if (index == 5) {
-    m_shaderData.lutSize = m_pLutLBK->getLutSize();
+    shaderMan.m_shaderData.lutSize = m_pLutLBK->getLutSize();
     pLutTex = m_pLutLBK->getTexture();
-    m_shaderData.toneMappingIndex = 4.0f;
+    shaderMan.m_shaderData.toneMappingIndex = 4.0f;
   }
   else {
-    m_shaderData.lutSize = 0;
+    shaderMan.m_shaderData.lutSize = 0;
     pLutTex = nullptr;
   }
-  updateShaderDataBuffer();
+  shaderMan.updateShaderDataCB();
 
   //pInput = pVBlurMap.pTexture;
   //pOutput = pToneMap.pTexture;
   graphMan.setViewport(normalVP);
 
   //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  m_passes[StringID("ToneMapShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("ToneMapShader").getID()]->setPass();
   setSamplers();
   //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
@@ -1193,13 +849,13 @@ RenderManager::renderScene()
 
   cleanShaderObjects();
 
-  m_shaderData.toneMappingIndex = cast::st<float>(index);
-  updateShaderDataBuffer();
+  shaderMan.m_shaderData.toneMappingIndex = cast::st<float>(index);
+  shaderMan.updateShaderDataCB();
 
   /*************************************/
   /*            PostProcess            */
   /*************************************/
-  m_passes[StringID("PPShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("PPShader").getID()]->setPass();
   setSamplers();
 
   graphMan.csSetShaderResourceView(pToneMap.pTexture, 0);
@@ -1213,8 +869,8 @@ RenderManager::renderScene()
   /*         Add to backbuffer         */
   /*************************************/
   graphMan.setRenderTargets({{ pMainTarget }}, pDepthSV);
-  m_passes[StringID("PlaneShader").getID()]->setPass();
-  m_passes[StringID("FinalShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("PlaneShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("FinalShader").getID()]->setPass();
   setSamplers();
 
   graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
@@ -1247,6 +903,7 @@ RenderManager::computeIBL()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   SceneGraph& scene = g_sceneGraph();
+  ShaderManager& shaderMan = g_shaderMan();
 
   m_pSpecularPreMap = nullptr;
   m_skyboxDimension.x = TEXTURE8K_WIDTH;
@@ -1281,23 +938,23 @@ RenderManager::computeIBL()
                                BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
                                numMipLevels);
 
-  m_prefilteredCB.width = 256;
-  m_prefilteredCB.height = 128;
-  m_prefilteredCB.samples = TEXTURE4K_WIDTH;
-  m_prefilteredCB.roughness = 0.0f;
-  m_prefilteredCB.mipmapLevels = 0.0f;
+  shaderMan.m_prefilteredCB.width = 256;
+  shaderMan.m_prefilteredCB.height = 128;
+  shaderMan.m_prefilteredCB.samples = TEXTURE4K_WIDTH;
+  shaderMan.m_prefilteredCB.roughness = 0.0f;
+  shaderMan.m_prefilteredCB.mipmapLevels = 0.0f;
 
-  if(m_pPreCB == nullptr) {
-    m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
+  if(shaderMan.m_pPreCB == nullptr) {
+    shaderMan.m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
   }
-  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+  graphMan.updateConstantBuffer(shaderMan.m_pPreCB, &shaderMan.m_prefilteredCB, sizeof(PrefilteredCB));
 
   /*************************************/
   /*           Diff Irradiance         */
   /*************************************/
-  m_passes[StringID("IrrCubeShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("DiffIrrShader").getID()]->setPass();
   setSamplers();
-  graphMan.csSetConstantBuffers(m_pPreCB, 2);
+  graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
   graphMan.csSetShaderResourceView(pSbImg->texture, 0);
   graphMan.setUnorderedAccessView({ m_pDiffIrr }, 0);
   graphMan.dispatch(threadGroups(256, 16),
@@ -1325,11 +982,11 @@ RenderManager::computeIBL()
     specPreCB.roughness = (mip == 0) ? 0.0f :
       Math::clamp(cast::st<float>(mip) / cast::st<float>(numMipLevels - 1), 0.0f, 1.0f);
 
-    graphMan.updateConstantBuffer(m_pPreCB, &specPreCB, sizeof(PrefilteredCB));
+    graphMan.updateConstantBuffer(shaderMan.m_pPreCB, &specPreCB, sizeof(PrefilteredCB));
 
-    m_passes[StringID("SpecularPreMapShader").getID()]->setPass();
+    shaderMan.m_passes[StringID("SpecularPreMapShader").getID()]->setPass();
     setSamplers();
-    graphMan.csSetConstantBuffers(m_pPreCB, 2);
+    graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
     graphMan.csSetShaderResourceView(pSbImg->texture, 0);
     graphMan.setUnorderedAccessView({ m_pSpecularPreMap, mip }, 0);
     graphMan.dispatch(dispatchSize.x, dispatchSize.y, 1);
@@ -1337,13 +994,14 @@ RenderManager::computeIBL()
     cleanShaderObjects();
   }
 
-  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+  graphMan.updateConstantBuffer(shaderMan.m_pPreCB, &shaderMan.m_prefilteredCB, sizeof(PrefilteredCB));
 }
 
 void
 RenderManager::computeBRDF()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
   
   m_pBRDF = graphMan.createTexture2D(256, 256,
                                      TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
@@ -1353,7 +1011,8 @@ RenderManager::computeBRDF()
   
   uint32 lutDispatch = threadGroups(256, 16);
 
-  m_passes[StringID("BRDFShader").getID()]->setPass();
+  shaderMan.m_passes[StringID("BRDFShader").getID()]->setPass();
+
   setSamplers();
   graphMan.setUnorderedAccessView({ m_pBRDF }, 0);
   graphMan.dispatch(lutDispatch, lutDispatch, 1);
@@ -1450,23 +1109,23 @@ RenderManager::cleanShaderObjects()
   cleanCSConstantBuffers();
 }
 
-void
-RenderManager::updateShaderDataBuffer()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-  if (m_pShaderDataBuffer == nullptr) {
-    m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
-  }
-
-  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
-}
-
-void
-RenderManager::updatePrefilteredIBLBuffer()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
-}
+//void
+//RenderManager::updateShaderDataBuffer()
+//{
+//  GraphicsManager& graphMan = g_graphicsMan();
+//  if (m_pShaderDataBuffer == nullptr) {
+//    m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
+//  }
+//
+//  graphMan.updateConstantBuffer(m_pShaderDataBuffer, &m_shaderData, sizeof(ShaderData));
+//}
+//
+//void
+//RenderManager::updatePrefilteredIBLBuffer()
+//{
+//  GraphicsManager& graphMan = g_graphicsMan();
+//  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+//}
 
 void
 RenderManager::setSamplers()

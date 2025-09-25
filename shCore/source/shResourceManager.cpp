@@ -506,7 +506,13 @@ SPtr<Material>
 ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  auto pMeshMat = sh_makeShared<Material>();
+  auto pMeshMat = isMaterialLoaded(pMat->GetName().C_Str());
+
+  if(pMeshMat){
+    return pMeshMat;
+  }
+
+  pMeshMat = sh_makeShared<Material>();
 
   uint32 diffCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
   uint32 normCount = pMat->GetTextureCount(aiTextureType_NORMALS);
@@ -516,11 +522,11 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 
   if (diffCount == 0) {
     // Create error texture
-    pMeshMat->m_properties.bHasDiffuseMap = true;
+    pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
     pMeshMat->baseColor = graphMan.createErrorTexture();
   }
   else {
-    pMeshMat->m_properties.bHasDiffuseMap = true;
+    pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
@@ -532,11 +538,11 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   }
 
   if (normCount == 0) {
-    pMeshMat->m_properties.bHasNormalMap = true;
+    pMeshMat->m_properties.properties.flags.bHasNormalMap = true;
     pMeshMat->normal = graphMan.createDefaultNormalTexture();
   }
   else {
-    pMeshMat->m_properties.bHasNormalMap = true;
+    pMeshMat->m_properties.properties.flags.bHasNormalMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_NORMALS, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
@@ -548,11 +554,11 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   }
 
   if (metalCount == 0) {
-    pMeshMat->m_properties.bHasMetalnessMap = false;
+    pMeshMat->m_properties.properties.flags.bHasMetalnessMap = false;
     pMeshMat->metallic = graphMan.createBlackTexture();
   }
   else {
-    pMeshMat->m_properties.bHasMetalnessMap = true;
+    pMeshMat->m_properties.properties.flags.bHasMetalnessMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_METALNESS, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
@@ -564,11 +570,11 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   }
 
   if (roughCount == 0) {
-    pMeshMat->m_properties.bHasRoughnessMap = false;
+    pMeshMat->m_properties.properties.flags.bHasRoughnessMap = false;
     pMeshMat->roughness = graphMan.createBlackTexture();
   }
   else {
-    pMeshMat->m_properties.bHasRoughnessMap = true;
+    pMeshMat->m_properties.properties.flags.bHasRoughnessMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
@@ -580,10 +586,10 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   }
 
   if (aoCount == 0) {
-    pMeshMat->m_properties.bHasAmbientOcclusionMap = false;
+    pMeshMat->m_properties.properties.flags.bHasAmbientOcclusionMap = false;
   }
   else {
-    pMeshMat->m_properties.bHasAmbientOcclusionMap = true;
+    pMeshMat->m_properties.properties.flags.bHasAmbientOcclusionMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
@@ -594,10 +600,22 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     pMeshMat->aoPath = pImage->getPath().toString();
   }
   
-  pMeshMat->m_type = MATERIAL_TYPE::kPBR;
-  pMeshMat->name = pMat->GetName().C_Str();
+  //pMeshMat->m_type = MATERIAL_TYPE::kPBR;
+  pMeshMat->setName(pMat->GetName().C_Str());
 
   return pMeshMat;
+}
+
+SPtr<Material>
+ResourceManager::isMaterialLoaded(const String& materialName)
+{
+  auto resObj = m_loadedResources.find(materialName);
+
+  if (resObj != m_loadedResources.end()) {
+    return cast::re_ptr<Material>((*resObj).second);
+  }
+
+  return nullptr;
 }
 
 SPtr<Resource>
@@ -665,7 +683,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
   else {
     for (uint32 i = 0; i < currentMesh->m_materials.size(); ++i) {
       auto& mat = currentMesh->m_materials[i];
-      if (currentMat->name == mat->name) {
+      if (currentMat->getName() == mat->getName()) {
         currentData.materialIndex = i;
         break;
       }
@@ -765,7 +783,7 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   else {
     for (uint32 i = 0; i < skeletalMesh->m_materials.size(); ++i) {
       auto& mat = skeletalMesh->m_materials[i];
-      if (currentMat->name == mat->name) {
+      if (currentMat->getName() == mat->getName()) {
         currentMeshInfo.materialIndex = i;
         break;
       }
