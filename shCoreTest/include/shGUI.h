@@ -135,27 +135,27 @@ class GUI
   /**
   *  @brief Light position.
   */
-  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
+  //Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
 
   /**
   *  @brief Light camera target.
   */
-  Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
+  //Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
 
   /**
   *  @brief Light camera near.
   */
-  float m_lcamNear = 0.0f;
+  //float m_lcamNear = 0.0f;
 
   /**
   *  @brief Light camera far.
   */
-  float m_lcamFar = 0.0f;
+  //float m_lcamFar = 0.0f;
 
   /**
   *  @brief Light camera size.
   */
-  float m_lcamSize = 0.0f;
+  //float m_lcamSize = 0.0f;
 
   /**
   *  @brief Size of shadow texture.

@@ -18,18 +18,28 @@ RWTexture2D<float4> t_outputMap : register(u0);
 #define SAMPLE_DELTA 0.2f
 #define MAX_REFLECTION_LOD 5.0f
 
-cbuffer Light : register(b2)
-{
-  float4 LightPos[12];
-}
+//cbuffer Light : register(b2)
+//{
+//  float4 LightPos[12];
+//}
 
-cbuffer LightCam : register(b3)
+//cbuffer LightCam : register(b3)
+//{
+//  float4x4 lightView;
+//  float4x4 lightProj;
+//}
+
+cbuffer LightData : register(b2)
 {
+  float4 LightPos;
+  float3 lightTarget;
+  float lightIntensity;
+  float4 lightColor;
   float4x4 lightView;
   float4x4 lightProj;
 }
 
-cbuffer PrefilterConstants : register(b4)
+cbuffer PrefilterConstants : register(b3)
 {
   uint width;
   uint height;
@@ -255,7 +265,7 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float3 ambientLight = diffuseIBL + metalFresnel;
   
   // === Direct Lighting ===
-  float3 lightDir = normalize(LightPos[0].xyz - posWorld.xyz);
+  float3 lightDir = normalize(LightPos.xyz - posWorld.xyz);
   float NdL = saturate(dot(normal, lightDir));
   
   float3 specular = cookTorrenceSpecular(normal,

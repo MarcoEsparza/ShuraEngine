@@ -28,6 +28,7 @@
 #include <shFileExplorer.h>
 #include <shTexture.h>
 #include <shMath.h>
+#include <shException.h>
 
 #include <shComponent.h>
 #include <shTransformComponent.h>
@@ -63,11 +64,11 @@ GUI::init(const WPtr<Screen> pScreen)
 
   m_camSpeed = 100.0f;
   m_camFov = 30.0f;
-  m_lightPos = { 0.0f, 100.0f, 0.0f, 1.0f };
-  m_lightTarget = Vector3::ZERO;
-  m_lcamNear = 0.1f;
-  m_lcamFar = 1000.0f;
-  m_lcamSize = 1000.0f;
+  //m_lightPos = { 0.0f, 100.0f, 0.0f, 1.0f };
+  //m_lightTarget = Vector3::ZERO;
+  //m_lcamNear = 0.1f;
+  //m_lcamFar = 1000.0f;
+  //m_lcamSize = 1000.0f;
 }
 
 void
@@ -216,7 +217,7 @@ GUI::setDockSpace()
 void
 GUI::setRendererSettings()
 {
-  RenderManager& renderMan = g_renderMan();
+  //RenderManager& renderMan = g_renderMan();
   ShaderManager& shaderMan = g_shaderMan();
   auto& rendererSettings = shaderMan.m_shaderData;
 
@@ -297,70 +298,70 @@ GUI::setRendererSettings()
     rendererSettings.maxB = maxB * NORM_COLOR;
   }
 
-  if (ImGui::CollapsingHeader("Shadows")) {
-    if (ImGui::CollapsingHeader("Light settings")) {
-      // Light Position
-      ImGui::Text("Light Pos:");
-      // Position X
-      ImGui::SameLine(80.0f);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("x##LPosX", &m_lightPos.x, 1.0f);
-      ImGui::PopStyleColor(3);
-      // Position Y
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("y##LPosY", &m_lightPos.y, 1.0f);
-      ImGui::PopStyleColor(3);
-      // Position Z
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 1.0f);
-      ImGui::PopStyleColor(3);
+  //if (ImGui::CollapsingHeader("Shadows")) {
+  //  if (ImGui::CollapsingHeader("Light settings")) {
+  //    // Light Position
+  //    ImGui::Text("Light Pos:");
+  //    // Position X
+  //    ImGui::SameLine(80.0f);
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+  //    ImGui::SetNextItemWidth(50.0f);
+  //    ImGui::DragFloat("x##LPosX", &m_lightPos.x, 1.0f);
+  //    ImGui::PopStyleColor(3);
+  //    // Position Y
+  //    ImGui::SameLine();
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+  //    ImGui::SetNextItemWidth(50.0f);
+  //    ImGui::DragFloat("y##LPosY", &m_lightPos.y, 1.0f);
+  //    ImGui::PopStyleColor(3);
+  //    // Position Z
+  //    ImGui::SameLine();
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+  //    ImGui::SetNextItemWidth(50.0f);
+  //    ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 1.0f);
+  //    ImGui::PopStyleColor(3);
 
-      // Light Target
-      ImGui::Text("Light Target:");
-      // Position X
-      ImGui::SameLine(80.0f);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("x##LTarX", &m_lightTarget.x, 1.0f);
-      ImGui::PopStyleColor(3);
-      // Position Y
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("y##LTarY", &m_lightTarget.y, 1.0f);
-      ImGui::PopStyleColor(3);
-      // Position Z
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-      ImGui::SetNextItemWidth(50.0f);
-      ImGui::DragFloat("z##LTarZ", &m_lightTarget.z, 1.0f);
-      ImGui::PopStyleColor(3);
+  //    // Light Target
+  //    ImGui::Text("Light Target:");
+  //    // Position X
+  //    ImGui::SameLine(80.0f);
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+  //    ImGui::SetNextItemWidth(50.0f);
+  //    ImGui::DragFloat("x##LTarX", &m_lightTarget.x, 1.0f);
+  //    ImGui::PopStyleColor(3);
+  //    // Position Y
+  //    ImGui::SameLine();
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+  //    ImGui::SetNextItemWidth(50.0f);
+  //    ImGui::DragFloat("y##LTarY", &m_lightTarget.y, 1.0f);
+  //    ImGui::PopStyleColor(3);
+  //    // Position Z
+  //    ImGui::SameLine();
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+  //    ImGui::SetNextItemWidth(50.0f);
+  //    ImGui::DragFloat("z##LTarZ", &m_lightTarget.z, 1.0f);
+  //    ImGui::PopStyleColor(3);
 
-      ImGui::Spacing();
-      ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 0.1f);
-      ImGui::Spacing();
-      ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
-      ImGui::Spacing();
-      ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
-    }
-  }
+  //    ImGui::Spacing();
+  //    ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 0.1f);
+  //    ImGui::Spacing();
+  //    ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
+  //    ImGui::Spacing();
+  //    ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
+  //  }
+  //}
 
   if (ImGui::CollapsingHeader("Camera Settings")) {
     ImGui::DragFloat("Camera Speed", &m_camSpeed, 1.0f, 1.0f, 300.0f);
@@ -369,7 +370,7 @@ GUI::setRendererSettings()
 
   ImGui::End();
 
-  renderMan.updateShaderDataBuffer();
+  shaderMan.updateShaderDataCB();
 }
 
 static bool
@@ -1006,9 +1007,9 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
   auto pSkyBox = wpSkyBox.lock();
   if (ImGui::CollapsingHeader("SkyBox Component")) {
     if (ImGui::DragFloat("Skyblur",
-                         &shaderMan.m_prefilteredCB.roughness,
-                         0.01, 0.0f, 1.0f)) {
-      renderMan.updatePrefilteredIBLBuffer();
+                         &shaderMan.m_prefilteredData.roughness,
+                         0.01f, 0.0f, 1.0f)) {
+      shaderMan.updatePrefilterShaderCB();
     }
 
     if(ImGui::Button("Load Image")) {
@@ -1109,6 +1110,6 @@ GUI::showColliderComponent(const WPtr<ColliderComponent> wpCollider)
 void
 GUI::showRigidbodyComponent(const WPtr<RigidbodyComponent> wpRigidbody)
 {
-
+  SH_UNREFERENCED_PARAMETER(wpRigidbody);
 }
 }

@@ -19,6 +19,12 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shModule.h"
+#include "shMaterial.h"
+#include <shVector2.h>
+#include <shVector3.h>
+#include <shVector4.h>
+#include <shMatrix4.h>
+#include <shLinearColor.h>
 
 #define DEFAULT_SHADOW_MAP_SIZE                               2048.0f
 
@@ -29,12 +35,13 @@ namespace shEngineSDK {
 */
 /*****************************************************************************/
 class Pass;
-struct MaterialProperties;
+class ConstantBuffer;
+//struct MaterialProperties;
 
 /**
 *  @brief Main buffer data structure.
 */
-struct MainBufferData
+struct SH_CORE_EXPORT MainBufferData
 {
   // View matrix data from the camera.
   Matrix4 viewMatrix = Matrix4::IDENTITY;
@@ -70,7 +77,7 @@ struct MainBufferData
 /**
 *  @brief Shader data structure.
 */
-struct ShaderData {
+struct SH_CORE_EXPORT ShaderData {
   // Ambient occlusion data.
   float sampleRadius = 1.0f;
   float aoScale = 1.0f;
@@ -107,7 +114,7 @@ struct ShaderData {
   Vector2 padding = { 0.0f, 0.0f };
 };
 
-struct PrefilteredCB
+struct SH_CORE_EXPORT PrefilteredCB
 {
   uint32 width = 0;
   uint32 height = 0;
@@ -123,9 +130,22 @@ struct PrefilteredCB
 };
 
 /**
+*  @brief Light data structure for constant buffer.
+*/
+struct SH_CORE_EXPORT LightCB
+{
+  Vector4 position = { 0.0f, 0.0f, 0.0f, 1.0f };
+  Vector3 target = Vector3::ZERO;
+  float intensity = 1.0f;
+  LinearColor color = LinearColor::WHITE;
+  Matrix4 view = Matrix4::IDENTITY;
+  Matrix4 proj = Matrix4::IDENTITY;
+};
+
+/**
 *  @brief Shader managment module.
 */
-class ShaderManager : public Module<ShaderManager>
+class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
 {
  public:
   /**
@@ -147,9 +167,6 @@ class ShaderManager : public Module<ShaderManager>
   void
   createPipelinePasses();
 
-  void
-  createPipelineConstantBuffers();
-
   SPtr<Pass>
   getPassFromMaterial(const MaterialProperties& props);
 
@@ -165,6 +182,9 @@ class ShaderManager : public Module<ShaderManager>
   void
   updatePrefilterShaderCB();
 
+  void
+  updateLightCB();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -172,8 +192,6 @@ class ShaderManager : public Module<ShaderManager>
   /***************************************************************************/
  public:
   UMap<uint32, SPtr<Pass>> m_passes;
-
-  SPtr<ConstantBuffer> m_pPreCB;
 
   /**
   *  @brief Main Constant Buffer.
@@ -185,11 +203,25 @@ class ShaderManager : public Module<ShaderManager>
   */
   SPtr<ConstantBuffer> m_pShaderDataBuffer;
 
+  SPtr<ConstantBuffer> m_pPrefilteredCB;
+
+  /**
+  *  @brief Constant Buffer for light struct.
+  */
+  SPtr<ConstantBuffer> m_pLightBuffer;
+
+  /**
+  *  @brief Constant buffer for light camera.
+  */
+  SPtr<ConstantBuffer> m_pLCBuffer;
+
   MainBufferData m_mainBufferData;
 
   ShaderData m_shaderData;
 
-  PrefilteredCB m_prefilteredCB;
+  PrefilteredCB m_prefilteredData;
+
+  LightCB m_lightData;
 };
 
 /**

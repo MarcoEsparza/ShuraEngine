@@ -38,7 +38,7 @@
     <ClInclude Include="include\shGameObject.h" />
     <ClInclude Include="include\shGizmos.h" />
     <ClInclude Include="include\shImageResource.h" />
-    <ClInclude Include="include\shLight.h" />
+    <ClInclude Include="include\shLightComponent.h" />
     <ClInclude Include="include\shMaterial.h" />
     <ClInclude Include="include\shMeshResource.h" />
     <ClInclude Include="include\shMeshComponent.h" />
@@ -71,7 +71,6 @@
     <ClInclude Include="include\shTransformComponent.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="include\shShaderManager.cpp" />
     <ClCompile Include="source\shAnimatorComponent.cpp" />
     <ClCompile Include="source\shAsset.cpp" />
     <ClCompile Include="source\shAudioManager.cpp" />
@@ -85,7 +84,7 @@
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGizmos.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
-    <ClCompile Include="source\shMaterial.cpp" />
+    <ClCompile Include="source\shLightComponent.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
     <ClCompile Include="source\shOCLManager.cpp" />
     <ClCompile Include="source\shPass.cpp" />
@@ -95,6 +94,7 @@
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
+    <ClCompile Include="source\shShaderManager.cpp" />
     <ClCompile Include="source\shSkeletonResource.cpp" />
     <ClCompile Include="source\shSkyBoxComponent.cpp" />
     <ClCompile Include="source\shTransformComponent.cpp" />

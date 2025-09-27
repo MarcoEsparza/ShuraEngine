@@ -19,7 +19,8 @@
 #include "shShaderManager.h"
 #include "shGraphicsManager.h"
 #include "shPass.h"
-#include "shMaterial.h"
+//#include "shMaterial.h"
+#include "shBuffers.h"
 #include "shRasterizerState.h"
 #include "shBlendState.h"
 #include "shDepthStencilState.h"
@@ -238,12 +239,13 @@ ShaderManager::createPipelinePasses()
 
   m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
   m_pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
-  m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
+  m_pPrefilteredCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
+  m_pLightBuffer = graphMan.createConstantBuffer(sizeof(LightCB));
 
   // Shadow shader buffers
   pSMapShader->addCSConstantBuffer(m_pMainBuffer, 0);
   pSMapShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
-  //pSMapShader->addVSConstantBuffer(m_pLCBuffer, 3);
+  pSMapShader->addVSConstantBuffer(m_pLightBuffer, 3);
 
   // Skybox shader buffers
   pSkyBoxShader->addCSConstantBuffer(m_pMainBuffer, 0);
@@ -251,8 +253,8 @@ ShaderManager::createPipelinePasses()
   // Lightning shader buffers
   pLightCS->addCSConstantBuffer(m_pMainBuffer, 0);
   pLightCS->addCSConstantBuffer(m_pShaderDataBuffer, 1);
-  //pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
-  //pLightCS->addCSConstantBuffer(m_pLCBuffer, 3);
+  pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
+  pLightCS->addCSConstantBuffer(m_pPrefilteredCB, 3);
 
   // Ambient occlusion buffers
   pAOShader->addPSConstantBuffer(m_pMainBuffer, 0);
@@ -301,6 +303,9 @@ ShaderManager::createPipelinePasses()
   // Add skybox
   pASBShader->addCSConstantBuffer(m_pMainBuffer, 0);
 
+  pIrrCubeShader->addCSConstantBuffer(m_pPrefilteredCB, 2);
+  pSPreCubeMap->addCSConstantBuffer(m_pPrefilteredCB, 2);
+
   m_passes[StringID("AOShader").getID()] = pAOShader;
   m_passes[StringID("HBlurShader").getID()] = pHBlurShader;
   m_passes[StringID("VBlurShader").getID()] = pVBlurShader;
@@ -324,16 +329,6 @@ ShaderManager::createPipelinePasses()
   m_passes[StringID("BRDFShader").getID()] = pBRDFShader;
 }
 
-void
-ShaderManager::createPipelineConstantBuffers()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-
-  m_pShaderDataBuffer = graphMan.createConstantBuffer(sizeof(ShaderData));
-  m_pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
-  m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
-}
-
 SPtr<Pass>
 ShaderManager::getPassFromMaterial(const MaterialProperties& props)
 {
@@ -345,7 +340,7 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
 
   auto matPass = sh_makeShared<Pass>();
   bool bWireframe = props.properties.flags.bWireframeEnabled;
-  bool bDoubleSided = props.properties.flags.bIsDoubleSided;
+  //bool bDoubleSided = props.properties.flags.bIsDoubleSided;
   bool bAlphaTest = props.properties.flags.bHasAlphaTest;
 
   // Create and configure the Pass based on MaterialProperties (props)
@@ -398,8 +393,8 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   }
   // Add more macros based on other properties as needed
 
-  matPass->setVShaderInfo("shaders/GBufferShader.hlsl", "main", "vs_5_0", macros);
-  matPass->setPShaderInfo("shaders/GBufferShader.hlsl", "mainPS", "ps_5_0", macros);
+  matPass->setVShaderInfo("resources/shaders/GBufferShader.hlsl", "main", "vs_5_0", macros);
+  matPass->setPShaderInfo("resources/shaders/GBufferShader.hlsl", "mainPS", "ps_5_0", macros);
   matPass->compileShader();
   matPass->generateInputLayout();
 
@@ -492,7 +487,14 @@ void
 ShaderManager::updatePrefilterShaderCB()
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  graphMan.updateConstantBuffer(m_pPreCB, &m_prefilteredCB, sizeof(PrefilteredCB));
+  graphMan.updateConstantBuffer(m_pPrefilteredCB, &m_prefilteredData, sizeof(PrefilteredCB));
+}
+
+void
+ShaderManager::updateLightCB()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  graphMan.updateConstantBuffer(m_pLightBuffer, &m_lightData, sizeof(LightCB));
 }
 
 ShaderManager&

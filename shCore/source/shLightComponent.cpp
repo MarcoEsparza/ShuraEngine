@@ -1,11 +1,11 @@
 /*****************************************************************************/
 /*
-*  @file    shLight.h
+*  @file    shLightComponent.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
-*  @brief   Basic light structure.
+*  @date    2025/09/27
+*  @brief   Light component class.
 *
-*  Basic light structure.
+*  Light component class.
 *
 *  @bug     No bug known.
 */
@@ -17,20 +17,7 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
-#include <shVector3.h>
-#include <shVector4.h>
-//#include "shLinearColor.h"
+#include "shLightComponent.h"
 
 namespace shEngineSDK {
-/**
-*  @brief Basic light structure.
-*/
-struct SH_CORE_EXPORT ALIGN_AS(16) Light
-{
-  //Vector3 position;
-  //float intensity;
-  //LinearColor color;
-  Vector4 pos;
-};
 }

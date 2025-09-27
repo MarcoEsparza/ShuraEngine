@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/06/19
+*  @date    2025/09/27
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -18,45 +18,44 @@
 /*****************************************************************************/
 #include "shRendererApp.h"
 
-#include "shGraphicsManager.h"
-#include "shRenderManager.h"
-#include "shShaderManager.h"
-#include "shResourceManager.h"
-#include "shAudioManager.h"
-#include "shTime.h"
-#include "shSceneGraph.h"
-#include "shMath.h"
-#include "shLogger.h"
-#include "imgui_impl_shura.h"
-#include "shStringID.h"
-
+#include <shGraphicsManager.h>
+#include <shRenderManager.h>
+#include <shShaderManager.h>
+#include <shResourceManager.h>
 #include <shPhysicsManager.h>
+#include <shAudioManager.h>
+#include <shTime.h>
+#include <shSceneGraph.h>
+#include <shMath.h>
+#include <shLogger.h>
+#include "imgui_impl_shura.h"
 
-#include "shPath.h"
-#include "shImageResource.h"
-#include "shMeshResource.h"
-#include "shGameObject.h"
-#include "shMeshComponent.h"
-#include "shMaterial.h"
-#include "shSkyBoxComponent.h"
-#include "shColliderComponent.h"
-#include "shGizmos.h"
-#include "shAnimatorComponent.h"
-#include "shSkeletonResource.h"
 
-#include "shRadian.h"
-#include "shVector4.h"
+#include <shStringID.h>
+#include <shPath.h>
+#include <shRadian.h>
+#include <shVector4.h>
 
-//#include <shRigidbody.h>
+#include <shGameObject.h>
+#include <shGizmos.h>
+#include <shMaterial.h>
+#include <shImageResource.h>
+#include <shMeshResource.h>
+#include <shSkeletonResource.h>
+#include <shMeshComponent.h>
+#include <shSkyBoxComponent.h>
+#include <shColliderComponent.h>
+#include <shAnimatorComponent.h>
+#include <shLightComponent.h>
 #include <shRigidbodyComponent.h>
 
-#include "shSound.h"
+#include <shSound.h>
 
 namespace shEngineSDK {
 void
 RendererApp::onCreate()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
   ShaderManager& shaderMan = g_shaderMan();
   AudioManager& audioMan = AudioManager::instance();
@@ -90,92 +89,12 @@ RendererApp::onCreate()
   loadPistol();
   //loadSponza();
   loadSkybox();
+  loadLight();
   //loadCoat();
   //tempLoad();
 
-  // Initialize light orthographic camera
-  initLightCamera();
-
-  // Set light buffer
-  Vector<Vector4> lights;
-  lights.resize(12);
-  m_lightPos = { 0.0f, 100.0f, 0.0f, 1.0f };
-  lights[0] = m_lightPos;
-  m_pLightBuffer = graphMan.createConstantBuffer(sizeof(lights));
-  graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
-
   updateMainBuffer();
-
-  //auto& pMainBuffer = renderMan.getMainBuffer();
-  //auto& pShaderDataBuffer = renderMan.getShaderDataBuffer();
-
-  
-  // Shadow shader buffers
-  //auto pSMapShader = renderMan.getPass("SMapShader");
-  //pSMapShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pSMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //pSMapShader->addVSConstantBuffer(m_pLCBuffer, 3);
-  //// Skybox shader buffers
-  //auto pSkyBoxShader = renderMan.getPass("SkyBoxShader");
-  //pSkyBoxShader->addCSConstantBuffer(pMainBuffer, 0);
-  //// Lightning shader buffers
-  //auto pLightCS = renderMan.getPass("LightCS");
-  //pLightCS->addCSConstantBuffer(pMainBuffer, 0);
-  //pLightCS->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //pLightCS->addCSConstantBuffer(m_pLightBuffer, 2);
-  //pLightCS->addCSConstantBuffer(m_pLCBuffer, 3);
-  //// Ambient occlusion buffers
-  //auto pAOShader = renderMan.getPass("AOShader");
-  //pAOShader->addPSConstantBuffer(pMainBuffer, 0);
-  //pAOShader->addPSConstantBuffer(pShaderDataBuffer, 1);
-  //// Post process buffers
-  //auto pPPShader = renderMan.getPass("PPShader");
-  //pPPShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pPPShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //// Tone map buffers
-  //auto pToneMapShader = renderMan.getPass("ToneMapShader");
-  //pToneMapShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pToneMapShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //// Luminance buffers
-  //auto pLuminanceShader = renderMan.getPass("LuminanceShader");
-  //pLuminanceShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pLuminanceShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //// Bright buffers
-  //auto pBrightShader = renderMan.getPass("BrightShader");
-  //pBrightShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pBrightShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //// AddMix buffers
-  //auto pAddMix = renderMan.getPass("AddMixShader");
-  //pAddMix->addCSConstantBuffer(pMainBuffer, 0);
-  //pAddMix->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //// Blur buffers
-  //auto pHBlurShader = renderMan.getPass("HBlurShader");
-  //auto pVBlurShader = renderMan.getPass("VBlurShader");
-  //pHBlurShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pHBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //pVBlurShader->addCSConstantBuffer(pMainBuffer, 0);
-  //pVBlurShader->addCSConstantBuffer(pShaderDataBuffer, 1);
-
-  //// Blur buffers
-  //auto pHBlurCS = renderMan.getPass("HBlurCS");
-  //auto pVBlurCS = renderMan.getPass("VBlurCS");
-  //pHBlurCS->addCSConstantBuffer(pMainBuffer, 0);
-  //pHBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
-  //pVBlurCS->addCSConstantBuffer(pMainBuffer, 0);
-  //pVBlurCS->addCSConstantBuffer(pShaderDataBuffer, 1);
-
-  //auto pSPCubeMap = renderMan.getPass("SpecularPreMapShader");
-  //pSPCubeMap->addCSConstantBuffer(pShaderDataBuffer, 1);
-
-  //// Final shader buffers
-  //auto pFinalShader = renderMan.getPass("FinalShader");
-  //pFinalShader->addPSConstantBuffer(pMainBuffer, 0);
-  //// Histogram
-  //auto pHistogramShader = renderMan.getPass("HistogramShader");
-  //pHistogramShader->addCSConstantBuffer(pMainBuffer, 0);
-  //// Add skybox
-  //auto pASBShader = renderMan.getPass("ASBShader");
-  //pASBShader->addCSConstantBuffer(pMainBuffer, 0);
+  shaderMan.updateShaderDataCB();
 
   renderMan.computeIBL();
 
@@ -190,8 +109,8 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
-  RenderManager& renderMan = g_renderMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
+  //RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
   Time& time = g_time();
   //SceneGraph& scene = g_sceneGraph();
@@ -206,10 +125,6 @@ RendererApp::onUpdate()
   m_gui.update();
   m_camera.setHalfFOV(m_gui.m_camFov * Math::DEG2RAD);
   
-  Vector<Vector4> lights;
-  lights.resize(12);
-  lights[0] = m_lightPos;
-
   if (m_fpsTimer >= 1.0f) {
     m_fpsTimer = 0.0f;
     m_fpsCount = 0;
@@ -220,6 +135,10 @@ RendererApp::onUpdate()
   }
 
   // Update light
+
+  /*Vector<Vector4> lights;
+  lights.resize(12);
+  lights[0] = m_lightPos;
   Vector3 lightTarget = m_lightCam.getTarget();
   float lcamNear = m_lightCam.getNear();
   float lcamFar = m_lightCam.getFar();
@@ -250,7 +169,7 @@ RendererApp::onUpdate()
     renderMan.setShadowMapSize(m_gui.m_lcamSize);
 
     graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
-  }
+  }*/
 
   // Update camera
   if (m_bRightClick) {
@@ -549,8 +468,8 @@ RendererApp::onMouseHWheel(const double delta, const ModifierState modifier)
 void
 RendererApp::onDestroy()
 {
-  m_pLCBuffer.reset();
-  m_pLightBuffer.reset();
+  //m_pLCBuffer.reset();
+  //m_pLightBuffer.reset();
   m_gui.shutdown();
 }
 
@@ -568,41 +487,13 @@ RendererApp::rotateCamera()
 }
 
 void
-RendererApp::initLightCamera()
-{
-  GraphicsManager& graphMan = g_graphicsMan();
-
-  m_lightTarget = Vector3::ZERO;
-  m_lcamNear = 0.1f;
-  m_lcamFar = 1000.0f;
-  m_lcamSize = 1000.0f;
-
-  m_lightCam = Camera(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z),
-                      m_lightTarget,
-                      Vector3::UP,
-                      m_lcamSize,
-                      m_lcamSize,
-                      m_lcamNear,
-                      m_lcamFar);
-
-  VP lcam = {};
-  lcam.proj = m_lightCam.getProjection();
-  lcam.view = m_lightCam.getView();
-  lcam.proj.getTransposed();
-  lcam.view.getTransposed();
-
-  m_pLCBuffer = graphMan.createConstantBuffer(sizeof(VP));
-  graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
-}
-
-void
 RendererApp::updateMainBuffer()
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
   ShaderManager& shaderMan = g_shaderMan();
   Time& time = g_time();
 
-  auto& pMainBuffer = shaderMan.m_pMainBuffer;
+  //auto& pMainBuffer = shaderMan.m_pMainBuffer;
   auto& mbd = shaderMan.m_mainBufferData;
   mbd.viewMatrix = m_camera.getView();
   mbd.transposeViewMatrix = m_camera.getView().getTransposed();
@@ -752,6 +643,47 @@ RendererApp::loadSkybox()
   pSkyBoxGO->name = "SkyBox";
 
   scene.addObject(pSkyBoxGO);
+}
+
+void
+RendererApp::loadLight()
+{
+  SceneGraph& scene = g_sceneGraph();
+  ShaderManager& shaderMan = g_shaderMan();
+
+  auto light = sh_makeShared<GameObject>();
+  light->name = "Light";
+  light->transform.getTransform() = Matrix4::IDENTITY;
+
+  auto pLightComp = sh_makeShared<LightComponent>();
+  pLightComp->m_lightType = LIGHT_TYPE::kDirectional;
+  pLightComp->m_color = LinearColor::WHITE;
+  pLightComp->m_intensity = 1.0f;
+  pLightComp->m_position = Vector4(0.0f, 100.0f, 0.0f, 0.0f);
+  pLightComp->m_target = Vector3::ZERO;
+  Vector3 lightPos(pLightComp->m_position.x,
+                   pLightComp->m_position.y,
+                   pLightComp->m_position.z);
+  pLightComp->m_lightCamera = Camera(lightPos,
+                                     pLightComp->m_target,
+                                     Vector3::UP,
+                                     1000.0f,
+                                     1000.0f,
+                                     0.1f,
+                                     1000.0f);
+
+  light->addComponent(pLightComp);
+  scene.addObject(light);
+
+  // Temporary initialization of light buffer
+  // TODO: Change this when multiple lights are implemented
+  shaderMan.m_lightData.position = pLightComp->m_position;
+  shaderMan.m_lightData.target = pLightComp->m_target;
+  shaderMan.m_lightData.intensity = pLightComp->m_intensity;
+  shaderMan.m_lightData.color = pLightComp->m_color;
+  shaderMan.m_lightData.view = pLightComp->m_lightCamera.getView();
+  shaderMan.m_lightData.proj = pLightComp->m_lightCamera.getProjection();
+  shaderMan.updateLightCB();
 }
 
 void

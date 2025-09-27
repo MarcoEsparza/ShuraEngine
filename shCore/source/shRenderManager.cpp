@@ -265,19 +265,13 @@ RenderManager::drawMeshesOnScene()
   }
 
   for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
-      drawStaticMesh(gameObject);
-    }
+    drawStaticMesh(gameObject);
   }
   for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
-      drawTransparentStaticMesh(gameObject);
-    }
+    drawTransparentStaticMesh(gameObject);
   }
   for(auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
-      drawSkeletalMesh(gameObject);
-    }
+    drawSkeletalMesh(gameObject);
   }
 }
 
@@ -477,7 +471,7 @@ void
 RenderManager::renderScene()
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  SceneGraph& scene = g_sceneGraph();
+  //SceneGraph& scene = g_sceneGraph();
   ShaderManager& shaderMan = g_shaderMan();
 
   SPtr<Texture2D> pOutput;
@@ -507,10 +501,6 @@ RenderManager::renderScene()
   auto& pBHBlur = m_renderTargetMap[StringID("BHBlur").getID()];
   auto& pBVBlur = m_renderTargetMap[StringID("BVBlur").getID()];
   auto& pGbufferDepth = m_renderTargetMap[StringID("GbufferDepth").getID()];
-  //auto& pCubeMap = m_renderTargetMap[StringID("CubeMap").getID()];
-  //auto& pDiffIrrMap = m_renderTargetMap[StringID("DiffIrrMap").getID()];
-  //auto& pSpecPreMap = m_renderTargetMap[StringID("SpecPreMap").getID()];
-  //auto& pBRDFMap = m_renderTargetMap[StringID("BRDFLut").getID()];
   //auto& pHistogramMap = m_renderTargetMap[StringID("HistogramMap").getID()];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
@@ -519,8 +509,6 @@ RenderManager::renderScene()
   uint32 dispatchX = threadGroups(screenWidth, DEFAULT_THREADS);
   uint32 dispatchY = threadGroups(screenHeight, DEFAULT_THREADS);
   uint32 dispatchZ = 1;
-
-  uint32 cubeDispatch = threadGroups(CUBE_MAP_SIZE, DEFAULT_THREADS);
 
   Viewport normalVP = {};
   normalVP.width = m_screenDimension.x;
@@ -639,30 +627,31 @@ RenderManager::renderScene()
   /*              Sky Box              */
   /*************************************/
   uint32 numMipLevels = 0;
-  uint32 maxSize = Math::max(m_skyboxDimension.x, m_skyboxDimension.y);
+  uint32 maxSize = cast::st<uint32>(Math::max(cast::st<float>(m_skyboxDimension.x),
+                                             cast::st<float>(m_skyboxDimension.y)));
   for (uint32 i = 0; i < maxSize; ++i) {
     if (maxSize >> i < 32) {
       break;
     }
     ++numMipLevels;
   }
-  float normMip = Math::clamp(shaderMan.m_prefilteredCB.roughness, 0.0f, 1.0f);
-  shaderMan.m_prefilteredCB.mipmapLevels = normMip * (numMipLevels - 1) + 0.5f;
+  float normMip = Math::clamp(shaderMan.m_prefilteredData.roughness, 0.0f, 1.0f);
+  shaderMan.m_prefilteredData.mipmapLevels = normMip * (numMipLevels - 1) + 0.5f;
   shaderMan.updatePrefilterShaderCB();
 
   shaderMan.m_passes[StringID("SkyBoxShader").getID()]->setPass();
   setSamplers();
-  graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
+  //graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
   graphMan.csSetShaderResourceView(m_pSpecularPreMap, 0);
   graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
   cleanShaderObjects();
 
-  float tempRoughness = shaderMan.m_prefilteredCB.roughness;
-  shaderMan.m_prefilteredCB.roughness = 0.0f;
+  float tempRoughness = shaderMan.m_prefilteredData.roughness;
+  shaderMan.m_prefilteredData.roughness = 0.0f;
   shaderMan.updatePrefilterShaderCB();
-  shaderMan.m_prefilteredCB.roughness = tempRoughness;
+  shaderMan.m_prefilteredData.roughness = tempRoughness;
 
   /*************************************/
   /*             Lightning             */
@@ -671,7 +660,7 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   shaderMan.m_passes[StringID("LightCS").getID()]->setPass();
   setSamplers();
-  graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 4);
+  //graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 4);
   graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
@@ -817,11 +806,11 @@ RenderManager::renderScene()
   SPtr<Texture3D> pLutTex;
   int32 index = static_cast<int32>(shaderMan.m_shaderData.toneMappingIndex);
   if (index == 4) {
-    shaderMan.m_shaderData.lutSize = m_pLutTexture->getLutSize();
+    shaderMan.m_shaderData.lutSize = cast::st<float>(m_pLutTexture->getLutSize());
     pLutTex = m_pLutTexture->getTexture();
   }
   else if (index == 5) {
-    shaderMan.m_shaderData.lutSize = m_pLutLBK->getLutSize();
+    shaderMan.m_shaderData.lutSize = cast::st<float>(m_pLutLBK->getLutSize());
     pLutTex = m_pLutLBK->getTexture();
     shaderMan.m_shaderData.toneMappingIndex = 4.0f;
   }
@@ -923,7 +912,8 @@ RenderManager::computeIBL()
   m_skyboxDimension.x = cast::st<int32>(pSbImg->width);
   m_skyboxDimension.y = cast::st<int32>(pSbImg->height);
   uint32 numMipLevels = 0;
-  uint32 maxSize = Math::max(m_skyboxDimension.x, m_skyboxDimension.y);
+  uint32 maxSize = cast::st<uint32>(Math::max(cast::st<float>(m_skyboxDimension.x),
+                                             cast::st<float>(m_skyboxDimension.y)));
   for (uint32 i = 0; i < maxSize; ++i) {
     if (maxSize >> i < 32) {
       break;
@@ -931,30 +921,26 @@ RenderManager::computeIBL()
     ++numMipLevels;
   }
   
-  m_pSpecularPreMap = graphMan.createTexture2D(cast::st<float>(m_skyboxDimension.x),
-                               cast::st<float>(m_skyboxDimension.y),
+  m_pSpecularPreMap = graphMan.createTexture2D(cast::st<uint32>(m_skyboxDimension.x),
+                               cast::st<uint32>(m_skyboxDimension.y),
                                TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
                                USAGE::kDefault,
                                BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
                                numMipLevels);
 
-  shaderMan.m_prefilteredCB.width = 256;
-  shaderMan.m_prefilteredCB.height = 128;
-  shaderMan.m_prefilteredCB.samples = TEXTURE4K_WIDTH;
-  shaderMan.m_prefilteredCB.roughness = 0.0f;
-  shaderMan.m_prefilteredCB.mipmapLevels = 0.0f;
-
-  if(shaderMan.m_pPreCB == nullptr) {
-    shaderMan.m_pPreCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
-  }
-  graphMan.updateConstantBuffer(shaderMan.m_pPreCB, &shaderMan.m_prefilteredCB, sizeof(PrefilteredCB));
+  shaderMan.m_prefilteredData.width = 256;
+  shaderMan.m_prefilteredData.height = 128;
+  shaderMan.m_prefilteredData.samples = TEXTURE4K_WIDTH;
+  shaderMan.m_prefilteredData.roughness = 0.0f;
+  shaderMan.m_prefilteredData.mipmapLevels = 0.0f;
+  shaderMan.updatePrefilterShaderCB();
 
   /*************************************/
   /*           Diff Irradiance         */
   /*************************************/
   shaderMan.m_passes[StringID("DiffIrrShader").getID()]->setPass();
   setSamplers();
-  graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
+  //graphMan.csSetConstantBuffers(shaderMan.m_pPrefilteredCB, 2);
   graphMan.csSetShaderResourceView(pSbImg->texture, 0);
   graphMan.setUnorderedAccessView({ m_pDiffIrr }, 0);
   graphMan.dispatch(threadGroups(256, 16),
@@ -968,25 +954,25 @@ RenderManager::computeIBL()
   /*************************************/
   /*      Specular Prefiltered Map     */
   /*************************************/
-  PrefilteredCB specPreCB = {};
+  PrefilteredCB specPreCB = shaderMan.m_prefilteredData;
 
-  for (int32 mip = 0; mip < numMipLevels; ++mip) {
+  for (int32 mip = 0; mip < cast::st<int32>(numMipLevels); ++mip) {
     Vector2i preSize = Vector2i(m_skyboxDimension.x >> mip, m_skyboxDimension.y >> mip);
     Vector2i dispatchSize = Vector2i(threadGroups(preSize.x, 8),
                                      threadGroups(preSize.y, 8));
 
-    specPreCB.width = preSize.x;
-    specPreCB.height = preSize.y;
-    specPreCB.samples = TEXTURE4K_WIDTH;
-    specPreCB.mipmapLevels = cast::st<float>(mip);
-    specPreCB.roughness = (mip == 0) ? 0.0f :
+    shaderMan.m_prefilteredData.width = preSize.x;
+    shaderMan.m_prefilteredData.height = preSize.y;
+    shaderMan.m_prefilteredData.samples = TEXTURE4K_WIDTH;
+    shaderMan.m_prefilteredData.mipmapLevels = cast::st<float>(mip);
+    shaderMan.m_prefilteredData.roughness = (mip == 0) ? 0.0f :
       Math::clamp(cast::st<float>(mip) / cast::st<float>(numMipLevels - 1), 0.0f, 1.0f);
 
-    graphMan.updateConstantBuffer(shaderMan.m_pPreCB, &specPreCB, sizeof(PrefilteredCB));
+    shaderMan.updatePrefilterShaderCB();
 
     shaderMan.m_passes[StringID("SpecularPreMapShader").getID()]->setPass();
     setSamplers();
-    graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
+    //graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
     graphMan.csSetShaderResourceView(pSbImg->texture, 0);
     graphMan.setUnorderedAccessView({ m_pSpecularPreMap, mip }, 0);
     graphMan.dispatch(dispatchSize.x, dispatchSize.y, 1);
@@ -994,7 +980,8 @@ RenderManager::computeIBL()
     cleanShaderObjects();
   }
 
-  graphMan.updateConstantBuffer(shaderMan.m_pPreCB, &shaderMan.m_prefilteredCB, sizeof(PrefilteredCB));
+  shaderMan.m_prefilteredData = specPreCB;
+  shaderMan.updatePrefilterShaderCB();
 }
 
 void

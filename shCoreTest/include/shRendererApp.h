@@ -17,14 +17,13 @@
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
-#include "shBaseApp.h"
-#include "shCamera.h"
-#include "shMatrix4.h"
-#include "shVector3.h"
-#include "shVector2.h"
-#include "shLight.h"
-#include "shPass.h"
+#include <shPrerequisitesUtilities.h>
+#include <shBaseApp.h>
+#include <shCamera.h>
+#include <shMatrix4.h>
+#include <shVector3.h>
+#include <shVector2.h>
+#include <shPass.h>
 #include "shGUI.h"
 
 namespace shEngineSDK {
@@ -49,15 +48,6 @@ class GameObject;
 class Texture2D;
 class Sound;
 class Material;
-
-/**
-*  @brief Structure for view-projection.
-*/
-struct VP
-{
-  Matrix4 view;
-  Matrix4 proj;
-};
 
 /**
 *  @brief App for render testing.
@@ -201,12 +191,6 @@ class RendererApp : public BaseApp
   rotateCamera();
 
   /**
-  *  @brief Initialize light orthographic camera.
-  */
-  void
-  initLightCamera();
-
-  /**
   *  @brief Updates the main buffer data.
   */
   void
@@ -237,6 +221,9 @@ class RendererApp : public BaseApp
   loadSkybox();
 
   void
+  loadLight();
+
+  void
   loadCoat();
 
   void
@@ -255,20 +242,6 @@ class RendererApp : public BaseApp
   /***************************************************************************/
  private:
   /*************************************/
-  /*          ConstantBuffers          */
-  /*************************************/
-
-  /**
-  *  @brief Constant Buffer for light struct.
-  */
-  SPtr<ConstantBuffer> m_pLightBuffer;
-
-  /**
-  *  @brief Constant buffer for light camera.
-  */
-  SPtr<ConstantBuffer> m_pLCBuffer;
-
-  /*************************************/
   /*              Camera               */
   /*************************************/
 
@@ -276,11 +249,6 @@ class RendererApp : public BaseApp
   *  @brief App camera.
   */
   Camera m_camera;
-
-  /**
-  *  @brief Light orthographic camera.
-  */
-  Camera m_lightCam;
 
   /*************************************/
   /*              Inputs               */
@@ -369,32 +337,6 @@ class RendererApp : public BaseApp
   /*************************************/
   /*           Imgui shaders           */
   /*************************************/
-
-  /**
-  *  @brief Light position.
-  */
-  Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Light camera target.
-  */
-  Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Light camera near.
-  */
-  float m_lcamNear = 0.0f;
-
-  /**
-  *  @brief Light camera far.
-  */
-  float m_lcamFar = 0.0f;
-
-  /**
-  *  @brief Light camera size.
-  */
-  float m_lcamSize = 0.0f;
-
   /**
   *  @brief Size of shadow texture.
   */

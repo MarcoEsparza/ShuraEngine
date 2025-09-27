@@ -78,7 +78,7 @@ cbuffer ShaderData : register(b1)
   float mipLevel1;
   
   
-  float lightIntensity; // Global light intensity
+  float tempLightIntensity; // Global light intensity
   float middleGrey; // Middle grey value for tone mapping
   
   float cubeRoughness; // Roughness value for environment mapping

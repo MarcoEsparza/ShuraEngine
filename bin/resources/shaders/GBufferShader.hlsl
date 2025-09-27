@@ -84,64 +84,70 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
     
   MaterialProperties materialProps = getMaterialProperties(materialBitfield);
     
-  if (!materialProps.bHasBaseColor)
-  {
-    output.Color = float4(baseColorFactor, 1.0f);
-  }
-  else
-  {
-    output.Color = t_baseColor.Sample(samplerLinearWrap, input.Tex);
-    output.Color = output.Color * float4(baseColorFactor, 1.0f);
-  }
+  /*************************************/
+  /*            DIFFUSE MAP            */
+  /*************************************/
+#if defined(HAS_DIFFUSE_MAP)
+  output.Color = float4(baseColorFactor, 1.0f);
+#else
+  output.Color = t_baseColor.Sample(samplerLinearWrap, input.Tex);
+  output.Color = output.Color * float4(baseColorFactor, 1.0f);
+#endif
     
-  if(materialProps.bHasAlphaTest)
+  /*************************************/
+  /*           ALPHA TESTING           */
+  /*************************************/
+#if defined(HAS_ALPHA_TESTING)
+  if (output.Color.a < ALPHA_TEST_THRESHOLD)
   {
-    if (output.Color.a < ALPHA_TEST_THRESHOLD)
-    {
-      discard;
-    }
+    discard;
   }
+#endif
+  
+  /*************************************/
+  /*             NORMAL MAP            */
+  /*************************************/
+#if defined(HAS_NORMAL_MAP)
+  float3 fvNormal = t_normal.Sample(samplerLinearWrap, input.Tex).xyz * 2.0f - 1.0f;
+  fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
+  output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+#else
+  float3 fvNormal = float3(1.0f, 1.0f, 1.0f);
+  fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
+  output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
+#endif
 
-  //float3 fvNormal = float3(0.0f, 0.0f, 0.0f);
-  if (materialProps.bHasNormalMap)
-  {
-    float3 fvNormal = t_normal.Sample(samplerLinearWrap, input.Tex).xyz * 2.0f - 1.0f;
-    fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
-    output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
-  }
-  else
-  {
-    //float3 fvNormal = normalize(input.Normal);
-    float3 fvNormal = float3(1.0f, 1.0f, 1.0f);
-    fvNormal = normalize(mul(fvNormal, float3x3(input.Tangent, input.Bitangent, input.Normal)));
-    output.Normal = float4(fvNormal * 0.5f + 0.5f, 1.0f);
-  }
-    
+  /*************************************/
+  /*               DEPTH               */
+  /*************************************/
   output.Depth = float4(input.Depth.xyz, 1.0f);
-    
-  if (materialProps.bHasMetallicMap)
-  {
-    output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex).b;
-  }
-  else
-  {
-    output.Properties.r = metallicRoughnessFactors.x; // metallic factor
-  }
+
+  /*************************************/
+  /*           METALNESS MAP           */
+  /*************************************/
+#if defined(HAS_METALNESS_MAP)
+  output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex).b;
+#else
+  output.Properties.r = metallicRoughnessFactors.x; // metallic factor
+#endif
+
+  /*************************************/
+  /*           ROUGHNESS MAP           */
+  /*************************************/
+#if defined(HAS_ROUGHNESS_MAP)
+  output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex).g;
+#else
+  output.Properties.b = metallicRoughnessFactors.y; // roughness factor
+#endif
+
+  /*************************************/
+  /*          INVERT ROUGHNESS         */
+  /*************************************/
+#if defined(INVERT_ROUGHNESS)
+  output.Properties.b = 1.0f - output.Properties.b;
+#else
   
-  if(materialProps.bHasRoughnessMap)
-  {
-    output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex).g;
-    
-  }
-  else
-  {
-    output.Properties.b = metallicRoughnessFactors.y; // roughness factor
-  }
-  
-  if (materialProps.bInvertRoughness)
-  {
-    output.Properties.b = 1.0f - output.Properties.b;
-  }
+#endif
   
   return output;
 }

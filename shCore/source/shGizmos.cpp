@@ -20,6 +20,7 @@
 #include "shGizmos.h"
 #include "shGraphicsManager.h"
 #include "shRenderManager.h"
+#include "shShaderManager.h"
 #include "shSceneGraph.h"
 #include "shPass.h"
 #include "shCollider.h"
@@ -40,7 +41,7 @@ void
 Gizmos::onStartUp()
 {
   GraphicsManager& graphMan = g_graphicsMan();
-  RenderManager& renderMan = g_renderMan();
+  ShaderManager& shaderMan = g_shaderMan();
 
   m_pass = sh_makeShared<Pass>();
   m_pass->setVShaderInfo("resources/shaders/DebugLines.hlsl",
@@ -65,8 +66,7 @@ Gizmos::onStartUp()
   rasterDesc.antialiasedLineEnable = false;
 
   m_pass->setRasterizerStateFromDesc(rasterDesc);
-  auto& pMainBuffer = renderMan.getMainBuffer();
-  m_pass->addVSConstantBuffer(pMainBuffer, 0);
+  m_pass->addVSConstantBuffer(shaderMan.m_pMainBuffer, 0);
 
   m_vertices.resize(sizeof(GizmosVertex) * (MAX_LINES * 2));
   m_vertexBuffer = graphMan.createVertexBuffer(m_vertices);

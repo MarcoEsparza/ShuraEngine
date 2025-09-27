@@ -28,7 +28,7 @@ class Texture2D;
 /**
 *  @brief Matrial properties structure.
 */
-struct MaterialProperties
+struct SH_CORE_EXPORT MaterialProperties
 {
   union
   {
