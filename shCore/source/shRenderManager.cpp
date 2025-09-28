@@ -251,9 +251,6 @@ RenderManager::drawMeshesOnScene()
   SceneGraph& scene = g_sceneGraph();
   ShaderManager& shaderMan = g_shaderMan();
 
-  graphMan.vsSetConstantBuffers(shaderMan.m_pMainBuffer, 0);
-  graphMan.vsSetConstantBuffers(shaderMan.m_pShaderDataBuffer, 1);
-
   if (m_pModelTransform) {
     graphMan.vsSetConstantBuffers(m_pModelTransform, 2);
   }
@@ -290,6 +287,10 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
     if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
         pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
+
+      if (!meshComponent->m_mesh) {
+        return;
+      }
 
       graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
       graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
@@ -335,6 +336,10 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
       pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
 
+      if (!meshComponent->m_mesh) {
+        return;
+      }
+
       graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
       graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
 
@@ -379,6 +384,10 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
         pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<SkeletalMeshComponent>(component);
 
+      if (!meshComponent->m_mesh) {
+        return;
+      }
+
       graphMan.setVertexBuffers(meshComponent->m_vertexBuffer);
       graphMan.setIndexBuffers(meshComponent->m_indexBuffer);
 
@@ -396,6 +405,51 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
         
         indexCount += mesh.numIndices;
         vertexCount += mesh.numVertices;
+      }
+    }
+  }
+}
+
+void
+RenderManager::drawShadowMap()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  SceneGraph& scene = g_sceneGraph();
+  
+  if (m_pModelTransform) {
+    graphMan.vsSetConstantBuffers(m_pModelTransform, 2);
+  }
+  else {
+    m_pModelTransform = graphMan.createConstantBuffer(sizeof(Matrix4));
+    Matrix4 identity = Matrix4::IDENTITY;
+    graphMan.updateConstantBuffer(m_pModelTransform, &identity, sizeof(Matrix4));
+    graphMan.vsSetConstantBuffers(m_pModelTransform, 2);
+  }
+
+  for (auto& gameObject : scene.getGameObjectList()) {
+    for (auto& component : gameObject->components) {
+      if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
+          gameObject->m_bActive) {
+        auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
+        if (!meshComponent->m_mesh) {
+          return;
+        }
+
+        graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
+        graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+        Transform modelT = gameObject->transform.getTransform();
+        graphMan.updateConstantBuffer(m_pModelTransform, &modelT, sizeof(Transform));
+        uint32 indexCount = 0;
+        uint32 vertexCount = 0;
+
+        auto& meshResource = meshComponent->m_mesh;
+        for (auto& mesh : meshResource->m_meshes) {
+          if (mesh.bVisible) {
+            graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+          }
+          indexCount += mesh.numIndices;
+          vertexCount += mesh.numVertices;
+        }
       }
     }
   }
@@ -551,7 +605,7 @@ RenderManager::renderScene()
   graphMan.clearRenderTarget(pShadowTemp.pTexture, LinearColor::BLACK);
   graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pOutput);
   shaderMan.m_passes[StringID("SMapShader").getID()]->setPass();
-  drawMeshesOnScene();
+  drawShadowMap();
   cleanShaderObjects();
 
   /*************************************/

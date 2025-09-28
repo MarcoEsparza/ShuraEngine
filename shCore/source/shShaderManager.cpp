@@ -339,6 +339,9 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   }
 
   auto matPass = sh_makeShared<Pass>();
+  matPass->addVSConstantBuffer(m_pMainBuffer, 0);
+  matPass->addVSConstantBuffer(m_pShaderDataBuffer, 1);
+
   bool bWireframe = props.properties.flags.bWireframeEnabled;
   //bool bDoubleSided = props.properties.flags.bIsDoubleSided;
   bool bAlphaTest = props.properties.flags.bHasAlphaTest;

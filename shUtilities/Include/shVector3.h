@@ -353,6 +353,16 @@ class SH_UTILITY_EXPORT Vector3
   FORCEINLINE bool
   operator!=(const Vector3& other);
 
+  /**
+  *  @brief Operator to check if two Vector3s are equal.
+  *
+  *  @param const Vector3& other: The Vector3 to compare with this Vector3.
+  *
+  *  @return bool: True if the two Vector3s are equal, false otherwise.
+  */
+  FORCEINLINE bool
+  operator==(const Vector3& other);
+
   /***************************************************************************/
   /*
   *  Variables
@@ -491,5 +501,11 @@ FORCEINLINE bool
 Vector3::operator!=(const Vector3& other)
 {
   return x != other.x || y != other.y || z != other.z;
+}
+
+FORCEINLINE bool
+Vector3::operator==(const Vector3& other)
+{
+  return x == other.x && y == other.y && z == other.z;
 }
 }

@@ -36,6 +36,7 @@
 #include <shSkyBoxComponent.h>
 #include <shColliderComponent.h>
 #include <shRigidbodyComponent.h>
+#include <shLightComponent.h>
 
 #include <shImageResource.h>
 
@@ -620,7 +621,7 @@ GUI::setComponentInspector()
 
       }
       else if (type == COMPONENT_TYPE::kLight) {
-
+        showLightComponent(cast::re_ptr<LightComponent>(pComponent));
       }
     }
 
@@ -633,7 +634,7 @@ GUI::setComponentInspector()
 
     if (ImGui::BeginPopup("ComponentMenu")) {
       if (ImGui::MenuItem("StaticMesh")) {
-
+        addStaticMeshComponentToObject(m_pActiveGameObject);
       }
       if (ImGui::MenuItem("SkeletalMesh")) {
 
@@ -786,6 +787,7 @@ void
 GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
 {
   ResourceManager& resMan = g_resourceMan();
+  FileExplorer& fileExp = g_fileExplorer();
 
   if (wpSMesh.expired()) {
     return;
@@ -794,8 +796,27 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
   auto pMesh = wpSMesh.lock();
 
   if (ImGui::CollapsingHeader("Static Mesh Component")) {
+    if (ImGui::Button("Select Mesh")) {
+      String filePath;
+      if (fileExp.openFile(filePath, ".hdr", "resources/models/")) {
+        auto pRes = resMan.loadResourceFromFile(Path(filePath));
+        auto pStaticMesh = cast::re_ptr<StaticMeshResource>(pRes);
+        if (pStaticMesh) {
+          pMesh->setMeshData(pStaticMesh);
+          m_selectedMat = -1; // Reset material selection when changing mesh
+        }
+      }
+    }
     if (ImGui::Button("Save Mesh to cache")) {
-      resMan.saveResourceToAsset(pMesh->m_mesh);
+      if (pMesh->m_mesh) {
+        resMan.saveResourceToAsset(pMesh->m_mesh);
+      }
+    }
+    if (!pMesh->m_mesh) {
+      ImGui::Text("Material Count: 0");
+      ImGui::Text("Vertex Count: 0");
+      ImGui::Text("Index Count: 0");
+      return;
     }
     ImGui::Text("Material Count: %d",
       static_cast<uint32>(pMesh->m_mesh->m_materials.size()));
@@ -862,7 +883,6 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.properties.flags.bHasAlphaTest = bHasAlpha;
 
   // Base Color
-  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pBaseColor), ImVec2(64, 64));
   if(ImGui::ImageButton("##BaseColorSelection",
                         reinterpret_cast<ImTextureID*>(&pBaseColor),
                         ImVec2(64, 64))) {
@@ -886,26 +906,12 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                                1.0f);
   if (ImGui::ColorButton(buttonID.c_str(), currentColor))
   {
-    //m_bTexColor = m_bTexColor ? false : true;
     ImGui::OpenPopup("ColorPickerPopup");
   }
   ImGui::SameLine();
   bool bHasDiffuseMap = currentMat->m_properties.properties.flags.bHasDiffuseMap;
   ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
   currentMat->m_properties.properties.flags.bHasDiffuseMap = bHasDiffuseMap;
-
-  /*if (m_bTexColor) {
-    float texColor[3] = { baseColor.x, baseColor.y, baseColor.z };
-    ImGui::Begin("Color Picker", 0, ImGuiWindowFlags_NoTitleBar);
-    texColor[0] = baseColor.x;
-    texColor[1] = baseColor.y;
-    texColor[2] = baseColor.z;
-    ImGui::ColorPicker3("TexColor", texColor);
-    baseColor.x = texColor[0];
-    baseColor.y = texColor[1];
-    baseColor.z = texColor[2];
-    ImGui::End();
-  }*/
 
   if (ImGui::BeginPopup("ColorPickerPopup")) {
     ImGui::ColorPicker3("##picker", (float*)&currentColor);
@@ -916,7 +922,6 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   baseColor.z = currentColor.z;
 
   // Normal
-  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pNormal), ImVec2(64, 64));
   if (ImGui::ImageButton("##NormalSelection",
     reinterpret_cast<ImTextureID*>(&pNormal),
     ImVec2(64, 64))) {
@@ -937,7 +942,6 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
 
   // Metallic
-  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pMetallic), ImVec2(64, 64));
   if (ImGui::ImageButton("##MetallicSelection",
     reinterpret_cast<ImTextureID*>(&pMetallic),
     ImVec2(64, 64))) {
@@ -965,7 +969,6 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.properties.flags.bHasMetalnessMap = bHasMetallicMap;
 
   // Roughness
-  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pRoughness), ImVec2(64, 64));
   if (ImGui::ImageButton("##RoughnessSelection",
     reinterpret_cast<ImTextureID*>(&pRoughness),
     ImVec2(64, 64))) {
@@ -1027,9 +1030,132 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
 }
 
 void
-GUI::showLightComponent()
+GUI::showLightComponent(const WPtr<LightComponent> wpLight)
 {
+  ShaderManager& shaderMan = g_shaderMan();
 
+  if(wpLight.expired()) {
+    return;
+  }
+  auto pLight = wpLight.lock();
+
+  if (ImGui::CollapsingHeader("Light Component")) {
+    const char* lightType[] = {
+      "Directional", "Point", "Spot"
+    };
+    int32 lightTypeIndex = static_cast<int32>(pLight->m_lightType);
+    ImGui::Combo("##LightTypeCombo",
+                 &lightTypeIndex,
+                 lightType,
+                 IM_ARRAYSIZE(lightType));
+    pLight->m_lightType = static_cast<LIGHT_TYPE::E>(lightTypeIndex);
+    
+    ImGui::Spacing();
+    // Position
+    ImGui::Text("Position:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##LPosX", &pLight->m_position.x, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##LPosY", &pLight->m_position.y, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##LPosZ", &pLight->m_position.z, 0.1f);
+    ImGui::PopStyleColor(3);
+
+    // Target
+    ImGui::Text("Target:");
+    // Position X
+    ImGui::SameLine(80.0f);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("x##LTPosX", &pLight->m_target.x, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Position Y
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("y##LTPosY", &pLight->m_target.y, 0.1f);
+    ImGui::PopStyleColor(3);
+    // Position Z
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
+    ImGui::SetNextItemWidth(50.0f);
+    ImGui::DragFloat("z##LTPosZ", &pLight->m_target.z, 0.1f);
+    ImGui::PopStyleColor(3);
+
+    // Color
+    ImVec4 currentColor = ImVec4(pLight->m_color.r,
+                                 pLight->m_color.g,
+                                 pLight->m_color.b,
+                                 1.0f);
+    if (ImGui::ColorButton("##LightColor", currentColor))
+    {
+      ImGui::OpenPopup("LightColorPickerPopup");
+    }
+    if (ImGui::BeginPopup("LightColorPickerPopup")) {
+      ImGui::ColorPicker3("##picker", (float*)&currentColor);
+      ImGui::EndPopup();
+    }
+    pLight->m_color.r = currentColor.x;
+    pLight->m_color.g = currentColor.y;
+    pLight->m_color.b = currentColor.z;
+
+    // Intensity
+    ImGui::DragFloat("Intensity", &pLight->m_intensity, 0.1f, 0.0f, 10.0f);
+  }
+
+  // Update light buffer if any property changed
+  bool bUpdated = false;
+  if(shaderMan.m_lightData.position != pLight->m_position) {
+    shaderMan.m_lightData.position = pLight->m_position;
+    bUpdated = true;
+  }
+  if(shaderMan.m_lightData.target != pLight->m_target) {
+    shaderMan.m_lightData.target = pLight->m_target;
+    bUpdated = true;
+  }
+  if(shaderMan.m_lightData.intensity != pLight->m_intensity) {
+    shaderMan.m_lightData.intensity = pLight->m_intensity;
+    bUpdated = true;
+  }
+  if(shaderMan.m_lightData.color != pLight->m_color) {
+    shaderMan.m_lightData.color = pLight->m_color;
+    bUpdated = true;
+  }
+  if(shaderMan.m_lightData.view != pLight->m_lightCamera.getView()) {
+    shaderMan.m_lightData.view = pLight->m_lightCamera.getView();
+    bUpdated = true;
+  }
+  if(shaderMan.m_lightData.proj != pLight->m_lightCamera.getProjection()) {
+    shaderMan.m_lightData.proj = pLight->m_lightCamera.getProjection();
+    bUpdated = true;
+  }
+
+  if(bUpdated) {
+    shaderMan.updateLightCB();
+  }
 }
 
 void
@@ -1111,5 +1237,24 @@ void
 GUI::showRigidbodyComponent(const WPtr<RigidbodyComponent> wpRigidbody)
 {
   SH_UNREFERENCED_PARAMETER(wpRigidbody);
+}
+
+void
+GUI::addStaticMeshComponentToObject(SPtr<GameObject>& pObj)
+{
+  if (!pObj) {
+    return;
+  }
+  bool bHasSMesh = false;
+  for (auto& pComp : pObj->components) {
+    if (pComp->getType() == COMPONENT_TYPE::kStaticMesh) {
+      bHasSMesh = true;
+      break;
+    }
+  }
+  if (!bHasSMesh) {
+    SPtr<StaticMeshComponent> pSMeshComp = sh_makeShared<StaticMeshComponent>();
+    pObj->addComponent(pSMeshComp);
+  }
 }
 }

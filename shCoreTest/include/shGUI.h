@@ -30,6 +30,7 @@ class StaticMeshComponent;
 class SkyBoxComponent;
 class ColliderComponent;
 class RigidbodyComponent;
+class LightComponent;
 class Material;
 
 /**
@@ -97,7 +98,7 @@ class GUI
   showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox);
 
   void
-  showLightComponent();
+  showLightComponent(const WPtr<LightComponent> wpLight);
 
   void
   showCameraComponent();
@@ -108,11 +109,14 @@ class GUI
   void
   showRigidbodyComponent(const WPtr<RigidbodyComponent> wpRigidbody);
 
+  void
+  addStaticMeshComponentToObject(SPtr<GameObject>& pObj);
+
   FORCEINLINE void
   setScreenSize(const Vector2& size);
 
  private:
-  Vector2 m_screenSize;
+  Vector2 m_screenSize = Vector2(0.0f, 0.0f);
   int32 m_sceneIndex = -1;
 
   /**
@@ -131,31 +135,6 @@ class GUI
 
   float m_camSpeed = 0.0f;
   float m_camFov = 0.0f;
-
-  /**
-  *  @brief Light position.
-  */
-  //Vector4 m_lightPos = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Light camera target.
-  */
-  //Vector3 m_lightTarget = { 0.0f, 0.0f, 0.0f };
-
-  /**
-  *  @brief Light camera near.
-  */
-  //float m_lcamNear = 0.0f;
-
-  /**
-  *  @brief Light camera far.
-  */
-  //float m_lcamFar = 0.0f;
-
-  /**
-  *  @brief Light camera size.
-  */
-  //float m_lcamSize = 0.0f;
 
   /**
   *  @brief Size of shadow texture.

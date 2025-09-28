@@ -2,7 +2,7 @@
 /*
 *  @file    shMatrix4.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/15
+*  @date    2025/09/27
 *  @brief   Matrix4x4, double array, use double brackets to access to the
 *           matrix values.
 *
@@ -296,6 +296,12 @@ public:
   */
   FORCEINLINE Matrix4&
   operator*=(const Matrix4& other);
+
+  FORCEINLINE bool
+  operator==(const Matrix4& other);
+
+  FORCEINLINE bool
+  operator!=(const Matrix4& other);
 
   /***************************************************************************/
   /*
@@ -803,5 +809,32 @@ Transform::operator=(const Matrix4& mat4)
   m[3][3] = mat4.m[3][3];
 
   return *this;
+}
+
+FORCEINLINE bool
+Matrix4::operator==(const Matrix4& other)
+{
+  return (m[0][0] == other.m[0][0] &&
+          m[0][1] == other.m[0][1] &&
+          m[0][2] == other.m[0][2] &&
+          m[0][3] == other.m[0][3] &&
+          m[1][0] == other.m[1][0] &&
+          m[1][1] == other.m[1][1] &&
+          m[1][2] == other.m[1][2] &&
+          m[1][3] == other.m[1][3] &&
+          m[2][0] == other.m[2][0] &&
+          m[2][1] == other.m[2][1] &&
+          m[2][2] == other.m[2][2] &&
+          m[2][3] == other.m[2][3] &&
+          m[3][0] == other.m[3][0] &&
+          m[3][1] == other.m[3][1] &&
+          m[3][2] == other.m[3][2] &&
+          m[3][3] == other.m[3][3]);
+}
+
+FORCEINLINE bool
+Matrix4::operator!=(const Matrix4& other)
+{
+  return !(*this == other);
 }
 }

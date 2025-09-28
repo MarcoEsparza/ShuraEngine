@@ -54,6 +54,11 @@ class SH_CORE_EXPORT LightComponent : public Component
   */
   ~LightComponent() = default;
 
+  /***************************************************************************/
+  /*
+  *  Variables
+  */
+  /***************************************************************************/
  public:
   /**
   *  @brief Light position.

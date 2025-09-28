@@ -129,6 +129,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   drawSkeletalMesh(const WPtr<GameObject> pGO);
 
+  void
+  drawShadowMap();
+
   /**
   *  @brief Sets the resource view from PBRMaterial.
   * 
@@ -211,12 +214,6 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   void
   cleanShaderObjects();
 
-  /*void
-  updateShaderDataBuffer();
-
-  void
-  updatePrefilteredIBLBuffer();*/
-
   void
   setSamplers();
 
@@ -235,24 +232,6 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   void
   setScreenSize(const Vector2& screenSize);
-
-  /*FORCEINLINE MainBufferData&
-  getMainBufferData();
-
-  FORCEINLINE ShaderData&
-  getShaderData();
-
-  FORCEINLINE PrefilteredCB&
-  getPrefilteredIBLData();
-
-  FORCEINLINE SPtr<ConstantBuffer>&
-  getMainBuffer();
-
-  FORCEINLINE SPtr<ConstantBuffer>&
-  getShaderDataBuffer();
-
-  FORCEINLINE SPtr<ConstantBuffer>&
-  getPrefilteredIBLCB();*/
 
  private:
   /**
@@ -293,42 +272,6 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   Vector2i m_skyboxDimension = { 0, 0 };
 };
-
-//FORCEINLINE MainBufferData&
-//RenderManager::getMainBufferData()
-//{
-//  return m_mainBufferData;
-//}
-//
-//FORCEINLINE ShaderData&
-//RenderManager::getShaderData()
-//{
-//  return m_shaderData;
-//}
-//
-//FORCEINLINE PrefilteredCB&
-//RenderManager::getPrefilteredIBLData()
-//{
-//  return m_prefilteredCB;
-//}
-//
-//FORCEINLINE SPtr<ConstantBuffer>&
-//RenderManager::getMainBuffer()
-//{
-//  return m_pMainBuffer;
-//}
-//
-//FORCEINLINE SPtr<ConstantBuffer>&
-//RenderManager::getShaderDataBuffer()
-//{
-//  return m_pShaderDataBuffer;
-//}
-//
-//FORCEINLINE SPtr<ConstantBuffer>&
-//RenderManager::getPrefilteredIBLCB()
-//{
-//  return m_pPreCB;
-//}
 
 /**
 *  @brief Easier way to access the RendererManager module.

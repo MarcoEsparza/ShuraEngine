@@ -87,7 +87,7 @@ RendererApp::onCreate()
 
   // Load resources
   loadPistol();
-  //loadSponza();
+  loadSponza();
   loadSkybox();
   loadLight();
   //loadCoat();

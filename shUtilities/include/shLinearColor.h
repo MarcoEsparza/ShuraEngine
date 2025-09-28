@@ -2,7 +2,7 @@
 /*
 *  @file    shLinearColor.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/19
+*  @date    2025/09/27
 *  @brief   LinearColor class.
 *
 *  LinearColor class.
@@ -168,6 +168,12 @@ public:
   FORCEINLINE LinearColor&
   operator*=(const float scalar);
 
+  FORCEINLINE bool
+  operator==(const LinearColor& other);
+
+  FORCEINLINE bool
+  operator!=(const LinearColor& other);
+
   /***************************************************************************/
   /*
   *  Variables
@@ -325,5 +331,23 @@ LinearColor::operator*=(const float scalar)
   a *= scalar;
 
   return *this;
+}
+
+FORCEINLINE bool
+LinearColor::operator==(const LinearColor& other)
+{
+  return r == other.r &&
+         g == other.g &&
+         b == other.b &&
+         a == other.a;
+}
+
+FORCEINLINE bool
+LinearColor::operator!=(const LinearColor& other)
+{
+  return r != other.r ||
+         g != other.g ||
+         b != other.b ||
+         a != other.a;
 }
 }
