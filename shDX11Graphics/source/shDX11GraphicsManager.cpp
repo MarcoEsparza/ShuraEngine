@@ -109,7 +109,9 @@ compileShaderFromFile(const String& fileName,
       D3D_SHADER_MACRO d3dM = {};
       d3dM.Name = currentMacro.name.c_str();
       d3dM.Definition = currentMacro.definition.c_str();
+      d3dMacros.push_back(d3dM);
     }
+    d3dMacros.push_back({ nullptr, nullptr });
 
     hr = D3DCompileFromFile(wFileName.c_str(),
                             d3dMacros.data(),

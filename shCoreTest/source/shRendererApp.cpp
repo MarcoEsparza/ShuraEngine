@@ -87,10 +87,10 @@ RendererApp::onCreate()
 
   // Load resources
   loadPistol();
-  loadSponza();
+  //loadSponza();
   loadSkybox();
   loadLight();
-  //loadCoat();
+  loadCoat();
   //tempLoad();
 
   updateMainBuffer();
@@ -693,40 +693,17 @@ RendererApp::loadCoat()
   SceneGraph& scene = g_sceneGraph();
 
   auto modelRes = cast::re_ptr<StaticMeshResource>(
-    resMan.loadResourceFromFile(Path("resources/models/export3dcoat.obj")));
-
-  Path colorPath("resources/textures/export3dcoat_lambert3SG_color.tga");
-  Path glossPath("resources/textures/export3dcoat_lambert3SG_gloss.tga");
-  Path metalPath("resources/textures/export3dcoat_lambert3SG_metalness.tga");
-  Path normalPath("resources/textures/Emmisive_Eye_Class_Normal.png");
-
-  auto pAlbedo = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(colorPath));
-  auto pGloss = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(glossPath));
-  auto pMetal = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(metalPath));
-  auto pNormal = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(normalPath));
-
-  auto& pMat = modelRes->m_materials[0];
-  pMat->baseColor = pAlbedo->texture;
-  pMat->metallic = pMetal->texture;
-  pMat->normal = pNormal->texture;
-  pMat->roughness = pGloss->texture;
-
-  //pMat->m_properties.bHasDiffuseMap = true;
-  //pMat->m_properties.bHasMetalnessMap = true;
-  //pMat->m_properties.bHasNormalMap = true;
-  //pMat->m_properties.bHasRoughnessMap = true;
-  //pMat->m_properties.bInvertRoughness = true;
-
-  modelRes->m_meshes[0].materialIndex = 0;
+                  resMan.loadModelFromCache("resources/assets/models/DrakeFire1.sha"));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "CoatBall";
+  model->name = "MayaExport";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);
 
   model->transform.getTransform() = Matrix4::IDENTITY;
+  model->setScale(Vector3::ONE * 5.0f);
 
   scene.addObject(model);
 }

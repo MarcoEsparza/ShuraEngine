@@ -88,10 +88,10 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   /*            DIFFUSE MAP            */
   /*************************************/
 #if defined(HAS_DIFFUSE_MAP)
-  output.Color = float4(baseColorFactor, 1.0f);
-#else
   output.Color = t_baseColor.Sample(samplerLinearWrap, input.Tex);
   output.Color = output.Color * float4(baseColorFactor, 1.0f);
+#else
+  output.Color = float4(baseColorFactor, 1.0f);
 #endif
     
   /*************************************/
