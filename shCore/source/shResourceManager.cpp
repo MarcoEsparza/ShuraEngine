@@ -449,6 +449,10 @@ ResourceManager::loadTextureFromDDS(const String& filename)
 
   pImage->texture = graphMan.createTextureFromDDS(filename);
 
+  if(!pImage->texture) {
+    return nullptr;
+  }
+
   SystemPath file = filename;
   pImage->setName(file.filename().string());
   m_loadedResources[pImage->getName()] = pImage;
@@ -514,6 +518,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 
   pMeshMat = sh_makeShared<Material>();
 
+  //return pMeshMat;
+
   uint32 diffCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
   uint32 normCount = pMat->GetTextureCount(aiTextureType_NORMALS);
   uint32 metalCount = pMat->GetTextureCount(aiTextureType_METALNESS);
@@ -533,8 +539,13 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    pMeshMat->baseColor = pImage->texture;
-    pMeshMat->baseColorPath = pImage->getPath().toString();
+    if (!pImage) {
+      pMeshMat->baseColor = graphMan.createErrorTexture();
+    }
+    else {
+      pMeshMat->baseColor = pImage->texture;
+      pMeshMat->baseColorPath = pImage->getPath().toString();
+    }
   }
 
   if (normCount == 0) {
@@ -549,8 +560,13 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    pMeshMat->normal = pImage->texture;
-    pMeshMat->normalPath = pImage->getPath().toString();
+    if (!pImage) {
+      pMeshMat->normal = graphMan.createDefaultNormalTexture();
+    }
+    else {
+      pMeshMat->normal = pImage->texture;
+      pMeshMat->normalPath = pImage->getPath().toString();
+    }
   }
 
   if (metalCount == 0) {
@@ -565,8 +581,13 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    pMeshMat->metallic = pImage->texture;
-    pMeshMat->metallicPath = pImage->getPath().toString();
+    if (!pImage) {
+      pMeshMat->metallic = graphMan.createBlackTexture();
+    }
+    else {
+      pMeshMat->metallic = pImage->texture;
+      pMeshMat->metallicPath = pImage->getPath().toString();
+    }
   }
 
   if (roughCount == 0) {
@@ -581,8 +602,13 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    pMeshMat->roughness = pImage->texture;
-    pMeshMat->roughnessPath = pImage->getPath().toString();
+    if (!pImage) {
+      pMeshMat->roughness = graphMan.createBlackTexture();
+    }
+    else {
+      pMeshMat->roughness = pImage->texture;
+      pMeshMat->roughnessPath = pImage->getPath().toString();
+    }
   }
 
   if (aoCount == 0) {
@@ -596,8 +622,13 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    pMeshMat->ao = pImage->texture;
-    pMeshMat->aoPath = pImage->getPath().toString();
+    if (!pImage) {
+      pMeshMat->ao = graphMan.createBlackTexture();
+    }
+    else {
+      pMeshMat->ao = pImage->texture;
+      pMeshMat->aoPath = pImage->getPath().toString();
+    }
   }
   
   //pMeshMat->m_type = MATERIAL_TYPE::kPBR;
@@ -618,12 +649,16 @@ ResourceManager::isMaterialLoaded(const String& materialName)
   return nullptr;
 }
 
+void
+ResourceManager::loadMaterial(const SPtr<Material>& material)
+{
+  m_loadedResources[material->getName()] = material;
+}
+
 SPtr<Resource>
 ResourceManager::loadModelFromCache(const String& fileName)
 {
-  Asset model;
-  model.loadResourceFromAsset(Path(fileName));
-  auto& pRes = model.m_res;
+  auto pRes = Asset::loadResourceFromAsset(Path(fileName));
 
   SystemPath path = fileName;
   pRes->setName(path.filename().string());

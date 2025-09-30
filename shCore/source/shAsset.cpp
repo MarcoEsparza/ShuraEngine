@@ -39,7 +39,7 @@ Asset::saveResourceToAsset(const SPtr<Resource>& pRes)
   return false;
 }
 
-void
+SPtr<Resource>
 Asset::loadResourceFromAsset(Path filePath)
 {
   GraphicsManager& graphMan = g_graphicsMan();
@@ -47,9 +47,10 @@ Asset::loadResourceFromAsset(Path filePath)
   sh_fstream file(filePath.toString(), ios::in | ios::binary);
 
   if (!file.is_open()) {
-    return;
+    return nullptr;
   }
 
+  //auto pRes = sh_makeShared<Resource>();
   RESOURCE_TYPE::E resType = RESOURCE_TYPE::kCount;
   file.read(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
 
@@ -67,98 +68,98 @@ Asset::loadResourceFromAsset(Path filePath)
       mesh.numVertices = mdh.numVertices;
       mesh.numIndices = mdh.numIndices;
       mesh.materialIndex = mdh.matIndex;
-    
+
+      mesh.name.resize(mdh.nameSize);
+      file.read(mesh.name.data(), mdh.nameSize);
+
       uint32 verticesSize = mesh.numVertices * sizeof(VertexData);
       uint32 indicesSize = mesh.numIndices * sizeof(uint32);
       Vector<char> verticesData;
       Vector<char> indicesData;
       verticesData.resize(verticesSize);
       indicesData.resize(indicesSize);
-      mesh.vertices.resize(mesh.numVertices);
-      mesh.indices.resize(mesh.numIndices);
-    
       file.read(reinterpret_cast<char*>(verticesData.data()), verticesSize);
       file.read(reinterpret_cast<char*>(indicesData.data()), indicesSize);
+
+      mesh.vertices.resize(mesh.numVertices);
+      mesh.indices.resize(mesh.numIndices);
       memcpy(mesh.vertices.data(), verticesData.data(), verticesSize);
       memcpy(mesh.indices.data(), indicesData.data(), indicesSize);
-    
-      String line;
-      getline(file, line);
-      getline(file, line);
-      mesh.name = line;
     }
 
     for (auto& mat : pStaticMesh->m_materials) {
-      mat = sh_makeShared<Material>();
-    
-      file.read(reinterpret_cast<char*>(&mat->m_properties), sizeof(MaterialProperties));
-      String line;
-      getline(file, line);
-      getline(file, line);
-      mat->setName(line);
-      getline(file, line);
-      mat->baseColorPath = line;
-      getline(file, line);
-      mat->metallicPath = line;
-      getline(file, line);
-      mat->roughnessPath = line;
-      getline(file, line);
-      mat->normalPath = line;
-      getline(file, line);
-      mat->aoPath = line;
-    
-      auto pBaseColor = sh_makeShared<ImageResource>();
-      auto pMetallic = sh_makeShared<ImageResource>();
-      auto pRoughness = sh_makeShared<ImageResource>();
-      auto pNormal = sh_makeShared<ImageResource>();
-      auto pAO = sh_makeShared<ImageResource>();
+      MaterialAssetHeader mah = {};
+      file.read(cast::re<char*>(&mah), sizeof(MaterialAssetHeader));
+      //mat = sh_makeShared<Material>();
 
-      if (mat->baseColorPath != "") {
-        pBaseColor = cast::re_ptr<ImageResource>(
-                     resMan.loadResourceFromFile(Path(mat->baseColorPath)));
+      String matName;
+      matName.resize(mah.nameSize);
+      file.read(matName.data(), mah.nameSize);
+
+      mat = cast::re_ptr<Material>(resMan.getResource(matName));
+
+      if(mat){
+        continue;
       }
-      else {
-        pBaseColor->texture = graphMan.createErrorTexture();
+
+      mat = sh_makeShared<Material>();
+      mat->setName(matName.c_str());
+      mat->m_properties.properties.value = mah.properties;
+      mat->baseColorPath.resize(mah.baseColorMapPathSize);
+      file.read(mat->baseColorPath.data(), mah.baseColorMapPathSize);
+      mat->normalPath.resize(mah.normalMapPathSize);
+      file.read(mat->normalPath.data(), mah.normalMapPathSize);
+      mat->metallicPath.resize(mah.metalnessMapPathSize);
+      file.read(mat->metallicPath.data(), mah.metalnessMapPathSize);
+      mat->roughnessPath.resize(mah.roughnessMapPathSize);
+      file.read(mat->roughnessPath.data(), mah.roughnessMapPathSize);
+      mat->aoPath.resize(mah.ambientOcclusionMapPathSize);
+      file.read(mat->aoPath.data(), mah.ambientOcclusionMapPathSize);
+
+      auto pBaseColor = sh_reinterpretPCast<ImageResource>(
+                        resMan.loadResourceFromFile(Path(mat->baseColorPath.c_str())));
+      if (pBaseColor) {
+        mat->baseColor = pBaseColor->texture;
+        mat->m_properties.properties.flags.bHasDiffuseMap = 1;
       }
-      if( mat->metallicPath != "") {
-        pMetallic = cast::re_ptr<ImageResource>(
-                    resMan.loadResourceFromFile(Path(mat->metallicPath)));
+
+      auto pNormal = sh_reinterpretPCast<ImageResource>(
+                      resMan.loadResourceFromFile(Path(mat->normalPath.c_str())));
+      if (pNormal) {
+        mat->normal = pNormal->texture;
+        mat->m_properties.properties.flags.bHasNormalMap = 1;
       }
-      else {
-        pMetallic->texture = graphMan.createBlackTexture();
+
+      auto pMetallic = sh_reinterpretPCast<ImageResource>(
+                        resMan.loadResourceFromFile(Path(mat->metallicPath.c_str())));
+      if (pMetallic) {
+        mat->metallic = pMetallic->texture;
+        mat->m_properties.properties.flags.bHasMetalnessMap = 1;
       }
-      if (mat->roughnessPath != "") {
-        pRoughness = cast::re_ptr<ImageResource>(
-                     resMan.loadResourceFromFile(Path(mat->roughnessPath)));
+
+      auto pRoughness = sh_reinterpretPCast<ImageResource>(
+                         resMan.loadResourceFromFile(Path(mat->roughnessPath.c_str())));
+      if (pRoughness) {
+        mat->roughness = pRoughness->texture;
+        mat->m_properties.properties.flags.bHasRoughnessMap = 1;
       }
-      else {
-        pRoughness->texture = graphMan.createBlackTexture();
+
+      auto pAO = sh_reinterpretPCast<ImageResource>(
+                  resMan.loadResourceFromFile(Path(mat->aoPath.c_str())));
+      if (pAO) {
+        mat->ao = pAO->texture;
+        mat->m_properties.properties.flags.bHasAmbientOcclusionMap = 1;
       }
-      if (mat->normalPath != "") {
-        pNormal = cast::re_ptr<ImageResource>(
-                  resMan.loadResourceFromFile(Path(mat->normalPath)));
-      }
-      else {
-        pNormal->texture = graphMan.createDefaultNormalTexture();
-      }
-      if (mat->aoPath != "") {
-        pAO = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(Path(mat->aoPath)));
-      }
-      else {
-        pAO->texture = graphMan.createBlackTexture();
-      }
-    
-      mat->baseColor = pBaseColor->texture;
-      mat->metallic = pMetallic->texture;
-      mat->roughness = pRoughness->texture;
-      mat->normal = pNormal->texture;
-      mat->ao = pAO->texture;
+
+      resMan.loadMaterial(mat);
     }
 
-    m_res = pStaticMesh;
+    file.close();
+    return pStaticMesh;
   }
 
   file.close();
+  return nullptr;
 }
 
 void
@@ -174,43 +175,47 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
   SystemPath pathName = pStaticMesh->getName();
   pathName.replace_extension(".sha");
   String fileName = "resources/assets/models/" + pathName.string();
-  sh_fstream file(fileName, ios::out | ios::binary);
+  sh_fstream outFile(fileName, ios::out | ios::binary);
 
-  file.write(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
-  file.write(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
+  outFile.write(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
+  outFile.write(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
 
   for (auto& mesh : pStaticMesh->m_meshes) {
-    MeshDataHeader mdh = {};
-    mdh.numVertices = mesh.numVertices;
-    mdh.numIndices = mesh.numIndices;
-    mdh.matIndex = mesh.materialIndex;
-    file.write(reinterpret_cast<char*>(&mdh), sizeof(MeshDataHeader));
+    MeshDataHeader meshHeader = {};
+    meshHeader.numVertices = mesh.numVertices;
+    meshHeader.numIndices = mesh.numIndices;
+    meshHeader.matIndex = mesh.materialIndex;
+    meshHeader.nameSize = static_cast<uint32>(mesh.name.size() + 1);
 
-    Vector<char> verticesData;
-    Vector<char> indicesData;
-    uint32 verticesSize = static_cast<uint32>(mesh.vertices.size() * sizeof(VertexData));
-    uint32 indicesSize = static_cast<uint32>(mesh.indices.size() * sizeof(uint32));
-    verticesData.resize(verticesSize);
-    indicesData.resize(indicesSize);
-    memcpy(verticesData.data(), mesh.vertices.data(), verticesSize);
-    memcpy(indicesData.data(), mesh.indices.data(), indicesSize);
-
-    file.write(verticesData.data(), verticesSize);
-    file.write(indicesData.data(), indicesSize);
-    file << "\n" << mesh.name << "\n";
+    outFile.write(reinterpret_cast<const char*>(&meshHeader), sizeof(MeshDataHeader));
+    outFile.write(mesh.name.c_str(), meshHeader.nameSize);
+    outFile.write(reinterpret_cast<const char*>(mesh.vertices.data()),
+      mesh.numVertices * sizeof(VertexData));
+    outFile.write(reinterpret_cast<const char*>(mesh.indices.data()),
+      mesh.numIndices * sizeof(uint32));
   }
 
   for (auto& mat : pStaticMesh->m_materials) {
-    file.write(reinterpret_cast<char*>(&mat->m_properties), sizeof(MaterialProperties));
-    file << "\n" << mat->getName() << "\n";
-    file << mat->baseColorPath << "\n";
-    file << mat->metallicPath << "\n";
-    file << mat->roughnessPath << "\n";
-    file << mat->normalPath << "\n";
-    file << mat->aoPath << "\n";
+    MaterialAssetHeader matHeader = {};
+    matHeader.nameSize = static_cast<uint32>(mat->getName().size() + 1);
+    matHeader.properties = mat->m_properties.properties.value;
+    matHeader.baseColorMapPathSize = static_cast<uint32>(mat->baseColorPath.size() + 1);
+    matHeader.normalMapPathSize = static_cast<uint32>(mat->normalPath.size() + 1);
+    matHeader.metalnessMapPathSize = static_cast<uint32>(mat->metallicPath.size() + 1);
+    matHeader.roughnessMapPathSize = static_cast<uint32>(mat->roughnessPath.size() + 1);
+    matHeader.ambientOcclusionMapPathSize =
+      static_cast<uint32>(mat->aoPath.size() + 1);
+
+    outFile.write(reinterpret_cast<const char*>(&matHeader), sizeof(MaterialAssetHeader));
+    outFile.write(mat->getName().c_str(), matHeader.nameSize);
+    outFile.write(mat->baseColorPath.c_str(), matHeader.baseColorMapPathSize);
+    outFile.write(mat->normalPath.c_str(), matHeader.normalMapPathSize);
+    outFile.write(mat->metallicPath.c_str(), matHeader.metalnessMapPathSize);
+    outFile.write(mat->roughnessPath.c_str(), matHeader.roughnessMapPathSize);
+    outFile.write(mat->aoPath.c_str(), matHeader.ambientOcclusionMapPathSize);
   }
 
-  file.close();
+  outFile.close();
 }
 
 SPtr<Resource>
@@ -231,6 +236,8 @@ Asset::loadStaticMesh(sh_fstream& file)
     mesh.numIndices = mdh.numIndices;
     mesh.materialIndex = mdh.matIndex;
 
+    file.read(mesh.name.data(), mdh.nameSize);
+
     uint32 verticesSize = mesh.numVertices * sizeof(VertexData);
     uint32 indicesSize = mesh.numIndices * sizeof(uint32);
     Vector<char> verticesData;
@@ -244,11 +251,6 @@ Asset::loadStaticMesh(sh_fstream& file)
     file.read(reinterpret_cast<char*>(indicesData.data()), indicesSize);
     memcpy(mesh.vertices.data(), verticesData.data(), verticesSize);
     memcpy(mesh.indices.data(), indicesData.data(), indicesSize);
-
-    String line;
-    getline(file, line);
-    getline(file, line);
-    mesh.name = line;
   }
 
   for (auto& mat : pStaticMesh->m_materials) {

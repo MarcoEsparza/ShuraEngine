@@ -112,6 +112,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadModelFromCache(const String& fileName);
 
+  void
+  loadMaterial(const SPtr<Material>& material);
+
  private:
   /**
   *  @brief Checks if the resource is already loaded.

@@ -34,6 +34,7 @@ struct SH_CORE_EXPORT MeshDataHeader
   uint32 numVertices = 0;
   uint32 numIndices = 0;
   uint32 matIndex = 0;
+  uint32 nameSize = 0;
 };
 
 struct SH_CORE_EXPORT StaticMeshAssetHeader
@@ -50,37 +51,14 @@ struct SH_CORE_EXPORT SkeletalMeshAssetHeader
   uint32 numIndices = 0;
 };
 
-//struct SH_CORE_EXPORT ImgResourceAsset
-//{
-//  String 
-//};
-
-struct SH_CORE_EXPORT MaterialAssetHeader
-{
-  bool hasDiffuse;
-  /*uint32 bHasDiffuseMap : 1;
-  uint32 bHasSpecularMap : 1;
-  uint32 bHasNormalMap : 1;
-  uint32 bHasMetalnessMap : 1;
-  uint32 bHasRoughnessMap : 1;
-  uint32 bHasAmbientOcclusionMap : 1;
-  uint32 bIsOpaque : 1;
-  uint32 bHasAlphaTest : 1;
-  uint32 bHasAlphaBlend : 1;
-  uint32 bIsDoubleSided : 1;
-  uint32 bWireframeEnabled : 1;
-  uint32 bCanCastShadows : 1;
-  uint32 bCanReceiveShadows : 1;
-  uint32 Unused : 19;*/
-};
-
-struct SH_CORE_EXPORT PBRMaterialAsset
-{
-  bool bHasAlbedo;
-  bool bHasNormal;
-  bool bHasMetallic;
-  bool bHasRoughness;
-  bool bHasAO;
+struct SH_CORE_EXPORT MaterialAssetHeader {
+  uint32 nameSize = 0;
+  uint32 properties = 0;
+  uint32 baseColorMapPathSize = 0;
+  uint32 normalMapPathSize = 0;
+  uint32 metalnessMapPathSize = 0;
+  uint32 roughnessMapPathSize = 0;
+  uint32 ambientOcclusionMapPathSize = 0;
 };
 
 class SH_CORE_EXPORT Asset
@@ -89,16 +67,16 @@ class SH_CORE_EXPORT Asset
   Asset() = default;
   ~Asset() = default;
 
-  bool
+  static bool
   saveResourceToAsset(const SPtr<Resource>& pRes);
 
-  void
+  static SPtr<Resource>
   loadResourceFromAsset(Path filePath);
 
-  SPtr<Resource> m_res;
+  //SPtr<Resource> m_res;
 
  private:
-  void
+  static void
   saveStaticMesh(const SPtr<Resource>& pRes);
 
   SPtr<Resource>

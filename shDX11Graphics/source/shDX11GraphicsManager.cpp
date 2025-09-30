@@ -869,10 +869,14 @@ DX11GraphicsManager::createTextureFromDDS(const String& fileName)
 
   SystemPath path = fileName;
   
-  throwIfFailed(CreateDDSTextureFromFile(m_pDevice,
+  HRESULT hr =  CreateDDSTextureFromFile(m_pDevice,
                 path.wstring().c_str(),
                 reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D),
-                &pTexture->m_pShaderRV));
+                &pTexture->m_pShaderRV);
+
+  if(hr != S_OK) {
+    return nullptr;
+  }
 
   String texName = "t_" + fileName;
   String ShaderRes = "sr_" + fileName;

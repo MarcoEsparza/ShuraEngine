@@ -91,8 +91,8 @@ class SH_CORE_EXPORT Resource
   *
   *  @param String& name
   */
-  FORCEINLINE void
-  setName(const String& name) { m_name = name; }
+  void
+  setName(const String& name);
 
   /**
   *  @brief Gets the resource name.

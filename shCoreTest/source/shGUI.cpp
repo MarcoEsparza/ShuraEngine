@@ -894,6 +894,8 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pBaseColor = pImg->texture;
+        SystemPath savePath = SystemPath(filePath);
+        currentMat->baseColorPath = savePath.filename().string();
       }
     }
   }
@@ -933,6 +935,8 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pNormal = pImg->texture;
+        SystemPath savePath = SystemPath(filePath);
+        currentMat->normalPath = savePath.filename().string();
       }
     }
   }
@@ -953,6 +957,8 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pMetallic = pImg->texture;
+        SystemPath savePath = SystemPath(filePath);
+        currentMat->metallicPath = savePath.filename().string();
       }
     }
   }
@@ -980,6 +986,8 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
         pRoughness = pImg->texture;
+        SystemPath savePath = SystemPath(filePath);
+        currentMat->roughnessPath = savePath.filename().string();
       }
     }
   }

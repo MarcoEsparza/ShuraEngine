@@ -85,10 +85,12 @@
     <ClCompile Include="source\shGizmos.cpp" />
     <ClCompile Include="source\shGraphicsManager.cpp" />
     <ClCompile Include="source\shLightComponent.cpp" />
+    <ClCompile Include="source\shMaterial.cpp" />
     <ClCompile Include="source\shMeshComponent.cpp" />
     <ClCompile Include="source\shOCLManager.cpp" />
     <ClCompile Include="source\shPass.cpp" />
     <ClCompile Include="source\shRenderManager.cpp" />
+    <ClCompile Include="source\shResource.cpp" />
     <ClCompile Include="source\shResourceManager.cpp" />
     <ClCompile Include="source\shRigidbodyComponent.cpp" />
     <ClCompile Include="source\shSceneGraph.cpp" />

@@ -50,6 +50,7 @@
 #include <shRigidbodyComponent.h>
 
 #include <shSound.h>
+#include <shTimer.h>
 
 namespace shEngineSDK {
 void
@@ -86,7 +87,7 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  loadPistol();
+  //loadPistol();
   //loadSponza();
   loadSkybox();
   loadLight();
@@ -691,19 +692,28 @@ RendererApp::loadCoat()
 {
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& scene = g_sceneGraph();
+  Logger& logger = g_logger();
+
+  Timer timer;
+  float time = timer.getTime();
+  logger.Log("Loading Bistro_Exterior Shura Asset model...");
 
   auto modelRes = cast::re_ptr<StaticMeshResource>(
-                  resMan.loadModelFromCache("resources/assets/models/DrakeFire1.sha"));
+                  resMan.loadModelFromCache("resources/assets/models/BistroExterior.sha"));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "MayaExport";
+  model->name = "Bistro";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);
 
   model->transform.getTransform() = Matrix4::IDENTITY;
-  model->setScale(Vector3::ONE * 5.0f);
+  model->setScale(Vector3::ONE * 1.0f);
+
+  float total = timer.getTime() - time;
+  
+  logger.Log("Model loaded in " + std::to_string(total) + " seconds.");
 
   scene.addObject(model);
 }
