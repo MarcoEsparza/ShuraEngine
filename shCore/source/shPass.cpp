@@ -212,22 +212,22 @@ Pass::setPass() const
 
   // Set constant buffers
   for (auto& pVSCBufferPair : m_vsCBuffers) {
-    if (pVSCBufferPair.first) {
+    if (!pVSCBufferPair.first.expired()) {
       graphMan.vsSetConstantBuffers(pVSCBufferPair.first, pVSCBufferPair.second);
     }
   }
   for (auto& pPSCBufferPair : m_psCBuffers) {
-    if (pPSCBufferPair.first) {
+    if (!pPSCBufferPair.first.expired()) {
       graphMan.psSetConstantBuffers(pPSCBufferPair.first, pPSCBufferPair.second);
     }
   }
   for (auto& pGSCBufferPair : m_gsCBuffers) {
-    if (pGSCBufferPair.first) {
+    if (!pGSCBufferPair.first.expired()) {
       graphMan.gsSetConstantBuffers(pGSCBufferPair.first, pGSCBufferPair.second);
     }
   }
   for (auto& pCSCBufferPair : m_csCBuffers) {
-    if (pCSCBufferPair.first) {
+    if (!pCSCBufferPair.first.expired()) {
       graphMan.csSetConstantBuffers(pCSCBufferPair.first, pCSCBufferPair.second);
     }
   }

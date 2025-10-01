@@ -319,22 +319,22 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Vertex Shader Constant Buffer container.
   */
-  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_vsCBuffers;
+  Vector<Pair<WPtr<ConstantBuffer>, uint32>> m_vsCBuffers;
 
   /**
   *  @brief Pixel Shader Constant Buffer container.
   */
-  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_psCBuffers;
+  Vector<Pair<WPtr<ConstantBuffer>, uint32>> m_psCBuffers;
 
   /**
   *  @brief Geometry Shader Constant Buffer container.
   */
-  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_gsCBuffers;
+  Vector<Pair<WPtr<ConstantBuffer>, uint32>> m_gsCBuffers;
 
   /**
   *  @brief Compute Shader Constant Buffer container.
   */
-  Vector<Pair<SPtr<ConstantBuffer>, uint32>> m_csCBuffers;
+  Vector<Pair<WPtr<ConstantBuffer>, uint32>> m_csCBuffers;
 
   /**
   *  @brief Path of the vertex shader file.

@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/04/30
 *  @brief   Render module.
 *
 *  Render module.
@@ -239,13 +239,6 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   */
   UMap<uint32, RenderTargetInfo> m_renderTargetMap;
 
-  /**
-  *  @brief Model transform.
-  */
-  SPtr<ConstantBuffer> m_pModelTransform;
-
-  SPtr<ConstantBuffer> m_pPBRData;
-
   SPtr<SamplerState> m_pSamplerLinearWrap;
   SPtr<SamplerState> m_pSamplerPointWrap;
   SPtr<SamplerState> m_pSamplerAnisotropicWrap;
@@ -271,6 +264,28 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   Vector2 m_screenDimension = { 0.0f, 0.0f };
 
   Vector2i m_skyboxDimension = { 0, 0 };
+
+  static const uint32 SHADOWMAP_TEX_ID;
+  static const uint32 SHADOWTEMP_TEX_ID;
+  static const uint32 DEPTH_TEX_ID;
+  static const uint32 NORMAL_TEX_ID;
+  static const uint32 COLOR_TEX_ID;
+  static const uint32 PROPS_TEX_ID;
+  static const uint32 SSAO_TEX_ID;
+  static const uint32 HBLUR_TEX_ID;
+  static const uint32 VBLUR_TEX_ID;
+  static const uint32 SKYBOX_TEX_ID;
+  static const uint32 LIGHTC_TEX_ID;
+  static const uint32 TONEMAP_TEX_ID;
+  static const uint32 TEMP_TEX_ID;
+  static const uint32 LUMINANCE_TEX_ID;
+  static const uint32 BRIGHT_TEX_ID;
+  static const uint32 POSTPROCESS_TEX_ID;
+  static const uint32 ADDITIVE_TEX_ID;
+  static const uint32 BHBLUR_TEX_ID;
+  static const uint32 BVBLUR_TEX_ID;
+  static const uint32 GBUFFER_DEPTH_TEX_ID;
+  static const uint32 HISTOGRAM_TEX_ID;
 };
 
 /**

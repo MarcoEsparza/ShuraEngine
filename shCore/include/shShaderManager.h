@@ -2,7 +2,7 @@
 /*
 *  @file    shShaderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/09/24
+*  @date    2025/09/30
 *  @brief   Shader managment module.
 *
 *  Shader managment module.
@@ -142,6 +142,14 @@ struct SH_CORE_EXPORT LightCB
   Matrix4 proj = Matrix4::IDENTITY;
 };
 
+struct PBRMaterialData {
+  Vector3 baseColorFactor;
+  float unused0; // Padding to align to 16 bytes
+  Vector2 metallicRoughnessFactor;
+  MaterialProperties properties;
+  float unused1; // Padding to align to 16 bytes
+};
+
 /**
 *  @brief Shader managment module.
 */
@@ -185,6 +193,9 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   void
   updateLightCB();
 
+  void
+  updateMaterialCB();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -215,6 +226,13 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   SPtr<ConstantBuffer> m_pLCBuffer;
 
+  /**
+  *  @brief Model transform.
+  */
+  SPtr<ConstantBuffer> m_pModelTransformBuffer;
+
+  SPtr<ConstantBuffer> m_pPBRData;
+
   MainBufferData m_mainBufferData;
 
   ShaderData m_shaderData;
@@ -222,6 +240,30 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   PrefilteredCB m_prefilteredData;
 
   LightCB m_lightData;
+
+  PBRMaterialData m_materialData;
+
+  static const uint32 SSAO_SHADER_ID;
+  static const uint32 HBLUR_SHADER_ID;
+  static const uint32 VBLUR_SHADER_ID;
+  static const uint32 HBLUR_CS_ID;
+  static const uint32 VBLUR_CS_ID;
+  static const uint32 LIGHT_CS_ID;
+  static const uint32 SHADOWMAP_SHADER_ID;
+  static const uint32 SKYBOX_SHADER_ID;
+  static const uint32 FINAL_SHADER_ID;
+  static const uint32 PLANE_SHADER_ID;
+  static const uint32 HISTOGRAM_SHADER_ID;
+  static const uint32 ADDSKYBOX_SHADER_ID;
+  static const uint32 LUMINANCE_SHADER_ID;
+  static const uint32 BRIGHT_SHADER_ID;
+  static const uint32 TONEMAP_SHADER_ID;
+  static const uint32 POSTPROCESS_SHADER_ID;
+  static const uint32 ADDITIVE_SHADER_ID;
+  static const uint32 CUBEMAP_SHADER_ID;
+  static const uint32 DIFFUSE_IRR_SHADER_ID;
+  static const uint32 PREFILTERED_IRR_SHADER_ID;
+  static const uint32 BRDF_SHADER_ID;
 };
 
 /**

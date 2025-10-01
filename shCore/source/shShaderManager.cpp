@@ -2,7 +2,7 @@
 /*
 *  @file    shShaderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/09/24
+*  @date    2025/09/30
 *  @brief   Shader managment module.
 *
 *  Shader managment module.
@@ -27,6 +27,29 @@
 #include "shStringID.h"
 
 namespace shEngineSDK {
+const uint32 ShaderManager::SSAO_SHADER_ID = StringID("AOShader").getID();
+const uint32 ShaderManager::HBLUR_SHADER_ID = StringID("HBlurShader").getID();
+const uint32 ShaderManager::VBLUR_SHADER_ID = StringID("VBlurShader").getID();
+const uint32 ShaderManager::HBLUR_CS_ID = StringID("HBlurCS").getID();
+const uint32 ShaderManager::VBLUR_CS_ID = StringID("VBlurCS").getID();
+const uint32 ShaderManager::LIGHT_CS_ID = StringID("LightCS").getID();
+const uint32 ShaderManager::SHADOWMAP_SHADER_ID = StringID("ShadowMapShader").getID();
+const uint32 ShaderManager::SKYBOX_SHADER_ID = StringID("SkyBoxShader").getID();
+const uint32 ShaderManager::FINAL_SHADER_ID = StringID("FinalShader").getID();
+const uint32 ShaderManager::PLANE_SHADER_ID = StringID("PlaneShader").getID();
+const uint32 ShaderManager::HISTOGRAM_SHADER_ID = StringID("HistogramShader").getID();
+const uint32 ShaderManager::ADDSKYBOX_SHADER_ID = StringID("AddSkyboxShader").getID();
+const uint32 ShaderManager::LUMINANCE_SHADER_ID = StringID("LuminanceShader").getID();
+const uint32 ShaderManager::BRIGHT_SHADER_ID = StringID("BrightShader").getID();
+const uint32 ShaderManager::TONEMAP_SHADER_ID = StringID("ToneMapShader").getID();
+const uint32 ShaderManager::POSTPROCESS_SHADER_ID = StringID("PostProcessShader").getID();
+const uint32 ShaderManager::ADDITIVE_SHADER_ID = StringID("AdditiveShader").getID();
+const uint32 ShaderManager::CUBEMAP_SHADER_ID = StringID("CubeMapShader").getID();
+const uint32 ShaderManager::DIFFUSE_IRR_SHADER_ID = StringID("DiffuseIrrShader").getID();
+const uint32 ShaderManager::PREFILTERED_IRR_SHADER_ID =
+                            StringID("PrefilteredIrrShader").getID();
+const uint32 ShaderManager::BRDF_SHADER_ID = StringID("BRDFShader").getID();
+
 void
 ShaderManager::createPipelinePasses()
 {
@@ -241,10 +264,13 @@ ShaderManager::createPipelinePasses()
   m_pMainBuffer = graphMan.createConstantBuffer(sizeof(MainBufferData));
   m_pPrefilteredCB = graphMan.createConstantBuffer(sizeof(PrefilteredCB));
   m_pLightBuffer = graphMan.createConstantBuffer(sizeof(LightCB));
+  m_pModelTransformBuffer = graphMan.createConstantBuffer(sizeof(Matrix4));
+  m_pPBRData = graphMan.createConstantBuffer(sizeof(PBRMaterialData));
 
   // Shadow shader buffers
   pSMapShader->addCSConstantBuffer(m_pMainBuffer, 0);
   pSMapShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pSMapShader->addVSConstantBuffer(m_pModelTransformBuffer, 2);
   pSMapShader->addVSConstantBuffer(m_pLightBuffer, 3);
 
   // Skybox shader buffers
@@ -306,27 +332,27 @@ ShaderManager::createPipelinePasses()
   pIrrCubeShader->addCSConstantBuffer(m_pPrefilteredCB, 2);
   pSPreCubeMap->addCSConstantBuffer(m_pPrefilteredCB, 2);
 
-  m_passes[StringID("AOShader").getID()] = pAOShader;
-  m_passes[StringID("HBlurShader").getID()] = pHBlurShader;
-  m_passes[StringID("VBlurShader").getID()] = pVBlurShader;
-  m_passes[StringID("HBlurCS").getID()] = pVBlurShader;
-  m_passes[StringID("VBlurCS").getID()] = pVBlurShader;
-  m_passes[StringID("LightCS").getID()] = pLightCS;
-  m_passes[StringID("SMapShader").getID()] = pSMapShader;
-  m_passes[StringID("SkyBoxShader").getID()] = pSkyBoxShader;
-  m_passes[StringID("FinalShader").getID()] = pFinalShader;
-  m_passes[StringID("PlaneShader").getID()] = pPlaneVS;
-  m_passes[StringID("HistogramShader").getID()] = pHistogramShader;
-  m_passes[StringID("ASBShader").getID()] = pASBShader;
-  m_passes[StringID("LuminanceShader").getID()] = pLuminanceShader;
-  m_passes[StringID("BrightShader").getID()] = pBrightShader;
-  m_passes[StringID("ToneMapShader").getID()] = pToneMapShader;
-  m_passes[StringID("PPShader").getID()] = pPPShader;
-  m_passes[StringID("AddMixShader").getID()] = pAddMixShader;
-  m_passes[StringID("CubeMapShader").getID()] = pCubeMapShader;
-  m_passes[StringID("DiffIrrShader").getID()] = pIrrCubeShader;
-  m_passes[StringID("SpecularPreMapShader").getID()] = pSPreCubeMap;
-  m_passes[StringID("BRDFShader").getID()] = pBRDFShader;
+  m_passes[SSAO_SHADER_ID] = pAOShader;
+  m_passes[HBLUR_SHADER_ID] = pHBlurShader;
+  m_passes[VBLUR_SHADER_ID] = pVBlurShader;
+  m_passes[HBLUR_CS_ID] = pVBlurShader;
+  m_passes[VBLUR_CS_ID] = pVBlurShader;
+  m_passes[LIGHT_CS_ID] = pLightCS;
+  m_passes[SHADOWMAP_SHADER_ID] = pSMapShader;
+  m_passes[SKYBOX_SHADER_ID] = pSkyBoxShader;
+  m_passes[FINAL_SHADER_ID] = pFinalShader;
+  m_passes[PLANE_SHADER_ID] = pPlaneVS;
+  m_passes[HISTOGRAM_SHADER_ID] = pHistogramShader;
+  m_passes[ADDSKYBOX_SHADER_ID] = pASBShader;
+  m_passes[LUMINANCE_SHADER_ID] = pLuminanceShader;
+  m_passes[BRIGHT_SHADER_ID] = pBrightShader;
+  m_passes[TONEMAP_SHADER_ID] = pToneMapShader;
+  m_passes[POSTPROCESS_SHADER_ID] = pPPShader;
+  m_passes[ADDITIVE_SHADER_ID] = pAddMixShader;
+  m_passes[CUBEMAP_SHADER_ID] = pCubeMapShader;
+  m_passes[DIFFUSE_IRR_SHADER_ID] = pIrrCubeShader;
+  m_passes[PREFILTERED_IRR_SHADER_ID] = pSPreCubeMap;
+  m_passes[BRDF_SHADER_ID] = pBRDFShader;
 }
 
 SPtr<Pass>
@@ -341,6 +367,8 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   auto matPass = sh_makeShared<Pass>();
   matPass->addVSConstantBuffer(m_pMainBuffer, 0);
   matPass->addVSConstantBuffer(m_pShaderDataBuffer, 1);
+  matPass->addVSConstantBuffer(m_pModelTransformBuffer, 2);
+  matPass->addPSConstantBuffer(m_pPBRData, 3);
 
   bool bWireframe = props.properties.flags.bWireframeEnabled;
   //bool bDoubleSided = props.properties.flags.bIsDoubleSided;
@@ -498,6 +526,13 @@ ShaderManager::updateLightCB()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   graphMan.updateConstantBuffer(m_pLightBuffer, &m_lightData, sizeof(LightCB));
+}
+
+void
+ShaderManager::updateMaterialCB()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  graphMan.updateConstantBuffer(m_pPBRData, &m_materialData, sizeof(PBRMaterialData));
 }
 
 ShaderManager&

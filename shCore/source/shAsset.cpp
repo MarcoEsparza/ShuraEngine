@@ -2,7 +2,7 @@
 /*
 *  @file    shAsset.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/28
+*  @date    2025/09/30
 *  @brief   Asset class for cache generation.
 *
 *  Asset class for cache generation.
@@ -23,6 +23,7 @@
 #include "shMaterial.h"
 #include "shImageResource.h"
 #include "shException.h"
+#include <shTimer.h>
 
 using std::getline;
 
@@ -44,57 +45,49 @@ Asset::loadResourceFromAsset(Path filePath)
 {
   GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resMan = g_resourceMan();
-  sh_fstream file(filePath.toString(), ios::in | ios::binary);
 
-  if (!file.is_open()) {
+  FILE* file = nullptr;
+  fopen_s(&file, filePath.toString().c_str(), "rb");
+  
+  if (!file) {
     return nullptr;
   }
+  setvbuf(file, NULL, _IONBF, 0); // No buffering
 
-  //auto pRes = sh_makeShared<Resource>();
   RESOURCE_TYPE::E resType = RESOURCE_TYPE::kCount;
-  file.read(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
+  fread(&resType, sizeof(RESOURCE_TYPE::E), 1, file);
 
   if (resType == RESOURCE_TYPE::kStaticMesh) {
     auto pStaticMesh = sh_makeShared<StaticMeshResource>();
 
     StaticMeshAssetHeader meshAH = {};
-    file.read(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
+    fread(&meshAH, sizeof(StaticMeshAssetHeader), 1, file);
     pStaticMesh->m_meshes.resize(meshAH.numMeshes);
     pStaticMesh->m_materials.resize(meshAH.numMaterials);
 
     for (auto& mesh : pStaticMesh->m_meshes) {
       MeshDataHeader mdh = {};
-      file.read(reinterpret_cast<char*>(&mdh), sizeof(MeshDataHeader));
+      fread(&mdh, sizeof(MeshDataHeader), 1, file);
       mesh.numVertices = mdh.numVertices;
       mesh.numIndices = mdh.numIndices;
       mesh.materialIndex = mdh.matIndex;
 
       mesh.name.resize(mdh.nameSize);
-      file.read(mesh.name.data(), mdh.nameSize);
-
-      uint32 verticesSize = mesh.numVertices * sizeof(VertexData);
-      uint32 indicesSize = mesh.numIndices * sizeof(uint32);
-      Vector<char> verticesData;
-      Vector<char> indicesData;
-      verticesData.resize(verticesSize);
-      indicesData.resize(indicesSize);
-      file.read(reinterpret_cast<char*>(verticesData.data()), verticesSize);
-      file.read(reinterpret_cast<char*>(indicesData.data()), indicesSize);
+      fread(mesh.name.data(), sizeof(char), mdh.nameSize, file);
 
       mesh.vertices.resize(mesh.numVertices);
+      fread(mesh.vertices.data(), sizeof(VertexData), mesh.numVertices, file);
       mesh.indices.resize(mesh.numIndices);
-      memcpy(mesh.vertices.data(), verticesData.data(), verticesSize);
-      memcpy(mesh.indices.data(), indicesData.data(), indicesSize);
+      fread(mesh.indices.data(), sizeof(uint32), mesh.numIndices, file);
     }
 
     for (auto& mat : pStaticMesh->m_materials) {
       MaterialAssetHeader mah = {};
-      file.read(cast::re<char*>(&mah), sizeof(MaterialAssetHeader));
-      //mat = sh_makeShared<Material>();
+      fread(&mah, sizeof(MaterialAssetHeader), 1, file);
 
       String matName;
       matName.resize(mah.nameSize);
-      file.read(matName.data(), mah.nameSize);
+      fread(matName.data(), sizeof(char), mah.nameSize, file);
 
       mat = cast::re_ptr<Material>(resMan.getResource(matName));
 
@@ -106,16 +99,16 @@ Asset::loadResourceFromAsset(Path filePath)
       mat->setName(matName.c_str());
       mat->m_properties.properties.value = mah.properties;
       mat->baseColorPath.resize(mah.baseColorMapPathSize);
-      file.read(mat->baseColorPath.data(), mah.baseColorMapPathSize);
+      fread(mat->baseColorPath.data(), sizeof(char), mah.baseColorMapPathSize, file);
       mat->normalPath.resize(mah.normalMapPathSize);
-      file.read(mat->normalPath.data(), mah.normalMapPathSize);
+      fread(mat->normalPath.data(), sizeof(char), mah.normalMapPathSize, file);
       mat->metallicPath.resize(mah.metalnessMapPathSize);
-      file.read(mat->metallicPath.data(), mah.metalnessMapPathSize);
+      fread(mat->metallicPath.data(), sizeof(char), mah.metalnessMapPathSize, file);
       mat->roughnessPath.resize(mah.roughnessMapPathSize);
-      file.read(mat->roughnessPath.data(), mah.roughnessMapPathSize);
+      fread(mat->roughnessPath.data(), sizeof(char), mah.roughnessMapPathSize, file);
       mat->aoPath.resize(mah.ambientOcclusionMapPathSize);
-      file.read(mat->aoPath.data(), mah.ambientOcclusionMapPathSize);
-
+      fread(mat->aoPath.data(), sizeof(char), mah.ambientOcclusionMapPathSize, file);
+     
       auto pBaseColor = sh_reinterpretPCast<ImageResource>(
                         resMan.loadResourceFromFile(Path(mat->baseColorPath.c_str())));
       if (pBaseColor) {
@@ -153,32 +146,34 @@ Asset::loadResourceFromAsset(Path filePath)
 
       resMan.loadMaterial(mat);
     }
-
-    file.close();
+    fclose(file);
     return pStaticMesh;
   }
-
-  file.close();
+  fclose(file);
   return nullptr;
 }
 
 void
 Asset::saveStaticMesh(const SPtr<Resource>& pRes)
 {
-  auto pStaticMesh = sh_reinterpretPCast<StaticMeshResource>(pRes);
-  RESOURCE_TYPE::E resType = RESOURCE_TYPE::kStaticMesh;
-
-  StaticMeshAssetHeader meshAH = {};
-  meshAH.numMeshes = static_cast<uint32>(pStaticMesh->m_meshes.size());
-  meshAH.numMaterials = static_cast<uint32>(pStaticMesh->m_materials.size());
+  auto pStaticMesh = cast::re_ptr<StaticMeshResource>(pRes);
 
   SystemPath pathName = pStaticMesh->getName();
   pathName.replace_extension(".sha");
   String fileName = "resources/assets/models/" + pathName.string();
-  sh_fstream outFile(fileName, ios::out | ios::binary);
+  FILE* outFile = nullptr;
+  fopen_s(&outFile, fileName.c_str(), "wb");
+  if (!outFile) {
+    return;
+  }
 
-  outFile.write(reinterpret_cast<char*>(&resType), sizeof(RESOURCE_TYPE::E));
-  outFile.write(reinterpret_cast<char*>(&meshAH), sizeof(StaticMeshAssetHeader));
+  RESOURCE_TYPE::E resType = RESOURCE_TYPE::kStaticMesh;
+  StaticMeshAssetHeader header = {};
+  header.numMeshes = static_cast<uint32>(pStaticMesh->m_meshes.size());
+  header.numMaterials = static_cast<uint32>(pStaticMesh->m_materials.size());
+
+  fwrite(&resType, sizeof(RESOURCE_TYPE::E), 1, outFile);
+  fwrite(&header, sizeof(StaticMeshAssetHeader), 1, outFile);
 
   for (auto& mesh : pStaticMesh->m_meshes) {
     MeshDataHeader meshHeader = {};
@@ -187,12 +182,10 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
     meshHeader.matIndex = mesh.materialIndex;
     meshHeader.nameSize = static_cast<uint32>(mesh.name.size() + 1);
 
-    outFile.write(reinterpret_cast<const char*>(&meshHeader), sizeof(MeshDataHeader));
-    outFile.write(mesh.name.c_str(), meshHeader.nameSize);
-    outFile.write(reinterpret_cast<const char*>(mesh.vertices.data()),
-      mesh.numVertices * sizeof(VertexData));
-    outFile.write(reinterpret_cast<const char*>(mesh.indices.data()),
-      mesh.numIndices * sizeof(uint32));
+    fwrite(&meshHeader, sizeof(MeshDataHeader), 1, outFile);
+    fwrite(mesh.name.c_str(), sizeof(char), meshHeader.nameSize, outFile);
+    fwrite(mesh.vertices.data(), sizeof(VertexData), mesh.numVertices, outFile);
+    fwrite(mesh.indices.data(), sizeof(uint32), mesh.numIndices, outFile);
   }
 
   for (auto& mat : pStaticMesh->m_materials) {
@@ -206,16 +199,16 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
     matHeader.ambientOcclusionMapPathSize =
       static_cast<uint32>(mat->aoPath.size() + 1);
 
-    outFile.write(reinterpret_cast<const char*>(&matHeader), sizeof(MaterialAssetHeader));
-    outFile.write(mat->getName().c_str(), matHeader.nameSize);
-    outFile.write(mat->baseColorPath.c_str(), matHeader.baseColorMapPathSize);
-    outFile.write(mat->normalPath.c_str(), matHeader.normalMapPathSize);
-    outFile.write(mat->metallicPath.c_str(), matHeader.metalnessMapPathSize);
-    outFile.write(mat->roughnessPath.c_str(), matHeader.roughnessMapPathSize);
-    outFile.write(mat->aoPath.c_str(), matHeader.ambientOcclusionMapPathSize);
+    fwrite(&matHeader, sizeof(MaterialAssetHeader), 1, outFile);
+    fwrite(mat->getName().c_str(), sizeof(char), matHeader.nameSize, outFile);
+    fwrite(mat->baseColorPath.c_str(), sizeof(char), matHeader.baseColorMapPathSize, outFile);
+    fwrite(mat->normalPath.c_str(), sizeof(char), matHeader.normalMapPathSize, outFile);
+    fwrite(mat->metallicPath.c_str(), sizeof(char), matHeader.metalnessMapPathSize, outFile);
+    fwrite(mat->roughnessPath.c_str(), sizeof(char), matHeader.roughnessMapPathSize, outFile);
+    fwrite(mat->aoPath.c_str(), sizeof(char), matHeader.ambientOcclusionMapPathSize, outFile);
   }
 
-  outFile.close();
+  fclose(outFile);
 }
 
 SPtr<Resource>

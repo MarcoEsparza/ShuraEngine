@@ -375,7 +375,8 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
     }
   }
   else if (filePath.compareExtensions({ ".dds" })) {
-    pRes = loadTextureFromDDS(filePath.toString());
+    SystemPath fullPath = "resources/assets/textures/" + filePath.filename();
+    pRes = loadTextureFromDDS(fullPath.string());
     return true;
   }
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {

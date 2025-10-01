@@ -404,3 +404,7 @@ FodyWeavers.xsd
 
 
 *.hdr
+*.dds
+*.sha
+*.tga
+*.fbx

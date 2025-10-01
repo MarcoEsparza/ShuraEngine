@@ -22,6 +22,7 @@
 #include <cmath>
 #include <assert.h>
 #include <algorithm>
+#include <cstdio>
 
 /*****************************************************************************/
 /*
