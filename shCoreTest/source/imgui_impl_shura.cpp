@@ -785,6 +785,12 @@ getKeyData(KEY::E key, ImGuiKey& imKey, uint32& input, const ModifierState modif
     input = '    ';
     break;
   }
+  case KEY::kPeriod:
+  {
+    imKey = ImGuiKey_Period;
+    input = '.';
+    break;
+  }
   case KEY::kKeysMax:
   {
     imKey = ImGuiKey_COUNT;

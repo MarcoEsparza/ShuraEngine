@@ -682,8 +682,8 @@ RendererApp::loadLight()
   shaderMan.m_lightData.target = pLightComp->m_target;
   shaderMan.m_lightData.intensity = pLightComp->m_intensity;
   shaderMan.m_lightData.color = pLightComp->m_color;
-  shaderMan.m_lightData.view = pLightComp->m_lightCamera.getView();
-  shaderMan.m_lightData.proj = pLightComp->m_lightCamera.getProjection();
+  shaderMan.m_lightData.view = pLightComp->m_lightCamera.getView().getTransposed();
+  shaderMan.m_lightData.proj = pLightComp->m_lightCamera.getProjection().getTransposed();
   shaderMan.updateLightCB();
 }
 

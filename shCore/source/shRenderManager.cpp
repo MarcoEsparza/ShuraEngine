@@ -278,7 +278,6 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 
       graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
       graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
-
       Transform modelT = pGameObject->transform.getTransform();
       graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
                                     &modelT,
@@ -429,7 +428,6 @@ RenderManager::drawShadowMap()
         
         uint32 indexCount = 0;
         uint32 vertexCount = 0;
-
         auto& meshResource = meshComponent->m_mesh;
         for (auto& mesh : meshResource->m_meshes) {
           if (mesh.bVisible) {
@@ -558,11 +556,11 @@ RenderManager::renderScene()
   /*************************************/
   /*          Shadow Mapping           */
   /*************************************/
-  pOutput = pShadowMap.pTexture;
+  //pOutput = pShadowMap.pTexture;
   graphMan.setViewport(shadowVP);
-  graphMan.clearDepthStencil(pOutput);
+  graphMan.clearDepthStencil(pShadowMap.pTexture);
   graphMan.clearRenderTarget(pShadowTemp.pTexture, LinearColor::BLACK);
-  graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pOutput);
+  graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pShadowMap.pTexture);
   shaderMan.m_passes[shaderMan.SHADOWMAP_SHADER_ID]->setPass();
   drawShadowMap();
   cleanShaderObjects();

@@ -1153,11 +1153,11 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
     bUpdated = true;
   }
   if(shaderMan.m_lightData.view != pLight->m_lightCamera.getView()) {
-    shaderMan.m_lightData.view = pLight->m_lightCamera.getView();
+    shaderMan.m_lightData.view = pLight->m_lightCamera.getView().getTransposed();
     bUpdated = true;
   }
   if(shaderMan.m_lightData.proj != pLight->m_lightCamera.getProjection()) {
-    shaderMan.m_lightData.proj = pLight->m_lightCamera.getProjection();
+    shaderMan.m_lightData.proj = pLight->m_lightCamera.getProjection().getTransposed();
     bUpdated = true;
   }
 

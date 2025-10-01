@@ -268,8 +268,8 @@ ShaderManager::createPipelinePasses()
   m_pPBRData = graphMan.createConstantBuffer(sizeof(PBRMaterialData));
 
   // Shadow shader buffers
-  pSMapShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pSMapShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+  pSMapShader->addVSConstantBuffer(m_pMainBuffer, 0);
+  pSMapShader->addVSConstantBuffer(m_pShaderDataBuffer, 1);
   pSMapShader->addVSConstantBuffer(m_pModelTransformBuffer, 2);
   pSMapShader->addVSConstantBuffer(m_pLightBuffer, 3);
 

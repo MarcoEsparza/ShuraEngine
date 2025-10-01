@@ -24,6 +24,12 @@ cbuffer LightData : register(b3)
 struct VS_INPUT
 {
   float3 Position : POSITION;
+  float3 Normal : NORMAL0;
+  float2 Tex : TEXCOORD0;
+  float3 Tangent : TANGENT0;
+  float3 Bitangent : BINORMAL0;
+  float4 BoneIDs : BLENDINDICES0;
+  float4 BoneWeights : BLENDWEIGHT0;
 };
 
 struct PS_INPUT
@@ -35,13 +41,14 @@ PS_INPUT main(VS_INPUT input)
 {
   PS_INPUT output = (PS_INPUT) 0;
   
-  float4x4 wvp = mul(ModelTransform, mul(lightView, lightProj));
-  output.Position = mul(float4(input.Position.xyz, 1.0f), wvp);
+  //float4x4 wvp = mul(ModelTransform, mul(lightView, lightProj));
+  output.Position = mul(float4(input.Position.xyz, 1.0f), mul(lightView, lightProj));
   
   return output;
 }
 
-float4 mainPS(PS_INPUT input) : SV_Target
+float4
+mainPS(PS_INPUT input) : SV_Target
 {
   float depth = input.Position.z / input.Position.w;
   return float4(depth.xxx, 1.0f);

@@ -13,6 +13,8 @@ Texture2D t_diffIrr : register(t8);
 Texture2D t_skyReflect : register(t9);
 RWTexture2D<float4> t_outputMap : register(u0);
 
+//SamplerComparisonState shadowSampler : register(s6);
+
 #define PCF_KERNEL_SIZE 5
 #define DELTA 0.00000001
 #define SAMPLE_DELTA 0.2f
@@ -62,7 +64,7 @@ pcFiltering(float2 uv,
   {
     for (int x = -PCF_KERNEL_SIZE; x <= PCF_KERNEL_SIZE; ++x)
     {
-    
+  
       float2 offset = float2(x, y) * texelSize;
       float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
 
@@ -71,11 +73,34 @@ pcFiltering(float2 uv,
       shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
     }
   }
-    
+  
   shadow /= PCF_KERNEL_SIZE * PCF_KERNEL_SIZE;
   return saturate(shadow);
   //return 1.0f - (shadow / sampleCount);
 }
+
+//float
+//pcFiltering(float2 uv,
+//            float compareDepth,
+//            float texelSize,
+//            float bias)
+//{
+//  float shadow = 0.0f;
+//  [unroll]
+//  for (int x = -1; x <= 1; x++)
+//  {
+//    [unroll]
+//    for (int y = -1; y <= 1; y++)
+//    {
+//      float2 offset = float2(x, y) * texelSize;
+//      float depth = t_shadowMap.SampleCmpLevelZero(shadowSampler,
+//                                                   uv + offset,
+//                                                   compareDepth - bias);
+//      shadow += depth;
+//    }
+//  }
+//  return shadow / 9.0f;
+//}
 
 float3 fresnelSchlick(float3 F0, float cosTheta)
 {
@@ -237,11 +262,6 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
     t_outputMap[dtID.xy] = float4(1.0f, 1.0f, 1.0f, 0.0f);
     return;
   }
-  //if (normalMap.w == 1.0f)
-  //{
-  //  t_outputMap[dtID.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
-  //  return;
-  //}
   
   normal = normal * 2.0f - 1.0f;
   float4 posWorld = depth;
@@ -282,9 +302,11 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   lightWorldPos.xyz /= lightWorldPos.w;
   lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
   
-  float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
+  //float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
+  float2 shadowCoord = lightWorldPos.xy;
   float shadowFactor = 1.0f;
-  float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
+  //float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
+  float shadowBias = 0.005f;
   float texelSize = 1.0f / shadowMapSize;
   
   if (shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
