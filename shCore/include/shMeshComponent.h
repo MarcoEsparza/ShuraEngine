@@ -64,8 +64,8 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   * 
   *  @return SPtr<StaticMeshResource>&
   */
-  FORCEINLINE const SPtr<StaticMeshResource>&
-  getMeshResource() const;
+  /*FORCEINLINE const SPtr<StaticMeshResource>&
+  getMeshResource() const;*/
 
   /**
   *  @brief Returns the vertex buffer.
@@ -92,7 +92,7 @@ class SH_CORE_EXPORT StaticMeshComponent : public Component
   /**
   *  @brief Resource with mesh data.
   */
-  SPtr<StaticMeshResource> m_mesh;
+  WPtr<StaticMeshResource> m_mesh;
 
   /**
   *  @brief Vertex Buffer.
@@ -172,11 +172,11 @@ class SH_CORE_EXPORT SkeletalMeshComponent : public Component
 */
 /*****************************************************************************/
 
-FORCEINLINE const SPtr<StaticMeshResource>&
-StaticMeshComponent::getMeshResource() const
-{
-  return m_mesh;
-}
+//FORCEINLINE const SPtr<StaticMeshResource>&
+//StaticMeshComponent::getMeshResource() const
+//{
+//  return m_mesh;
+//}
 
 FORCEINLINE const SPtr<VertexBuffer>&
 StaticMeshComponent::getVertexBuffer() const

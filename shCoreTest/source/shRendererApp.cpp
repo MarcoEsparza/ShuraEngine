@@ -87,7 +87,7 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  //loadPistol();
+  loadPistol();
   //loadSponza();
   loadSkybox();
   loadLight();
@@ -542,6 +542,11 @@ RendererApp::loadPistol()
 {
   ResourceManager& resMan = g_resourceMan();
   SceneGraph& sceneG = g_sceneGraph();
+  Logger& logger = g_logger();
+
+  Timer timer;
+  float time = timer.getTime();
+  logger.Log("Loading DrakeFire Shura Asset model...");
 
   auto modelRes = cast::re_ptr<StaticMeshResource>(
                   resMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
@@ -555,6 +560,9 @@ RendererApp::loadPistol()
 
   model->transform.getTransform() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 5.0f);
+
+  float total = timer.getTime() - time;
+  logger.Log("Model loaded in " + std::to_string(total) + " seconds.");
 
   /*auto pCollider = sh_makeShared<ColliderComponent>();
   pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
@@ -696,10 +704,10 @@ RendererApp::loadCoat()
 
   Timer timer;
   float time = timer.getTime();
-  logger.Log("Loading Bistro_Exterior Shura Asset model...");
+  logger.Log("Loading BistroInteriorWine Shura Asset model...");
 
   auto modelRes = cast::re_ptr<StaticMeshResource>(
-                  resMan.loadModelFromCache("resources/assets/models/BistroExterior.sha"));
+                  resMan.loadModelFromCache("resources/assets/models/BistroInteriorWine.sha"));
 
   auto model = sh_makeShared<GameObject>();
   model->name = "Bistro";
@@ -709,7 +717,7 @@ RendererApp::loadCoat()
   model->addComponent(modelMC);
 
   model->transform.getTransform() = Matrix4::IDENTITY;
-  model->setScale(Vector3::ONE * 1.0f);
+  model->setScale(Vector3::ONE * 0.1f);
 
   float total = timer.getTime() - time;
   

@@ -302,11 +302,10 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   lightWorldPos.xyz /= lightWorldPos.w;
   lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
   
-  //float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
-  float2 shadowCoord = lightWorldPos.xy;
+  float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
+  //float2 shadowCoord = lightWorldPos.xy;
   float shadowFactor = 1.0f;
-  //float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
-  float shadowBias = 0.005f;
+  float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
   float texelSize = 1.0f / shadowMapSize;
   
   if (shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||

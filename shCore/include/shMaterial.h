@@ -23,7 +23,8 @@
 #include <shVector2.h>
 
 namespace shEngineSDK {
-class Texture2D;
+//class Texture2D;
+class ImageResource;
 
 /**
 *  @brief Matrial properties structure.
@@ -47,8 +48,11 @@ struct SH_CORE_EXPORT MaterialProperties
       uint32 bWireframeEnabled : 1;
       uint32 bCanCastShadows : 1;
       uint32 bCanReceiveShadows : 1;
+      uint32 bInvertNormals : 1;
       uint32 bInvertRoughness : 1;
-      uint32 Unused : 17;
+      uint32 bInvertMetalness : 1;
+      uint32 bHasOpacityMask : 1;
+      uint32 Unused : 14;
     } flags;
     uint32 value = 0;
   } properties;
@@ -66,25 +70,11 @@ class SH_CORE_EXPORT Material : public Resource
   Material() : Resource(RESOURCE_TYPE::kMaterial) {}
 
   /**
-  *  @brief Constructor for material type.
-  */
-  //Material(MATERIAL_TYPE::E type) : m_type(type) {}
-
-  /**
   *  @brief Default destructor.
   */
   virtual ~Material() = default;
 
  public:
-  /**
-  *  @brief Material name.
-  */
-  //String name;
-
-  /**
-  *  @brief Material type.
-  */
-  //MATERIAL_TYPE::E m_type = MATERIAL_TYPE::kPBR;
 
   /**
   *  @brief Material properties.
@@ -94,52 +84,33 @@ class SH_CORE_EXPORT Material : public Resource
   /**
   *  @brief Base color texture.
   */
-  SPtr<Texture2D> baseColor;
+  WPtr<ImageResource> m_baseColor;
 
   /**
   *  @brief Metallic texture.
   */
-  SPtr<Texture2D> metallic;
+  WPtr<ImageResource> m_metalness;
 
   /**
   *  @brief Roughness texture.
   */
-  SPtr<Texture2D> roughness;
+  WPtr<ImageResource> m_roughness;
 
   /**
   *  @brief Normal texture.
   */
-  SPtr<Texture2D> normal;
+  WPtr<ImageResource> m_normal;
 
   /**
   *  @brief Ambient occlusion texture.
   */
-  SPtr<Texture2D> ao;
+  WPtr<ImageResource> m_ao;
 
-  /**
-  *  @brief Path of the base color texture.
-  */
-  String baseColorPath;
+  WPtr<ImageResource> m_emissive;
 
-  /**
-  *  @brief Path of the normal texture.
-  */
-  String normalPath;
+  WPtr<ImageResource> m_specular;
 
-  /**
-  *  @brief Path of the metallic texture.
-  */
-  String metallicPath;
-
-  /**
-  *  @brief Path of the roughness texture.
-  */
-  String roughnessPath;
-
-  /**
-  *  @brief Path of the ao texture.
-  */
-  String aoPath;
+  WPtr<ImageResource> m_opacityMask;
 
   Vector3 baseColorFactor = Vector3(1.0f, 1.0f, 1.0f);
   Vector2 metallicRoughnessFactor = Vector2(1.0f, 1.0f);

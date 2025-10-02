@@ -808,30 +808,32 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
       }
     }
     if (ImGui::Button("Save Mesh to cache")) {
-      if (pMesh->m_mesh) {
-        resMan.saveResourceToAsset(pMesh->m_mesh);
+      if (!pMesh->m_mesh.expired()) {
+        resMan.saveResourceToAsset(pMesh->m_mesh.lock());
       }
     }
-    if (!pMesh->m_mesh) {
+    if (pMesh->m_mesh.expired()) {
       ImGui::Text("Material Count: 0");
       ImGui::Text("Vertex Count: 0");
       ImGui::Text("Index Count: 0");
       return;
     }
+    auto pMeshRes = pMesh->m_mesh.lock();
+
     ImGui::Text("Material Count: %d",
-      static_cast<uint32>(pMesh->m_mesh->m_materials.size()));
+      static_cast<uint32>(pMeshRes->m_materials.size()));
     uint32 vertexCount = 0;
     uint32 indexCount = 0;
-    for (uint32 i = 0; i < pMesh->m_mesh->m_meshes.size(); ++i) {
-      vertexCount += pMesh->m_mesh->m_meshes[i].numVertices;
-      indexCount += pMesh->m_mesh->m_meshes[i].numIndices;
+    for (uint32 i = 0; i < pMeshRes->m_meshes.size(); ++i) {
+      vertexCount += pMeshRes->m_meshes[i].numVertices;
+      indexCount += pMeshRes->m_meshes[i].numIndices;
     }
     ImGui::Text("Vertex Count: %d", vertexCount);
     ImGui::Text("Index Count: %d", indexCount);
 
     ImGui::Spacing();
     if(ImGui::CollapsingHeader("Mesh Visibility")) {
-      for (auto& mesh : pMesh->m_mesh->m_meshes) {
+      for (auto& mesh : pMeshRes->m_meshes) {
         //String text = mesh.name + " visible";
         ImGui::Checkbox(mesh.name.c_str(), &mesh.bVisible); // Show visibility toggle for each mesh
       }
@@ -840,8 +842,8 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     ImGui::Spacing();
     ImGui::Text("Materials:");
     ImGui::Spacing();
-    for (int32 i = 0; i < pMesh->m_mesh->m_materials.size(); ++i) {
-      auto& currentMat = pMesh->m_mesh->m_materials[i];
+    for (int32 i = 0; i < pMeshRes->m_materials.size(); ++i) {
+      auto currentMat = pMeshRes->m_materials[i].lock();
       String matName = "Material:" + currentMat->getName();
       bool bSelected = (m_selectedMat == i);
 
@@ -873,10 +875,15 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   }
   auto currentMat = wpMat.lock();
 
-  auto& pBaseColor = currentMat->baseColor;
-  auto& pNormal = currentMat->normal;
-  auto& pMetallic = currentMat->metallic;
-  auto& pRoughness = currentMat->roughness;
+  auto& pBaseColorImg = currentMat->m_baseColor;
+  auto& pNormalImg = currentMat->m_normal;
+  auto& pMetalnessImg = currentMat->m_metalness;
+  auto& pRoughnessImg = currentMat->m_roughness;
+
+  auto& pBaseColor = currentMat->m_baseColor.lock()->texture;
+  auto& pNormal = currentMat->m_normal.lock()->texture;
+  auto& pMetalness = currentMat->m_metalness.lock()->texture;
+  auto& pRoughness = currentMat->m_roughness.lock()->texture;
 
   bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
@@ -892,10 +899,8 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                          "resources/textures/")) {
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
       auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg) {
-        pBaseColor = pImg->texture;
-        SystemPath savePath = SystemPath(filePath);
-        currentMat->baseColorPath = savePath.filename().string();
+      if (pImg->texture) {
+        pBaseColorImg = pImg;
       }
     }
   }
@@ -934,9 +939,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
-        pNormal = pImg->texture;
-        SystemPath savePath = SystemPath(filePath);
-        currentMat->normalPath = savePath.filename().string();
+        pNormalImg = pImg;
       }
     }
   }
@@ -946,8 +949,8 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
 
   // Metallic
-  if (ImGui::ImageButton("##MetallicSelection",
-    reinterpret_cast<ImTextureID*>(&pMetallic),
+  if (ImGui::ImageButton("##MetalnessSelection",
+    reinterpret_cast<ImTextureID*>(&pMetalness),
     ImVec2(64, 64))) {
     String filePath;
     if (fileExp.openFile(filePath,
@@ -956,9 +959,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
-        pMetallic = pImg->texture;
-        SystemPath savePath = SystemPath(filePath);
-        currentMat->metallicPath = savePath.filename().string();
+        pMetalnessImg = pImg;
       }
     }
   }
@@ -985,9 +986,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg) {
-        pRoughness = pImg->texture;
-        SystemPath savePath = SystemPath(filePath);
-        currentMat->roughnessPath = savePath.filename().string();
+        pRoughnessImg = pImg;
       }
     }
   }

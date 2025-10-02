@@ -28,30 +28,10 @@ StaticMeshComponent::setMeshData(const SPtr<StaticMeshResource>& pMeshRes)
   GraphicsManager& graphMan = g_graphicsMan();
   m_mesh = pMeshRes;
 
-  // Get all vertices
-  //Vector<VertexData> vertices;
-  //for (auto& mesh : m_mesh->m_meshes) {
-  //  for (auto& vertex : mesh.vertices) {
-  //    vertices.push_back(vertex);
-  //  }
-  //}
-
-  // Get all indices
-  //Vector<uint32> indices;
-  //for (auto& mesh : m_mesh->m_meshes) {
-  //  for (auto& index : mesh.indices) {
-  //    indices.push_back(index);
-  //  }
-  //}
-
-  // Create certex and index buffers
-  //m_vertexBuffer = graphMan.createVertexBuffer(vertices);
-  //m_indexBuffer = graphMan.createIndexBuffer(indices);
-
   uint32 totalVertices = 0;
   uint32 totalIndices = 0;
 #pragma omp parallel for
-  for (auto& mesh : m_mesh->m_meshes) {
+  for (auto& mesh : pMeshRes->m_meshes) {
     totalVertices += static_cast<uint32>(mesh.numVertices);
     totalIndices += static_cast<uint32>(mesh.numIndices);
   }
@@ -62,7 +42,7 @@ StaticMeshComponent::setMeshData(const SPtr<StaticMeshResource>& pMeshRes)
   indices.reserve(totalIndices);
 
 #pragma omp parallel for
-  for (auto& mesh : m_mesh->m_meshes) {
+  for (auto& mesh : pMeshRes->m_meshes) {
     vertices.insert(vertices.end(), mesh.vertices.begin(), mesh.vertices.end());
     indices.insert(indices.end(), mesh.indices.begin(), mesh.indices.end());
   }

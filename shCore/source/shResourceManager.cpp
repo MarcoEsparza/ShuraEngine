@@ -268,15 +268,29 @@ ResourceManager::~ResourceManager()
 void
 ResourceManager::onStartUp()
 {
+  GraphicsManager& graphMan = g_graphicsMan();
+
+  auto pErrorTex = graphMan.createErrorTexture();
+  auto pErrorImg = sh_makeShared<ImageResource>();
+  pErrorImg->texture = pErrorTex;
+  m_loadedResources["ErrorTexture"] = pErrorImg;
+
+  auto pNormalTex = graphMan.createDefaultNormalTexture();
+  auto pNormalImg = sh_makeShared<ImageResource>();
+  pNormalImg->texture = pNormalTex;
+  m_loadedResources["DefaultNormal"] = pNormalImg;
+
+  auto pBlackTex = graphMan.createBlackTexture();
+  auto pBlackImg = sh_makeShared<ImageResource>();
+  pBlackImg->texture = pBlackTex;
+  m_loadedResources["BlackTexture"] = pBlackImg;
+
   auto white = cast::re_ptr<ImageResource>(loadResourceFromFile(
                                               Path("resources/White.png")));
   auto normal = cast::re_ptr<ImageResource>(loadResourceFromFile(
                                               Path("resources/textures/normal.png")));
   auto pCube = cast::re_ptr<StaticMeshResource>(loadResourceFromFile(
                                                    Path("resources/models/cube.fbx")));
-  //pCube->m_materials[0]->baseColor = white->texture;
-  //pCube->m_materials[0]->normal = normal->texture;
-  //pCube->m_materials[0]->m_properties.bHasNormalMap = true;
 }
 
 SPtr<Resource>
@@ -530,7 +544,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   if (diffCount == 0) {
     // Create error texture
     pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
-    pMeshMat->baseColor = graphMan.createErrorTexture();
+    auto it = m_loadedResources.find("ErrorTexture");
+    pMeshMat->m_baseColor = cast::re_ptr<ImageResource>((*it).second);
   }
   else {
     pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
@@ -539,19 +554,21 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     SystemPath filename = aiPath.C_Str();
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
-    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    if (!pImage) {
-      pMeshMat->baseColor = graphMan.createErrorTexture();
+    auto pImage = cast::re_ptr<ImageResource>(loadResourceFromFile(filePath));
+    if (pImage) {
+      pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
+      auto it = m_loadedResources.find("ErrorTexture");
+      pMeshMat->m_baseColor = cast::re_ptr<ImageResource>((*it).second);
     }
     else {
-      pMeshMat->baseColor = pImage->texture;
-      pMeshMat->baseColorPath = pImage->getPath().toString();
+      pMeshMat->m_baseColor = pImage;
     }
   }
 
   if (normCount == 0) {
-    pMeshMat->m_properties.properties.flags.bHasNormalMap = true;
-    pMeshMat->normal = graphMan.createDefaultNormalTexture();
+    pMeshMat->m_properties.properties.flags.bHasNormalMap = false;
+    auto it = m_loadedResources.find("DefaultNormal");
+    pMeshMat->m_normal = cast::re_ptr<ImageResource>((*it).second);
   }
   else {
     pMeshMat->m_properties.properties.flags.bHasNormalMap = true;
@@ -561,18 +578,19 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    if (!pImage) {
-      pMeshMat->normal = graphMan.createDefaultNormalTexture();
+    if (pImage) {
+      auto it = m_loadedResources.find("DefaultNormal");
+      pMeshMat->m_normal = cast::re_ptr<ImageResource>((*it).second);
     }
     else {
-      pMeshMat->normal = pImage->texture;
-      pMeshMat->normalPath = pImage->getPath().toString();
+      pMeshMat->m_normal = pImage;
     }
   }
 
   if (metalCount == 0) {
     pMeshMat->m_properties.properties.flags.bHasMetalnessMap = false;
-    pMeshMat->metallic = graphMan.createBlackTexture();
+    auto it = m_loadedResources.find("BlackTexture");
+    pMeshMat->m_metalness = cast::re_ptr<ImageResource>((*it).second);
   }
   else {
     pMeshMat->m_properties.properties.flags.bHasMetalnessMap = true;
@@ -583,17 +601,18 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
-      pMeshMat->metallic = graphMan.createBlackTexture();
+      auto it = m_loadedResources.find("BlackTexture");
+      pMeshMat->m_metalness = cast::re_ptr<ImageResource>((*it).second);
     }
     else {
-      pMeshMat->metallic = pImage->texture;
-      pMeshMat->metallicPath = pImage->getPath().toString();
+      pMeshMat->m_metalness = pImage;
     }
   }
 
   if (roughCount == 0) {
     pMeshMat->m_properties.properties.flags.bHasRoughnessMap = false;
-    pMeshMat->roughness = graphMan.createBlackTexture();
+    auto it = m_loadedResources.find("BlackTexture");
+    pMeshMat->m_roughness = cast::re_ptr<ImageResource>((*it).second);
   }
   else {
     pMeshMat->m_properties.properties.flags.bHasRoughnessMap = true;
@@ -604,16 +623,18 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
-      pMeshMat->roughness = graphMan.createBlackTexture();
+      auto it = m_loadedResources.find("BlackTexture");
+      pMeshMat->m_roughness = cast::re_ptr<ImageResource>((*it).second);
     }
     else {
-      pMeshMat->roughness = pImage->texture;
-      pMeshMat->roughnessPath = pImage->getPath().toString();
+      pMeshMat->m_roughness = pImage;
     }
   }
 
   if (aoCount == 0) {
     pMeshMat->m_properties.properties.flags.bHasAmbientOcclusionMap = false;
+    auto it = m_loadedResources.find("BlackTexture");
+    pMeshMat->m_ao = cast::re_ptr<ImageResource>((*it).second);
   }
   else {
     pMeshMat->m_properties.properties.flags.bHasAmbientOcclusionMap = true;
@@ -624,11 +645,11 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
-      pMeshMat->ao = graphMan.createBlackTexture();
+      auto it = m_loadedResources.find("BlackTexture");
+      pMeshMat->m_ao = cast::re_ptr<ImageResource>((*it).second);
     }
     else {
-      pMeshMat->ao = pImage->texture;
-      pMeshMat->aoPath = pImage->getPath().toString();
+      pMeshMat->m_ao = pImage;
     }
   }
   
@@ -718,7 +739,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
   }
   else {
     for (uint32 i = 0; i < currentMesh->m_materials.size(); ++i) {
-      auto& mat = currentMesh->m_materials[i];
+      auto mat = currentMesh->m_materials[i].lock();
       if (currentMat->getName() == mat->getName()) {
         currentData.materialIndex = i;
         break;

@@ -74,7 +74,7 @@ class SH_CORE_EXPORT StaticMeshResource : public Resource
   /**
   *  @brief Materials info.
   */
-  Vector<SPtr<Material>> m_materials;
+  Vector<WPtr<Material>> m_materials;
 };
 
 /**

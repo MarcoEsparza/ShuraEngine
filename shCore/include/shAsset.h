@@ -58,7 +58,10 @@ struct SH_CORE_EXPORT MaterialAssetHeader {
   uint32 normalMapPathSize = 0;
   uint32 metalnessMapPathSize = 0;
   uint32 roughnessMapPathSize = 0;
-  uint32 ambientOcclusionMapPathSize = 0;
+  uint32 aoMapPathSize = 0;
+  uint32 emissiveMapPathSize = 0;
+  uint32 specularMapPathSize = 0;
+  uint32 opacityMaskMapPathSize = 0;
 };
 
 class SH_CORE_EXPORT Asset

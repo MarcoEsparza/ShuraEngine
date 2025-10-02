@@ -1,17 +1,18 @@
 #include "ShaderConstants.hlsl"
 
-//SamplerState textureSampler : register(s0);
 Texture2D t_baseColor : register(t0);
 Texture2D t_normal : register(t1);
 Texture2D t_metallic : register(t2);
 Texture2D t_roughness : register(t3);
 Texture2D t_ambientO : register(t4);
+Texture2D t_emissive : register(t5);
+Texture2D t_specular : register(t6);
+Texture2D t_opacityMask : register(t7);
 
-//cbuffer VP : register(b0)
-//{
-//  float4x4 View;
-//  float4x4 Proj;
-//}
+// ORM
+// AO rojo
+// Roughness verde
+// Metalness azul
 
 #ifndef ALPHA_TEST_THRESHOLD
 #define ALPHA_TEST_THRESHOLD 0.5f

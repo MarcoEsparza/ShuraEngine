@@ -272,7 +272,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
         pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
 
-      if (!meshComponent->m_mesh) {
+      if (meshComponent->m_mesh.expired()) {
         return;
       }
 
@@ -285,13 +285,13 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 
       uint32 indexCount = 0;
       uint32 vertexCount = 0;
-      auto& meshResource = meshComponent->m_mesh;
+      auto meshResource = meshComponent->m_mesh.lock();
       for (auto& mesh : meshResource->m_meshes) {
-        auto& material = meshResource->m_materials[mesh.materialIndex];
+        auto material = meshResource->m_materials[mesh.materialIndex].lock();
         shaderMan.getPassFromMaterial(material->m_properties)->setPass();
         bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
         if (!bHasAlphaTest && mesh.bVisible) {
-          setResourceViewFromPBRMaterial(material);
+          setShaderResourceFromMaterial(material);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
         indexCount += mesh.numIndices;
@@ -321,7 +321,7 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
       pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
 
-      if (!meshComponent->m_mesh) {
+      if (meshComponent->m_mesh.expired()) {
         return;
       }
 
@@ -335,13 +335,13 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
 
       uint32 indexCount = 0;
       uint32 vertexCount = 0;
-      auto& meshResource = meshComponent->m_mesh;
+      auto meshResource = meshComponent->m_mesh.lock();
       for (auto& mesh : meshResource->m_meshes) {
-        auto& material = meshResource->m_materials[mesh.materialIndex];
+        auto material = meshResource->m_materials[mesh.materialIndex].lock();
         shaderMan.getPassFromMaterial(material->m_properties)->setPass();
         bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
         if (bHasAlphaTest && mesh.bVisible) {
-          setResourceViewFromPBRMaterial(material);
+          setShaderResourceFromMaterial(material);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
         indexCount += mesh.numIndices;
@@ -389,7 +389,7 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
       for (auto& mesh : meshResource->m_meshes) {
         auto& material = meshResource->m_materials[mesh.materialIndex];
         shaderMan.getPassFromMaterial(material->m_properties)->setPass();
-        setResourceViewFromPBRMaterial(material);
+        setShaderResourceFromMaterial(material);
         graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         
         indexCount += mesh.numIndices;
@@ -415,7 +415,7 @@ RenderManager::drawShadowMap()
       if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
           gameObject->m_bActive) {
         auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
-        if (!meshComponent->m_mesh) {
+        if (meshComponent->m_mesh.expired()) {
           return;
         }
 
@@ -428,7 +428,7 @@ RenderManager::drawShadowMap()
         
         uint32 indexCount = 0;
         uint32 vertexCount = 0;
-        auto& meshResource = meshComponent->m_mesh;
+        auto meshResource = meshComponent->m_mesh.lock();
         for (auto& mesh : meshResource->m_meshes) {
           if (mesh.bVisible) {
             graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
@@ -442,30 +442,40 @@ RenderManager::drawShadowMap()
 }
 
 void
-RenderManager::setResourceViewFromPBRMaterial(const SPtr<Material>& pMat)
+RenderManager::setShaderResourceFromMaterial(const SPtr<Material>& pMat)
 {
   GraphicsManager& graphMan = g_graphicsMan();
   ShaderManager& shaderMan = g_shaderMan();
+  ResourceManager& resMan = g_resourceMan();
 
   shaderMan.m_materialData.baseColorFactor = pMat->baseColorFactor;
   shaderMan.m_materialData.metallicRoughnessFactor = pMat->metallicRoughnessFactor;
   shaderMan.m_materialData.properties = pMat->m_properties;
   shaderMan.updateMaterialCB();
 
-  if (pMat->baseColor) {
-    graphMan.psSetShaderResourceView(pMat->baseColor);
+  if (!pMat->m_baseColor.expired()) {
+    auto pBaseColorImg = pMat->m_baseColor.lock();
+    graphMan.psSetShaderResourceView(pBaseColorImg->texture, 0);
   }
-  if (pMat->normal) {
-    graphMan.psSetShaderResourceView(pMat->normal, 1);
+  if (!pMat->m_normal.expired()) {
+    auto pNormal = pMat->m_normal.lock();
+    graphMan.psSetShaderResourceView(pNormal->texture, 1);
   }
-  if (pMat->metallic) {
-    graphMan.psSetShaderResourceView(pMat->metallic, 2);
+  if (!pMat->m_metalness.expired()) {
+    auto pMetalness = pMat->m_metalness.lock();
+    graphMan.psSetShaderResourceView(pMetalness->texture, 2);
   }
-  if (pMat->roughness) {
-    graphMan.psSetShaderResourceView(pMat->roughness, 3);
+  if (!pMat->m_roughness.expired()) {
+    auto pRoughness = pMat->m_roughness.lock();
+    graphMan.psSetShaderResourceView(pRoughness->texture, 3);
   }
-  if (pMat->ao) {
-    graphMan.psSetShaderResourceView(pMat->ao, 4);
+  if (!pMat->m_ao.expired()) {
+    auto pAO = pMat->m_ao.lock();
+    graphMan.psSetShaderResourceView(pAO->texture, 4);
+  }
+  if (!pMat->m_emissive.expired()) {
+    auto pEmissive = pMat->m_emissive.lock();
+    graphMan.psSetShaderResourceView(pEmissive->texture, 5);
   }
 }
 

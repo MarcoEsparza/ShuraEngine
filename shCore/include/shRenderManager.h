@@ -138,7 +138,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   *  @param SPtr<PBRMaterial>& pMat
   */
   void
-  setResourceViewFromPBRMaterial(const SPtr<Material>& pMat);
+  setShaderResourceFromMaterial(const SPtr<Material>& pMat);
 
   /**
   *  @brief Render the scene.
