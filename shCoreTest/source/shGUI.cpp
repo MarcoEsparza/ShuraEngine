@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shGUI.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/15
+*  @date    2025/10/02
 *  @brief   Graphical User Interface (GUI) system for editor.
 *
 *  Graphical User Interface (GUI) system for editor.
 *
 *  @bug     No bug known
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shGUI.h"
 #include "imgui_impl_shura.h"
 
@@ -26,10 +26,13 @@
 #include <shSceneGraph.h>
 #include <shResourceManager.h>
 #include <shFileExplorer.h>
+//#include <shLogger.h>
 #include <shTexture.h>
 #include <shMath.h>
 #include <shException.h>
+#include <shTimer.h>
 
+#include <shGameObject.h>
 #include <shComponent.h>
 #include <shTransformComponent.h>
 #include <shMeshComponent.h>
@@ -65,11 +68,8 @@ GUI::init(const WPtr<Screen> pScreen)
 
   m_camSpeed = 100.0f;
   m_camFov = 30.0f;
-  //m_lightPos = { 0.0f, 100.0f, 0.0f, 1.0f };
-  //m_lightTarget = Vector3::ZERO;
-  //m_lcamNear = 0.1f;
-  //m_lcamFar = 1000.0f;
-  //m_lcamSize = 1000.0f;
+  m_camNear = 0.1f;
+  m_camFar = 2000.0f;
 }
 
 void
@@ -105,9 +105,7 @@ GUI::update()
   ImGui::Text("Resource1");
   ImGui::End();
 
-  ImGui::Begin("Console");
-  ImGui::Text("Message1");
-  ImGui::End();
+  setConsoleLogs();
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
   ImGui::Begin("Scene");
@@ -216,6 +214,18 @@ GUI::setDockSpace()
 }
 
 void
+GUI::setConsoleLogs()
+{
+  ImGui::Begin("Console");
+  
+  for (const auto& log : m_logs) {
+    ImGui::TextWrapped("%s", log.c_str());
+  }
+
+  ImGui::End();
+}
+
+void
 GUI::setRendererSettings()
 {
   //RenderManager& renderMan = g_renderMan();
@@ -299,74 +309,11 @@ GUI::setRendererSettings()
     rendererSettings.maxB = maxB * NORM_COLOR;
   }
 
-  //if (ImGui::CollapsingHeader("Shadows")) {
-  //  if (ImGui::CollapsingHeader("Light settings")) {
-  //    // Light Position
-  //    ImGui::Text("Light Pos:");
-  //    // Position X
-  //    ImGui::SameLine(80.0f);
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-  //    ImGui::SetNextItemWidth(50.0f);
-  //    ImGui::DragFloat("x##LPosX", &m_lightPos.x, 1.0f);
-  //    ImGui::PopStyleColor(3);
-  //    // Position Y
-  //    ImGui::SameLine();
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-  //    ImGui::SetNextItemWidth(50.0f);
-  //    ImGui::DragFloat("y##LPosY", &m_lightPos.y, 1.0f);
-  //    ImGui::PopStyleColor(3);
-  //    // Position Z
-  //    ImGui::SameLine();
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-  //    ImGui::SetNextItemWidth(50.0f);
-  //    ImGui::DragFloat("z##LPosZ", &m_lightPos.z, 1.0f);
-  //    ImGui::PopStyleColor(3);
-
-  //    // Light Target
-  //    ImGui::Text("Light Target:");
-  //    // Position X
-  //    ImGui::SameLine(80.0f);
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-  //    ImGui::SetNextItemWidth(50.0f);
-  //    ImGui::DragFloat("x##LTarX", &m_lightTarget.x, 1.0f);
-  //    ImGui::PopStyleColor(3);
-  //    // Position Y
-  //    ImGui::SameLine();
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-  //    ImGui::SetNextItemWidth(50.0f);
-  //    ImGui::DragFloat("y##LTarY", &m_lightTarget.y, 1.0f);
-  //    ImGui::PopStyleColor(3);
-  //    // Position Z
-  //    ImGui::SameLine();
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-  //    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-  //    ImGui::SetNextItemWidth(50.0f);
-  //    ImGui::DragFloat("z##LTarZ", &m_lightTarget.z, 1.0f);
-  //    ImGui::PopStyleColor(3);
-
-  //    ImGui::Spacing();
-  //    ImGui::DragFloat("Light Cam Near:", &m_lcamNear, 0.1f);
-  //    ImGui::Spacing();
-  //    ImGui::DragFloat("Light Cam Far:", &m_lcamFar, 1.0f);
-  //    ImGui::Spacing();
-  //    ImGui::DragFloat("Light Cam Size:", &m_lcamSize, 1.0f);
-  //  }
-  //}
-
   if (ImGui::CollapsingHeader("Camera Settings")) {
     ImGui::DragFloat("Camera Speed", &m_camSpeed, 1.0f, 1.0f, 300.0f);
     ImGui::DragFloat("Camera FOV", &m_camFov, 1.0f, 1.0f, 180.0f);
+    ImGui::DragFloat("Camera Near Plane", &m_camNear, 0.1f, 0.01f, 100.0f);
+    ImGui::DragFloat("Camera Far Plane", &m_camFar, 1.0f, 100.0f, 10000.0f);
   }
 
   ImGui::End();
@@ -410,11 +357,10 @@ FindSharedPtrInTree(GameObject* raw, const Vector<SPtr<GameObject>>& roots) {
   return nullptr;
 }
 
-static void
-showSceneGraph(const SPtr<GameObject>& pNode,
-               SPtr<GameObject>& pSelectedObj,
-               SPtr<GameObject>& renamingObj,
-               int32& matSelection)
+void
+GUI::showSceneGraph(const SPtr<GameObject>& pNode,
+                    SPtr<GameObject>& pSelectedObj,
+                    int32& matSelection)
 {
   SceneGraph& scene = g_sceneGraph();
 
@@ -433,28 +379,12 @@ showSceneGraph(const SPtr<GameObject>& pNode,
 
   bool opened = false;
 
-  if (renamingObj == pNode) {
-    static char renameBuffer[256] = {};
-
-    // Just initialize once
-    if (!ImGui::IsAnyItemActive()) {
-      strncpy(renameBuffer, pNode->name.c_str(), sizeof(renameBuffer));
-    }
-
-    // Show input text instead of name
-    opened = ImGui::TreeNodeEx("", flags); // Empty label, we keep layout
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(150.0f);
-    if (ImGui::InputText("##rename",
-                         renameBuffer,
-                         sizeof(renameBuffer),
-                         ImGuiInputTextFlags_EnterReturnsTrue |
-                         ImGuiInputTextFlags_AutoSelectAll)) {
-      pNode->name = renameBuffer;
-      renamingObj = nullptr;
-    }
-    if (!ImGui::IsItemActive() && !ImGui::IsItemHovered()) {
-      renamingObj = nullptr;
+  if (m_bRename && m_pRenamingGameObject == pNode) {
+    if (ImGui::InputText("##rename", pSelectedObj->name.data(), 256,
+      ImGuiInputTextFlags_AutoSelectAll |
+      ImGuiInputTextFlags_EnterReturnsTrue)) {
+      m_bRename = false;
+      m_pRenamingGameObject = nullptr;
     }
   }
   else {
@@ -465,7 +395,8 @@ showSceneGraph(const SPtr<GameObject>& pNode,
       matSelection = -1; // Reset material selection when selecting a new object
     }
     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      renamingObj = pNode;
+      m_pRenamingGameObject = pNode;
+      m_bRename = true;
     }
   }
 
@@ -476,24 +407,11 @@ showSceneGraph(const SPtr<GameObject>& pNode,
       child->name = "NewChild";
       child->parent = pNode;
       pNode->addChild(child);
-      //if (ImGui::BeginPopupContextItem()) {
-      //  if (ImGui::MenuItem("Create empty child")) {
-      //    SPtr<GameObject> child = sh_makeShared<GameObject>();
-      //    child->name = "NewChild";
-      //    child->parent = pNode;
-      //    pNode->addChild(child);
-      //  }
-      //  if (ImGui::MenuItem("Create Cube")) {
-      //    /*SPtr<GameObject> child = sh_makeShared<GameObject>();
-      //    child->name = "Cube";
-      //    child->parent = pNode;
-      //    pNode->addChild(child);*/
-      //  }
-      //  ImGui::EndPopup();
-      //}
     }
     if (ImGui::MenuItem("Rename")) {
-      
+      //m_pRenamingGameObject = pNode;
+      m_bRename = true;
+      m_pRenamingGameObject = pSelectedObj;
     }
     if (ImGui::MenuItem("Delete")) {
       
@@ -547,7 +465,7 @@ showSceneGraph(const SPtr<GameObject>& pNode,
 
   if (opened) {
     for (auto& child : pNode->childs) {
-      showSceneGraph(child, pSelectedObj, renamingObj, matSelection);
+      showSceneGraph(child, pSelectedObj, matSelection);
     }
     ImGui::TreePop();
   }
@@ -560,7 +478,7 @@ GUI::setSceneGraph()
 {
   SceneGraph& scene = g_sceneGraph();
 
-  static SPtr<GameObject> renamingObject;
+  //static SPtr<GameObject> renamingObject;
 
   ImGui::Begin("Scenegraph");
 
@@ -584,7 +502,7 @@ GUI::setSceneGraph()
 
   // Draw hierarchy
   for (auto& gameObject : scene.getGameObjectList()) {
-    showSceneGraph(gameObject, m_pActiveGameObject, renamingObject, m_selectedMat);
+    showSceneGraph(gameObject, m_pActiveGameObject, m_selectedMat);
   }
 
   ImGui::End();
@@ -796,23 +714,40 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
   auto pMesh = wpSMesh.lock();
 
   if (ImGui::CollapsingHeader("Static Mesh Component")) {
+    // Mesh selection
     if (ImGui::Button("Select Mesh")) {
       String filePath;
       if (fileExp.openFile(filePath, ".hdr", "resources/models/")) {
+        Timer timer;
+        float timeStart = timer.getTime();
         auto pRes = resMan.loadResourceFromFile(Path(filePath));
         auto pStaticMesh = cast::re_ptr<StaticMeshResource>(pRes);
         if (pStaticMesh) {
           pMesh->setMeshData(pStaticMesh);
           m_selectedMat = -1; // Reset material selection when changing mesh
         }
+        float timeEnd = timer.getTime();
+        float loadTime = timeEnd - timeStart;
+        SystemPath pathObj(filePath);
+        String log = "Loaded " +
+                     pathObj.filename().string() +
+                     " in " +
+                     std::to_string(loadTime) +
+                     " seconds.";
+        m_logs.push_back(log);
       }
     }
+
+    // Save to cache button
     if (ImGui::Button("Save Mesh to cache")) {
       if (!pMesh->m_mesh.expired()) {
         resMan.saveResourceToAsset(pMesh->m_mesh.lock());
       }
     }
+
+    // If no mesh is assigned, show message and return
     if (pMesh->m_mesh.expired()) {
+      // Show empty mesh info
       ImGui::Text("Material Count: 0");
       ImGui::Text("Vertex Count: 0");
       ImGui::Text("Index Count: 0");
@@ -820,8 +755,8 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     }
     auto pMeshRes = pMesh->m_mesh.lock();
 
-    ImGui::Text("Material Count: %d",
-      static_cast<uint32>(pMeshRes->m_materials.size()));
+    // Show mesh info
+    ImGui::Text("Material Count: %d", static_cast<uint32>(pMeshRes->m_materials.size()));
     uint32 vertexCount = 0;
     uint32 indexCount = 0;
     for (uint32 i = 0; i < pMeshRes->m_meshes.size(); ++i) {
@@ -831,14 +766,16 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     ImGui::Text("Vertex Count: %d", vertexCount);
     ImGui::Text("Index Count: %d", indexCount);
 
+    // Mesh visibility
     ImGui::Spacing();
     if(ImGui::CollapsingHeader("Mesh Visibility")) {
       for (auto& mesh : pMeshRes->m_meshes) {
-        //String text = mesh.name + " visible";
-        ImGui::Checkbox(mesh.name.c_str(), &mesh.bVisible); // Show visibility toggle for each mesh
+        // Show visibility toggle for each mesh
+        ImGui::Checkbox(mesh.name.c_str(), &mesh.bVisible);
       }
     }
 
+    // Material inspector
     ImGui::Spacing();
     ImGui::Text("Materials:");
     ImGui::Spacing();
@@ -851,7 +788,6 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
       if (ImGui::CollapsingHeader(matName.c_str())) {
         if (!bSelected) {
           m_selectedMat = i;
-          m_bTexColor = false;
         }
         showMaterialInspector(currentMat);
       }

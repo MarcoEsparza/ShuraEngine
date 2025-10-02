@@ -403,6 +403,11 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
       return true;
     }
   }
+  else if(filePath.compareExtensions({ ".sha" })) {
+    SystemPath fullPath = "resources/assets/models/" + filePath.filename();
+    pRes = loadModelFromCache(fullPath.string());
+    return true;
+  }
 
   return false;
 }

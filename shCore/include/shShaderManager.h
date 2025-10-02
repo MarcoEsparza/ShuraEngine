@@ -2,7 +2,7 @@
 /*
 *  @file    shShaderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/09/30
+*  @date    2025/10/02
 *  @brief   Shader managment module.
 *
 *  Shader managment module.
@@ -36,7 +36,12 @@ namespace shEngineSDK {
 /*****************************************************************************/
 class Pass;
 class ConstantBuffer;
-//struct MaterialProperties;
+
+/*****************************************************************************/
+/*
+*  Buffer structures
+*/
+/*****************************************************************************/
 
 /**
 *  @brief Main buffer data structure.
@@ -143,11 +148,11 @@ struct SH_CORE_EXPORT LightCB
 };
 
 struct PBRMaterialData {
-  Vector3 baseColorFactor;
-  float unused0; // Padding to align to 16 bytes
-  Vector2 metallicRoughnessFactor;
+  Vector3 baseColorFactor = Vector3::ZERO;
+  float unused0 = 0.0f; // Padding to align to 16 bytes
+  Vector2 metallicRoughnessFactor = Vector2::ZERO; // x = metallic, y = roughness
   MaterialProperties properties;
-  float unused1; // Padding to align to 16 bytes
+  float unused1 = 0.0f; // Padding to align to 16 bytes
 };
 
 /**
@@ -172,27 +177,55 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   /***************************************************************************/
  public:
+  /**
+  *  @brief Creates all the pipeline passes used in the engine.
+  */
   void
   createPipelinePasses();
 
+  /**
+  *  @brief Get the pass that matches the given material properties.
+  * 
+  *  @param const MaterialProperties& props: The material properties to match.
+  * 
+  *  @return SPtr<Pass> The pass that matches the given material properties.
+  */
   SPtr<Pass>
   getPassFromMaterial(const MaterialProperties& props);
 
+  /**
+  *  @brief Recompile all shaders in the engine.
+  */
   void
   recompileShaders();
 
+  /**
+  *  @brief Update the main constant buffer.
+  */
   void
   updateMainCB();
 
+  /**
+  *  @brief Update the shader data constant buffer.
+  */
   void
   updateShaderDataCB();
 
+  /**
+  *  @brief Update the prefiltered cubemap constant buffer.
+  */
   void
   updatePrefilterShaderCB();
 
+  /**
+  *  @brief Update the light constant buffer.
+  */
   void
   updateLightCB();
 
+  /**
+  *  @brief Update the light camera constant buffer.
+  */
   void
   updateMaterialCB();
 
@@ -202,6 +235,9 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   /***************************************************************************/
  public:
+  /**
+  *  @brief All the passes used in the engine.
+  */
   UMap<uint32, SPtr<Pass>> m_passes;
 
   /**
@@ -214,6 +250,9 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   SPtr<ConstantBuffer> m_pShaderDataBuffer;
 
+  /**
+  *  @brief Constant Buffer for prefiltered cubemap.
+  */
   SPtr<ConstantBuffer> m_pPrefilteredCB;
 
   /**
@@ -231,38 +270,145 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   SPtr<ConstantBuffer> m_pModelTransformBuffer;
 
+  /**
+  *  @brief Constant buffer for PBR material data.
+  */
   SPtr<ConstantBuffer> m_pPBRData;
 
+  /**
+  *  @brief Main buffer data structure.
+  */
   MainBufferData m_mainBufferData;
 
+  /**
+  *  @brief Shader data structure.
+  */
   ShaderData m_shaderData;
 
+  /**
+  *  @brief Prefiltered cubemap data.
+  */
   PrefilteredCB m_prefilteredData;
 
+  /**
+  *  @brief Light data structure.
+  */
   LightCB m_lightData;
 
+  /**
+  *  @brief Material data structure.
+  */
   PBRMaterialData m_materialData;
 
+  /***************************************************************************/
+  /*
+  *  Static Variables
+  */
+  /***************************************************************************/
+ public:
+  /**
+  *  @brief Static ID for the SSAO map shader.
+  */
   static const uint32 SSAO_SHADER_ID;
+  
+  /**
+  *  @brief Static ID for the horizontal blur shader.
+  */
   static const uint32 HBLUR_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the vertical blur shader.
+  */
   static const uint32 VBLUR_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the horizontal blur compute shader.
+  */
   static const uint32 HBLUR_CS_ID;
+
+  /**
+  *  @brief Static ID for the vertical blur compute shader.
+  */
   static const uint32 VBLUR_CS_ID;
+
+  /**
+  *  @brief Static ID for the light compute shader.
+  */
   static const uint32 LIGHT_CS_ID;
+
+  /**
+  *  @brief Static ID for the shadow map shader.
+  */
   static const uint32 SHADOWMAP_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the skybox shader.
+  */
   static const uint32 SKYBOX_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the final shader.
+  */
   static const uint32 FINAL_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the plane shader.
+  */
   static const uint32 PLANE_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the histogram shader.
+  */
   static const uint32 HISTOGRAM_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the add skybox shader.
+  */
   static const uint32 ADDSKYBOX_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the luminance shader.
+  */
   static const uint32 LUMINANCE_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the bright pass shader.
+  */
   static const uint32 BRIGHT_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the tone mapping shader.
+  */
   static const uint32 TONEMAP_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the post process shader.
+  */
   static const uint32 POSTPROCESS_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the additive shader.
+  */
   static const uint32 ADDITIVE_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the cubemap shader.
+  */
   static const uint32 CUBEMAP_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the diffuse irradiance shader.
+  */
   static const uint32 DIFFUSE_IRR_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the prefiltered irradiance shader.
+  */
   static const uint32 PREFILTERED_IRR_SHADER_ID;
+
+  /**
+  *  @brief Static ID for the BRDF shader.
+  */
   static const uint32 BRDF_SHADER_ID;
 };
 

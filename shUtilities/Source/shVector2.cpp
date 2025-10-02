@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/09/27
+*  @date    2025/10/02
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -20,6 +20,9 @@
 #include "shMath.h"
 
 namespace shEngineSDK {
+const Vector2 Vector2::ZERO = Vector2(0.0f, 0.0f);
+const Vector2 Vector2::ONE = Vector2(1.0f, 1.0f);
+
 Vector2::Vector2(const Vector2& other)
 {
   x = other.x;

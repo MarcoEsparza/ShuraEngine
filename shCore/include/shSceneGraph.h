@@ -1,32 +1,29 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shSceneGraph.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2025/10/02
 *  @brief   Scene graph class.
 *
 *  Scene graph class.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shModule.h"
-#include "shGameObject.h"
-#include "shBuffers.h"
-#include "shGraphicTypes.h"
-#include "shInputLayout.h"
 
 namespace shEngineSDK {
 class StaticMeshComponent;
 class SkeletalMeshComponent;
+class GameObject;
 
 /**
 *  @brief Scene graph class.
@@ -44,12 +41,15 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   */
   virtual ~SceneGraph();
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  public:
+  void
+  onStartUp() override;
+
   /**
   *  @brief Creates and add a empty object to the scene.
   * 
@@ -60,6 +60,15 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
 
   SPtr<GameObject>
   createCubeObject();
+
+  void
+  createDefaultScene();
+
+  void
+  addDefaultSkybox();
+
+  void
+  addDefaultDirectionalLight();
 
   /**
   *  @brief Adds a object to the scene.
@@ -83,11 +92,11 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   void
   update();
 
-  /*************************************************************/
+  /***************************************************************************/
   /*
   *  Functions
   */
-  /*************************************************************/
+  /***************************************************************************/
  private:
   /**
   *  @brief Game Objects storage.

@@ -757,6 +757,12 @@ getKeyData(KEY::E key, ImGuiKey& imKey, uint32& input, const ModifierState modif
     input = '9';
     break;
   }
+  case KEY::kEnter:
+  {
+    imKey = ImGuiKey_Enter;
+    input = '\n';
+    break;
+  }
   case KEY::kBack:
   {
     imKey = ImGuiKey_Backspace;

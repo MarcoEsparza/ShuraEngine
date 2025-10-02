@@ -2,7 +2,7 @@
 /*
 *  @file    shVector2.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/15
+*  @date    2025/10/02
 *  @brief   Vector2 with float
 *
 *  Vector2 with float
@@ -236,6 +236,22 @@ class SH_UTILITY_EXPORT  Vector2
   * @brief Vector2 Y value.
   */
   float y;
+
+  /***************************************************************************/
+  /*
+  *  Static Variables
+  */
+  /***************************************************************************/
+ public:
+    /**
+    * Vector2 Zero vector = 0.0f, 0.0f.
+    */
+    static const Vector2 ZERO;
+  
+    /**
+    * Vector2 One vector = 1.0f, 1.0f.
+    */
+    static const Vector2 ONE;
 };
 
 /*****************************************************************************/

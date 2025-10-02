@@ -60,6 +60,7 @@ RendererApp::onCreate()
   RenderManager& renderMan = g_renderMan();
   ShaderManager& shaderMan = g_shaderMan();
   AudioManager& audioMan = AudioManager::instance();
+  SceneGraph& scene = g_sceneGraph();
 
   m_shadowTexSize = 2048.0f;
   m_screenSize = Vector2(static_cast<float>(getScreenDescription().width),
@@ -87,11 +88,13 @@ RendererApp::onCreate()
   m_gui.init(getScreen());
 
   // Load resources
-  loadPistol();
+  scene.createDefaultScene();
+  
+  //loadPistol();
   //loadSponza();
-  loadSkybox();
-  loadLight();
-  loadCoat();
+  //loadSkybox();
+  //loadLight();
+  //loadCoat();
   //tempLoad();
 
   updateMainBuffer();
@@ -125,6 +128,8 @@ RendererApp::onUpdate()
   }
   m_gui.update();
   m_camera.setHalfFOV(m_gui.m_camFov * Math::DEG2RAD);
+  m_camera.setNear(m_gui.m_camNear);
+  m_camera.setFar(m_gui.m_camFar);
   
   if (m_fpsTimer >= 1.0f) {
     m_fpsTimer = 0.0f;
@@ -134,43 +139,6 @@ RendererApp::onUpdate()
   {
     ++m_fpsCount;
   }
-
-  // Update light
-
-  /*Vector<Vector4> lights;
-  lights.resize(12);
-  lights[0] = m_lightPos;
-  Vector3 lightTarget = m_lightCam.getTarget();
-  float lcamNear = m_lightCam.getNear();
-  float lcamFar = m_lightCam.getFar();
-  float lcamSize = m_lightCam.getWidth();
-
-  if (lights[0] != m_gui.m_lightPos ||
-      lightTarget != m_gui.m_lightTarget ||
-      lcamNear != m_gui.m_lcamNear ||
-      lcamFar != m_gui.m_lcamFar ||
-      lcamSize != m_gui.m_lcamSize) {
-    lights[0] = m_gui.m_lightPos;
-    graphMan.updateConstantBuffer(m_pLightBuffer, lights.data(), sizeof(lights));
-
-    m_lightCam.setPosition(Vector3(m_lightPos.x, m_lightPos.y, m_lightPos.z));
-    m_lightCam.setTarget(m_gui.m_lightTarget);
-    m_lightCam.setNear(m_gui.m_lcamNear);
-    m_lightCam.setFar(m_gui.m_lcamFar);
-    m_lightCam.setWidth(m_gui.m_lcamSize);
-    m_lightCam.setHeight(m_gui.m_lcamSize);
-
-    VP lcam = {};
-    lcam.proj = m_lightCam.getProjection();
-    lcam.view = m_lightCam.getView();
-    lcam.proj.getTransposed();
-    lcam.view.getTransposed();
-
-    Vector4 camSize = { m_gui.m_lcamSize, 0.0f, 0.0f, 0.0f };
-    renderMan.setShadowMapSize(m_gui.m_lcamSize);
-
-    graphMan.updateConstantBuffer(m_pLCBuffer, &lcam, sizeof(VP));
-  }*/
 
   // Update camera
   if (m_bRightClick) {
@@ -200,15 +168,6 @@ RendererApp::onUpdate()
   updateMainBuffer();
 
   //scene.update();
-
-  /*for(auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
-      if (component->getType() == COMPONENT_TYPE::kAnimator) {
-        auto animator = cast::re_ptr<AnimatorComponent>(component);
-        animator->update(time.getFrameDeltaTime());
-      }
-    }
-  }*/
 
   // Update audio
   if (bIsSoundPlaying) {

@@ -22,6 +22,7 @@
 #include "shRenderManager.h"
 #include "shShaderManager.h"
 #include "shSceneGraph.h"
+#include "shGameObject.h"
 #include "shPass.h"
 #include "shCollider.h"
 #include "shColliderComponent.h"
