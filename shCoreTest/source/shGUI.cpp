@@ -1073,10 +1073,16 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
   bool bUpdated = false;
   if(shaderMan.m_lightData.position != pLight->m_position) {
     shaderMan.m_lightData.position = pLight->m_position;
+    pLight->m_lightCamera.setPosition(Vector3(pLight->m_position.x,
+                                              pLight->m_position.y,
+                                              pLight->m_position.z));
     bUpdated = true;
   }
   if(shaderMan.m_lightData.target != pLight->m_target) {
     shaderMan.m_lightData.target = pLight->m_target;
+    pLight->m_lightCamera.setTarget(Vector3(pLight->m_target.x,
+                                            pLight->m_target.y,
+                                            pLight->m_target.z));
     bUpdated = true;
   }
   if(shaderMan.m_lightData.intensity != pLight->m_intensity) {
@@ -1087,16 +1093,18 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
     shaderMan.m_lightData.color = pLight->m_color;
     bUpdated = true;
   }
-  if(shaderMan.m_lightData.view != pLight->m_lightCamera.getView()) {
+  /*if(shaderMan.m_lightData.view != pLight->m_lightCamera.getView()) {
     shaderMan.m_lightData.view = pLight->m_lightCamera.getView().getTransposed();
     bUpdated = true;
   }
   if(shaderMan.m_lightData.proj != pLight->m_lightCamera.getProjection()) {
     shaderMan.m_lightData.proj = pLight->m_lightCamera.getProjection().getTransposed();
     bUpdated = true;
-  }
+  }*/
 
   if(bUpdated) {
+    shaderMan.m_lightData.view = pLight->m_lightCamera.getView().getTransposed();
+    shaderMan.m_lightData.proj = pLight->m_lightCamera.getProjection().getTransposed();
     shaderMan.updateLightCB();
   }
 }

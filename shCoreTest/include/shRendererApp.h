@@ -214,18 +214,6 @@ class RendererApp : public BaseApp
   void
   loadSponza();
 
-  /**
-  *  @brief Load skybox model, materials and game object.
-  */
-  void
-  loadSkybox();
-
-  void
-  loadLight();
-
-  void
-  loadCoat();
-
   void
   tempLoad();
 

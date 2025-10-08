@@ -152,15 +152,18 @@ RenderManager::onStartUp()
 
   m_renderTargetMap[ADDITIVE_TEX_ID] = RenderTargetInfo("AdditiveMap",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS, 1,
+    0.5f, 0.5f);
 
   m_renderTargetMap[BHBLUR_TEX_ID] = RenderTargetInfo("BHBlur",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS, 1,
+    0.5f, 0.5f);
 
   m_renderTargetMap[BVBLUR_TEX_ID] = RenderTargetInfo("BVBlur",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
-    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
+    fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS, 1,
+    0.5f, 0.5f);
 
   m_renderTargetMap[HISTOGRAM_TEX_ID] = RenderTargetInfo("HistogramMap",
     TEXTURE_FORMAT::kR32_FLOAT,
@@ -729,7 +732,6 @@ RenderManager::renderScene()
   /*************************************/
   pInput = pLuminance.pTexture;
   pOutput = pBrightMap.pTexture;
-  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   shaderMan.m_passes[shaderMan.BRIGHT_SHADER_ID]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
@@ -753,12 +755,9 @@ RenderManager::renderScene()
     int32 width = static_cast<int32>(static_cast<int32>(screenWidth) >> (mipLevel0 + 1));
     int32 height = static_cast<int32>(static_cast<int32>(screenHeight) >> (mipLevel0 + 1));
 
-    // Update buffers
-    shaderMan.m_mainBufferData.screenSize.x = static_cast<float>(width);
-    shaderMan.m_mainBufferData.screenSize.y = static_cast<float>(height);
+    // Update buffer
     shaderMan.m_shaderData.mipLevel0 = static_cast<float>(mipLevel0);
     shaderMan.m_shaderData.mipLevel1 = static_cast<float>(mipLevel1);
-    shaderMan.updateMainCB();
     shaderMan.updateShaderDataCB();
 
     /*************************************/
@@ -767,10 +766,8 @@ RenderManager::renderScene()
     pInput = pBrightMap.pTexture;
     if (i > 0) {
       pInput = pAdditiveMap.pTexture;
-      //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
       shaderMan.m_passes[shaderMan.ADDITIVE_SHADER_ID]->setPass();
       setSamplers();
-      //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
       graphMan.csSetShaderResourceView(pBrightMap.pTexture, 0);
       graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
       graphMan.setUnorderedAccessView({ pAdditiveMap.pTexture, mipLevel0 }, 0);
@@ -778,40 +775,29 @@ RenderManager::renderScene()
                         threadGroups(height, DEFAULT_THREADS),
                         1);
       cleanShaderObjects();
-      //graphMan.generateMips(pAdditiveMap.pTexture);
     }
 
     /*************************************/
     /*          Horizontal Blur          */
     /*************************************/
-    //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     shaderMan.m_passes[shaderMan.HBLUR_CS_ID]->setPass();
-    //m_passes[StringID("HBlurCS").getID()]->setPass();
     setSamplers();
     graphMan.csSetShaderResourceView(pInput, 0);
     graphMan.setUnorderedAccessView({ pBHBlur.pTexture, mipLevel0 }, 0);
-    /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
+    graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
                       threadGroups(height, BLURH_THREADS_Y),
-                      1);*/
-    graphMan.dispatch(threadGroups(screenWidth, DEFAULT_THREADS),
-                      threadGroups(screenHeight, DEFAULT_THREADS),
                       1);
     cleanShaderObjects();
 
     /*************************************/
     /*            Vetical Blur           */
     /*************************************/
-    //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
     shaderMan.m_passes[shaderMan.VBLUR_CS_ID]->setPass();
-    //m_passes[StringID("VBlurCS").getID()]->setPass();
     setSamplers();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
     graphMan.setUnorderedAccessView({ pBVBlur.pTexture, mipLevel0 }, 0);
-    /*graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
-                      threadGroups(height, BLURH_THREADS_Y),
-                      1);*/
-    graphMan.dispatch(threadGroups(screenWidth, DEFAULT_THREADS),
-                      threadGroups(screenHeight, DEFAULT_THREADS),
+    graphMan.dispatch(threadGroups(width, BLURV_THREADS_X),
+                      threadGroups(height, BLURV_THREADS_Y),
                       1);
     cleanShaderObjects();
   }

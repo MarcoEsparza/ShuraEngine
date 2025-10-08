@@ -293,6 +293,18 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
     if (!currentMat->m_ao.expired()) {
       aoPath = currentMat->m_ao.lock()->getPath().toString();
     }
+    String emissivePath;
+    if (!currentMat->m_emissive.expired()) {
+      emissivePath = currentMat->m_emissive.lock()->getPath().toString();
+    }
+    String specularPath;
+    if (!currentMat->m_specular.expired()) {
+      specularPath = currentMat->m_specular.lock()->getPath().toString();
+    }
+    String opacityMaskPath;
+    if (!currentMat->m_opacityMask.expired()) {
+      opacityMaskPath = currentMat->m_opacityMask.lock()->getPath().toString();
+    }
 
     // Save path sizes
     matHeader.baseColorMapPathSize = static_cast<uint32>(baseColorPath.size() + 1);
@@ -300,6 +312,9 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
     matHeader.metalnessMapPathSize = static_cast<uint32>(metallicPath.size() + 1);
     matHeader.roughnessMapPathSize = static_cast<uint32>(roughnessPath.size() + 1);
     matHeader.aoMapPathSize = static_cast<uint32>(aoPath.size() + 1);
+    matHeader.emissiveMapPathSize = static_cast<uint32>(emissivePath.size() + 1);
+    matHeader.specularMapPathSize = static_cast<uint32>(specularPath.size() + 1);
+    matHeader.opacityMaskMapPathSize = static_cast<uint32>(opacityMaskPath.size() + 1);
 
     // Wirte material data to file
     fwrite(&matHeader, sizeof(MaterialAssetHeader), 1, outFile);
@@ -309,6 +324,9 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes)
     fwrite(metallicPath.c_str(), sizeof(char), matHeader.metalnessMapPathSize, outFile);
     fwrite(roughnessPath.c_str(), sizeof(char), matHeader.roughnessMapPathSize, outFile);
     fwrite(aoPath.c_str(), sizeof(char), matHeader.aoMapPathSize, outFile);
+    fwrite(emissivePath.c_str(), sizeof(char), matHeader.emissiveMapPathSize, outFile);
+    fwrite(specularPath.c_str(), sizeof(char), matHeader.specularMapPathSize, outFile);
+    fwrite(opacityMaskPath.c_str(), sizeof(char), matHeader.opacityMaskMapPathSize, outFile);
   }
 
   fclose(outFile);

@@ -660,6 +660,7 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
   
   //pMeshMat->m_type = MATERIAL_TYPE::kPBR;
   pMeshMat->setName(pMat->GetName().C_Str());
+  m_loadedResources[pMeshMat->getName()] = pMeshMat;
 
   return pMeshMat;
 }
@@ -738,6 +739,13 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
   auto* aiMat = scene->mMaterials[mesh->mMaterialIndex];
   currentData.materialIndex = mesh->mMaterialIndex;
   auto currentMat = createMaterialFromFile(aiMat);
+
+  if(currentMat == nullptr) {
+    auto it = m_loadedResources.find("ErrorTexture");
+    currentMat = sh_makeShared<Material>();
+    currentMat->m_baseColor = cast::re_ptr<ImageResource>((*it).second);
+    currentMat->setName("ErrorMaterial");
+  }
 
   if (currentMesh->m_materials.empty()) {
     currentMesh->m_materials.push_back(currentMat);

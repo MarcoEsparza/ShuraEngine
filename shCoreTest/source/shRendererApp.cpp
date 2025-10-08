@@ -89,13 +89,6 @@ RendererApp::onCreate()
 
   // Load resources
   scene.createDefaultScene();
-  
-  //loadPistol();
-  //loadSponza();
-  //loadSkybox();
-  //loadLight();
-  //loadCoat();
-  //tempLoad();
 
   updateMainBuffer();
   shaderMan.updateShaderDataCB();
@@ -592,97 +585,6 @@ RendererApp::loadSponza()
   model->addComponent(pRigidbody);
 
   sceneG.addObject(model);
-}
-
-void
-RendererApp::loadSkybox()
-{
-  ResourceManager& resMan = g_resourceMan();
-  SceneGraph& scene = g_sceneGraph();
-
-  auto pTex = resMan.loadResourceFromFile(Path("resources/textures/castel_st_angelo_roof_2k.hdr"));
-  auto skyboxTx = cast::re_ptr<ImageResource>(pTex);
-
-  auto pSkyBox = sh_makeShared<SkyBoxComponent>();
-  pSkyBox->setSkyBoxResource(skyboxTx);
-  
-  auto pSkyBoxGO = sh_makeShared<GameObject>();
-  pSkyBoxGO->addComponent(pSkyBox);
-  pSkyBoxGO->name = "SkyBox";
-
-  scene.addObject(pSkyBoxGO);
-}
-
-void
-RendererApp::loadLight()
-{
-  SceneGraph& scene = g_sceneGraph();
-  ShaderManager& shaderMan = g_shaderMan();
-
-  auto light = sh_makeShared<GameObject>();
-  light->name = "Light";
-  light->transform.getTransform() = Matrix4::IDENTITY;
-
-  auto pLightComp = sh_makeShared<LightComponent>();
-  pLightComp->m_lightType = LIGHT_TYPE::kDirectional;
-  pLightComp->m_color = LinearColor::WHITE;
-  pLightComp->m_intensity = 1.0f;
-  pLightComp->m_position = Vector4(0.0f, 100.0f, 0.0f, 0.0f);
-  pLightComp->m_target = Vector3::ZERO;
-  Vector3 lightPos(pLightComp->m_position.x,
-                   pLightComp->m_position.y,
-                   pLightComp->m_position.z);
-  pLightComp->m_lightCamera = Camera(lightPos,
-                                     pLightComp->m_target,
-                                     Vector3::UP,
-                                     1000.0f,
-                                     1000.0f,
-                                     0.1f,
-                                     1000.0f);
-
-  light->addComponent(pLightComp);
-  scene.addObject(light);
-
-  // Temporary initialization of light buffer
-  // TODO: Change this when multiple lights are implemented
-  shaderMan.m_lightData.position = pLightComp->m_position;
-  shaderMan.m_lightData.target = pLightComp->m_target;
-  shaderMan.m_lightData.intensity = pLightComp->m_intensity;
-  shaderMan.m_lightData.color = pLightComp->m_color;
-  shaderMan.m_lightData.view = pLightComp->m_lightCamera.getView().getTransposed();
-  shaderMan.m_lightData.proj = pLightComp->m_lightCamera.getProjection().getTransposed();
-  shaderMan.updateLightCB();
-}
-
-void
-RendererApp::loadCoat()
-{
-  ResourceManager& resMan = g_resourceMan();
-  SceneGraph& scene = g_sceneGraph();
-  Logger& logger = g_logger();
-
-  Timer timer;
-  float time = timer.getTime();
-  logger.Log("Loading BistroInteriorWine Shura Asset model...");
-
-  auto modelRes = cast::re_ptr<StaticMeshResource>(
-                  resMan.loadModelFromCache("resources/assets/models/BistroInteriorWine.sha"));
-
-  auto model = sh_makeShared<GameObject>();
-  model->name = "Bistro";
-  auto modelMC = sh_makeShared<StaticMeshComponent>();
-
-  modelMC->setMeshData(modelRes);
-  model->addComponent(modelMC);
-
-  model->transform.getTransform() = Matrix4::IDENTITY;
-  model->setScale(Vector3::ONE * 0.1f);
-
-  float total = timer.getTime() - time;
-  
-  logger.Log("Model loaded in " + std::to_string(total) + " seconds.");
-
-  scene.addObject(model);
 }
 
 void

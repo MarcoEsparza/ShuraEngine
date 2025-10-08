@@ -43,23 +43,8 @@ BrightCS( uint3 dtID : SV_DispatchThreadID )
   
   // Sample the color texture
   float2 uv = (float2(dtID.x, dtID.y) + 0.5f) / float2(dimensions.x, dimensions.y);
-  //uint2 colorDimensions;
-  //t_inputMap.GetDimensions(colorDimensions.x, colorDimensions.y);
-  //uint2 colorUV = uint2(uv * float2(colorDimensions.x, colorDimensions.y));
-  
-  // Sample the luminance texture
-  //uint2 luminanceDimensions;
-  //t_texture1.GetDimensions(luminanceDimensions.x, luminanceDimensions.y);
-  //uint2 luminanceUV = uint2(uv * float2(luminanceDimensions.x, luminanceDimensions.y));
-  
-  //float4 color = t_inputMap.Load(int3(colorUV, 0));
-  //float luminance = t_texture1.Load(uint3(luminanceUV, 0)).r;
-  
   float3 color = t_inputMap.SampleLevel(samplerLinearClamp, uv, 0).rgb;
   float luminance = t_texture1.SampleLevel(samplerLinearClamp, uv, 0).r;
-  
-  //t_outputMap[dtID.xy] = float4(luminance.xxx, 1.0f);
-  //return;
   
   float3 brightColor = max(color - brightThreshold, 0.0f);
   brightColor *= step(brightThreshold, luminance);
@@ -73,12 +58,6 @@ AddMixCS( uint3 dtID : SV_DispatchThreadID )
 {
   uint2 dimensions;
   t_outputMap.GetDimensions(dimensions.x, dimensions.y);
-  //if (dtID.x >= dimensions.x || dtID.y >= dimensions.y) {
-  //  return;
-  //}
-  
-  //t_outputMap[dtID.xy] = float4(0.5f * (t_inputMap.Load(int3(dtID.xy, 0)) +
-  //                                      t_texture1.Load(uint3(dtID.xy, 0))));
   
   t_outputMap[dtID.xy] = 0.5f * (t_inputMap.Load(float3(dtID.xy, mipLevel0)) +
                          t_texture1.SampleLevel(samplerLinearClamp, (dtID.xy + 0.5f) /

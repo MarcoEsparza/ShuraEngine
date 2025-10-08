@@ -139,6 +139,13 @@ sRGBToLinear(float4 color)
   return float4(pow(color.rgb, 1.0f / 2.2f), color.a);
 }
 
+float4
+linearToSRGB(float4 color)
+{
+  // Convert linear to sRGB color space
+  return float4(pow(color.rgb, 2.2f), color.a);
+}
+
 // ----------------------------------------------------------------------------
 
 float2

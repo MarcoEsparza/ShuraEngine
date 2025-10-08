@@ -335,8 +335,8 @@ ShaderManager::createPipelinePasses()
   m_passes[SSAO_SHADER_ID] = pAOShader;
   m_passes[HBLUR_SHADER_ID] = pHBlurShader;
   m_passes[VBLUR_SHADER_ID] = pVBlurShader;
-  m_passes[HBLUR_CS_ID] = pVBlurShader;
-  m_passes[VBLUR_CS_ID] = pVBlurShader;
+  m_passes[HBLUR_CS_ID] = pHBlurCS;
+  m_passes[VBLUR_CS_ID] = pVBlurCS;
   m_passes[LIGHT_CS_ID] = pLightCS;
   m_passes[SHADOWMAP_SHADER_ID] = pSMapShader;
   m_passes[SKYBOX_SHADER_ID] = pSkyBoxShader;

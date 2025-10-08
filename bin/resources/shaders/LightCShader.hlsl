@@ -51,56 +51,81 @@ cbuffer PrefilterConstants : register(b3)
   float3 pcPadding; // Padding to 16 bytes
 };
 
-float
-pcFiltering(float2 uv,
-            float depth,
-            float texelSize,
-            float shadowBias)
-{
-  float shadow = 0.0f;
-  //int sampleCount = 0;
-
-  for (int y = -PCF_KERNEL_SIZE; y <= PCF_KERNEL_SIZE; ++y)
-  {
-    for (int x = -PCF_KERNEL_SIZE; x <= PCF_KERNEL_SIZE; ++x)
-    {
-  
-      float2 offset = float2(x, y) * texelSize;
-      float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
-
-      sampledDepth = sampledDepth * 0.5f + 0.5f;
-      float shadowIntensity = 0.8f; // Change to a variable in constant buffer
-      shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
-    }
-  }
-  
-  shadow /= PCF_KERNEL_SIZE * PCF_KERNEL_SIZE;
-  return saturate(shadow);
-  //return 1.0f - (shadow / sampleCount);
-}
-
 //float
 //pcFiltering(float2 uv,
-//            float compareDepth,
+//            float depth,
 //            float texelSize,
-//            float bias)
+//            float shadowBias)
 //{
 //  float shadow = 0.0f;
-//  [unroll]
-//  for (int x = -1; x <= 1; x++)
+//  //int sampleCount = 0;
+
+//  for (int y = -PCF_KERNEL_SIZE; y <= PCF_KERNEL_SIZE; ++y)
 //  {
-//    [unroll]
-//    for (int y = -1; y <= 1; y++)
+//    for (int x = -PCF_KERNEL_SIZE; x <= PCF_KERNEL_SIZE; ++x)
 //    {
+  
 //      float2 offset = float2(x, y) * texelSize;
-//      float depth = t_shadowMap.SampleCmpLevelZero(shadowSampler,
-//                                                   uv + offset,
-//                                                   compareDepth - bias);
-//      shadow += depth;
+//      float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
+
+//      sampledDepth = sampledDepth * 0.5f + 0.5f;
+//      float shadowIntensity = 0.8f; // Change to a variable in constant buffer
+//      shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
 //    }
 //  }
-//  return shadow / 9.0f;
+  
+//  shadow /= PCF_KERNEL_SIZE * PCF_KERNEL_SIZE;
+//  return saturate(shadow);
+//  //return 1.0f - (shadow / sampleCount);
 //}
+
+float
+pcFiltering(float2 uv,
+            float currentDepth,
+            float texelSize,
+            float bias)
+{
+  float shadow = 0.0f;
+  [unroll]
+  for (int x = -1; x <= 1; x++)
+  {
+    [unroll]
+    for (int y = -1; y <= 1; y++)
+    {
+      float2 offset = float2(x, y) * texelSize;
+      float depth = t_shadowMap.SampleLevel(samplerLinearClamp, uv + offset, 0).r;
+      shadow += currentDepth - bias > depth ? 0.0f : 1.0f;
+    }
+  }
+  return shadow /= 9.0f;
+}
+
+float
+shadowCalculation(float4 lightSpacePos, float NdL)
+{
+  // Perform perspective divide
+  float3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+  // Transform to [0,1] range
+  projCoords = projCoords * 0.5f + 0.5f;
+  // Get closest depth value from light's perspective (using [0,1] range lightSpacePos as coords)
+  float closestDepth = t_shadowMap.SampleLevel(samplerLinearClamp, projCoords.xy, 0).r;
+  // Get depth of current fragment from light's perspective
+  float currentDepth = projCoords.z;
+  // Check whether current frag pos is in shadow
+  float shadowBias = max(0.05f * (1.0f - NdL), 0.005f);
+  float shadow = currentDepth - shadowBias > closestDepth ? 1.0f : 0.0f;
+  float texelSize = 1.0f / shadowMapSize;
+  
+  // PCF
+  shadow = pcFiltering(projCoords.xy, currentDepth, texelSize, shadowBias);
+  
+  // Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+  if (projCoords.z > 1.0f) {
+    shadow = 0.0f;
+  }
+  
+  return shadow;
+}
 
 float3 fresnelSchlick(float3 F0, float cosTheta)
 {
@@ -297,26 +322,27 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float3 directLight = (specular + albedo) * NdL * lightIntensity;
 
   // === Shadows ===
-  float4 lightWorldPos = mul(posWorld, lightView);
-  lightWorldPos = mul(lightWorldPos, lightProj);
-  lightWorldPos.xyz /= lightWorldPos.w;
-  lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
+  float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
+  float shadowFactor = shadowCalculation(lightWorldPos, NdL);
   
-  float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
-  //float2 shadowCoord = lightWorldPos.xy;
-  float shadowFactor = 1.0f;
-  float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
-  float texelSize = 1.0f / shadowMapSize;
+  //lightWorldPos.xyz /= lightWorldPos.w;
+  //lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
   
-  if (shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
-      shadowCoord.y < 0.0f || shadowCoord.y > 1.0f)
-  {
-    shadowFactor = 0.0f;
-  }
-  else
-  {
-    shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
-  }
+  //float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
+  ////float2 shadowCoord = lightWorldPos.xy;
+  //float shadowFactor = 1.0f;
+  //float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
+  //float texelSize = 1.0f / shadowMapSize;
+  
+  //if (shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
+  //    shadowCoord.y < 0.0f || shadowCoord.y > 1.0f)
+  //{
+  //  shadowFactor = 0.0f;
+  //}
+  //else
+  //{
+  //  shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
+  //}
   
   float3 finalColor = (ambientLight + directLight * shadowFactor) * ao.r;
   t_outputMap[dtID.xy] = float4(finalColor, 1.0f);
