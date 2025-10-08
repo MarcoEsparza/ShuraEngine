@@ -216,7 +216,7 @@ Asset::loadResourceFromAsset(Path filePath)
       }
       else {
         newMat->m_properties.properties.flags.bHasOpacityMask = 0;
-        newMat->m_opacityMask = cast::re_ptr<ImageResource>(resMan.getResource("WhiteTexture"));
+        newMat->m_opacityMask = cast::re_ptr<ImageResource>(resMan.getResource("BlackTexture"));
       }
 
       resMan.loadMaterial(newMat);

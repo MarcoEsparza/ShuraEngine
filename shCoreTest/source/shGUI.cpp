@@ -825,6 +825,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pRoughnessImg = currentMat->m_roughness;
   auto& pAOImg = currentMat->m_ao;
   auto& pEmissiveImg = currentMat->m_emissive;
+  auto& pOpacityImg = currentMat->m_opacityMask;
 
   auto& pBaseColor = currentMat->m_baseColor.lock()->texture;
   auto& pNormal = currentMat->m_normal.lock()->texture;
@@ -832,6 +833,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pRoughness = currentMat->m_roughness.lock()->texture;
   auto& pAO = currentMat->m_ao.lock()->texture;
   auto& pEmissive = currentMat->m_emissive.lock()->texture;
+  auto& pOpacity = currentMat->m_opacityMask.lock()->texture;
 
   bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
@@ -1017,6 +1019,37 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   emmisiveColor.x = currentEmmColor.x;
   emmisiveColor.y = currentEmmColor.y;
   emmisiveColor.z = currentEmmColor.z;
+
+  // Opacity mask
+  if (ImGui::ImageButton("##OpacitySelection",
+    reinterpret_cast<ImTextureID*>(&pOpacity),
+    ImVec2(64, 64))) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
+      if (pImg) {
+        pOpacityImg = pImg;
+      }
+    }
+  }
+  //ImGui::SameLine();
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat("##Alpha cutoff",
+                   &currentMat->alphaCutoff,
+                   0.01f,
+                   0.0f,
+                   1.0f);
+  //ImGui::SameLine();
+  //bool bUseOpacityMask = currentMat->m_properties.properties.flags.bUseOpacityMask;
+  //ImGui::Checkbox("Use Opacity Mask", &bUseOpacityMask);
+  //currentMat->m_properties.properties.flags.bUseOpacityMask = bUseOpacityMask;
+  //ImGui::SameLine();
+  bool bHasOpacityMask = currentMat->m_properties.properties.flags.bHasOpacityMask;
+  ImGui::Checkbox("Use Opacity Mask Map", &bHasOpacityMask);
+  currentMat->m_properties.properties.flags.bHasOpacityMask = bHasOpacityMask;
 }
 
 void

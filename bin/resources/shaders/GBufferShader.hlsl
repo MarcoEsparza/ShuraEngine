@@ -92,7 +92,15 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
 #else
   output.Color = float4(baseColorFactor, 1.0f);
 #endif
-    
+
+  /*************************************/
+  /*         OPACITY MASK MAP          */
+  /*************************************/
+#if defined(HAS_OPACITY_MASK)
+  float opacity = t_opacityMask.Sample(samplerLinearWrap, input.Tex).r;
+  output.Color.a = opacity * output.Color.a;
+#endif
+
   /*************************************/
   /*           ALPHA TESTING           */
   /*************************************/

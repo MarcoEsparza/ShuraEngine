@@ -458,6 +458,7 @@ RenderManager::setShaderResourceFromMaterial(const SPtr<Material>& pMat)
   shaderMan.m_materialData.metallicRoughnessFactor = pMat->metallicRoughnessFactor;
   shaderMan.m_materialData.emissiveFactor = pMat->emissiveFactor;
   shaderMan.m_materialData.emmisiveIntensity = pMat->emmisiveIntensity;
+  shaderMan.m_materialData.alphaCutoff = pMat->alphaCutoff;
   shaderMan.m_materialData.properties = pMat->m_properties;
   shaderMan.updateMaterialCB();
 

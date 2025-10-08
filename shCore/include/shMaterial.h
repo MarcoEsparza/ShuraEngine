@@ -117,5 +117,6 @@ class SH_CORE_EXPORT Material : public Resource
   Vector2 metallicRoughnessFactor = Vector2::ONE;
   Vector3 emissiveFactor = Vector3::ZERO;
   float emmisiveIntensity = 1.0f;
+  float alphaCutoff = 0.5f;
 };
 }
