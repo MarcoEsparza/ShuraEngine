@@ -149,10 +149,12 @@ struct SH_CORE_EXPORT LightCB
 
 struct PBRMaterialData {
   Vector3 baseColorFactor = Vector3::ZERO;
-  float unused0 = 0.0f; // Padding to align to 16 bytes
+  float alphaCutoff = 0.5f;
   Vector2 metallicRoughnessFactor = Vector2::ZERO; // x = metallic, y = roughness
   MaterialProperties properties;
   float unused1 = 0.0f; // Padding to align to 16 bytes
+  Vector3 emissiveFactor = Vector3::ZERO;
+  float emmisiveIntensity = 1.0f;
 };
 
 /**

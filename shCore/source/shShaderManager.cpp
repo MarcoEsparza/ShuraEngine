@@ -395,8 +395,20 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   if(props.properties.flags.bCanReceiveShadows) {
     macros.push_back({"CAN_RECEIVE_SHADOWS", "1"});
   }
+  if (props.properties.flags.bInvertNormals) {
+    macros.push_back({ "INVERT_NORMALS", "1" });
+  }
   if(props.properties.flags.bInvertRoughness) {
     macros.push_back({"INVERT_ROUGHNESS", "1"});
+  }
+  if(props.properties.flags.bInvertMetalness) {
+    macros.push_back({"INVERT_METALNESS", "1"});
+  }
+  if(props.properties.flags.bHasOpacityMask) {
+    macros.push_back({"HAS_OPACITY_MASK", "1"});
+  }
+  if(props.properties.flags.bUseEmission) {
+    macros.push_back({"USE_EMISSION", "1"});
   }
   // Add more macros based on other properties as needed
 

@@ -824,12 +824,14 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pMetalnessImg = currentMat->m_metalness;
   auto& pRoughnessImg = currentMat->m_roughness;
   auto& pAOImg = currentMat->m_ao;
+  auto& pEmissiveImg = currentMat->m_emissive;
 
   auto& pBaseColor = currentMat->m_baseColor.lock()->texture;
   auto& pNormal = currentMat->m_normal.lock()->texture;
   auto& pMetalness = currentMat->m_metalness.lock()->texture;
   auto& pRoughness = currentMat->m_roughness.lock()->texture;
   auto& pAO = currentMat->m_ao.lock()->texture;
+  auto& pEmissive = currentMat->m_emissive.lock()->texture;
 
   bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
@@ -912,10 +914,10 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Metallic Factor",
-    &currentMat->metallicRoughnessFactor.x,
-    0.01f,
-    0.0f,
-    1.0f);
+                   &currentMat->metallicRoughnessFactor.x,
+                   0.01f,
+                   0.0f,
+                   1.0f);
   ImGui::SameLine();
   bool bHasMetallicMap = currentMat->m_properties.properties.flags.bHasMetalnessMap;
   ImGui::Checkbox("Metallic", &bHasMetallicMap);
@@ -939,10 +941,10 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Roughness Factor",
-    &currentMat->metallicRoughnessFactor.y,
-    0.01f,
-    0.0f,
-    1.0f);
+                   &currentMat->metallicRoughnessFactor.y,
+                   0.01f,
+                   0.0f,
+                   1.0f);
   ImGui::SameLine();
   bool bHasRoughnessMap = currentMat->m_properties.properties.flags.bHasRoughnessMap;
   ImGui::Checkbox("Roughness", &bHasRoughnessMap);
@@ -967,6 +969,54 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   bool bHasAO = currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap;
   ImGui::Checkbox("Ambient Occlusion", &bHasAO);
   currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap = bHasAO;
+
+  // Emissive
+  if(ImGui::ImageButton("##EmissiveSelection",
+                        reinterpret_cast<ImTextureID*>(&pEmissive),
+                        ImVec2(64, 64))) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
+      if (pImg->texture) {
+        pEmissiveImg = pImg;
+      }
+    }
+  }
+  ImGui::SameLine();
+  String emmButtonID = "##EmmColorButton" + currentMat->getName();
+  Vector3& emmisiveColor = currentMat->emissiveFactor;
+  ImVec4 currentEmmColor = ImVec4(emmisiveColor.x,
+                                  emmisiveColor.y,
+                                  emmisiveColor.z,
+                                  1.0f);
+  if (ImGui::ColorButton(emmButtonID.c_str(), currentEmmColor))
+  {
+    ImGui::OpenPopup("EmmColorPickerPopup");
+  }
+  //ImGui::SameLine();
+  bool bUseEmmision = currentMat->m_properties.properties.flags.bUseEmission;
+  ImGui::Checkbox("Use Emmisive", &bUseEmmision);
+  currentMat->m_properties.properties.flags.bUseEmission = bUseEmmision;
+  ImGui::SameLine();
+  bool bHasEmissiveMap = currentMat->m_properties.properties.flags.bHasEmissiveMap;
+  ImGui::Checkbox("Use Emmisive Map", &bHasEmissiveMap);
+  currentMat->m_properties.properties.flags.bHasEmissiveMap = bHasEmissiveMap;
+  ImGui::DragFloat("Emissive Intensity",
+                   &currentMat->emmisiveIntensity,
+                   0.01f,
+                   0.0f,
+                   10.0f);
+
+  if (ImGui::BeginPopup("EmmColorPickerPopup")) {
+    ImGui::ColorPicker3("##picker", (float*)&currentEmmColor);
+    ImGui::EndPopup();
+  }
+  emmisiveColor.x = currentEmmColor.x;
+  emmisiveColor.y = currentEmmColor.y;
+  emmisiveColor.z = currentEmmColor.z;
 }
 
 void

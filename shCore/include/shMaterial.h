@@ -52,7 +52,8 @@ struct SH_CORE_EXPORT MaterialProperties
       uint32 bInvertRoughness : 1;
       uint32 bInvertMetalness : 1;
       uint32 bHasOpacityMask : 1;
-      uint32 Unused : 14;
+      uint32 bUseEmission : 1;
+      uint32 Unused : 13;
     } flags;
     uint32 value = 0;
   } properties;
@@ -112,7 +113,9 @@ class SH_CORE_EXPORT Material : public Resource
 
   WPtr<ImageResource> m_opacityMask;
 
-  Vector3 baseColorFactor = Vector3(1.0f, 1.0f, 1.0f);
-  Vector2 metallicRoughnessFactor = Vector2(1.0f, 1.0f);
+  Vector3 baseColorFactor = Vector3::ONE;
+  Vector2 metallicRoughnessFactor = Vector2::ONE;
+  Vector3 emissiveFactor = Vector3::ZERO;
+  float emmisiveIntensity = 1.0f;
 };
 }

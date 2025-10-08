@@ -9,11 +9,6 @@ Texture2D t_emissive : register(t5);
 Texture2D t_specular : register(t6);
 Texture2D t_opacityMask : register(t7);
 
-// ORM
-// AO rojo
-// Roughness verde
-// Metalness azul
-
 #ifndef ALPHA_TEST_THRESHOLD
 #define ALPHA_TEST_THRESHOLD 0.5f
 #endif
@@ -26,10 +21,12 @@ cbuffer Model : register(b2)
 cbuffer MaterialData : register(b3)
 {
   float3 baseColorFactor; // RGB base color factor
-  float unused0; // padding to 16 bytes
+  float alphaCutoff; // alpha cutoff
   float2 metallicRoughnessFactors; // x = metallic, y = roughness
   int materialBitfield; // bitfield for material properties
   float unused1; // padding to 16 bytes
+  float3 emissiveFactor; // emissive factor
+  float emmissiveIntensity; // emissive intensity
 };
 
 struct VS_INPUT
@@ -59,6 +56,7 @@ struct GBUFFER_OUTPUT
   float4 Normal : SV_Target1;
   float4 Color : SV_Target2;
   float4 Properties : SV_Target3;
+  float4 Emissive : SV_Target4;
 };
 
 PS_INPUT main(VS_INPUT input)
@@ -103,6 +101,7 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   {
     discard;
   }
+  //clip(output.Color.a - ALPHA_TEST_THRESHOLD);
 #endif
   
   /*************************************/
@@ -148,6 +147,19 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   output.Properties.r = t_ambientO.Sample(samplerLinearWrap, input.Tex).r;
 #else
   output.Properties.r = 1.0f;
+#endif
+  
+  /*************************************/
+  /*            EMMISIVE MAP           */
+  /*************************************/
+#if defined(USE_EMISSION)
+ #if defined(HAS_EMISSIVE_MAP)
+  output.Emissive = t_emissive.Sample(samplerLinearWrap, input.Tex) * emmissiveIntensity;
+ #else
+  output.Emissive = float4(emissiveFactor, 1.0f) * emmissiveIntensity;
+ #endif
+#else
+  output.Emissive = float4(0.0f, 0.0f, 0.0f, 0.0f);
 #endif
   
   /*************************************/

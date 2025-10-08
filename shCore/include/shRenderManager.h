@@ -271,6 +271,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   static const uint32 NORMAL_TEX_ID;
   static const uint32 COLOR_TEX_ID;
   static const uint32 PROPS_TEX_ID;
+  static const uint32 EMMISIVE_TEX_ID;
   static const uint32 SSAO_TEX_ID;
   static const uint32 HBLUR_TEX_ID;
   static const uint32 VBLUR_TEX_ID;

@@ -59,6 +59,7 @@ const uint32 RenderManager::DEPTH_TEX_ID = StringID("DepthMap").getID();
 const uint32 RenderManager::NORMAL_TEX_ID = StringID("NormalMap").getID();
 const uint32 RenderManager::COLOR_TEX_ID = StringID("ColorMap").getID();
 const uint32 RenderManager::PROPS_TEX_ID = StringID("PropMap").getID();
+const uint32 RenderManager::EMMISIVE_TEX_ID = StringID("EmmisiveMap").getID();
 const uint32 RenderManager::SSAO_TEX_ID = StringID("SSAOMap").getID();
 const uint32 RenderManager::HBLUR_TEX_ID = StringID("HBlurMap").getID();
 const uint32 RenderManager::VBLUR_TEX_ID = StringID("VBlurMap").getID();
@@ -105,6 +106,8 @@ RenderManager::onStartUp()
   m_renderTargetMap[NORMAL_TEX_ID] = RenderTargetInfo("NormalMap");
   m_renderTargetMap[COLOR_TEX_ID] = RenderTargetInfo("ColorMap");
   m_renderTargetMap[PROPS_TEX_ID] = RenderTargetInfo("PropMap");
+  m_renderTargetMap[EMMISIVE_TEX_ID] = RenderTargetInfo("EmmisiveMap",
+                                       TEXTURE_FORMAT::kR32G32B32A32_FLOAT);
   m_renderTargetMap[SSAO_TEX_ID] = RenderTargetInfo("SSAOMap", TEXTURE_FORMAT::kR16_FLOAT);
 
   m_renderTargetMap[HBLUR_TEX_ID] = RenderTargetInfo("HBlurMap",
@@ -453,6 +456,8 @@ RenderManager::setShaderResourceFromMaterial(const SPtr<Material>& pMat)
 
   shaderMan.m_materialData.baseColorFactor = pMat->baseColorFactor;
   shaderMan.m_materialData.metallicRoughnessFactor = pMat->metallicRoughnessFactor;
+  shaderMan.m_materialData.emissiveFactor = pMat->emissiveFactor;
+  shaderMan.m_materialData.emmisiveIntensity = pMat->emmisiveIntensity;
   shaderMan.m_materialData.properties = pMat->m_properties;
   shaderMan.updateMaterialCB();
 
@@ -511,6 +516,7 @@ RenderManager::renderScene()
   auto& pNormalMap = m_renderTargetMap[NORMAL_TEX_ID];
   auto& pColorMap = m_renderTargetMap[COLOR_TEX_ID];
   auto& pPropMap = m_renderTargetMap[PROPS_TEX_ID];
+  auto& pEmmisiveMap = m_renderTargetMap[EMMISIVE_TEX_ID];
   auto& pAOMap = m_renderTargetMap[SSAO_TEX_ID];
   auto& pHBlurMap = m_renderTargetMap[HBLUR_TEX_ID];
   auto& pVBlurMap = m_renderTargetMap[VBLUR_TEX_ID];
@@ -591,7 +597,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{pDepthMap.pTexture},
                              {pNormalMap.pTexture},
                              {pColorMap.pTexture},
-                             {pPropMap.pTexture }}, pGbufferDepth.pTexture);
+                             {pPropMap.pTexture },
+                             {pEmmisiveMap.pTexture }}, pGbufferDepth.pTexture);
   //m_passes[StringID("GBufferShader").getID()]->setPass();
   setSamplers();
   drawMeshesOnScene();
@@ -687,13 +694,13 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
   graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
-  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 4);
-  graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 5);
-  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 6);
-  //graphMan.csSetShaderResourceView(m_pEnvTexture, 7);
-  graphMan.csSetShaderResourceView(m_pBRDF, 7);
-  graphMan.csSetShaderResourceView(m_pDiffIrr, 8);
-  graphMan.csSetShaderResourceView(m_pSpecularPreMap, 9);
+  graphMan.csSetShaderResourceView(pEmmisiveMap.pTexture, 4);
+  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 5);
+  graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 6);
+  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 7);
+  graphMan.csSetShaderResourceView(m_pBRDF, 8);
+  graphMan.csSetShaderResourceView(m_pDiffIrr, 9);
+  graphMan.csSetShaderResourceView(m_pSpecularPreMap, 10);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   cleanShaderObjects();

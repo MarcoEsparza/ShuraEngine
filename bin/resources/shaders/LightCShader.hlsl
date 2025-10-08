@@ -4,13 +4,13 @@ Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
 Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
-Texture2D t_ssaoMap : register(t4);
-Texture2D t_shadowMap : register(t5);
-Texture2D t_depthStencil : register(t6);
-//Texture2D t_skybox : register(t7);
-Texture2D t_brdfLUT : register(t7);
-Texture2D t_diffIrr : register(t8);
-Texture2D t_skyReflect : register(t9);
+Texture2D t_emmisiveMap : register(t4);
+Texture2D t_ssaoMap : register(t5);
+Texture2D t_shadowMap : register(t6);
+Texture2D t_depthStencil : register(t7);
+Texture2D t_brdfLUT : register(t8);
+Texture2D t_diffIrr : register(t9);
+Texture2D t_skyReflect : register(t10);
 RWTexture2D<float4> t_outputMap : register(u0);
 
 #define PCF_KERNEL_SIZE 5
@@ -261,6 +261,7 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 normalMap = t_normalMap.Load(int3(dtID.xy, 0));
   float4 color = t_colorMap.Load(int3(dtID.xy, 0));
   float4 propMap = t_propMap.Load(int3(dtID.xy, 0));
+  float4 emmisiveMap = t_emmisiveMap.Load(int3(dtID.xy, 0));
   float4 ssaoMap = t_ssaoMap.Load(int3(dtID.xy, 0));
   float4 shadows = t_shadowMap.Load(int3(dtID.xy, 0));
   
@@ -321,9 +322,11 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float totalAO = ao * ssao;
   
   //float3 finalColor = (ambientLight + directLight * shadowFactor) * ssao;
+  float3 emmisive = linearToSRGB(emmisiveMap).rgb;
+  
   float3 ambient = ambientLight * totalAO;
   float3 direct = directLight * shadowFactor;
-  float3 finalColor = ambient + direct;
+  float3 finalColor = ambient + direct + emmisive;
   
   t_outputMap[dtID.xy] = float4(finalColor, 1.0f);
 }
