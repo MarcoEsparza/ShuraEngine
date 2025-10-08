@@ -240,7 +240,8 @@ GUI::setRendererSettings()
   if (ImGui::Button("Recompile Shaders")) {
     shaderMan.recompileShaders();
   }
-  if (ImGui::CollapsingHeader("Ambient Occlusion")) {
+  if (ImGui::CollapsingHeader("SSAO")) {
+    ImGui::Checkbox("Enable SSAO", &m_bSSAO);
     ImGui::DragFloat("Sampler radius", &rendererSettings.sampleRadius,
                      0.1f, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::DragFloat("Scale", &rendererSettings.aoScale, 0.1f, 0.0f, 5.0f);
@@ -317,6 +318,13 @@ GUI::setRendererSettings()
   }
 
   ImGui::End();
+
+  if (m_bSSAO) {
+    shaderMan.m_shaderData.ssaoEnabled = 1.0f;
+  }
+  else {
+    shaderMan.m_shaderData.ssaoEnabled = 0.0f;
+  }
 
   shaderMan.updateShaderDataCB();
 }
@@ -815,11 +823,13 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pNormalImg = currentMat->m_normal;
   auto& pMetalnessImg = currentMat->m_metalness;
   auto& pRoughnessImg = currentMat->m_roughness;
+  auto& pAOImg = currentMat->m_ao;
 
   auto& pBaseColor = currentMat->m_baseColor.lock()->texture;
   auto& pNormal = currentMat->m_normal.lock()->texture;
   auto& pMetalness = currentMat->m_metalness.lock()->texture;
   auto& pRoughness = currentMat->m_roughness.lock()->texture;
+  auto& pAO = currentMat->m_ao.lock()->texture;
 
   bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
@@ -937,6 +947,26 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   bool bHasRoughnessMap = currentMat->m_properties.properties.flags.bHasRoughnessMap;
   ImGui::Checkbox("Roughness", &bHasRoughnessMap);
   currentMat->m_properties.properties.flags.bHasRoughnessMap = bHasRoughnessMap;
+
+  // Occlusion
+  if(ImGui::ImageButton("##OcclusionSelection",
+                        reinterpret_cast<ImTextureID*>(&pAO),
+                        ImVec2(64, 64))) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
+      if (pImg) {
+        pAOImg = pImg;
+      }
+    }
+  }
+  ImGui::SameLine();
+  bool bHasAO = currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap;
+  ImGui::Checkbox("Ambient Occlusion", &bHasAO);
+  currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap = bHasAO;
 }
 
 void

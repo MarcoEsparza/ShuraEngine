@@ -280,6 +280,8 @@ class GUI
   */
   float m_shadowTexSize = 0;
 
+  bool m_bSSAO = true;
+
   /**
   *  @brief Is scene playing?
   */

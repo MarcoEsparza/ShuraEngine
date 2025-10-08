@@ -92,6 +92,12 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   void
   update();
 
+  void
+  serialize();
+
+  void
+  deserialize();
+
   /***************************************************************************/
   /*
   *  Functions

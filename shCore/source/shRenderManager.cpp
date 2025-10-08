@@ -611,13 +611,14 @@ RenderManager::renderScene()
   graphMan.draw(3, 0);
   cleanShaderObjects();
 
+  // Reset buffer miplevels
+  shaderMan.m_shaderData.mipLevel0 = 0.0f;
+  shaderMan.m_shaderData.mipLevel1 = 0.0f;
+  shaderMan.updateShaderDataCB();
+
   /*************************************/
-  /*        AO Horizontal Blur         */
+  /*        SSAO Horizontal Blur       */
   /*************************************/
-  shaderMan.m_shaderData.mipLevel0 = 1;
-  graphMan.updateConstantBuffer(shaderMan.m_pShaderDataBuffer,
-                                &shaderMan.m_shaderData,
-                                sizeof(ShaderData));
   pInput = pAOMap.pTexture;
   pOutput = pHBlurMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
@@ -625,14 +626,13 @@ RenderManager::renderScene()
   setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
-  /*graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
+  graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
                     threadGroups(screenHeight, BLURH_THREADS_Y),
-                    1);*/
-  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+                    1);
   cleanShaderObjects();
 
   /*************************************/
-  /*          AO Vetical Blur          */
+  /*          SSAO Vetical Blur        */
   /*************************************/
   pInput = pHBlurMap.pTexture;
   pOutput = pVBlurMap.pTexture;
@@ -641,10 +641,9 @@ RenderManager::renderScene()
   setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
-  /*graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
+  graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
                     threadGroups(screenHeight, BLURV_THREADS_Y),
-                    1);*/
-  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+                    1);
   cleanShaderObjects();
 
   /*************************************/
@@ -780,7 +779,7 @@ RenderManager::renderScene()
     /*************************************/
     /*          Horizontal Blur          */
     /*************************************/
-    shaderMan.m_passes[shaderMan.HBLUR_CS_ID]->setPass();
+    shaderMan.m_passes[shaderMan.HBLUR_SHADER_ID]->setPass();
     setSamplers();
     graphMan.csSetShaderResourceView(pInput, 0);
     graphMan.setUnorderedAccessView({ pBHBlur.pTexture, mipLevel0 }, 0);
@@ -792,7 +791,7 @@ RenderManager::renderScene()
     /*************************************/
     /*            Vetical Blur           */
     /*************************************/
-    shaderMan.m_passes[shaderMan.VBLUR_CS_ID]->setPass();
+    shaderMan.m_passes[shaderMan.VBLUR_SHADER_ID]->setPass();
     setSamplers();
     graphMan.csSetShaderResourceView(pBHBlur.pTexture, 0);
     graphMan.setUnorderedAccessView({ pBVBlur.pTexture, mipLevel0 }, 0);

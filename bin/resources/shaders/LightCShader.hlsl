@@ -4,7 +4,7 @@ Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
 Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
-Texture2D t_aoMap : register(t4);
+Texture2D t_ssaoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
 Texture2D t_depthStencil : register(t6);
 //Texture2D t_skybox : register(t7);
@@ -13,23 +13,10 @@ Texture2D t_diffIrr : register(t8);
 Texture2D t_skyReflect : register(t9);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-//SamplerComparisonState shadowSampler : register(s6);
-
 #define PCF_KERNEL_SIZE 5
 #define DELTA 0.00000001
 #define SAMPLE_DELTA 0.2f
 #define MAX_REFLECTION_LOD 5.0f
-
-//cbuffer Light : register(b2)
-//{
-//  float4 LightPos[12];
-//}
-
-//cbuffer LightCam : register(b3)
-//{
-//  float4x4 lightView;
-//  float4x4 lightProj;
-//}
 
 cbuffer LightData : register(b2)
 {
@@ -274,13 +261,14 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 normalMap = t_normalMap.Load(int3(dtID.xy, 0));
   float4 color = t_colorMap.Load(int3(dtID.xy, 0));
   float4 propMap = t_propMap.Load(int3(dtID.xy, 0));
-  float4 ao = t_aoMap.Load(int3(dtID.xy, 0));
+  float4 ssaoMap = t_ssaoMap.Load(int3(dtID.xy, 0));
   float4 shadows = t_shadowMap.Load(int3(dtID.xy, 0));
   
   float3 albedo = color.rgb;
-  float metalness = propMap.r;
   float3 normal = normalMap.xyz;
-  float roughness = propMap.b;
+  float ao = propMap.r;
+  float roughness = propMap.g;
+  float metalness = propMap.b;
   
   if(color.a < 0.5f)
   {
@@ -325,25 +313,17 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 lightWorldPos = mul(posWorld, mul(lightView, lightProj));
   float shadowFactor = shadowCalculation(lightWorldPos, NdL);
   
-  //lightWorldPos.xyz /= lightWorldPos.w;
-  //lightWorldPos.xyz = lightWorldPos.xyz * 0.5f + 0.5f;
+  float ssao = 1.0f;
+  if (ssaoEnabled) {
+    ssao = ssaoMap.r;
+  }
+  //float totalAO = clamp(ao + (1.0f - ssao), 0.0f, 1.0f);
+  float totalAO = ao * ssao;
   
-  //float2 shadowCoord = float2(lightWorldPos.x, 1.0f - lightWorldPos.y);
-  ////float2 shadowCoord = lightWorldPos.xy;
-  //float shadowFactor = 1.0f;
-  //float shadowBias = max(0.001f * (1.0f - NdL), 0.001f);
-  //float texelSize = 1.0f / shadowMapSize;
+  //float3 finalColor = (ambientLight + directLight * shadowFactor) * ssao;
+  float3 ambient = ambientLight * totalAO;
+  float3 direct = directLight * shadowFactor;
+  float3 finalColor = ambient + direct;
   
-  //if (shadowCoord.x < 0.0f || shadowCoord.x > 1.0f ||
-  //    shadowCoord.y < 0.0f || shadowCoord.y > 1.0f)
-  //{
-  //  shadowFactor = 0.0f;
-  //}
-  //else
-  //{
-  //  shadowFactor = pcFiltering(shadowCoord, lightWorldPos.z, texelSize, shadowBias);
-  //}
-  
-  float3 finalColor = (ambientLight + directLight * shadowFactor) * ao.r;
   t_outputMap[dtID.xy] = float4(finalColor, 1.0f);
 }

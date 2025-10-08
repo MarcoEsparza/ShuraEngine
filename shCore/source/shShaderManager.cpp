@@ -2,7 +2,7 @@
 /*
 *  @file    shShaderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/09/30
+*  @date    2025/10/08
 *  @brief   Shader managment module.
 *
 *  Shader managment module.
@@ -30,8 +30,6 @@ namespace shEngineSDK {
 const uint32 ShaderManager::SSAO_SHADER_ID = StringID("AOShader").getID();
 const uint32 ShaderManager::HBLUR_SHADER_ID = StringID("HBlurShader").getID();
 const uint32 ShaderManager::VBLUR_SHADER_ID = StringID("VBlurShader").getID();
-const uint32 ShaderManager::HBLUR_CS_ID = StringID("HBlurCS").getID();
-const uint32 ShaderManager::VBLUR_CS_ID = StringID("VBlurCS").getID();
 const uint32 ShaderManager::LIGHT_CS_ID = StringID("LightCS").getID();
 const uint32 ShaderManager::SHADOWMAP_SHADER_ID = StringID("ShadowMapShader").getID();
 const uint32 ShaderManager::SKYBOX_SHADER_ID = StringID("SkyBoxShader").getID();
@@ -70,30 +68,16 @@ ShaderManager::createPipelinePasses()
   pAOShader->compileShader();
 
   // HBlur
-  auto pHBlurShader = sh_makeShared<Pass>();
-  pHBlurShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                               "HBlurCS",
-                               "cs_5_0");
-  pHBlurShader->compileShader();
-
-  // VBlur
-  auto pVBlurShader = sh_makeShared<Pass>();
-  pVBlurShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                               "VBlurCS",
-                               "cs_5_0");
-  pVBlurShader->compileShader();
-
-  // HBlur
   auto pHBlurCS = sh_makeShared<Pass>();
   pHBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                           "HBlur_CS",
+                           "HBlurCS",
                            "cs_5_0");
   pHBlurCS->compileShader();
 
   // VBlur
   auto pVBlurCS = sh_makeShared<Pass>();
   pVBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "VBlur_CS",
+                            "VBlurCS",
                             "cs_5_0");
   pVBlurCS->compileShader();
 
@@ -306,12 +290,6 @@ ShaderManager::createPipelinePasses()
   pAddMixShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
 
   // Blur buffers
-  pHBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pHBlurShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
-  pVBlurShader->addCSConstantBuffer(m_pMainBuffer, 0);
-  pVBlurShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
-
-  // Blur buffers
   pHBlurCS->addCSConstantBuffer(m_pMainBuffer, 0);
   pHBlurCS->addCSConstantBuffer(m_pShaderDataBuffer, 1);
   pVBlurCS->addCSConstantBuffer(m_pMainBuffer, 0);
@@ -333,10 +311,8 @@ ShaderManager::createPipelinePasses()
   pSPreCubeMap->addCSConstantBuffer(m_pPrefilteredCB, 2);
 
   m_passes[SSAO_SHADER_ID] = pAOShader;
-  m_passes[HBLUR_SHADER_ID] = pHBlurShader;
-  m_passes[VBLUR_SHADER_ID] = pVBlurShader;
-  m_passes[HBLUR_CS_ID] = pHBlurCS;
-  m_passes[VBLUR_CS_ID] = pVBlurCS;
+  m_passes[HBLUR_SHADER_ID] = pHBlurCS;
+  m_passes[VBLUR_SHADER_ID] = pVBlurCS;
   m_passes[LIGHT_CS_ID] = pLightCS;
   m_passes[SHADOWMAP_SHADER_ID] = pSMapShader;
   m_passes[SKYBOX_SHADER_ID] = pSkyBoxShader;

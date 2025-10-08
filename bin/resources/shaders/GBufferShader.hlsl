@@ -127,20 +127,29 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   /*           METALNESS MAP           */
   /*************************************/
 #if defined(HAS_METALNESS_MAP)
-  output.Properties.r = t_metallic.Sample(samplerLinearWrap, input.Tex).b;
+  output.Properties.b = t_metallic.Sample(samplerLinearWrap, input.Tex).b;
 #else
-  output.Properties.r = metallicRoughnessFactors.x; // metallic factor
+  output.Properties.b = metallicRoughnessFactors.x; // metallic factor
 #endif
 
   /*************************************/
   /*           ROUGHNESS MAP           */
   /*************************************/
 #if defined(HAS_ROUGHNESS_MAP)
-  output.Properties.b = t_roughness.Sample(samplerLinearWrap, input.Tex).g;
+  output.Properties.g = t_roughness.Sample(samplerLinearWrap, input.Tex).g;
 #else
-  output.Properties.b = metallicRoughnessFactors.y; // roughness factor
+  output.Properties.g = metallicRoughnessFactors.y; // roughness factor
 #endif
 
+  /*************************************/
+  /*               AO MAP              */
+  /*************************************/
+#if defined(HAS_AO_MAP)
+  output.Properties.r = t_ambientO.Sample(samplerLinearWrap, input.Tex).r;
+#else
+  output.Properties.r = 1.0f;
+#endif
+  
   /*************************************/
   /*          INVERT ROUGHNESS         */
   /*************************************/

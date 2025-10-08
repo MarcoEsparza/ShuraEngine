@@ -183,6 +183,17 @@ SceneGraph::update()
   }
 }
 
+void
+SceneGraph::serialize()
+{
+
+}
+
+void
+SceneGraph::deserialize()
+{
+}
+
 SceneGraph& g_sceneGraph()
 {
   return SceneGraph::instance();

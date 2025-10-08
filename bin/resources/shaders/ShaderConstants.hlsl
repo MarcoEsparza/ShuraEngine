@@ -77,8 +77,7 @@ cbuffer ShaderData : register(b1)
   float mipLevel0;
   float mipLevel1;
   
-  
-  float tempLightIntensity; // Global light intensity
+  float ssaoEnabled; // 1 if SSAO is enabled, 0 otherwise
   float middleGrey; // Middle grey value for tone mapping
   
   float cubeRoughness; // Roughness value for environment mapping

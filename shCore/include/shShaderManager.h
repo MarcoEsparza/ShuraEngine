@@ -2,7 +2,7 @@
 /*
 *  @file    shShaderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/10/02
+*  @date    2025/10/08
 *  @brief   Shader managment module.
 *
 *  Shader managment module.
@@ -111,7 +111,7 @@ struct SH_CORE_EXPORT ShaderData {
   float mipLevel0 = 0.0f;
   float mipLevel1 = 0.0f;
 
-  float lightIntensity = 1.0f;
+  float ssaoEnabled = 1.0f;
   float middleGrey = 1.0f;
 
   float roughness = 0.0f;
@@ -320,16 +320,6 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   *  @brief Static ID for the vertical blur shader.
   */
   static const uint32 VBLUR_SHADER_ID;
-
-  /**
-  *  @brief Static ID for the horizontal blur compute shader.
-  */
-  static const uint32 HBLUR_CS_ID;
-
-  /**
-  *  @brief Static ID for the vertical blur compute shader.
-  */
-  static const uint32 VBLUR_CS_ID;
 
   /**
   *  @brief Static ID for the light compute shader.
