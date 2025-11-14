@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/08/08
+*  @date    2025/11/14
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -197,12 +197,6 @@ class RendererApp : public BaseApp
   updateMainBuffer();
 
   /**
-  *  @brief Sets the graphic interface.
-  */
-  void
-  setImgui();
-
-  /**
   *  @brief Load pistol model, materials and game object.
   */
   void
@@ -348,6 +342,8 @@ class RendererApp : public BaseApp
   *  @brief Screen size.
   */
   Vector2 m_screenSize = Vector2(0.0f, 0.0f);
+
+  Vector2 m_sceneSize = Vector2(0.0f, 0.0f);
 
   /**
   *  @brief Testing audio.

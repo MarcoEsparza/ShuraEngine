@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/09/27
+*  @date    2025/11/14
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -30,11 +30,11 @@
 #include <shLogger.h>
 #include "imgui_impl_shura.h"
 
-
 #include <shStringID.h>
 #include <shPath.h>
 #include <shRadian.h>
 #include <shVector4.h>
+#include <shVector2i.h>
 
 #include <shGameObject.h>
 #include <shGizmos.h>
@@ -63,8 +63,9 @@ RendererApp::onCreate()
   SceneGraph& scene = g_sceneGraph();
 
   m_shadowTexSize = 2048.0f;
-  m_screenSize = Vector2(static_cast<float>(getScreenDescription().width),
-                         static_cast<float>(getScreenDescription().height));
+  auto& pScreen = getScreen();
+  m_screenSize = Vector2(cast::st<float>(pScreen->getClientSize().x),
+                         cast::st<float>(pScreen->getClientSize().y));
 
   // Initialize graphics
   setBackgroundColor(LinearColor(0.0f, 0.0f, 0.0f));
@@ -106,8 +107,6 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  //GraphicsManager& graphMan = g_graphicsMan();
-  //RenderManager& renderMan = g_renderMan();
   AudioManager& audioMan = AudioManager::instance();
   Time& time = g_time();
   //SceneGraph& scene = g_sceneGraph();
@@ -120,6 +119,7 @@ RendererApp::onUpdate()
     m_gui.m_fpsCountGUI = m_fpsCount;
   }
   m_gui.update();
+  m_sceneSize = m_gui.m_sceneWindowSize;
   m_camera.setHalfFOV(m_gui.m_camFov * Math::DEG2RAD);
   m_camera.setNear(m_gui.m_camNear);
   m_camera.setFar(m_gui.m_camFar);
@@ -134,28 +134,30 @@ RendererApp::onUpdate()
   }
 
   // Update camera
-  if (m_bRightClick) {
-    rotateCamera();
-  }
+  if (m_gui.m_bSceneWindowFocused) {
+    if (m_bRightClick) {
+      rotateCamera();
+    }
 
-  const float camSpeed = m_gui.m_camSpeed * time.getFrameDeltaTime();
-  if (m_bFoward) {
-    m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
-  }
-  if (m_bLeft) {
-    m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * camSpeed);
-  }
-  if (m_bBack) {
-    m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * camSpeed);
-  }
-  if (m_bRight) {
-    m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * camSpeed);
-  }
-  if (m_bUp) {
-    m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * camSpeed);
-  }
-  if (m_bDown) {
-    m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * camSpeed);
+    const float camSpeed = m_gui.m_camSpeed * time.getFrameDeltaTime();
+    if (m_bFoward) {
+      m_camera.move(Vector3(0.0f, 0.0f, 0.1f) * camSpeed);
+    }
+    if (m_bLeft) {
+      m_camera.move(Vector3(-0.1f, 0.0f, 0.0f) * camSpeed);
+    }
+    if (m_bBack) {
+      m_camera.move(Vector3(0.0f, 0.0f, -0.1f) * camSpeed);
+    }
+    if (m_bRight) {
+      m_camera.move(Vector3(0.1f, 0.0f, 0.0f) * camSpeed);
+    }
+    if (m_bUp) {
+      m_camera.move(Vector3(0.0f, 0.1f, 0.0f) * camSpeed);
+    }
+    if (m_bDown) {
+      m_camera.move(Vector3(0.0f, -0.1f, 0.0f) * camSpeed);
+    }
   }
 
   updateMainBuffer();
@@ -233,22 +235,18 @@ RendererApp::onResize(const ResizeData& rszData)
 {
   RenderManager& renderMan = g_renderMan();
 
-  m_screenSize.x = static_cast<float>(rszData.width);
-  m_screenSize.y = static_cast<float>(rszData.height);
+  auto& pScreen = getScreen();
+  m_screenSize = Vector2(cast::st<float>(pScreen->getClientSize().x),
+                         cast::st<float>(pScreen->getClientSize().y));
 
-  renderMan.setScreenSize(Vector2(m_screenSize.x, m_screenSize.y));
+  renderMan.setScreenSize(m_sceneSize);
   renderMan.createRenderTextures();
 
   m_camera.setPerspectiveData(m_camera.getHalfFOV(),
-                              m_screenSize.x,
-                              m_screenSize.y,
+                              m_sceneSize.x,
+                              m_sceneSize.y,
                               m_camera.getNear(),
                               m_camera.getFar());
-
-  Vector4 viewport(m_screenSize.x,
-                   m_screenSize.y,
-                   m_camera.getFar(),
-                   m_camera.getNear());
 
   ImGui_ImplShura_Resize(m_screenSize);
 }
@@ -261,39 +259,30 @@ RendererApp::onKeyPressed(const KEY::E key, const ModifierState modifier)
   if (key == KEY::kW) {
     m_bFoward = true;
   }
-
   if (key == KEY::kA) {
     m_bLeft = true;
   }
-
   if (key == KEY::kS) {
     m_bBack = true;
   }
-
   if (key == KEY::kD) {
     m_bRight = true;
   }
-
   if (key == KEY::kQ) {
     m_bDown = true;
   }
-
   if (key == KEY::kE) {
     m_bUp = true;
   }
-
   if (key == KEY::kUp) {
     m_bRotUp = true;
   }
-
   if (key == KEY::kDown) {
     m_bRotDown = true;
   }
-
   if (key == KEY::kLeft) {
     m_bRotLeft = true;
   }
-
   if (key == KEY::kRight) {
     m_bRotRight = true;
   }
@@ -310,43 +299,33 @@ RendererApp::onKeyReleased(const KEY::E key, const ModifierState modifier)
   if (key == KEY::kW) {
     m_bFoward = false;
   }
-
   if (key == KEY::kA) {
     m_bLeft = false;
   }
-
   if (key == KEY::kS) {
     m_bBack = false;
   }
-
   if (key == KEY::kD) {
     m_bRight = false;
   }
-
   if (key == KEY::kQ) {
     m_bDown = false;
   }
-
   if (key == KEY::kE) {
     m_bUp = false;
   }
-
   if (key == KEY::kUp) {
     m_bRotUp = false;
   }
-
   if (key == KEY::kDown) {
     m_bRotDown = false;
   }
-
   if (key == KEY::kLeft) {
     m_bRotLeft = false;
   }
-
   if (key == KEY::kRight) {
     m_bRotRight = false;
   }
-
   if (key == KEY::kC) {
     shaderMan.recompileShaders();
   }
@@ -462,7 +441,7 @@ RendererApp::updateMainBuffer()
   mbd.inverseViewProjMatrix = (mbd.viewMatrix * mbd.projectionMatrix).getInversed();
   mbd.inverseTransposeViewProjMatrix = mbd.inverseViewProjMatrix.getTransposed();
 
-  mbd.screenSize = m_screenSize;
+  mbd.screenSize = m_sceneSize;
   mbd.nearPlane = m_camera.getNear();
   mbd.farPlane = m_camera.getFar();
 
@@ -475,18 +454,6 @@ RendererApp::updateMainBuffer()
   mbd.sinTime = Math::sin(Radian(mbd.time));
 
   shaderMan.updateMainCB();
-}
-
-void
-RendererApp::setImgui()
-{
-  //GraphicsManager& graphMan = g_graphicsMan();
-  //RenderManager& renderMan = g_renderMan();
-  //SceneGraph& scene = g_sceneGraph();
-  //
-  //if (ImGui::Button("Play Sound")) {
-  //  bIsSoundPlaying = true;
-  //}
 }
 
 void

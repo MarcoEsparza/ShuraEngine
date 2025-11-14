@@ -243,3 +243,17 @@ VBlurCS(uint3 gID : SV_GroupID,
     t_outputMap[base.xy + int2(0, y)] = output;
   }
 }
+
+[numthreads(32, 32, 1)]
+void
+EmmisiveCS(uint3 dtID : SV_DispatchThreadID)
+{
+  if (dtID.x >= uint(screenSize.x) || dtID.y >= uint(screenSize.y))
+  {
+    return;
+  }
+  float4 color = t_inputMap.Load(uint3(dtID.xy, 0));
+  float4 emmisive = t_texture1.Load(uint3(dtID.xy, 0));
+  float4 finalColor = color + emmisive * emmisiveIntensity;
+  t_outputMap[dtID.xy] = finalColor;
+}

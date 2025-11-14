@@ -239,8 +239,8 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   scDesc.Windowed = !m_bFullScreen;
 
   if (!m_bFullScreen) {
-    scDesc.BufferDesc.Width = screen->getWidth();
-    scDesc.BufferDesc.Height = screen->getHeight();
+    scDesc.BufferDesc.Width = cast::st<uint32>(screen->getClientSize().x);
+    scDesc.BufferDesc.Height = cast::st<uint32>(screen->getClientSize().y);
     scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
   }
 
@@ -1485,7 +1485,7 @@ DX11GraphicsManager::setViewport(const Viewport& vp)
 
 void
 DX11GraphicsManager::setRenderTargets(const Vector<RenderTarget>& pRenderTVs,
-                                              const WPtr<Texture2D> pDepthSV)
+                                      const WPtr<Texture2D> pDepthSV)
 {
   Vector<ID3D11RenderTargetView*> pRTVs;
 

@@ -2,7 +2,7 @@
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/05/26
+*  @date    2025/11/11
 *  @brief   Base screen
 *
 *  Base screen
@@ -48,11 +48,11 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
 
   if (desc.iconPath != "") {
     HICON hIcon = reinterpret_cast<HICON>(::LoadImage(hInstance,
-                                          desc.iconPath.c_str(),
-                                          IMAGE_ICON,
-                                          32,
-                                          32,
-                                          LR_LOADFROMFILE));
+                                            desc.iconPath.c_str(),
+                                            IMAGE_ICON,
+                                            32,
+                                            32,
+                                            LR_LOADFROMFILE));
     if (!hIcon) {
       MessageBox(nullptr, "Couldn't load image", "Error", MB_ICONERROR);
     }
@@ -131,6 +131,19 @@ Screen::close()
   m_open = false;
   DestroyWindow(m_screenHandle);
   PostQuitMessage(0);
+}
+
+Vector2i
+Screen::getClientSize() const
+{
+  LPRECT rect = new RECT();
+  GetClientRect(m_screenHandle, rect);
+  Vector2i size(cast::st<int32>(rect->right - rect->left),
+                cast::st<int32>(rect->bottom - rect->top));
+  /*m_height = cast::st<uint32>(size.y);
+  m_width = cast::st<uint32>(size.x);*/
+
+  return size;
 }
 }
 

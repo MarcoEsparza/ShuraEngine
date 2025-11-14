@@ -47,6 +47,7 @@ const uint32 ShaderManager::DIFFUSE_IRR_SHADER_ID = StringID("DiffuseIrrShader")
 const uint32 ShaderManager::PREFILTERED_IRR_SHADER_ID =
                             StringID("PrefilteredIrrShader").getID();
 const uint32 ShaderManager::BRDF_SHADER_ID = StringID("BRDFShader").getID();
+const uint32 ShaderManager::EMMISIVE_SHADER_ID = StringID("EmmisiveShader").getID();
 
 void
 ShaderManager::createPipelinePasses()
@@ -189,6 +190,13 @@ ShaderManager::createPipelinePasses()
                               "cs_5_0");
   pBRDFShader->compileShader();
 
+  // Emmisive pass
+  auto pEmmisiveShader = sh_makeShared<Pass>();
+  pEmmisiveShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
+                                 "EmmisiveCS",
+                                 "cs_5_0");
+  pEmmisiveShader->compileShader();
+
   // Raster state
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = FILL_MODE::kSolid;
@@ -310,6 +318,10 @@ ShaderManager::createPipelinePasses()
   pIrrCubeShader->addCSConstantBuffer(m_pPrefilteredCB, 2);
   pSPreCubeMap->addCSConstantBuffer(m_pPrefilteredCB, 2);
 
+  // Emmisive pass
+  pEmmisiveShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  pEmmisiveShader->addCSConstantBuffer(m_pShaderDataBuffer, 1);
+
   m_passes[SSAO_SHADER_ID] = pAOShader;
   m_passes[HBLUR_SHADER_ID] = pHBlurCS;
   m_passes[VBLUR_SHADER_ID] = pVBlurCS;
@@ -329,6 +341,7 @@ ShaderManager::createPipelinePasses()
   m_passes[DIFFUSE_IRR_SHADER_ID] = pIrrCubeShader;
   m_passes[PREFILTERED_IRR_SHADER_ID] = pSPreCubeMap;
   m_passes[BRDF_SHADER_ID] = pBRDFShader;
+  m_passes[EMMISIVE_SHADER_ID] = pEmmisiveShader;
 }
 
 SPtr<Pass>

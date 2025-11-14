@@ -34,6 +34,8 @@
 #include <shDepthStencilState.h>
 #include <shPass.h>
 
+#include <shVector2i.h>
+
 #define VertexBufferMaxSize                        5000
 #define IndexBufferMaxSize                         10000
 
@@ -98,12 +100,14 @@ ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle)
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   
-  io.DisplaySize.x = static_cast<float>(pScreen->getWidth());
-  io.DisplaySize.y = static_cast<float>(pScreen->getHeight());
+  float screenWidth = cast::st<float>(pScreen->getClientSize().x);
+  float screenHeight = cast::st<float>(pScreen->getClientSize().y);
+  io.DisplaySize.x = screenWidth;
+  io.DisplaySize.y = screenHeight;
   ImGuiViewport* viewport = ImGui::GetMainViewport();
   viewport->PlatformHandle = reinterpret_cast<void*>(pScreen->getPlatformHandler());
-  viewport->Size.x = static_cast<float>(pScreen->getWidth());
-  viewport->Size.y = static_cast<float>(pScreen->getHeight());
+  viewport->Size.x = screenWidth;
+  viewport->Size.y = screenHeight;
 
   for (int32 key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key) {
     io.KeysData[key - ImGuiKey_NamedKey_BEGIN].Down = false;
@@ -249,7 +253,7 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
         graphMan.setScissorRects(scissorClip);
 
         // Bind texture, Draw
-        SPtr<Texture2D>& pTexture = *reinterpret_cast<SPtr<Texture2D>*>(pcmd->GetTexID());
+        SPtr<Texture2D>& pTexture = *cast::re<SPtr<Texture2D>*>(pcmd->GetTexID());
         graphMan.psSetShaderResourceView(pTexture);
         graphMan.drawIndexed(pcmd->ElemCount,
                              pcmd->IdxOffset + global_idx_offset,

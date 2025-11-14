@@ -683,6 +683,19 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     height = static_cast<uint32>(static_cast<UINT64>(lParam) >> 16);
 
     //currentEvent = Event(width, height, false);
+    switch (wParam)
+    {
+    case SIZE_MINIMIZED:
+      break;
+    case SIZE_MAXIMIZED:
+      currentEvent = Event(width, height, false);
+      break;
+    case SIZE_RESTORED:
+      currentEvent = Event(width, height, false);
+      break;
+    default:
+      break;
+    }
 
     break;
   }

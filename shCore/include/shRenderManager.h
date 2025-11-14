@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/30
+*  @date    2025/11/14
 *  @brief   Render module.
 *
 *  Render module.
@@ -75,6 +75,13 @@ struct RenderTargetInfo
   float height = 1.0f;
   bool bUseScaledSize = true;
   SPtr<Texture2D> pTexture;
+};
+
+struct SceneTarget
+{
+  SPtr<Texture2D> pTexture;
+  uint32 width = 0;
+  uint32 height = 0;
 };
 
 /**
@@ -151,6 +158,9 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   void
   computeBRDF();
+
+  SPtr<Texture2D>&
+  createSceneTexture(const Vector2& winSize);
 
   /**
   *  @brief Clean the PS shader resource view slots.
@@ -265,6 +275,8 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
 
   Vector2i m_skyboxDimension = { 0, 0 };
 
+  SceneTarget m_sceneTarget;
+
   static const uint32 SHADOWMAP_TEX_ID;
   static const uint32 SHADOWTEMP_TEX_ID;
   static const uint32 DEPTH_TEX_ID;
@@ -287,6 +299,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   static const uint32 BVBLUR_TEX_ID;
   static const uint32 GBUFFER_DEPTH_TEX_ID;
   static const uint32 HISTOGRAM_TEX_ID;
+  static const uint32 EMM_PROCESS_TEX_ID;
 };
 
 /**

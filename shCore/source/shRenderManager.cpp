@@ -2,7 +2,7 @@
 /*
 *  @file    shRenderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/09/30
+*  @date    2025/11/14
 *  @brief   Render module.
 *
 *  Render module.
@@ -35,6 +35,7 @@
 #include "shTexture.h"
 #include "shCubeMap.h"
 #include "shMath.h"
+#include "shRect.h"
 
 #define LUMINANCE_MAP_SIZE 512.0f // Size of the luminance map
 #define HISTOGRAM_MAP_SIZE 256.0f // Size of the histogram map
@@ -75,6 +76,7 @@ const uint32 RenderManager::BHBLUR_TEX_ID = StringID("BHBlur").getID();
 const uint32 RenderManager::BVBLUR_TEX_ID = StringID("BVBlur").getID();
 const uint32 RenderManager::GBUFFER_DEPTH_TEX_ID = StringID("GBufferDepth").getID();
 const uint32 RenderManager::HISTOGRAM_TEX_ID = StringID("HistogramMap").getID();
+const uint32 RenderManager::EMM_PROCESS_TEX_ID = StringID("EmmProMap").getID();
 
 void
 RenderManager::onStartUp()
@@ -106,8 +108,7 @@ RenderManager::onStartUp()
   m_renderTargetMap[NORMAL_TEX_ID] = RenderTargetInfo("NormalMap");
   m_renderTargetMap[COLOR_TEX_ID] = RenderTargetInfo("ColorMap");
   m_renderTargetMap[PROPS_TEX_ID] = RenderTargetInfo("PropMap");
-  m_renderTargetMap[EMMISIVE_TEX_ID] = RenderTargetInfo("EmmisiveMap",
-                                       TEXTURE_FORMAT::kR32G32B32A32_FLOAT);
+  m_renderTargetMap[EMMISIVE_TEX_ID] = RenderTargetInfo("EmmisiveMap");
   m_renderTargetMap[SSAO_TEX_ID] = RenderTargetInfo("SSAOMap", TEXTURE_FORMAT::kR16_FLOAT);
 
   m_renderTargetMap[HBLUR_TEX_ID] = RenderTargetInfo("HBlurMap",
@@ -118,6 +119,9 @@ RenderManager::onStartUp()
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
     fullUAVBindFlags, USAGE::kDefault, DEFAULT_NUM_MIP_LEVELS);
 
+  m_renderTargetMap[EMM_PROCESS_TEX_ID] = RenderTargetInfo("EmmProMap",
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags, USAGE::kDefault);
+
   m_renderTargetMap[LIGHTC_TEX_ID] = RenderTargetInfo("LightCMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
 
@@ -125,7 +129,7 @@ RenderManager::onStartUp()
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
 
   m_renderTargetMap[TEMP_TEX_ID] = RenderTargetInfo("TempMap",
-    TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
 
   m_renderTargetMap[TONEMAP_TEX_ID] = RenderTargetInfo("ToneMap",
     TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
@@ -532,6 +536,7 @@ RenderManager::renderScene()
   auto& pBHBlur = m_renderTargetMap[BHBLUR_TEX_ID];
   auto& pBVBlur = m_renderTargetMap[BVBLUR_TEX_ID];
   auto& pGbufferDepth = m_renderTargetMap[GBUFFER_DEPTH_TEX_ID];
+  auto& pEmmProcessMap = m_renderTargetMap[EMM_PROCESS_TEX_ID];
   //auto& pHistogramMap = m_renderTargetMap[HISTOGRAM_TEX_ID];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
@@ -573,6 +578,11 @@ RenderManager::renderScene()
   quadVP.topLeftX = 0.0f;
   quadVP.topLeftY = 0.0f;
 
+  if (pTempMap.width != m_screenDimension.x ||
+      pTempMap.height != m_screenDimension.y) {
+    createRenderTextures();
+  }
+
   /*************************************/
   /*          Shadow Mapping           */
   /*************************************/
@@ -594,16 +604,21 @@ RenderManager::renderScene()
   graphMan.clearRenderTarget(pNormalMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pColorMap.pTexture, LinearColor::BLACK);
   graphMan.clearRenderTarget(pPropMap.pTexture, LinearColor::BLACK);
+  graphMan.clearRenderTarget(pEmmisiveMap.pTexture, LinearColor::BLACK);
   graphMan.clearDepthStencil(pDepthSV);
   graphMan.setRenderTargets({{pDepthMap.pTexture},
                              {pNormalMap.pTexture},
                              {pColorMap.pTexture},
                              {pPropMap.pTexture },
                              {pEmmisiveMap.pTexture }}, pGbufferDepth.pTexture);
-  //m_passes[StringID("GBufferShader").getID()]->setPass();
   setSamplers();
   drawMeshesOnScene();
   cleanShaderObjects();
+
+  // Reset buffer miplevels
+  shaderMan.m_shaderData.mipLevel0 = 0.0f;
+  shaderMan.m_shaderData.mipLevel1 = 0.0f;
+  shaderMan.updateShaderDataCB();
 
   /*************************************/
   /*         Ambient Occlusion         */
@@ -618,11 +633,6 @@ RenderManager::renderScene()
   graphMan.psSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.draw(3, 0);
   cleanShaderObjects();
-
-  // Reset buffer miplevels
-  shaderMan.m_shaderData.mipLevel0 = 0.0f;
-  shaderMan.m_shaderData.mipLevel1 = 0.0f;
-  shaderMan.updateShaderDataCB();
 
   /*************************************/
   /*        SSAO Horizontal Blur       */
@@ -672,7 +682,6 @@ RenderManager::renderScene()
 
   shaderMan.m_passes[shaderMan.SKYBOX_SHADER_ID]->setPass();
   setSamplers();
-  //graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
   graphMan.csSetShaderResourceView(m_pSpecularPreMap, 0);
   graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
@@ -695,7 +704,6 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
   graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
-  graphMan.csSetShaderResourceView(pEmmisiveMap.pTexture, 4);
   graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 5);
   graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 6);
   graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 7);
@@ -721,11 +729,21 @@ RenderManager::renderScene()
   cleanShaderObjects();
 
   /*************************************/
+  /*              Emmisive             */
+  /*************************************/
+  shaderMan.m_passes[shaderMan.EMMISIVE_SHADER_ID]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pEmmisiveMap.pTexture, 1);
+  graphMan.setUnorderedAccessView({ pEmmProcessMap.pTexture }, 0);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+  cleanShaderObjects();
+
+  /*************************************/
   /*             Luminance             */
   /*************************************/
-  pInput = pTempMap.pTexture;
+  pInput = pEmmProcessMap.pTexture;
   pOutput = pLuminance.pTexture;
-  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   shaderMan.m_passes[shaderMan.LUMINANCE_SHADER_ID]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pInput, 0);
@@ -741,7 +759,7 @@ RenderManager::renderScene()
   pOutput = pBrightMap.pTexture;
   shaderMan.m_passes[shaderMan.BRIGHT_SHADER_ID]->setPass();
   setSamplers();
-  graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pEmmProcessMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pInput, 1);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(threadGroups(static_cast<uint32>(screenWidth * 0.5f), DEFAULT_THREADS),
@@ -832,15 +850,10 @@ RenderManager::renderScene()
     pLutTex = nullptr;
   }
   shaderMan.updateShaderDataCB();
-
-  //pInput = pVBlurMap.pTexture;
-  //pOutput = pToneMap.pTexture;
   graphMan.setViewport(normalVP);
 
-  //graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   shaderMan.m_passes[shaderMan.TONEMAP_SHADER_ID]->setPass();
   setSamplers();
-  //graphMan.csSetSamplerState(m_pSamplerLinearClamp, 1);
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pBVBlur.pTexture, 1);
   graphMan.csSetShaderResourceView(pLuminance.pTexture, 2);
@@ -848,7 +861,6 @@ RenderManager::renderScene()
   graphMan.setUnorderedAccessView({ pToneMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-
   cleanShaderObjects();
 
   shaderMan.m_shaderData.toneMappingIndex = cast::st<float>(index);
@@ -863,22 +875,7 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pToneMap.pTexture, 0);
   graphMan.setUnorderedAccessView({ pPPMap.pTexture }, 0);
 
-  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-
-  cleanShaderObjects();
-
-  /*************************************/
-  /*         Add to backbuffer         */
-  /*************************************/
-  graphMan.setRenderTargets({{ pMainTarget }}, pDepthSV);
-  shaderMan.m_passes[shaderMan.PLANE_SHADER_ID]->setPass();
-  shaderMan.m_passes[shaderMan.FINAL_SHADER_ID]->setPass();
-  setSamplers();
-
-  graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
-
-  graphMan.draw(3, 0);
-
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ); 
   cleanShaderObjects();
 
   /*************************************/
@@ -953,7 +950,6 @@ RenderManager::computeIBL()
   /*************************************/
   shaderMan.m_passes[shaderMan.DIFFUSE_IRR_SHADER_ID]->setPass();
   setSamplers();
-  //graphMan.csSetConstantBuffers(shaderMan.m_pPrefilteredCB, 2);
   graphMan.csSetShaderResourceView(pSbImg->texture, 0);
   graphMan.setUnorderedAccessView({ m_pDiffIrr }, 0);
   graphMan.dispatch(threadGroups(256, 16),
@@ -985,7 +981,6 @@ RenderManager::computeIBL()
 
     shaderMan.m_passes[shaderMan.PREFILTERED_IRR_SHADER_ID]->setPass();
     setSamplers();
-    //graphMan.csSetConstantBuffers(shaderMan.m_pPreCB, 2);
     graphMan.csSetShaderResourceView(pSbImg->texture, 0);
     graphMan.setUnorderedAccessView({ m_pSpecularPreMap, mip }, 0);
     graphMan.dispatch(dispatchSize.x, dispatchSize.y, 1);
@@ -1018,6 +1013,48 @@ RenderManager::computeBRDF()
   graphMan.dispatch(lutDispatch, lutDispatch, 1);
 
   cleanShaderObjects();
+}
+
+SPtr<Texture2D>&
+RenderManager::createSceneTexture(const Vector2& winSize)
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
+  auto& pPPMap = m_renderTargetMap[POSTPROCESS_TEX_ID];
+  //auto& pSceneTex = m_renderTargetMap[SCENE_TEX_ID];
+  if (m_sceneTarget.pTexture != nullptr ||
+      m_sceneTarget.width != winSize.x ||
+      m_sceneTarget.height != winSize.y) {
+    m_sceneTarget.pTexture = graphMan.createTexture2D(cast::st<uint32>(winSize.x),
+                                                      cast::st<uint32>(winSize.y),
+                                                      TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+                                                      USAGE::kDefault,
+                                                      BIND_FLAGS::kShaderResource |
+                                                      BIND_FLAGS::kRenderTarget,
+                                                      1, 1);
+  }
+
+  cleanShaderObjects();
+  graphMan.clearRenderTarget(m_sceneTarget.pTexture, LinearColor::BLUE);
+  Rect scissorRect = {};
+  scissorRect.min = { 0, 0 };
+  scissorRect.max = { cast::st<float>(m_screenDimension.x),
+                      cast::st<float>(m_screenDimension.y) };
+  graphMan.setScissorRects(scissorRect);
+
+  graphMan.setPrimitiveTopology();
+  WPtr<Texture2D> pSceneDepthStencil;
+  graphMan.setRenderTargets({{m_sceneTarget.pTexture}},
+                             pSceneDepthStencil);
+  shaderMan.m_passes[shaderMan.PLANE_SHADER_ID]->setPass();
+  shaderMan.m_passes[shaderMan.FINAL_SHADER_ID]->setPass();
+  setSamplers();
+  graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
+  graphMan.draw(3, 0);
+
+  cleanShaderObjects();
+
+  return m_sceneTarget.pTexture;
 }
 
 void

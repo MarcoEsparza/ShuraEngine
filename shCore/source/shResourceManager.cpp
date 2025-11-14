@@ -364,7 +364,9 @@ ResourceManager::isResourceLoaded(const Path& fileName)
 bool
 ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
 {
-  auto resObj = m_loadedResources.find(filePath.toString());
+  SystemPath path = filePath.toString();
+
+  auto resObj = m_loadedResources.find(path.filename().string());
 
   if (resObj != m_loadedResources.end()) {
     pRes = (*resObj).second;

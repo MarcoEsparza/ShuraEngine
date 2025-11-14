@@ -116,7 +116,8 @@ struct SH_CORE_EXPORT ShaderData {
 
   float roughness = 0.0f;
   uint32 cubeFace = 0;
-  Vector2 padding = { 0.0f, 0.0f };
+  float emmisiveIntensity = 1.0f;
+  float padding = 0.0f;
 };
 
 struct SH_CORE_EXPORT PrefilteredCB
@@ -402,6 +403,8 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   *  @brief Static ID for the BRDF shader.
   */
   static const uint32 BRDF_SHADER_ID;
+
+  static const uint32 EMMISIVE_SHADER_ID;
 };
 
 /**

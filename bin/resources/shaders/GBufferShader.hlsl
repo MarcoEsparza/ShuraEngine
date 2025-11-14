@@ -26,7 +26,7 @@ cbuffer MaterialData : register(b3)
   int materialBitfield; // bitfield for material properties
   float unused1; // padding to 16 bytes
   float3 emissiveFactor; // emissive factor
-  float emmissiveIntensity; // emissive intensity
+  float matEmmissiveIntensity; // emissive intensity
 };
 
 struct VS_INPUT
@@ -162,22 +162,28 @@ GBUFFER_OUTPUT mainPS(PS_INPUT input) : SV_Target
   /*************************************/
 #if defined(USE_EMISSION)
  #if defined(HAS_EMISSIVE_MAP)
-  output.Emissive = t_emissive.Sample(samplerLinearWrap, input.Tex) * emmissiveIntensity;
+  output.Emissive = t_emissive.Sample(samplerLinearWrap, input.Tex);
  #else
-  output.Emissive = float4(emissiveFactor, 1.0f) * emmissiveIntensity;
+  output.Emissive = float4(emissiveFactor, 1.0f);
  #endif
 #else
   output.Emissive = float4(0.0f, 0.0f, 0.0f, 0.0f);
 #endif
   
   /*************************************/
+  /*           INVERT NORMALS          */
+  /*************************************/
+  
+  /*************************************/
   /*          INVERT ROUGHNESS         */
   /*************************************/
 #if defined(INVERT_ROUGHNESS)
   output.Properties.b = 1.0f - output.Properties.b;
-#else
-  
 #endif
+  
+  /*************************************/
+  /*          INVERT METALNESS         */
+  /*************************************/
   
   return output;
 }

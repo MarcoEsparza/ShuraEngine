@@ -170,12 +170,12 @@ BaseApp::handleScreenEvents(const Event& wndEvent)
 
     m_mainScreen->setWidth(rszData.width);
     m_mainScreen->setHeight(rszData.height);
-    m_screenDesc.width = rszData.width;
-    m_screenDesc.height = rszData.height;
+    m_screenDesc.width = cast::st<uint32>(m_mainScreen->getClientSize().x);
+    m_screenDesc.height = cast::st<uint32>(m_mainScreen->getClientSize().y);
 
     if (!rszData.resizing) {
-      graphMan.updateScreenSize(Vector2(static_cast<float>(rszData.width),
-                                        static_cast<float>(rszData.height)));
+      graphMan.updateScreenSize(Vector2(static_cast<float>(m_screenDesc.width),
+                                        static_cast<float>(m_screenDesc.height)));
 
       onResize(rszData);
     }

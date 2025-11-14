@@ -2,7 +2,7 @@
 /*
 *  @file    shGUI.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/10/02
+*  @date    2025/11/14
 *  @brief   Graphical User Interface (GUI) system for editor.
 *
 *  Graphical User Interface (GUI) system for editor.
@@ -90,7 +90,7 @@ GUI::render()
 void
 GUI::update()
 {
-  //RenderManager& renderMan = g_renderMan();
+  RenderManager& renderMan = g_renderMan();
 
   ImGui_ImplShura_NewFrame();
   ImGui::NewFrame();
@@ -103,31 +103,14 @@ GUI::update()
 
   ImGui::Begin("ResourceManager");
   ImGui::Text("Resource1");
+  ImVec2 mousePos = ImGui::GetMousePos();
+  String mousePosStr = "Mouse Position: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")";
+  ImGui::Text(mousePosStr.c_str());
   ImGui::End();
 
   setConsoleLogs();
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
-  ImGui::Begin("Scene");
-  ImGui::PopStyleColor();
-
-  if (ImGui::Button(m_bPlay ? "Stop" : "Play")) {
-    m_bPlay = !m_bPlay;
-  }
-
-  /*ImVec2 content_min = ImGui::GetWindowContentRegionMin();
-  ImVec2 content_max = ImGui::GetWindowContentRegionMax();
-  ImVec2 window_pos = ImGui::GetWindowPos();
-
-  ImVec2 scene_pos = ImVec2(window_pos.x + content_min.x, window_pos.y + content_min.y);
-  ImVec2 scene_size = ImVec2(content_max.x - content_min.x, content_max.y - content_min.y);
-
-  ImGui::SetCursorScreenPos(scene_pos);*/
-
-  //auto pScene = renderMan.getTexture("PPMap");
-  //ImGui::Image(reinterpret_cast<ImTextureID*>(&pScene), scene_size);
-
-  ImGui::End();
+  setScene();
 }
 
 void
@@ -136,38 +119,9 @@ GUI::setDockSpace()
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
   ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-  static bool built = false;
-  if (!built) {
-    ImGui::DockBuilderRemoveNode(dockspace_id); // Clear any previous layout
-    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
-
-    ImGuiID main = dockspace_id;
-    ImGuiID left;
-    ImGuiID right;
-    ImGuiID bottom;
-    ImGuiID center;
-
-    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.15f, &left, &main);
-    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, &right, &main);
-    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.2f, &bottom, &center);
-
-    ImGui::DockBuilderDockWindow("Scenegraph", left);
-    ImGui::DockBuilderDockWindow("Scene", center);
-    ImGui::DockBuilderDockWindow("Inspector", right);
-    ImGui::DockBuilderDockWindow("RendererSettings", right);
-    ImGui::DockBuilderDockWindow("ResourceManager", bottom);
-    ImGui::DockBuilderDockWindow("Console", bottom);
-
-    ImGui::DockBuilderFinish(dockspace_id);
-    built = true;
-  }
-
   ImGui::SetNextWindowPos(viewport->WorkPos);
   ImGui::SetNextWindowSize(viewport->WorkSize);
   ImGui::SetNextWindowViewport(viewport->ID);
-
   window_flags |= ImGuiWindowFlags_NoTitleBar |
                   ImGuiWindowFlags_NoCollapse |
                   ImGuiWindowFlags_NoResize |
@@ -175,12 +129,37 @@ GUI::setDockSpace()
                   ImGuiWindowFlags_NoBringToFrontOnFocus |
                   ImGuiWindowFlags_NoNavFocus;
 
+  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+  if (!m_bOpenDockSpace) {
+    ImGui::DockBuilderRemoveNode(dockspace_id); // Clear any previous layout
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+    ImGuiID mainID = dockspace_id;
+    ImGuiID leftID = ImGui::DockBuilderSplitNode(mainID,
+                                                 ImGuiDir_Left, 0.15f, NULL, &mainID);
+    ImGuiID rightID = ImGui::DockBuilderSplitNode(mainID,
+                                                  ImGuiDir_Right, 0.2f, NULL, &mainID);
+    ImGuiID bottomID = ImGui::DockBuilderSplitNode(mainID,
+                                                   ImGuiDir_Down, 0.2f, NULL, &mainID);
+
+    ImGui::DockBuilderDockWindow("Scenegraph", leftID);
+    ImGui::DockBuilderDockWindow("Scene", mainID);
+    ImGui::DockBuilderDockWindow("Inspector", rightID);
+    ImGui::DockBuilderDockWindow("RendererSettings", rightID);
+    ImGui::DockBuilderDockWindow("ResourceManager", bottomID);
+    ImGui::DockBuilderDockWindow("Console", bottomID);
+
+    ImGui::DockBuilderFinish(dockspace_id);
+    m_bOpenDockSpace = true;
+  }
+
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
-
-  ImGui::Begin("DockSpace", nullptr, window_flags);
-  ImGui::PopStyleVar(2);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleColor(ImGuiCol_DockingEmptyBg, IM_COL32(0, 0, 0, 0));
+  ImGui::Begin("DockSpace", &m_bOpenDockSpace, window_flags);
+  ImGui::PopStyleVar(3);
   ImGui::PopStyleColor();
 
   ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
@@ -209,6 +188,33 @@ GUI::setDockSpace()
     }
     ImGui::EndMenuBar();
   }
+
+  ImGui::End();
+}
+
+void
+GUI::setScene()
+{
+  RenderManager& renderMan = g_renderMan();
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
+  ImGui::Begin("Scene", &m_bOpenDockSpace, 0);
+  ImGui::PopStyleColor();
+
+  /*if (ImGui::Button(m_bPlay ? "Stop" : "Play")) {
+    m_bPlay = !m_bPlay;
+  }*/
+
+  ImVec2 windowSize = ImGui::GetContentRegionAvail();
+  m_sceneWindowSize = Vector2(windowSize.x, windowSize.y);
+  renderMan.setScreenSize(m_sceneWindowSize);
+  auto& pSceneTex = renderMan.createSceneTexture(m_sceneWindowSize);
+
+  if (pSceneTex != nullptr) {
+    ImGui::Image(cast::re<ImTextureID*>(&pSceneTex), windowSize);
+  }
+
+  m_bSceneWindowFocused = ImGui::IsWindowFocused();
 
   ImGui::End();
 }
@@ -270,11 +276,15 @@ GUI::setRendererSettings()
     ImGui::Spacing();
     ImGui::DragFloat("Bloom Multiplier:",
                      &rendererSettings.bloomMultiplier,
-                     0.01f, 0.5f, 2.0f);
+                     0.01f, 0.5f, 5.0f);
     ImGui::Spacing();
     ImGui::DragFloat("MiddleGrey:",
                      &rendererSettings.middleGrey,
                      0.01f, 0.5f, 2.0f);
+    ImGui::Spacing();
+    ImGui::DragFloat("Emissive Intensity:",
+                     &rendererSettings.emmisiveIntensity,
+                     0.1f, 0.0f, 10.0f);
   }
   if (ImGui::CollapsingHeader("Post-Process")) {
     float minR = rendererSettings.minR * COLOR_LIMIT;
@@ -595,6 +605,24 @@ GUI::setComponentInspector()
   ImGui::End();
 }
 
+static void
+dragFloatWithColor(const char* label,
+                   float* value,
+                   float speed,
+                   float min,
+                   float max,
+                   ImU32 color,
+                   ImU32 activeColor,
+                   ImU32 hoverColor)
+{
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeColor);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoverColor);
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat(label, value, speed, min, max);
+  ImGui::PopStyleColor(3);
+}
+
 void
 GUI::showTransformComponent()
 {
@@ -602,87 +630,70 @@ GUI::showTransformComponent()
   Vector3 modelRot = m_pActiveGameObject->getRotation() * Math::RAD2DEG;
   Vector3 modelScale = m_pActiveGameObject->getScale();
 
+  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(100, 100, 100, 150));
   if (ImGui::CollapsingHeader("Transform")) {
     // Position
     ImGui::Text("Position:");
     // Position X
     ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##PosX", &modelPos.x, 0.01f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("x##PosX", &modelPos.x, 0.01f, -FLT_MAX, FLT_MAX,
+                       IM_COL32(180, 50, 50, 150),
+                       IM_COL32(200, 70, 70, 150),
+                       IM_COL32(200, 70, 70, 150));
     // Position Y
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##PosY", &modelPos.y, 0.01f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("y##PosY", &modelPos.y, 0.01f, -FLT_MAX, FLT_MAX,
+                       IM_COL32(50, 50, 150, 150),
+                       IM_COL32(70, 70, 170, 150),
+                       IM_COL32(70, 70, 170, 150));
     // Position Z
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##PosZ", &modelPos.z, 0.01f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("z##PosZ", &modelPos.z, 0.01f, -FLT_MAX, FLT_MAX,
+                       IM_COL32(50, 150, 50, 150),
+                       IM_COL32(70, 170, 70, 150),
+                       IM_COL32(70, 170, 70, 150));
 
     // Rotation
     ImGui::Text("Rotation:");
     // Rotation X
     ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##RotX", &modelRot.x, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("x##RotX", &modelRot.x, 0.1f, -360.0f, 360.0f,
+                       IM_COL32(180, 50, 50, 150),
+                       IM_COL32(200, 70, 70, 150),
+                       IM_COL32(200, 70, 70, 150));
     // Rotation Y
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##RotY", &modelRot.y, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("y##RotY", &modelRot.y, 0.1f, -360.0f, 360.0f,
+                       IM_COL32(50, 50, 150, 150),
+                       IM_COL32(70, 70, 170, 150),
+                       IM_COL32(70, 70, 170, 150));
     // Rotation Z
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##RotZ", &modelRot.z, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("z##RotZ", &modelRot.z, 0.1f, -360.0f, 360.0f,
+                       IM_COL32(50, 150, 50, 150),
+                       IM_COL32(70, 170, 70, 150),
+                       IM_COL32(70, 170, 70, 150));
 
     // Scale
     ImGui::Text("Scale:");
     // Rotation X
     ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##SclX", &modelScale.x, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("x##SclX", &modelScale.x, 0.1f, -FLT_MAX, FLT_MAX,
+                       IM_COL32(180, 50, 50, 150),
+                       IM_COL32(200, 70, 70, 150),
+                       IM_COL32(200, 70, 70, 150));
     // Rotation Y
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##SclY", &modelScale.y, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("y##SclY", &modelScale.y, 0.1f, -FLT_MAX, FLT_MAX,
+                       IM_COL32(50, 50, 150, 150),
+                       IM_COL32(70, 70, 170, 150),
+                       IM_COL32(70, 70, 170, 150));
     // Rotation Z
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##SclZ", &modelScale.z, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragFloatWithColor("z##SclZ", &modelScale.z, 0.1f, -FLT_MAX, FLT_MAX,
+                       IM_COL32(50, 150, 50, 150),
+                       IM_COL32(70, 170, 70, 150),
+                       IM_COL32(70, 170, 70, 150));
 
     ImGui::Spacing();
     ImGui::Spacing();
@@ -697,6 +708,7 @@ GUI::showTransformComponent()
     }
     ImGui::PopStyleColor(3);
   }
+  ImGui::PopStyleColor();
 
   if (modelPos != m_pActiveGameObject->getPosition()) {
     m_pActiveGameObject->setPosition(modelPos);
@@ -808,6 +820,31 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
   }
 }
 
+static void
+textureFileButton(const String& buttonID,
+                  WPtr<ImageResource>& textureImg,
+                  ImVec2& buttonSize)
+{
+  ResourceManager& resMan = g_resourceMan();
+  FileExplorer& fileExp = g_fileExplorer();
+
+  auto& pTexture = textureImg.lock()->texture;
+  ImTextureID* texID = cast::re<ImTextureID*>(&pTexture);
+
+  if (ImGui::ImageButton(buttonID.c_str(), texID, buttonSize)) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
+      if (pImg->texture) {
+        textureImg = pImg;
+      }
+    }
+  }
+}
+
 void
 GUI::showMaterialInspector(const WPtr<Material> wpMat)
 {
@@ -827,33 +864,14 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pEmissiveImg = currentMat->m_emissive;
   auto& pOpacityImg = currentMat->m_opacityMask;
 
-  auto& pBaseColor = currentMat->m_baseColor.lock()->texture;
-  auto& pNormal = currentMat->m_normal.lock()->texture;
-  auto& pMetalness = currentMat->m_metalness.lock()->texture;
-  auto& pRoughness = currentMat->m_roughness.lock()->texture;
-  auto& pAO = currentMat->m_ao.lock()->texture;
-  auto& pEmissive = currentMat->m_emissive.lock()->texture;
-  auto& pOpacity = currentMat->m_opacityMask.lock()->texture;
-
   bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
   currentMat->m_properties.properties.flags.bHasAlphaTest = bHasAlpha;
 
+  ImVec2 buttonSize = ImVec2(64, 64);
+
   // Base Color
-  if(ImGui::ImageButton("##BaseColorSelection",
-                        reinterpret_cast<ImTextureID*>(&pBaseColor),
-                        ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg->texture) {
-        pBaseColorImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##BaseColorSelection", pBaseColorImg, buttonSize);
   ImGui::SameLine();
   String buttonID = "##ColorButton" + currentMat->getName();
   Vector3& baseColor = currentMat->baseColorFactor;
@@ -879,40 +897,14 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   baseColor.z = currentColor.z;
 
   // Normal
-  if (ImGui::ImageButton("##NormalSelection",
-    reinterpret_cast<ImTextureID*>(&pNormal),
-    ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg) {
-        pNormalImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##NormalSelection", pNormalImg, buttonSize);
   ImGui::SameLine();
   bool bHasNormalMap = currentMat->m_properties.properties.flags.bHasNormalMap;
   ImGui::Checkbox("Normal", &bHasNormalMap);
   currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
 
   // Metallic
-  if (ImGui::ImageButton("##MetalnessSelection",
-    reinterpret_cast<ImTextureID*>(&pMetalness),
-    ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg) {
-        pMetalnessImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##MetalnessSelection", pMetalnessImg, buttonSize);
   ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Metallic Factor",
@@ -926,20 +918,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.properties.flags.bHasMetalnessMap = bHasMetallicMap;
 
   // Roughness
-  if (ImGui::ImageButton("##RoughnessSelection",
-    reinterpret_cast<ImTextureID*>(&pRoughness),
-    ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg) {
-        pRoughnessImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##RoughnessSelection", pRoughnessImg, buttonSize);
   ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Roughness Factor",
@@ -953,40 +932,14 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   currentMat->m_properties.properties.flags.bHasRoughnessMap = bHasRoughnessMap;
 
   // Occlusion
-  if(ImGui::ImageButton("##OcclusionSelection",
-                        reinterpret_cast<ImTextureID*>(&pAO),
-                        ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg) {
-        pAOImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##AOSelection", pAOImg, buttonSize);
   ImGui::SameLine();
   bool bHasAO = currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap;
   ImGui::Checkbox("Ambient Occlusion", &bHasAO);
   currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap = bHasAO;
 
   // Emissive
-  if(ImGui::ImageButton("##EmissiveSelection",
-                        reinterpret_cast<ImTextureID*>(&pEmissive),
-                        ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg->texture) {
-        pEmissiveImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##EmissiveSelection", pEmissiveImg, buttonSize);
   ImGui::SameLine();
   String emmButtonID = "##EmmColorButton" + currentMat->getName();
   Vector3& emmisiveColor = currentMat->emissiveFactor;
@@ -1006,11 +959,11 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   bool bHasEmissiveMap = currentMat->m_properties.properties.flags.bHasEmissiveMap;
   ImGui::Checkbox("Use Emmisive Map", &bHasEmissiveMap);
   currentMat->m_properties.properties.flags.bHasEmissiveMap = bHasEmissiveMap;
-  ImGui::DragFloat("Emissive Intensity",
+  /*ImGui::DragFloat("Emissive Intensity",
                    &currentMat->emmisiveIntensity,
                    0.01f,
                    0.0f,
-                   10.0f);
+                   10.0f);*/
 
   if (ImGui::BeginPopup("EmmColorPickerPopup")) {
     ImGui::ColorPicker3("##picker", (float*)&currentEmmColor);
@@ -1021,20 +974,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   emmisiveColor.z = currentEmmColor.z;
 
   // Opacity mask
-  if (ImGui::ImageButton("##OpacitySelection",
-    reinterpret_cast<ImTextureID*>(&pOpacity),
-    ImVec2(64, 64))) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg) {
-        pOpacityImg = pImg;
-      }
-    }
-  }
+  textureFileButton("##OpacityMaskSelection", pOpacityImg, buttonSize);
   //ImGui::SameLine();
   ImGui::SetNextItemWidth(50.0f);
   ImGui::DragFloat("##Alpha cutoff",
@@ -1042,11 +982,6 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                    0.01f,
                    0.0f,
                    1.0f);
-  //ImGui::SameLine();
-  //bool bUseOpacityMask = currentMat->m_properties.properties.flags.bUseOpacityMask;
-  //ImGui::Checkbox("Use Opacity Mask", &bUseOpacityMask);
-  //currentMat->m_properties.properties.flags.bUseOpacityMask = bUseOpacityMask;
-  //ImGui::SameLine();
   bool bHasOpacityMask = currentMat->m_properties.properties.flags.bHasOpacityMask;
   ImGui::Checkbox("Use Opacity Mask Map", &bHasOpacityMask);
   currentMat->m_properties.properties.flags.bHasOpacityMask = bHasOpacityMask;

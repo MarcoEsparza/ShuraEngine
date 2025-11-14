@@ -145,6 +145,9 @@ class SH_CORE_EXPORT Screen
   void
   close();
 
+  Vector2i
+  getClientSize() const;
+
   /**
   *  @brief Checks if is fullscreen.
   * 

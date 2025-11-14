@@ -96,6 +96,9 @@ class GUI
   void
   setDockSpace();
 
+  void
+  setScene();
+
   /**
   *  @brief Set the console logs window.
   */
@@ -244,6 +247,8 @@ class GUI
   */
   bool m_bRename = false;
 
+  bool m_bOpenDockSpace = false;
+
   /***************************************************************************/
   /*
   *  Public Variables
@@ -281,6 +286,10 @@ class GUI
   float m_shadowTexSize = 0;
 
   bool m_bSSAO = true;
+
+  bool m_bSceneWindowFocused = false;
+
+  Vector2 m_sceneWindowSize = Vector2(0.0f, 0.0f);
 
   /**
   *  @brief Is scene playing?

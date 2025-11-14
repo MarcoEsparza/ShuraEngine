@@ -82,7 +82,8 @@ cbuffer ShaderData : register(b1)
   
   float cubeRoughness; // Roughness value for environment mapping
   uint cubeFaceIndex; // Face index for environment mapping
-  float2 sdPadding; // Shader data padding
+  float emmisiveIntensity; // Emissive intensity multiplier
+  float sdPadding; // Shader data padding
 }
 
 struct MaterialProperties
