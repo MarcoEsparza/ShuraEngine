@@ -300,6 +300,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   static const uint32 GBUFFER_DEPTH_TEX_ID;
   static const uint32 HISTOGRAM_TEX_ID;
   static const uint32 EMM_PROCESS_TEX_ID;
+  static const uint32 PLANE_DEPTH_TEX_ID;
 };
 
 /**

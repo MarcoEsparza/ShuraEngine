@@ -26,6 +26,7 @@
     <ClInclude Include="include\shAudioTypes.h" />
     <ClInclude Include="include\shBaseApp.h" />
     <ClInclude Include="include\shBlendState.h" />
+    <ClInclude Include="include\shCameraComponent.h" />
     <ClInclude Include="include\shChannel.h" />
     <ClInclude Include="include\shChannelGroup.h" />
     <ClInclude Include="include\shColliderComponent.h" />

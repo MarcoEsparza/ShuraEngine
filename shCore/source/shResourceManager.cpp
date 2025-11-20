@@ -305,7 +305,10 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
 
   // Check if there is a cache for resource
   if (isCacheForResource(filePath, resource)) {
-    return resource;
+    if(resource) {
+      return resource;
+    }
+    //return resource;
   }
 
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
@@ -316,6 +319,9 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   }
   else if (filePath.compareExtensions({ ".cube" })) {
     resource = loadCubeMapFromFile(filePath.toString());
+  }
+  else if (filePath.compareExtensions({ ".dds" })) {
+    resource = loadTextureFromDDS(filePath.toString());
   }
   else {
     return nullptr;
@@ -439,7 +445,7 @@ ResourceManager::loadTextureFromFile(const String& fileName)
     //if (path.extension() == ".jpg") {
     //  reqComp = STBI_rgb;
     //}
-    void* data = stbi_load(fileName.c_str(), &width, &height, &bpp, 0);
+    uint8* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
     pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
     stbi_image_free(data);
   }
@@ -450,9 +456,9 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   m_loadedResources[pImage->getName()] = pImage;
 
-  path = file;
-  path.replace_extension(".dds");
-  String saveTex = "resources/assets/textures/" + path.string();
+  //path = file;
+  //path.replace_extension(".dds");
+  //String saveTex = "resources/assets/textures/" + path.string();
 
   //graphMan.saveTextureToDDS(pImage->texture, saveTex);
 

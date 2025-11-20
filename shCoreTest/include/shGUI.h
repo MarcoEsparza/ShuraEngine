@@ -32,11 +32,80 @@ class Screen;
 class GameObject;
 class TransformComponent;
 class StaticMeshComponent;
+class SkeletalMeshComponent;
 class SkyBoxComponent;
 class ColliderComponent;
 class RigidbodyComponent;
 class LightComponent;
+class CameraComponent;
+class AnimatorComponent;
 class Material;
+class Resource;
+class Texture2D;
+
+namespace ICONS {
+enum E {
+  kAnimation = 0,
+  kAnimator,
+  kAudioListener,
+  kAudioSource,
+  kBug,
+  kCamera,
+  kCircle,
+  kClosedEye,
+  kCollider,
+  kConsole,
+  kController,
+  kCopy,
+  kCut,
+  kDropper,
+  kEye,
+  kFolder,
+  kGears,
+  kHierarchy,
+  kKeyboard,
+  kLight,
+  kMagnifyingGlass,
+  kMinus,
+  kMouse,
+  kOpenFolder,
+  kPadlock,
+  kPaste,
+  kPlus,
+  kPosition,
+  kQuery,
+  kRedo,
+  kRigidbody,
+  kRotation,
+  kSave,
+  kScale,
+  kScene,
+  kScreen,
+  kScript,
+  kSkeletalMesh,
+  kSkeleton,
+  kSkybox,
+  kSphere,
+  kStar,
+  kStaticMesh,
+  kTextField,
+  kTexture,
+  kTool,
+  kUndo,
+  kTransform,
+
+  kCount
+};
+}
+
+//struct IconTexture
+//{
+//  SPtr<Texture2D> texture;
+//  uint32 width = 0;
+//  uint32 height = 0;
+//  uint32 u = 0;
+//  uint32 v = 0;
+//};
 
 /**
 *  @brief Graphical User Interface (GUI) system for editor.
@@ -133,7 +202,13 @@ class GUI
   *  @brief Set the component inspector window.
   */
   void
-  setComponentInspector();
+  setInspector();
+
+  void
+  showGameObjectInspector();
+
+  void
+  showResourceInspector();
 
   /**
   *  @brief Show the transform component.
@@ -148,6 +223,9 @@ class GUI
   */
   void
   showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh);
+
+  void
+  showSkeletalMeshComponent(const WPtr<SkeletalMeshComponent> wpSkelMesh);
 
   /**
   *  @brief Show the material inspector.
@@ -177,7 +255,7 @@ class GUI
   *  @brief Show the camera component.
   */
   void
-  showCameraComponent();
+  showCameraComponent(const WPtr<CameraComponent> wpCamera);
 
   /**
   *  @brief Show the collider component.
@@ -195,6 +273,9 @@ class GUI
   void
   showRigidbodyComponent(const WPtr<RigidbodyComponent> wpRigidbody);
 
+  void
+  showAnimatorComponent(const WPtr<AnimatorComponent> wpAnimator);
+
   /**
   *  @brief Add a static mesh component to a game object.
   * 
@@ -202,6 +283,18 @@ class GUI
   */
   void
   addStaticMeshComponentToObject(SPtr<GameObject>& pObj);
+
+  void
+  setProjectResourceViewer();
+
+  void
+  setIcon(const ICONS::E icon, const Vector2& size = Vector2(16.0f, 16.0f));
+
+  bool
+  iconCollapsingHeader(const ICONS::E icon, const String& label);
+
+  void
+  setStyle();
 
   /**
   *  @brief Set the screen size.
@@ -232,6 +325,8 @@ class GUI
   */
   SPtr<GameObject> m_pRenamingGameObject;
 
+  SPtr<Resource> m_pActiveResource;
+
   /**
   *  @brief Selected material index.
   */
@@ -248,6 +343,18 @@ class GUI
   bool m_bRename = false;
 
   bool m_bOpenDockSpace = false;
+
+  Vector2 m_iconsSize = Vector2::ZERO;
+  //uint32 m_iconsPerRow = 0;
+
+  SPtr<Texture2D> m_iconsTexture;
+
+  String m_sceneGraphWindowStr;
+  String m_sceneWindowStr;
+  String m_inspectorWindowStr;
+  String m_renderSettWindowStr;
+  String m_projectResWindowStr;
+  String m_consoleWindowStr;
 
   /***************************************************************************/
   /*

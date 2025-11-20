@@ -77,6 +77,7 @@ const uint32 RenderManager::BVBLUR_TEX_ID = StringID("BVBlur").getID();
 const uint32 RenderManager::GBUFFER_DEPTH_TEX_ID = StringID("GBufferDepth").getID();
 const uint32 RenderManager::HISTOGRAM_TEX_ID = StringID("HistogramMap").getID();
 const uint32 RenderManager::EMM_PROCESS_TEX_ID = StringID("EmmProMap").getID();
+const uint32 RenderManager::PLANE_DEPTH_TEX_ID = StringID("PlaneDepth").getID();
 
 void
 RenderManager::onStartUp()
@@ -178,6 +179,10 @@ RenderManager::onStartUp()
     HISTOGRAM_MAP_SIZE, 3, false);
 
   m_renderTargetMap[GBUFFER_DEPTH_TEX_ID] = RenderTargetInfo("GBufferDepth",
+    TEXTURE_FORMAT::kR32_TYPELESS,
+    BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1);
+
+  m_renderTargetMap[PLANE_DEPTH_TEX_ID] = RenderTargetInfo("PlaneDepth",
     TEXTURE_FORMAT::kR32_TYPELESS,
     BIND_FLAGS::kDepthStencil | BIND_FLAGS::kShaderResource, USAGE::kDefault, 1);
 
@@ -537,6 +542,7 @@ RenderManager::renderScene()
   auto& pBVBlur = m_renderTargetMap[BVBLUR_TEX_ID];
   auto& pGbufferDepth = m_renderTargetMap[GBUFFER_DEPTH_TEX_ID];
   auto& pEmmProcessMap = m_renderTargetMap[EMM_PROCESS_TEX_ID];
+  auto& pPlaneDepth = m_renderTargetMap[PLANE_DEPTH_TEX_ID];
   //auto& pHistogramMap = m_renderTargetMap[HISTOGRAM_TEX_ID];
 
   uint32 screenWidth = static_cast<uint32>(m_screenDimension.x);
@@ -625,7 +631,7 @@ RenderManager::renderScene()
   /*************************************/
   pOutput = pAOMap.pTexture;
   graphMan.clearRenderTarget(pOutput, LinearColor::BLACK);
-  graphMan.setRenderTargets({{ pOutput }}, pDepthSV);
+  graphMan.setRenderTargets({{ pOutput }}, pPlaneDepth.pTexture);
   shaderMan.m_passes[shaderMan.PLANE_SHADER_ID]->setPass();
   shaderMan.m_passes[shaderMan.SSAO_SHADER_ID]->setPass();
   setSamplers();

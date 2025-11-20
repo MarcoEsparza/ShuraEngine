@@ -846,7 +846,7 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
     m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
   }
   else {
-    m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pDst, pitch, 0);
+    m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
   }
   
   String texName = "t_" + fileName;

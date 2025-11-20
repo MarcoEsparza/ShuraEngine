@@ -261,7 +261,6 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   float4 normalMap = t_normalMap.Load(int3(dtID.xy, 0));
   float4 color = t_colorMap.Load(int3(dtID.xy, 0));
   float4 propMap = t_propMap.Load(int3(dtID.xy, 0));
-  //float4 emmisiveMap = t_emmisiveMap.Load(int3(dtID.xy, 0));
   float4 ssaoMap = t_ssaoMap.Load(int3(dtID.xy, 0));
   float4 shadows = t_shadowMap.Load(int3(dtID.xy, 0));
   

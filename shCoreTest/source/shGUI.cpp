@@ -40,6 +40,8 @@
 #include <shColliderComponent.h>
 #include <shRigidbodyComponent.h>
 #include <shLightComponent.h>
+#include <shCameraComponent.h>
+#include <shAnimatorComponent.h>
 
 #include <shImageResource.h>
 
@@ -47,296 +49,110 @@
 
 #define COLOR_LIMIT                                           255.0f
 #define NORM_COLOR                                            1.0f / 255.0f
+#define ICON_SIZE                                             50.0f
+#define ICONS_PER_ROW                                         10
 
 using std::remove;
 using std::strncpy;
 using std::remove_if;
 
 namespace shEngineSDK {
-void
-GUI::init(const WPtr<Screen> pScreen)
+/*****************************************************************************/
+/*
+*  Static Functions
+*/
+/*****************************************************************************/
+
+static void
+dragVector3(const String& label, Vector3& vec, float speed)
 {
-  if(pScreen.expired()) {
-    //SH_LOG_ERROR("GUI::init: Screen pointer is expired.");
-    return;
-  }
+  ImVec4 red = ImVec4(0.8f, 0.2f, 0.2f, 0.6f);
+  ImVec4 hoveredRed = ImVec4(0.9f, 0.3f, 0.3f, 0.8f);
+  ImVec4 activeRed = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+  ImVec4 green = ImVec4(0.2f, 0.5f, 0.2f, 0.6f);
+  ImVec4 hoveredGreen = ImVec4(0.3f, 0.65f, 0.3f, 0.8f);
+  ImVec4 activeGreen = ImVec4(0.35f, 0.7f, 0.35f, 1.0f);
+  ImVec4 blue = ImVec4(0.2f, 0.2f, 0.8f, 0.6f);
+  ImVec4 hoveredBlue = ImVec4(0.3f, 0.3f, 0.9f, 0.8f);
+  ImVec4 activeBlue = ImVec4(0.4f, 0.4f, 1.0f, 1.0f);
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui_ImplShura_Init(pScreen);
-  ImGui::StyleColorsDark();
+  String xLabel = "x##" + label;
+  String yLabel = "y##" + label;
+  String zLabel = "z##" + label;
 
-  m_camSpeed = 100.0f;
-  m_camFov = 30.0f;
-  m_camNear = 0.1f;
-  m_camFar = 2000.0f;
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, red);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeRed);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoveredRed);
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat(xLabel.c_str(), &vec.x, speed);
+  ImGui::PopStyleColor(3);
+
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, green);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeGreen);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoveredGreen);
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat(yLabel.c_str(), &vec.y, speed);
+  ImGui::PopStyleColor(3);
+
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, blue);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeBlue);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoveredBlue);
+  ImGui::SetNextItemWidth(50.0f);
+  ImGui::DragFloat(zLabel.c_str(), &vec.z, speed);
+  ImGui::PopStyleColor(3);
 }
 
-void
-GUI::shutdown()
+static bool
+tablePropertyDragFloat(const String& label,
+                       float& value,
+                       float speed,
+                       float min,
+                       float max,
+                       const char* format = "%.3f")
 {
-  ImGui_ImplShura_Shutdown();
-  ImGui::DestroyContext();
+  bool changed = false;
+
+  ImGui::TableNextRow();
+  ImGui::TableSetColumnIndex(0);
+  ImGui::Text(label.c_str());
+  ImGui::TableNextColumn();
+  changed = ImGui::DragFloat(("##" + label).c_str(), &value, speed, min, max, format);
+
+  return changed;
 }
 
-void
-GUI::render()
+static bool
+tablePropertyCheckbox(const String& label, bool& value)
 {
-  ImGui_ImplShura_NewFrame();
-  ImGui::Render();
-  ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
+  bool changed = false;
+
+  ImGui::TableNextRow();
+  ImGui::TableSetColumnIndex(0);
+  ImGui::Text(label.c_str());
+  ImGui::TableNextColumn();
+  changed = ImGui::Checkbox(("##" + label).c_str(), &value);
+
+  return changed;
 }
 
-void
-GUI::update()
+static bool
+tablePropertyEnumCombo(const String& label,
+                       int32& currentItem,
+                       const char* const* items,
+                       int32 arraySize)
 {
-  RenderManager& renderMan = g_renderMan();
+  bool changed = false;
 
-  ImGui_ImplShura_NewFrame();
-  ImGui::NewFrame();
+  ImGui::TableNextRow();
+  ImGui::TableSetColumnIndex(0);
+  ImGui::TextUnformatted(label.c_str());
+  ImGui::TableNextColumn();
+  String completeLabel = "##" + label;
+  changed = ImGui::Combo(completeLabel.c_str(), &currentItem, items, arraySize);
 
-  setDockSpace();
-
-  setSceneGraph();
-  setComponentInspector();
-  setRendererSettings();
-
-  ImGui::Begin("ResourceManager");
-  ImGui::Text("Resource1");
-  ImVec2 mousePos = ImGui::GetMousePos();
-  String mousePosStr = "Mouse Position: (" + std::to_string(mousePos.x) + ", " + std::to_string(mousePos.y) + ")";
-  ImGui::Text(mousePosStr.c_str());
-  ImGui::End();
-
-  setConsoleLogs();
-
-  setScene();
-}
-
-void
-GUI::setDockSpace()
-{
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-  ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-  ImGui::SetNextWindowPos(viewport->WorkPos);
-  ImGui::SetNextWindowSize(viewport->WorkSize);
-  ImGui::SetNextWindowViewport(viewport->ID);
-  window_flags |= ImGuiWindowFlags_NoTitleBar |
-                  ImGuiWindowFlags_NoCollapse |
-                  ImGuiWindowFlags_NoResize |
-                  ImGuiWindowFlags_NoMove |
-                  ImGuiWindowFlags_NoBringToFrontOnFocus |
-                  ImGuiWindowFlags_NoNavFocus;
-
-  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-  if (!m_bOpenDockSpace) {
-    ImGui::DockBuilderRemoveNode(dockspace_id); // Clear any previous layout
-    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
-
-    ImGuiID mainID = dockspace_id;
-    ImGuiID leftID = ImGui::DockBuilderSplitNode(mainID,
-                                                 ImGuiDir_Left, 0.15f, NULL, &mainID);
-    ImGuiID rightID = ImGui::DockBuilderSplitNode(mainID,
-                                                  ImGuiDir_Right, 0.2f, NULL, &mainID);
-    ImGuiID bottomID = ImGui::DockBuilderSplitNode(mainID,
-                                                   ImGuiDir_Down, 0.2f, NULL, &mainID);
-
-    ImGui::DockBuilderDockWindow("Scenegraph", leftID);
-    ImGui::DockBuilderDockWindow("Scene", mainID);
-    ImGui::DockBuilderDockWindow("Inspector", rightID);
-    ImGui::DockBuilderDockWindow("RendererSettings", rightID);
-    ImGui::DockBuilderDockWindow("ResourceManager", bottomID);
-    ImGui::DockBuilderDockWindow("Console", bottomID);
-
-    ImGui::DockBuilderFinish(dockspace_id);
-    m_bOpenDockSpace = true;
-  }
-
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::PushStyleColor(ImGuiCol_DockingEmptyBg, IM_COL32(0, 0, 0, 0));
-  ImGui::Begin("DockSpace", &m_bOpenDockSpace, window_flags);
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor();
-
-  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Save Scene")) {
-        // Handle save scene action
-      }
-      if (ImGui::MenuItem("Exit")) {
-        // Handle exit action
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Edit")) {
-      if (ImGui::MenuItem("Undo")) {
-        // Handle undo action
-      }
-      if (ImGui::MenuItem("Redo")) {
-        // Handle redo action
-      }
-      if (ImGui::MenuItem("Preferences")) {
-        // Handle preferences action
-      }
-      ImGui::EndMenu();
-    }
-    ImGui::EndMenuBar();
-  }
-
-  ImGui::End();
-}
-
-void
-GUI::setScene()
-{
-  RenderManager& renderMan = g_renderMan();
-
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
-  ImGui::Begin("Scene", &m_bOpenDockSpace, 0);
-  ImGui::PopStyleColor();
-
-  /*if (ImGui::Button(m_bPlay ? "Stop" : "Play")) {
-    m_bPlay = !m_bPlay;
-  }*/
-
-  ImVec2 windowSize = ImGui::GetContentRegionAvail();
-  m_sceneWindowSize = Vector2(windowSize.x, windowSize.y);
-  renderMan.setScreenSize(m_sceneWindowSize);
-  auto& pSceneTex = renderMan.createSceneTexture(m_sceneWindowSize);
-
-  if (pSceneTex != nullptr) {
-    ImGui::Image(cast::re<ImTextureID*>(&pSceneTex), windowSize);
-  }
-
-  m_bSceneWindowFocused = ImGui::IsWindowFocused();
-
-  ImGui::End();
-}
-
-void
-GUI::setConsoleLogs()
-{
-  ImGui::Begin("Console");
-  
-  for (const auto& log : m_logs) {
-    ImGui::TextWrapped("%s", log.c_str());
-  }
-
-  ImGui::End();
-}
-
-void
-GUI::setRendererSettings()
-{
-  //RenderManager& renderMan = g_renderMan();
-  ShaderManager& shaderMan = g_shaderMan();
-  auto& rendererSettings = shaderMan.m_shaderData;
-
-  ImGui::Begin("RendererSettings");
-  String strCount = std::to_string(m_fpsCountGUI);
-  String text = strCount + ": fps";
-  ImGui::Text(text.c_str());
-  ImGui::SetNextItemWidth(150.0f);
-  if (ImGui::Button("Recompile Shaders")) {
-    shaderMan.recompileShaders();
-  }
-  if (ImGui::CollapsingHeader("SSAO")) {
-    ImGui::Checkbox("Enable SSAO", &m_bSSAO);
-    ImGui::DragFloat("Sampler radius", &rendererSettings.sampleRadius,
-                     0.1f, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::DragFloat("Scale", &rendererSettings.aoScale, 0.1f, 0.0f, 5.0f);
-    ImGui::DragFloat("Bias", &rendererSettings.aoBias, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Intensity", &rendererSettings.aoIntensity, 0.1f, 0.0f, 5.0f);
-  }
-  if (ImGui::CollapsingHeader("Tone Mapping")) {
-    const char* toneMapType[] = {
-      "Reinhard", "ACES", "Uncharted2", "AgX", "Guardians-LogC4(LUT)", "LBK-K-Tone",
-    };
-    int32 toneMapIndex = static_cast<int32>(rendererSettings.toneMappingIndex);
-    ImGui::Combo("##ToneMappingCombo",
-                 &toneMapIndex,
-                 toneMapType,
-                 IM_ARRAYSIZE(toneMapType));
-    rendererSettings.toneMappingIndex = static_cast<float>(toneMapIndex);
-
-    ImGui::Spacing();
-    ImGui::DragFloat("Bright Threshold:",
-                     &rendererSettings.brightThreshold,
-                     0.01f, 0.0f, 1.0f);
-    ImGui::Spacing();
-    ImGui::DragFloat("White Point:",
-                     &rendererSettings.whitePoint,
-                     0.01f, 0.5f, 11.2f);
-    ImGui::Spacing();
-    ImGui::DragFloat("Bloom Multiplier:",
-                     &rendererSettings.bloomMultiplier,
-                     0.01f, 0.5f, 5.0f);
-    ImGui::Spacing();
-    ImGui::DragFloat("MiddleGrey:",
-                     &rendererSettings.middleGrey,
-                     0.01f, 0.5f, 2.0f);
-    ImGui::Spacing();
-    ImGui::DragFloat("Emissive Intensity:",
-                     &rendererSettings.emmisiveIntensity,
-                     0.1f, 0.0f, 10.0f);
-  }
-  if (ImGui::CollapsingHeader("Post-Process")) {
-    float minR = rendererSettings.minR * COLOR_LIMIT;
-    float maxR = rendererSettings.maxR * COLOR_LIMIT;
-    float minG = rendererSettings.minG * COLOR_LIMIT;
-    float maxG = rendererSettings.maxG * COLOR_LIMIT;
-    float minB = rendererSettings.minB * COLOR_LIMIT;
-    float maxB = rendererSettings.maxB * COLOR_LIMIT;
-
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::DragFloat("Min R:", &minR, 1.0f, 0.0f, COLOR_LIMIT);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::DragFloat("Max R:", &maxR, 1.0f, 0.0f, COLOR_LIMIT);
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::DragFloat("Min G:", &minG, 1.0f, 0.0f, COLOR_LIMIT);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::DragFloat("Max G:", &maxG, 1.0f, 0.0f, COLOR_LIMIT);
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::DragFloat("Min B:", &minB, 1.0f, 0.0f, COLOR_LIMIT);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::DragFloat("Max B:", &maxB, 1.0f, 0.0f, COLOR_LIMIT);
-
-    rendererSettings.minR = minR * NORM_COLOR;
-    rendererSettings.maxR = maxR * NORM_COLOR;
-    rendererSettings.minG = minG * NORM_COLOR;
-    rendererSettings.maxG = maxG * NORM_COLOR;
-    rendererSettings.minB = minB * NORM_COLOR;
-    rendererSettings.maxB = maxB * NORM_COLOR;
-  }
-
-  if (ImGui::CollapsingHeader("Camera Settings")) {
-    ImGui::DragFloat("Camera Speed", &m_camSpeed, 1.0f, 1.0f, 300.0f);
-    ImGui::DragFloat("Camera FOV", &m_camFov, 1.0f, 1.0f, 180.0f);
-    ImGui::DragFloat("Camera Near Plane", &m_camNear, 0.1f, 0.01f, 100.0f);
-    ImGui::DragFloat("Camera Far Plane", &m_camFar, 1.0f, 100.0f, 10000.0f);
-  }
-
-  ImGui::End();
-
-  if (m_bSSAO) {
-    shaderMan.m_shaderData.ssaoEnabled = 1.0f;
-  }
-  else {
-    shaderMan.m_shaderData.ssaoEnabled = 0.0f;
-  }
-
-  shaderMan.updateShaderDataCB();
+  return changed;
 }
 
 static bool
@@ -373,6 +189,374 @@ FindSharedPtrInTree(GameObject* raw, const Vector<SPtr<GameObject>>& roots) {
     if (found) return found;
   }
   return nullptr;
+}
+
+static void
+textureFileButton(const String& buttonID,
+                  WPtr<ImageResource>& textureImg,
+                  ImVec2& buttonSize)
+{
+  ResourceManager& resMan = g_resourceMan();
+  FileExplorer& fileExp = g_fileExplorer();
+
+  auto& pTexture = textureImg.lock()->texture;
+  ImTextureID* texID = cast::re<ImTextureID*>(&pTexture);
+
+  if (ImGui::ImageButton(buttonID.c_str(), texID, buttonSize)) {
+    String filePath;
+    if (fileExp.openFile(filePath,
+                         "PNGs(*.png)\0*.png\0",
+                         "resources/textures/")) {
+      auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      auto pImg = cast::re_ptr<ImageResource>(pRes);
+      if (pImg->texture) {
+        textureImg = pImg;
+      }
+    }
+  }
+}
+
+static String
+iconToStr(FONT_ICONS::E icon)
+{
+  static char buffer[8];
+  ImTextCharToUtf8(buffer, cast::st<ImWchar>(icon));
+  String result(buffer);
+  return result;
+}
+
+/*****************************************************************************/
+/*
+*  Class Functions
+*/
+/*****************************************************************************/
+
+void
+GUI::init(const WPtr<Screen> pScreen)
+{
+  if(pScreen.expired()) {
+    //SH_LOG_ERROR("GUI::init: Screen pointer is expired.");
+    return;
+  }
+  auto& resMan = g_resourceMan();
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui_ImplShura_Init(pScreen);
+  setStyle();
+
+  m_camSpeed = 100.0f;
+  m_camFov = 30.0f;
+  m_camNear = 0.1f;
+  m_camFar = 2000.0f;
+
+  Path resPath("resources/data/ImGui/ShuraIconsTexture.png");
+  auto pRes = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(resPath));
+  m_iconsTexture = pRes->texture;
+  m_iconsSize = Vector2(cast::st<float>(pRes->width), cast::st<float>(pRes->height));
+
+  m_sceneGraphWindowStr = iconToStr(FONT_ICONS::kSiteMap) + " Scenegraph";
+  m_sceneWindowStr = iconToStr(FONT_ICONS::kPicture) + " Scene";
+  m_inspectorWindowStr = iconToStr(FONT_ICONS::kInfoCircled) + " Inspector";
+  m_renderSettWindowStr = iconToStr(FONT_ICONS::kCogAlt) + " RendererSettings";
+  m_projectResWindowStr = iconToStr(FONT_ICONS::kFolderOpen) + " Project";
+  m_consoleWindowStr = iconToStr(FONT_ICONS::kDocTextInv) + " Console";
+}
+
+void
+GUI::shutdown()
+{
+  ImGui_ImplShura_Shutdown();
+  ImGui::DestroyContext();
+}
+
+void
+GUI::render()
+{
+  ImGui_ImplShura_NewFrame();
+  ImGui::Render();
+  ImGui_ImplShura_RenderDrawData(ImGui::GetDrawData());
+}
+
+void
+GUI::update()
+{
+  ImGui_ImplShura_NewFrame();
+  ImGui::NewFrame();
+
+  setDockSpace();
+
+  setSceneGraph();
+  setInspector();
+  setRendererSettings();
+
+  ImGui::Begin(m_projectResWindowStr.c_str());
+  ImGui::Text("Resource1");
+  ImGui::End();
+
+  setConsoleLogs();
+
+  setScene();
+}
+
+void
+GUI::setDockSpace()
+{
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+  ImGui::SetNextWindowPos(viewport->WorkPos);
+  ImGui::SetNextWindowSize(viewport->WorkSize);
+  ImGui::SetNextWindowViewport(viewport->ID);
+  window_flags |= ImGuiWindowFlags_NoTitleBar |
+                  ImGuiWindowFlags_NoCollapse |
+                  ImGuiWindowFlags_NoResize |
+                  ImGuiWindowFlags_NoMove |
+                  ImGuiWindowFlags_NoBringToFrontOnFocus |
+                  ImGuiWindowFlags_NoNavFocus;
+
+  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+  if (!m_bOpenDockSpace) {
+    ImGui::DockBuilderRemoveNode(dockspace_id); // Clear any previous layout
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+    ImGuiID mainID = dockspace_id;
+    ImGuiID leftID = ImGui::DockBuilderSplitNode(mainID,
+                                                 ImGuiDir_Left, 0.125f, NULL, &mainID);
+    ImGuiID rightID = ImGui::DockBuilderSplitNode(mainID,
+                                                  ImGuiDir_Right, 0.225f, NULL, &mainID);
+    ImGuiID bottomID = ImGui::DockBuilderSplitNode(mainID,
+                                                   ImGuiDir_Down, 0.25f, NULL, &mainID);
+
+    ImGui::DockBuilderDockWindow(m_sceneGraphWindowStr.c_str(), leftID);
+    ImGui::DockBuilderDockWindow(m_sceneWindowStr.c_str(), mainID);
+    ImGui::DockBuilderDockWindow(m_inspectorWindowStr.c_str(), rightID);
+    ImGui::DockBuilderDockWindow(m_renderSettWindowStr.c_str(), rightID);
+    ImGui::DockBuilderDockWindow(m_projectResWindowStr.c_str(), bottomID);
+    ImGui::DockBuilderDockWindow(m_consoleWindowStr.c_str(), bottomID);
+
+    ImGui::DockBuilderFinish(dockspace_id);
+    m_bOpenDockSpace = true;
+  }
+
+  ImGui::Begin("DockSpace", &m_bOpenDockSpace, window_flags);
+
+  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Save Scene")) {
+        // Handle save scene action
+      }
+      if (ImGui::MenuItem("Exit")) {
+        // Handle exit action
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Edit")) {
+      if (ImGui::MenuItem("Undo")) {
+        // Handle undo action
+      }
+      if (ImGui::MenuItem("Redo")) {
+        // Handle redo action
+      }
+      if (ImGui::MenuItem("Preferences")) {
+        // Handle preferences action
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Window")) {
+      if (ImGui::MenuItem("Scene")) {
+        // Handle scene window action
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Help")) {
+      if (ImGui::MenuItem("Documentation")) {
+        // Handle documentation action
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("About")) {
+      if (ImGui::MenuItem("Shura Engine ver 0.4.3")) {
+      }
+      ImGui::EndMenu();
+    }
+
+    ImGui::EndMenuBar();
+  }
+
+  ImGui::End();
+}
+
+void
+GUI::setScene()
+{
+  RenderManager& renderMan = g_renderMan();
+
+  ImGui::Begin(m_sceneWindowStr.c_str(), &m_bOpenDockSpace, 0);
+
+  /*if (ImGui::Button(m_bPlay ? "Stop" : "Play")) {
+    m_bPlay = !m_bPlay;
+  }*/
+
+  ImVec2 windowSize = ImGui::GetContentRegionAvail();
+  m_sceneWindowSize = Vector2(windowSize.x, windowSize.y);
+  renderMan.setScreenSize(m_sceneWindowSize);
+  auto& pSceneTex = renderMan.createSceneTexture(m_sceneWindowSize);
+
+  if (pSceneTex != nullptr) {
+    ImGui::Image(cast::re<ImTextureID*>(&pSceneTex), windowSize);
+  }
+
+  m_bSceneWindowFocused = ImGui::IsWindowFocused();
+
+  ImGui::End();
+}
+
+void
+GUI::setConsoleLogs()
+{
+  ImGui::Begin(m_consoleWindowStr.c_str());
+  
+  for (const auto& log : m_logs) {
+    ImGui::TextWrapped("%s", log.c_str());
+  }
+
+  ImGui::End();
+}
+
+void
+GUI::setRendererSettings()
+{
+  ShaderManager& shaderMan = g_shaderMan();
+  auto& rendererSettings = shaderMan.m_shaderData;
+
+  ImGui::Begin(m_renderSettWindowStr.c_str());
+  ImVec2 windowSize = ImGui::GetContentRegionAvail();
+  float width = windowSize.x;
+  float col0 = width * 0.35f;
+
+  String strCount = std::to_string(m_fpsCountGUI);
+  String text = strCount + ": fps";
+  ImGui::Text(text.c_str());
+  ImGui::SetNextItemWidth(150.0f);
+  if (ImGui::Button("Recompile Shaders")) {
+    shaderMan.recompileShaders();
+  }
+  if (ImGui::CollapsingHeader("SSAO")) {
+    if(ImGui::BeginTable("SSAO Settings", 2)) {
+      ImGui::TableSetupColumn("Parameter", ImGuiTableColumnFlags_WidthFixed, col0);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      tablePropertyCheckbox("Enable SSAO:", m_bSSAO);
+      tablePropertyDragFloat("Sampler Radius:", rendererSettings.sampleRadius,
+                             0.1f, 0.0f, 5.0f);
+      tablePropertyDragFloat("Scale:", rendererSettings.aoScale, 0.1f, 0.0f, 5.0f);
+      tablePropertyDragFloat("Bias:", rendererSettings.aoBias, 0.01f, 0.0f, 1.0f);
+      tablePropertyDragFloat("Intensity:", rendererSettings.aoIntensity, 0.1f, 0.0f, 5.0f);
+
+      ImGui::EndTable();
+    }
+  }
+  if (ImGui::CollapsingHeader("Tone Mapping")) {
+    const char* toneMappingOptions[] = {
+      "Reinhard", "ACES", "Uncharted2", "AgX", "Guardians-LogC4(LUT)", "LBK-K-Tone",
+    };
+
+    if (ImGui::BeginTable("Tone Mapping Settings", 2)) {
+      ImGui::TableSetupColumn("Parameter", ImGuiTableColumnFlags_WidthFixed, col0);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      int32 toneMappingIndex = cast::st<int32>(rendererSettings.toneMappingIndex);
+      tablePropertyEnumCombo("Tone Mapping Type:",
+                             toneMappingIndex,
+                             toneMappingOptions,
+                             IM_ARRAYSIZE(toneMappingOptions));
+      rendererSettings.toneMappingIndex = cast::st<float>(toneMappingIndex);
+      tablePropertyDragFloat("Bright Threshold:", rendererSettings.brightThreshold,
+                             0.01f, 0.0f, 1.0f);
+      tablePropertyDragFloat("White Point:",
+                             rendererSettings.whitePoint,
+                             0.01f, 0.5f, 11.0f);
+      tablePropertyDragFloat("Bloom Multiplier:", rendererSettings.bloomMultiplier,
+                             0.01f, 0.5f, 5.0f);
+      tablePropertyDragFloat("MiddleGrey:", rendererSettings.middleGrey,
+                             0.01f, 0.5f, 2.0f);
+      tablePropertyDragFloat("Emissive Intensity:", rendererSettings.emmisiveIntensity,
+                             0.1f, 0.0f, 10.0f);
+
+      ImGui::EndTable();
+    }
+  }
+  if (ImGui::CollapsingHeader("Post-Process")) {
+    float minR = rendererSettings.minR * COLOR_LIMIT;
+    float maxR = rendererSettings.maxR * COLOR_LIMIT;
+    float minG = rendererSettings.minG * COLOR_LIMIT;
+    float maxG = rendererSettings.maxG * COLOR_LIMIT;
+    float minB = rendererSettings.minB * COLOR_LIMIT;
+    float maxB = rendererSettings.maxB * COLOR_LIMIT;
+
+    if(ImGui::BeginTable("Post-Process Settings", 4)) {
+      ImGui::TableSetupColumn("Parameter1", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+      ImGui::TableSetupColumn("Value1", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+      ImGui::TableSetupColumn("Parameter2", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+      ImGui::TableSetupColumn("Value2", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+
+      tablePropertyDragFloat("Min red:", minR, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
+      ImGui::TableNextColumn();
+      ImGui::Text("Max red:");
+      ImGui::TableNextColumn();
+      ImGui::DragFloat("##Max red:", &maxR, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
+
+      tablePropertyDragFloat("Min green:", minG, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
+      ImGui::TableNextColumn();
+      ImGui::Text("Max green:");
+      ImGui::TableNextColumn();
+      ImGui::DragFloat("##Max green:", &maxG, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
+
+      tablePropertyDragFloat("Min blue:", minB, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
+      ImGui::TableNextColumn();
+      ImGui::Text("Max blue:");
+      ImGui::TableNextColumn();
+      ImGui::DragFloat("##Max blue:", &maxB, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
+
+      ImGui::EndTable();
+    }
+
+    rendererSettings.minR = minR * NORM_COLOR;
+    rendererSettings.maxR = maxR * NORM_COLOR;
+    rendererSettings.minG = minG * NORM_COLOR;
+    rendererSettings.maxG = maxG * NORM_COLOR;
+    rendererSettings.minB = minB * NORM_COLOR;
+    rendererSettings.maxB = maxB * NORM_COLOR;
+  }
+
+  if (ImGui::CollapsingHeader("Camera Settings")) {
+    if(ImGui::BeginTable("Camera Settings Table", 2)) {
+      ImGui::TableSetupColumn("Parameter", ImGuiTableColumnFlags_WidthFixed, col0);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      tablePropertyDragFloat("Speed:", m_camSpeed, 1.0f, 1.0f, 300.0f, "%.1f");
+      tablePropertyDragFloat("FOV:", m_camFov, 1.0f, 1.0f, 180.0f, "%.1f");
+      tablePropertyDragFloat("Near Plane:", m_camNear, 0.1f, 0.01f, 100.0f, "%.2f");
+      tablePropertyDragFloat("Far Plane:", m_camFar, 1.0f, 100.0f, 10000.0f, "%.1f");
+
+      ImGui::EndTable();
+    }
+  }
+
+  ImGui::End();
+
+  if (m_bSSAO) {
+    shaderMan.m_shaderData.ssaoEnabled = 1.0f;
+  }
+  else {
+    shaderMan.m_shaderData.ssaoEnabled = 0.0f;
+  }
+
+  shaderMan.updateShaderDataCB();
 }
 
 void
@@ -498,7 +682,13 @@ GUI::setSceneGraph()
 
   //static SPtr<GameObject> renamingObject;
 
-  ImGui::Begin("Scenegraph");
+  ImGui::Begin(m_sceneGraphWindowStr.c_str());
+  ImVec2 windowSize = ImGui::GetContentRegionAvail();
+  ImGui::BeginChild("##ReadOnlyBox",
+                    ImVec2(windowSize.x, ImGui::GetFrameHeight() + 5.0f), true,
+                    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  ImGui::TextUnformatted((iconToStr(FONT_ICONS::kCubes) + " DefaultScene").c_str());
+  ImGui::EndChild();
 
   // Detect right clic on empty window
   if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
@@ -527,100 +717,146 @@ GUI::setSceneGraph()
 }
 
 void
-GUI::setComponentInspector()
+GUI::setInspector()
 {
-  ImGui::Begin("Inspector");
-  if (m_pActiveGameObject) {
-    ImGui::Checkbox("Active", &m_pActiveGameObject->m_bActive);
-    showTransformComponent();
-    for (auto& pComponent : m_pActiveGameObject->components) {
-      COMPONENT_TYPE::E type = pComponent->getType();
-      if (type == COMPONENT_TYPE::kStaticMesh) {
-        showStaticMeshComponent(sh_reinterpretPCast<StaticMeshComponent>(pComponent));
-      }
-      else if (type == COMPONENT_TYPE::kSkeletalMesh) {
-
-      }
-      else if (type == COMPONENT_TYPE::kSkyBox) {
-        showSkyBoxComponent(sh_reinterpretPCast<SkyBoxComponent>(pComponent));
-      }
-      else if (type == COMPONENT_TYPE::kCamera) {
-
-      }
-      else if (type == COMPONENT_TYPE::kCollider) {
-        showColliderComponent(sh_reinterpretPCast<ColliderComponent>(pComponent));
-      }
-      else if (type == COMPONENT_TYPE::kRigidbody) {
-
-      }
-      else if (type == COMPONENT_TYPE::kAnimator) {
-
-      }
-      else if (type == COMPONENT_TYPE::kLight) {
-        showLightComponent(cast::re_ptr<LightComponent>(pComponent));
-      }
-    }
-
-    ImGui::Spacing();
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(200.0f);
-    if (ImGui::Button("Add Component")) {
-      ImGui::OpenPopup("ComponentMenu");
-    }
-
-    if (ImGui::BeginPopup("ComponentMenu")) {
-      if (ImGui::MenuItem("StaticMesh")) {
-        addStaticMeshComponentToObject(m_pActiveGameObject);
-      }
-      if (ImGui::MenuItem("SkeletalMesh")) {
-
-      }
-      if (ImGui::MenuItem("Animator")) {
-
-      }
-      if (ImGui::MenuItem("Audio Source")) {
-
-      }
-      if (ImGui::MenuItem("Audio Listener")) {
-
-      }
-      if (ImGui::MenuItem("Collider")) {
-
-      }
-      if (ImGui::MenuItem("Rigidbody")) {
-
-      }
-      if (ImGui::MenuItem("Camera")) {
-
-      }
-      if (ImGui::MenuItem("Light")) {
-
-      }
-      if (ImGui::MenuItem("Skybox")) {
-
-      }
-      ImGui::EndPopup();
-    }
+  ImGui::Begin(m_inspectorWindowStr.c_str());
+  if (m_pActiveGameObject && !m_pActiveResource) {
+    showGameObjectInspector();
+  }
+  else if(m_pActiveResource && !m_pActiveGameObject) {
+    showResourceInspector();
   }
   ImGui::End();
 }
 
-static void
-dragFloatWithColor(const char* label,
-                   float* value,
-                   float speed,
-                   float min,
-                   float max,
-                   ImU32 color,
-                   ImU32 activeColor,
-                   ImU32 hoverColor)
+void
+GUI::showGameObjectInspector()
 {
-  ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeColor);
-  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoverColor);
-  ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat(label, value, speed, min, max);
-  ImGui::PopStyleColor(3);
+  float windowWidth = ImGui::GetContentRegionAvail().x;
+
+  ImGui::Checkbox("Active", &m_pActiveGameObject->m_bActive);
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Spacing();
+  showTransformComponent();
+  for (auto& pComponent : m_pActiveGameObject->components) {
+    COMPONENT_TYPE::E type = pComponent->getType();
+    if (type == COMPONENT_TYPE::kStaticMesh) {
+      showStaticMeshComponent(cast::re_ptr<StaticMeshComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kSkeletalMesh) {
+      showSkeletalMeshComponent(cast::re_ptr<SkeletalMeshComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kSkyBox) {
+      showSkyBoxComponent(cast::re_ptr<SkyBoxComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kCamera) {
+      showCameraComponent(cast::re_ptr<CameraComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kCollider) {
+      showColliderComponent(cast::re_ptr<ColliderComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kRigidbody) {
+      showRigidbodyComponent(cast::re_ptr<RigidbodyComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kAnimator) {
+      showAnimatorComponent(cast::re_ptr<AnimatorComponent>(pComponent));
+    }
+    else if (type == COMPONENT_TYPE::kLight) {
+      showLightComponent(cast::re_ptr<LightComponent>(pComponent));
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Spacing();
+  //ImGui::SetNextItemWidth(windowWidth);
+  ImVec2 buttonSize = ImVec2(300.0f, 30.0f);
+  ImGui::SetCursorPosX((windowWidth - buttonSize.x) * 0.5f);
+  if (ImGui::Button("Add Component", buttonSize)) {
+    ImGui::OpenPopup("ComponentMenu");
+  }
+
+  if (ImGui::BeginPopup("ComponentMenu")) {
+    String staticMeshIcon = iconToStr(FONT_ICONS::kCube) + " StaticMesh";
+    if (ImGui::MenuItem(staticMeshIcon.c_str())) {
+      addStaticMeshComponentToObject(m_pActiveGameObject);
+    }
+
+    String skeletalMeshIcon = iconToStr(FONT_ICONS::kMale) + " SkeletalMesh";
+    if (ImGui::MenuItem(skeletalMeshIcon.c_str())) {
+
+    }
+
+    String animatorIcon = iconToStr(FONT_ICONS::kChild) + " Animator";
+    if (ImGui::MenuItem(animatorIcon.c_str())) {
+
+    }
+
+    String audioIcon = iconToStr(FONT_ICONS::kVolumeUp) + " Audio";
+    if (ImGui::MenuItem(audioIcon.c_str())) {
+
+    }
+
+    String audioListenerIcon = iconToStr(FONT_ICONS::kHeadphones) + " Audio Listener";
+    if (ImGui::MenuItem(audioListenerIcon.c_str())) {
+
+    }
+
+    String colliderIcon = iconToStr(FONT_ICONS::kCheckEmpty) + " Collider";
+    if (ImGui::MenuItem(colliderIcon.c_str())) {
+
+    }
+
+    String rigidbodyIcon = iconToStr(FONT_ICONS::kShield) + " Rigidbody";
+    if (ImGui::MenuItem(rigidbodyIcon.c_str())) {
+
+    }
+
+    String cameraIcon = iconToStr(FONT_ICONS::kVideoCamera) + " Camera";
+    if (ImGui::MenuItem(cameraIcon.c_str())) {
+
+    }
+
+    String lightIcon = iconToStr(FONT_ICONS::kLightBulb) + " Light";
+    if (ImGui::MenuItem(lightIcon.c_str())) {
+
+    }
+
+    String skyboxIcon = iconToStr(FONT_ICONS::kCloudSun) + " Skybox";
+    if (ImGui::MenuItem(skyboxIcon.c_str())) {
+
+    }
+    ImGui::EndPopup();
+  }
+}
+
+void
+GUI::showResourceInspector()
+{
+  auto resType = m_pActiveResource->getType();
+
+  switch (resType)
+  { 
+  case shEngineSDK::RESOURCE_TYPE::kTexture:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kStaticMesh:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kSkeletalMesh:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kSkeleton:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kAnmimation:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kCubeMap:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kMaterial:
+    break;
+  case shEngineSDK::RESOURCE_TYPE::kCount:
+    break;
+  default:
+    break;
+  }
 }
 
 void
@@ -629,86 +865,39 @@ GUI::showTransformComponent()
   Vector3 modelPos = m_pActiveGameObject->getPosition();
   Vector3 modelRot = m_pActiveGameObject->getRotation() * Math::RAD2DEG;
   Vector3 modelScale = m_pActiveGameObject->getScale();
+  
+  float windowWidth = ImGui::GetContentRegionAvail().x;
 
-  ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(100, 100, 100, 150));
-  if (ImGui::CollapsingHeader("Transform")) {
+  String headerStr = iconToStr(FONT_ICONS::kShare) + " Transform";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
     // Position
-    ImGui::Text("Position:");
-    // Position X
-    ImGui::SameLine(80.0f);
-    dragFloatWithColor("x##PosX", &modelPos.x, 0.01f, -FLT_MAX, FLT_MAX,
-                       IM_COL32(180, 50, 50, 150),
-                       IM_COL32(200, 70, 70, 150),
-                       IM_COL32(200, 70, 70, 150));
-    // Position Y
-    ImGui::SameLine();
-    dragFloatWithColor("y##PosY", &modelPos.y, 0.01f, -FLT_MAX, FLT_MAX,
-                       IM_COL32(50, 50, 150, 150),
-                       IM_COL32(70, 70, 170, 150),
-                       IM_COL32(70, 70, 170, 150));
-    // Position Z
-    ImGui::SameLine();
-    dragFloatWithColor("z##PosZ", &modelPos.z, 0.01f, -FLT_MAX, FLT_MAX,
-                       IM_COL32(50, 150, 50, 150),
-                       IM_COL32(70, 170, 70, 150),
-                       IM_COL32(70, 170, 70, 150));
+    String posIcon = iconToStr(FONT_ICONS::kMove) + " Position:";
+    ImGui::Text(posIcon.c_str());
+    ImGui::SameLine(110.0f);
+    dragVector3("Position", modelPos, 0.01f);
 
     // Rotation
-    ImGui::Text("Rotation:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    dragFloatWithColor("x##RotX", &modelRot.x, 0.1f, -360.0f, 360.0f,
-                       IM_COL32(180, 50, 50, 150),
-                       IM_COL32(200, 70, 70, 150),
-                       IM_COL32(200, 70, 70, 150));
-    // Rotation Y
-    ImGui::SameLine();
-    dragFloatWithColor("y##RotY", &modelRot.y, 0.1f, -360.0f, 360.0f,
-                       IM_COL32(50, 50, 150, 150),
-                       IM_COL32(70, 70, 170, 150),
-                       IM_COL32(70, 70, 170, 150));
-    // Rotation Z
-    ImGui::SameLine();
-    dragFloatWithColor("z##RotZ", &modelRot.z, 0.1f, -360.0f, 360.0f,
-                       IM_COL32(50, 150, 50, 150),
-                       IM_COL32(70, 170, 70, 150),
-                       IM_COL32(70, 170, 70, 150));
+    String rotIcon = iconToStr(FONT_ICONS::kArrowsCW) + " Rotation:";
+    ImGui::Text(rotIcon.c_str());
+    ImGui::SameLine(110.0f);
+    dragVector3("Rotation", modelRot, 0.1f);
 
     // Scale
-    ImGui::Text("Scale:");
-    // Rotation X
-    ImGui::SameLine(80.0f);
-    dragFloatWithColor("x##SclX", &modelScale.x, 0.1f, -FLT_MAX, FLT_MAX,
-                       IM_COL32(180, 50, 50, 150),
-                       IM_COL32(200, 70, 70, 150),
-                       IM_COL32(200, 70, 70, 150));
-    // Rotation Y
-    ImGui::SameLine();
-    dragFloatWithColor("y##SclY", &modelScale.y, 0.1f, -FLT_MAX, FLT_MAX,
-                       IM_COL32(50, 50, 150, 150),
-                       IM_COL32(70, 70, 170, 150),
-                       IM_COL32(70, 70, 170, 150));
-    // Rotation Z
-    ImGui::SameLine();
-    dragFloatWithColor("z##SclZ", &modelScale.z, 0.1f, -FLT_MAX, FLT_MAX,
-                       IM_COL32(50, 150, 50, 150),
-                       IM_COL32(70, 170, 70, 150),
-                       IM_COL32(70, 170, 70, 150));
+    String sclIcon = iconToStr(FONT_ICONS::kResizeFullAlt) + " Scale:";
+    ImGui::Text(sclIcon.c_str());
+    ImGui::SameLine(110.0f);
+    dragVector3("Scale", modelScale, 0.01f);
 
     ImGui::Spacing();
     ImGui::Spacing();
-    ImGui::SetNextItemWidth(60.0f);
-    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(200, 200, 200, 150));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(220, 220, 220, 150));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(180, 180, 180, 150));
-    if (ImGui::Button("Reset")) {
+    float bottonWidth = 150.0f;
+    ImGui::SetCursorPosX((windowWidth - bottonWidth) * 0.5f);
+    if (ImGui::Button("Reset", ImVec2(bottonWidth, 25.0f))) {
       modelPos = { 0.0f, 0.0f, 0.0f };
       modelRot = { 0.0f, 0.0f, 0.0f };
       modelScale = { 1.0f, 1.0f, 1.0f };
     }
-    ImGui::PopStyleColor(3);
   }
-  ImGui::PopStyleColor();
 
   if (modelPos != m_pActiveGameObject->getPosition()) {
     m_pActiveGameObject->setPosition(modelPos);
@@ -733,7 +922,8 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
 
   auto pMesh = wpSMesh.lock();
 
-  if (ImGui::CollapsingHeader("Static Mesh Component")) {
+  String headerStr = iconToStr(FONT_ICONS::kCube) + " Static Mesh Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
     // Mesh selection
     if (ImGui::Button("Select Mesh")) {
       String filePath;
@@ -820,37 +1010,22 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
   }
 }
 
-static void
-textureFileButton(const String& buttonID,
-                  WPtr<ImageResource>& textureImg,
-                  ImVec2& buttonSize)
+void
+GUI::showSkeletalMeshComponent(const WPtr<SkeletalMeshComponent> wpSkelMesh)
 {
-  ResourceManager& resMan = g_resourceMan();
-  FileExplorer& fileExp = g_fileExplorer();
+  if(wpSkelMesh.expired()) {
+    return;
+  }
 
-  auto& pTexture = textureImg.lock()->texture;
-  ImTextureID* texID = cast::re<ImTextureID*>(&pTexture);
+  String headerStr = iconToStr(FONT_ICONS::kMale) + " Skeletal Mesh Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
 
-  if (ImGui::ImageButton(buttonID.c_str(), texID, buttonSize)) {
-    String filePath;
-    if (fileExp.openFile(filePath,
-                         "PNGs(*.png)\0*.png\0",
-                         "resources/textures/")) {
-      auto pRes = resMan.loadResourceFromFile(Path(filePath));
-      auto pImg = cast::re_ptr<ImageResource>(pRes);
-      if (pImg->texture) {
-        textureImg = pImg;
-      }
-    }
   }
 }
 
 void
 GUI::showMaterialInspector(const WPtr<Material> wpMat)
 {
-  ResourceManager& resMan = g_resourceMan();
-  FileExplorer& fileExp = g_fileExplorer();
-
   if (wpMat.expired()) {
     return;
   }
@@ -864,29 +1039,39 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pEmissiveImg = currentMat->m_emissive;
   auto& pOpacityImg = currentMat->m_opacityMask;
 
-  bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
-  ImGui::Checkbox("Alpha testing", &bHasAlpha);
-  currentMat->m_properties.properties.flags.bHasAlphaTest = bHasAlpha;
-
-  ImVec2 buttonSize = ImVec2(64, 64);
+  float windowWidth = ImGui::GetContentRegionAvail().x;
+  ImVec2 buttonSize = ImVec2(32.0f, 32.0f);
 
   // Base Color
   textureFileButton("##BaseColorSelection", pBaseColorImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pBaseColorImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pBaseColorImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   ImGui::SameLine();
   String buttonID = "##ColorButton" + currentMat->getName();
   Vector3& baseColor = currentMat->baseColorFactor;
-  ImVec4 currentColor = ImVec4(baseColor.x,
-                               baseColor.y,
-                               baseColor.z,
-                               1.0f);
-  if (ImGui::ColorButton(buttonID.c_str(), currentColor))
-  {
-    ImGui::OpenPopup("ColorPickerPopup");
-  }
-  ImGui::SameLine();
   bool bHasDiffuseMap = currentMat->m_properties.properties.flags.bHasDiffuseMap;
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
   currentMat->m_properties.properties.flags.bHasDiffuseMap = bHasDiffuseMap;
+
+  ImVec4 currentColor = ImVec4(baseColor.x, baseColor.y, baseColor.z, 1.0f);
+  ImGui::SameLine();
+  float textHeight = ImGui::GetTextLineHeight();
+  float frameHeight = ImGui::GetFrameHeight();
+  float offsetY = (frameHeight - textHeight) * 0.5f;
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + offsetY + 4.0f);
+  if (ImGui::ColorButton(buttonID.c_str(),
+                         currentColor,
+                         ImGuiColorEditFlags_None,
+                         ImVec2(windowWidth * 0.52f, 20.0f))) {
+    ImGui::OpenPopup("ColorPickerPopup");
+  }
 
   if (ImGui::BeginPopup("ColorPickerPopup")) {
     ImGui::ColorPicker3("##picker", (float*)&currentColor);
@@ -898,72 +1083,113 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
 
   // Normal
   textureFileButton("##NormalSelection", pNormalImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pNormalImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pNormalImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   bool bHasNormalMap = currentMat->m_properties.properties.flags.bHasNormalMap;
   ImGui::Checkbox("Normal", &bHasNormalMap);
   currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
 
   // Metallic
   textureFileButton("##MetalnessSelection", pMetalnessImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pMetalnessImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pMetalnessImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat("##Metallic Factor",
-                   &currentMat->metallicRoughnessFactor.x,
-                   0.01f,
-                   0.0f,
-                   1.0f);
-  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   bool bHasMetallicMap = currentMat->m_properties.properties.flags.bHasMetalnessMap;
   ImGui::Checkbox("Metallic", &bHasMetallicMap);
   currentMat->m_properties.properties.flags.bHasMetalnessMap = bHasMetallicMap;
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  ImGui::SetNextItemWidth(windowWidth * 0.55f);
+  ImGui::DragFloat("##Metallic Factor", &currentMat->metallicRoughnessFactor.x,
+                   0.01f, 0.0f, 1.0f);
 
   // Roughness
   textureFileButton("##RoughnessSelection", pRoughnessImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pRoughnessImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pRoughnessImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat("##Roughness Factor",
-                   &currentMat->metallicRoughnessFactor.y,
-                   0.01f,
-                   0.0f,
-                   1.0f);
-  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   bool bHasRoughnessMap = currentMat->m_properties.properties.flags.bHasRoughnessMap;
   ImGui::Checkbox("Roughness", &bHasRoughnessMap);
   currentMat->m_properties.properties.flags.bHasRoughnessMap = bHasRoughnessMap;
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  ImGui::SetNextItemWidth(windowWidth * 0.55f);
+  ImGui::DragFloat("##Roughness Factor", &currentMat->metallicRoughnessFactor.y,
+                   0.01f, 0.0f, 1.0f);
 
   // Occlusion
   textureFileButton("##AOSelection", pAOImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pAOImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pAOImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   bool bHasAO = currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap;
   ImGui::Checkbox("Ambient Occlusion", &bHasAO);
   currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap = bHasAO;
 
   // Emissive
-  textureFileButton("##EmissiveSelection", pEmissiveImg, buttonSize);
-  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  bool bUseEmmision = currentMat->m_properties.properties.flags.bUseEmission;
+  ImGui::Checkbox("Emmision", &bUseEmmision);
+  currentMat->m_properties.properties.flags.bUseEmission = bUseEmmision;
+
   String emmButtonID = "##EmmColorButton" + currentMat->getName();
   Vector3& emmisiveColor = currentMat->emissiveFactor;
   ImVec4 currentEmmColor = ImVec4(emmisiveColor.x,
                                   emmisiveColor.y,
                                   emmisiveColor.z,
                                   1.0f);
-  if (ImGui::ColorButton(emmButtonID.c_str(), currentEmmColor))
-  {
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  if (ImGui::ColorButton(emmButtonID.c_str(),
+                         currentEmmColor,
+                         ImGuiColorEditFlags_None,
+                         ImVec2(windowWidth * 0.6f, 20.0f))) {
     ImGui::OpenPopup("EmmColorPickerPopup");
   }
-  //ImGui::SameLine();
-  bool bUseEmmision = currentMat->m_properties.properties.flags.bUseEmission;
-  ImGui::Checkbox("Use Emmisive", &bUseEmmision);
-  currentMat->m_properties.properties.flags.bUseEmission = bUseEmmision;
+
+  textureFileButton("##EmissiveSelection", pEmissiveImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pEmissiveImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pEmissiveImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   bool bHasEmissiveMap = currentMat->m_properties.properties.flags.bHasEmissiveMap;
-  ImGui::Checkbox("Use Emmisive Map", &bHasEmissiveMap);
+  ImGui::Checkbox("Emmisive texture", &bHasEmissiveMap);
   currentMat->m_properties.properties.flags.bHasEmissiveMap = bHasEmissiveMap;
-  /*ImGui::DragFloat("Emissive Intensity",
-                   &currentMat->emmisiveIntensity,
-                   0.01f,
-                   0.0f,
-                   10.0f);*/
 
   if (ImGui::BeginPopup("EmmColorPickerPopup")) {
     ImGui::ColorPicker3("##picker", (float*)&currentEmmColor);
@@ -974,17 +1200,31 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   emmisiveColor.z = currentEmmColor.z;
 
   // Opacity mask
-  textureFileButton("##OpacityMaskSelection", pOpacityImg, buttonSize);
-  //ImGui::SameLine();
-  ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat("##Alpha cutoff",
-                   &currentMat->alphaCutoff,
-                   0.01f,
-                   0.0f,
-                   1.0f);
+  bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
+  ImGui::Checkbox("Alpha testing", &bHasAlpha);
+  currentMat->m_properties.properties.flags.bHasAlphaTest = bHasAlpha;
+  ImGui::SameLine();
   bool bHasOpacityMask = currentMat->m_properties.properties.flags.bHasOpacityMask;
   ImGui::Checkbox("Use Opacity Mask Map", &bHasOpacityMask);
   currentMat->m_properties.properties.flags.bHasOpacityMask = bHasOpacityMask;
+
+  textureFileButton("##OpacityMaskSelection", pOpacityImg, buttonSize);
+  if (ImGui::IsItemHovered()) {
+    if (!pOpacityImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pOpacityImg.lock()->getPath().toString().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f);
+  ImGui::Text("Alpha Cutoff:");
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  ImGui::SetNextItemWidth(windowWidth * 0.5f);
+  ImGui::DragFloat("##Alpha cutoff", &currentMat->alphaCutoff, 0.01f, 0.0f, 1.0f);
+  
 }
 
 void
@@ -999,23 +1239,51 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
     return;
   }
   auto pSkyBox = wpSkyBox.lock();
-  if (ImGui::CollapsingHeader("SkyBox Component")) {
-    if (ImGui::DragFloat("Skyblur",
-                         &shaderMan.m_prefilteredData.roughness,
-                         0.01f, 0.0f, 1.0f)) {
-      shaderMan.updatePrefilterShaderCB();
-    }
+  String headerStr = iconToStr(FONT_ICONS::kCloudSun) + " SkyBox Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
+    ImVec2 windowSize = ImGui::GetContentRegionAvail();
+    float width = windowSize.x;
+    float col0 = width * 0.20f;
 
-    if(ImGui::Button("Load Image")) {
-      String filePath;
-      if(fileExp.openFile(filePath, ".hdr", "resources/textures/")) {
-        auto pRes = resMan.loadResourceFromFile(Path(filePath));
-        auto pImg = cast::re_ptr<ImageResource>(pRes);
-        if (pImg) {
-          pSkyBox->setSkyBoxResource(pImg);
-          renderMan.computeIBL();
+    if (ImGui::BeginTable("SkyBox Settings", 2)) {
+      ImGui::TableSetupColumn("Parameter", ImGuiTableColumnFlags_WidthFixed, col0);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      if(tablePropertyDragFloat("SkyBlur:", shaderMan.m_prefilteredData.roughness,
+                                0.01f, 0.0f, 1.0f)) {
+        shaderMan.updatePrefilterShaderCB();
+      }
+
+      ImTextureID* pSkyBoxImg = cast::re<ImTextureID*>(&pSkyBox->getSkyBoxResource()->texture);
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      if (ImGui::ImageButton("##SkyboxThumbnail", pSkyBoxImg, ImVec2(64.0f, 64.0f))) {
+        String filePath;
+        if (fileExp.openFile(filePath, ".hdr", "resources/textures/")) {
+          auto pRes = resMan.loadResourceFromFile(Path(filePath));
+          auto pImg = cast::re_ptr<ImageResource>(pRes);
+          if (pImg) {
+            pSkyBox->setSkyBoxResource(pImg);
+            renderMan.computeIBL();
+          }
         }
       }
+      ImGui::TableNextColumn();
+
+      ImGui::BeginChild("##ReadOnlyBox",
+                        ImVec2(windowSize.x, ImGui::GetFrameHeight()),
+                        true, ImGuiWindowFlags_NoScrollWithMouse);
+      String textPath = pSkyBox->getSkyBoxResource()->getPath().toString();
+      ImGui::TextUnformatted((iconToStr(FONT_ICONS::kFolder) + " " + textPath).c_str());
+      ImGui::EndChild();
+
+      if(ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(textPath.c_str());
+        ImGui::EndTooltip();
+      }
+
+      ImGui::EndTable();
     }
   }
 }
@@ -1030,7 +1298,8 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
   }
   auto pLight = wpLight.lock();
 
-  if (ImGui::CollapsingHeader("Light Component")) {
+  String headerStr = iconToStr(FONT_ICONS::kLightBulb) + " Light Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
     const char* lightType[] = {
       "Directional", "Point", "Spot"
     };
@@ -1043,60 +1312,24 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
     
     ImGui::Spacing();
     // Position
+    Vector3 lightPos = Vector3(pLight->m_position.x,
+                               pLight->m_position.y,
+                               pLight->m_position.z);
     ImGui::Text("Position:");
-    // Position X
     ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##LPosX", &pLight->m_position.x, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Position Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##LPosY", &pLight->m_position.y, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Position Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##LPosZ", &pLight->m_position.z, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragVector3("LightPosition", lightPos, 0.1f);
+    pLight->m_position.x = lightPos.x;
+    pLight->m_position.y = lightPos.y;
+    pLight->m_position.z = lightPos.z;
 
     // Target
     ImGui::Text("Target:");
-    // Position X
     ImGui::SameLine(80.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(180, 50, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(200, 70, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(200, 70, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("x##LTPosX", &pLight->m_target.x, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Position Y
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 50, 150, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 70, 170, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 70, 170, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("y##LTPosY", &pLight->m_target.y, 0.1f);
-    ImGui::PopStyleColor(3);
-    // Position Z
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(50, 150, 50, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(70, 170, 70, 150));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(70, 170, 70, 150));
-    ImGui::SetNextItemWidth(50.0f);
-    ImGui::DragFloat("z##LTPosZ", &pLight->m_target.z, 0.1f);
-    ImGui::PopStyleColor(3);
+    dragVector3("LightTarget", pLight->m_target, 0.1f);
 
     // Color
+    ImGui::Text("Color:");
+    ImGui::SameLine();
     ImVec4 currentColor = ImVec4(pLight->m_color.r,
                                  pLight->m_color.g,
                                  pLight->m_color.b,
@@ -1114,7 +1347,9 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
     pLight->m_color.b = currentColor.z;
 
     // Intensity
-    ImGui::DragFloat("Intensity", &pLight->m_intensity, 0.1f, 0.0f, 10.0f);
+    ImGui::Text("Light intensity:");
+    ImGui::SameLine();
+    ImGui::DragFloat("##Intensity", &pLight->m_intensity, 0.1f, 0.0f, 10.0f);
   }
 
   // Update light buffer if any property changed
@@ -1158,9 +1393,16 @@ GUI::showLightComponent(const WPtr<LightComponent> wpLight)
 }
 
 void
-GUI::showCameraComponent()
+GUI::showCameraComponent(const WPtr<CameraComponent> wpCamera)
 {
+  if(wpCamera.expired()) {
+    return;
+  }
 
+  String headerStr = iconToStr(FONT_ICONS::kVideoCamera) + " Camera Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
+    // Camera properties can be added here
+  }
 }
 
 void
@@ -1170,7 +1412,8 @@ GUI::showColliderComponent(const WPtr<ColliderComponent> wpCollider)
     return;
   }
   auto pCollider = wpCollider.lock();
-  if (ImGui::CollapsingHeader("Collider Component")) {
+  String headerStr = iconToStr(FONT_ICONS::kCheckEmpty) + " Collider Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
     // Collider Type selection
     int32 colliderType = static_cast<int32>(pCollider->m_collider.m_type);
     ImGui::Text("Collider Type:");
@@ -1235,7 +1478,27 @@ GUI::showColliderComponent(const WPtr<ColliderComponent> wpCollider)
 void
 GUI::showRigidbodyComponent(const WPtr<RigidbodyComponent> wpRigidbody)
 {
-  SH_UNREFERENCED_PARAMETER(wpRigidbody);
+  if(wpRigidbody.expired()) {
+    return;
+  }
+
+  String headerStr = iconToStr(FONT_ICONS::kShield) + " Rigidbody Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
+    // Rigidbody properties can be added here
+  }
+}
+
+void
+GUI::showAnimatorComponent(const WPtr<AnimatorComponent> wpAnimator)
+{
+  if(wpAnimator.expired()) {
+    return;
+  }
+
+  String headerStr = iconToStr(FONT_ICONS::kChild) + " Animator Component";
+  if (ImGui::CollapsingHeader(headerStr.c_str())) {
+    // Animator properties can be added here
+  }
 }
 
 void
@@ -1255,5 +1518,151 @@ GUI::addStaticMeshComponentToObject(SPtr<GameObject>& pObj)
     SPtr<StaticMeshComponent> pSMeshComp = sh_makeShared<StaticMeshComponent>();
     pObj->addComponent(pSMeshComp);
   }
+}
+
+void
+GUI::setProjectResourceViewer()
+{
+
+}
+
+void
+GUI::setIcon(const ICONS::E icon, const Vector2& size)
+{
+  ImTextureID* iconTex = cast::re<ImTextureID*>(&m_iconsTexture);
+
+  int32 index = cast::st<int32>(icon);
+  int32 row = index / ICONS_PER_ROW;
+  int32 col = index % ICONS_PER_ROW;
+
+  float u0 = cast::st<float>(col * ICON_SIZE) / m_iconsSize.x;
+  float v0 = cast::st<float>(row * ICON_SIZE) / m_iconsSize.y;
+  float u1 = cast::st<float>((col + 1) * ICON_SIZE) / m_iconsSize.x;
+  float v1 = cast::st<float>((row + 1) * ICON_SIZE) / m_iconsSize.y;
+
+  ImGui::Image(iconTex,
+               ImVec2(size.x, size.y),
+               ImVec2(u0, v0),
+               ImVec2(u1, v1));
+}
+
+bool
+GUI::iconCollapsingHeader(const ICONS::E icon, const String& label)
+{
+  bool opened = false;
+  float y = ImGui::GetCursorPosY() + 2.0f;
+
+  ImGui::SetCursorPosY(y);
+  setIcon(icon);
+  ImGui::SameLine();
+
+  opened = ImGui::TreeNodeEx(label.c_str(), ImGuiTreeNodeFlags_SpanFullWidth);
+
+  return opened;
+}
+
+void
+GUI::setStyle()
+{
+  ImGuiStyle& style = ImGui::GetStyle();
+
+  style.Alpha = 1.0f;
+  style.DisabledAlpha = 0.6f;
+  style.WindowPadding = ImVec2(10.0f, 10.0f);
+  style.WindowRounding = 5.0f;
+  style.WindowBorderSize = 1.0f;
+  style.WindowMinSize = ImVec2(20.0f, 20.0f);
+  style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
+  style.WindowMenuButtonPosition = ImGuiDir_Left;
+  style.ChildRounding = 5.0f;
+  style.ChildBorderSize = 1.0f;
+  style.PopupRounding = 7.0f;
+  style.PopupBorderSize = 1.0f;
+  style.FramePadding = ImVec2(5.0f, 5.0f);
+  style.FrameRounding = 7.5f;
+  style.FrameBorderSize = 0.0f;
+  style.ItemSpacing = ImVec2(8.0f, 5.0f);
+  style.ItemInnerSpacing = ImVec2(5.0f, 5.0f);
+  style.CellPadding = ImVec2(5.0f, 5.0f);
+  style.IndentSpacing = 10.0f;
+  style.ColumnsMinSpacing = 5.0f;
+  style.ScrollbarSize = 12.5f;
+  style.ScrollbarRounding = 5.0f;
+  style.GrabMinSize = 10.0f;
+  style.GrabRounding = 4.0f;
+  style.TabRounding = 10.0f;
+  style.TabBorderSize = 0.0f;
+  style.TabCloseButtonMinWidthSelected = 0.0f;
+  style.ColorButtonPosition = ImGuiDir_Left;
+  style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
+  style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
+
+  style.Colors[ImGuiCol_Text] = ImVec4(0.78431374f, 0.78431374f, 0.78431374f, 1.0f);
+  style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.49803922f, 0.49803922f, 0.49803922f, 1.0f);
+  style.Colors[ImGuiCol_WindowBg] = ImVec4(0.05882353f, 0.05882353f, 0.05882353f, 0.9411765f);
+  style.Colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+  style.Colors[ImGuiCol_PopupBg] = ImVec4(0.078431375f, 0.078431375f, 0.078431375f, 0.94f);
+  style.Colors[ImGuiCol_Border] = ImVec4(0.42745098f, 0.42745098f, 0.49803922f, 0.5f);
+  style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+  style.Colors[ImGuiCol_FrameBg] = ImVec4(0.42918456f, 0.42918026f, 0.42918026f, 0.54f);
+  style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.652354f, 0.65235764f, 0.65236056f, 0.4f);
+  style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.6351931f, 0.63518673f, 0.63518673f, 0.67f);
+  style.Colors[ImGuiCol_TitleBg] = ImVec4(0.13733906f, 0.13733768f, 0.13733768f, 1.0f);
+  style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.22317594f, 0.0f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.55364805f, 0.0f, 0.0f, 0.51f);
+  style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.13725491f, 0.13725491f, 0.13725491f, 1.0f);
+  style.Colors[ImGuiCol_ScrollbarBg] =
+              ImVec4(0.019607844f, 0.019607844f, 0.019607844f, 0.53f);
+  style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.30980393f, 0.30980393f, 0.30980393f, 1.0f);
+  style.Colors[ImGuiCol_ScrollbarGrabHovered] =
+              ImVec4(0.40784314f, 0.40784314f, 0.40784314f, 1.0f);
+  style.Colors[ImGuiCol_ScrollbarGrabActive] =
+              ImVec4(0.50980395f, 0.50980395f, 0.50980395f, 1.0f);
+  style.Colors[ImGuiCol_CheckMark] = ImVec4(0.9828326f, 0.40494397f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_SliderGrab] = ImVec4(1.0f, 0.40952373f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(1.0f, 0.5137255f, 0.1764706f, 1.0f);
+  style.Colors[ImGuiCol_Button] = ImVec4(0.30042917f, 0.30042616f, 0.30042616f, 0.4f);
+  style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.3991416f, 0.39913762f, 0.39913762f, 1.0f);
+  style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.5064327f, 0.50643575f, 0.5064378f, 1.0f);
+  style.Colors[ImGuiCol_Header] = ImVec4(1.0f, 0.40784314f, 0.0f, 0.64705884f);
+  style.Colors[ImGuiCol_HeaderHovered] = ImVec4(1.0f, 0.48327434f, 0.120171666f, 0.64705884f);
+  style.Colors[ImGuiCol_HeaderActive] =
+              ImVec4(0.99607843f, 0.5294118f, 0.20392157f, 0.64705884f);
+  style.Colors[ImGuiCol_Separator] = ImVec4(0.99570817f, 0.71793544f, 0.0f, 0.5f);
+  style.Colors[ImGuiCol_SeparatorHovered] =
+              ImVec4(0.76824033f, 0.5925562f, 0.13848108f, 0.78f);
+  style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.8969957f, 0.68286604f, 0.13089205f, 1.0f);
+  style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.70385563f, 0.7038591f, 0.70386267f, 0.2f);
+  style.Colors[ImGuiCol_ResizeGripHovered] =
+              ImVec4(0.8283179f, 0.82832193f, 0.82832617f, 0.67f);
+  style.Colors[ImGuiCol_ResizeGripActive] =
+              ImVec4(0.21888411f, 0.1117906f, 0.1117906f, 0.95f);
+  style.Colors[ImGuiCol_Tab] = ImVec4(0.46351933f, 0.1452228f, 0.1452228f, 0.862f);
+  style.Colors[ImGuiCol_TabHovered] =
+              ImVec4(0.64377683f, 0.10223065f, 0.10223065f, 0.8627451f);
+  style.Colors[ImGuiCol_TabActive] = ImVec4(0.4509804f, 0.0f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_TabUnfocused] =
+              ImVec4(0.14509805f, 0.06666667f, 0.06666667f, 0.9724f);
+  style.Colors[ImGuiCol_TabUnfocusedActive] =
+              ImVec4(0.42352942f, 0.13333336f, 0.13333336f, 1.0f);
+  style.Colors[ImGuiCol_PlotLines] = ImVec4(0.60784316f, 0.60784316f, 0.60784316f, 1.0f);
+  style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.0f, 0.42745098f, 0.34901962f, 1.0f);
+  style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.7253219f, 0.42958978f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.0f, 0.6f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_TableHeaderBg] = ImVec4(0.62231755f, 0.4487076f, 0.0f, 1.0f);
+  style.Colors[ImGuiCol_TableBorderStrong] =
+              ImVec4(0.30980393f, 0.30980393f, 0.34901962f, 1.0f);
+  style.Colors[ImGuiCol_TableBorderLight] =
+              ImVec4(0.22745098f, 0.22745098f, 0.24705882f, 1.0f);
+  style.Colors[ImGuiCol_TableRowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+  style.Colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.0f, 1.0f, 1.0f, 0.06f);
+  style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.53648067f, 0.536478f, 0.5364753f, 0.35f);
+  style.Colors[ImGuiCol_DragDropTarget] = ImVec4(0.7467811f, 0.42306852f, 0.0f, 0.9f);
+  style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.25882354f, 0.5882353f, 0.9764706f, 1.0f);
+  style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
+  style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.8f, 0.8f, 0.8f, 0.2f);
+  style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.8f, 0.8f, 0.8f, 0.35f);
+  style.Colors[ImGuiCol_DockingPreview] = ImVec4(0.35f, 0.35f, 0.35f, 0.7f);
+  style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.35f, 0.1f, 0.1f, 1.0f);
 }
 }

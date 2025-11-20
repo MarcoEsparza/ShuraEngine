@@ -277,9 +277,19 @@ ImGui_ImplShura_CreateFontsTexture()
   ImFontAtlas* atlas = io.Fonts;
   ImFontConfig config;
   config.RasterizerDensity = 2.0f;
-  auto font = atlas->AddFontFromFileTTF("resources/fonts/DroidSans.ttf", 18.0f, &config);
+  auto font = atlas->AddFontFromFileTTF("resources/fonts/Ruda-VariableFont_wght.ttf",
+                                        18.0f);
+
+  static const ImWchar icon_ranges[] = { 0xe800, 0xf527, 0 };
+  config.MergeMode = true;
+  config.PixelSnapH = true;
+  auto iconFont = atlas->AddFontFromFileTTF("resources/fonts/shuraicons.ttf",
+                                            18.0f, &config, icon_ranges);
   
   if (font == nullptr) {
+    SH_ASSERT(false && "Font loading failed");
+  }
+  if (iconFont == nullptr) {
     SH_ASSERT(false && "Font loading failed");
   }
 
