@@ -98,7 +98,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   /**
   *  @brief Default destructor.
   */
-  virtual ~RenderManager() = default;
+  virtual ~RenderManager();
 
   /**
   *  @brief Override event for module.

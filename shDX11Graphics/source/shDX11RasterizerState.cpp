@@ -1,42 +1,25 @@
 /*****************************************************************************/
 /*
-*  @file    shBlendState.h
+*  @file    shDX11RasterizerState.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/13
-*  @brief   Engine Blend State.
+*  @date    2026/02/07
+*  @brief   DirectX11 Rasterizer State.
 *
-*  Engine Blend State.
+*  DirectX11 Rasterizer State.
 *
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
+#include "shDX11RasterizerState.h"
 
 namespace shEngineSDK {
-/**
-*  @brief Engine Blend State.
-*/
-class BlendState
-{
- public:
-  /**
-  *  @brief Default constructor.
-  */
-  BlendState() = default;
-
-  /**
-  *  @brief Default destructor.
-  */
-  virtual ~BlendState() = default;
-
-  virtual void
-  setDebugName(const String& name) = 0;
-};
+DX11RasterizerState::~DX11RasterizerState() {
+  SafeRelease(m_pRasterS);
+}
 }

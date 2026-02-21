@@ -23,6 +23,7 @@
 #include <shVector2i.h>
 #include <shLinearColor.h>
 #include <shException.h>
+#include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
 /**
@@ -317,6 +318,8 @@ class SH_CORE_EXPORT BaseApp
   *  @brief Selected graphic api.
   */
   GRAPHIC_API::E m_graphicAPI;
+
+  DynamicLibrary m_graphicDLL;
 
   /**
   *  @brief Background color.

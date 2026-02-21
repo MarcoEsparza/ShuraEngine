@@ -53,6 +53,8 @@
 #define CUBE_MAP_SIZE 1024 // Size of the cube map texture
 #define NUM_CUBE_MAP_FACES 6 // Number of faces in a cube map
 
+#define MAX_SAMPLERS 16 // Maximum number of samplers
+
 namespace shEngineSDK {
 const uint32 RenderManager::SHADOWMAP_TEX_ID = StringID("ShadowMap").getID();
 const uint32 RenderManager::SHADOWTEMP_TEX_ID = StringID("ShadowTemp").getID();
@@ -78,6 +80,16 @@ const uint32 RenderManager::GBUFFER_DEPTH_TEX_ID = StringID("GBufferDepth").getI
 const uint32 RenderManager::HISTOGRAM_TEX_ID = StringID("HistogramMap").getID();
 const uint32 RenderManager::EMM_PROCESS_TEX_ID = StringID("EmmProMap").getID();
 const uint32 RenderManager::PLANE_DEPTH_TEX_ID = StringID("PlaneDepth").getID();
+
+RenderManager::~RenderManager()
+{
+  cleanShaderObjects();
+  m_pLutTexture.reset();
+  m_pLutLBK.reset();
+  m_pBRDF.reset();
+  m_pDiffIrr.reset();
+  m_pSpecularPreMap.reset();
+}
 
 void
 RenderManager::onStartUp()
@@ -192,6 +204,8 @@ RenderManager::onStartUp()
                         BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
                         0, 1);
 
+  m_pDiffIrr->setDebugName("DiffuseIrradianceMap");
+
   auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
   if (pLut) {
     m_pLutTexture = cast::re_ptr<CubeMap>(pLut);
@@ -232,6 +246,7 @@ RenderManager::createRenderTextures()
                                          rtiInfo.bFlags,
                                          rtiInfo.mipLevels,
                                          rtiInfo.arraySize);
+    pTex->setDebugName(rtiInfo.name);
     m_renderTargetMap[StringID(rtiInfo.name).getID()].pTexture = pTex;
   }
 }
@@ -944,6 +959,8 @@ RenderManager::computeIBL()
                                BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
                                numMipLevels);
 
+  m_pSpecularPreMap->setDebugName("SpecularPrefilteredMap");
+
   shaderMan.m_prefilteredData.width = 256;
   shaderMan.m_prefilteredData.height = 128;
   shaderMan.m_prefilteredData.samples = TEXTURE4K_WIDTH;
@@ -1010,6 +1027,8 @@ RenderManager::computeBRDF()
                                      BIND_FLAGS::kShaderResource | BIND_FLAGS::kUnorderedAccess,
                                      1, 1);
   
+  m_pBRDF->setDebugName("BRDF_Texture");
+
   uint32 lutDispatch = threadGroups(256, 16);
 
   shaderMan.m_passes[shaderMan.BRDF_SHADER_ID]->setPass();

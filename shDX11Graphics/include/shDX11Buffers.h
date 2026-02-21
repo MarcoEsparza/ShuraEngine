@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Buffers.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/02/07
 *  @brief   DirectX11 Vertex Buffer, Index Buffer and Constant Buffer class wrappers.
 *
 *  DirectX11 Vertex Buffer, Index Buffer and Constant Buffer class wrappers.
@@ -35,7 +35,7 @@ class DX11VertexBuffer : public VertexBuffer
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11VertexBuffer();
+  virtual ~DX11VertexBuffer();
 
   friend class DX11GraphicsManager;
 
@@ -70,7 +70,7 @@ class DX11IndexBuffer : public IndexBuffer
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11IndexBuffer();
+  virtual ~DX11IndexBuffer();
 
   friend class DX11GraphicsManager;
 
@@ -105,7 +105,7 @@ public:
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11ConstantBuffer();
+  virtual ~DX11ConstantBuffer();
 
   friend class DX11GraphicsManager;
 
@@ -120,25 +120,4 @@ protected:
   */
   ID3D11Buffer* m_pBuffer = nullptr;
 };
-
-/*****************************************************************************/
-/*
-*  Implementations
-*/
-/*****************************************************************************/
-
-FORCEINLINE DX11VertexBuffer::~DX11VertexBuffer()
-{
-  SafeRelease(m_pBuffer);
-}
-
-FORCEINLINE DX11IndexBuffer::~DX11IndexBuffer()
-{
-  SafeRelease(m_pBuffer);
-}
-
-FORCEINLINE DX11ConstantBuffer::~DX11ConstantBuffer()
-{
-  SafeRelease(m_pBuffer);
-}
 }

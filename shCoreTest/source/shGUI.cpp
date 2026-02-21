@@ -250,10 +250,10 @@ GUI::init(const WPtr<Screen> pScreen)
   m_camNear = 0.1f;
   m_camFar = 2000.0f;
 
-  Path resPath("resources/data/ImGui/ShuraIconsTexture.png");
-  auto pRes = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(resPath));
-  m_iconsTexture = pRes->texture;
-  m_iconsSize = Vector2(cast::st<float>(pRes->width), cast::st<float>(pRes->height));
+  //Path resPath("resources/data/ImGui/ShuraIconsTexture.png");
+  //auto pRes = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(resPath));
+  //m_iconsTexture = pRes->texture;
+  //m_iconsSize = Vector2(cast::st<float>(pRes->width), cast::st<float>(pRes->height));
 
   m_sceneGraphWindowStr = iconToStr(FONT_ICONS::kSiteMap) + " Scenegraph";
   m_sceneWindowStr = iconToStr(FONT_ICONS::kPicture) + " Scene";
@@ -267,7 +267,11 @@ void
 GUI::shutdown()
 {
   ImGui_ImplShura_Shutdown();
-  ImGui::DestroyContext();
+  //ImGui::DestroyContext();
+
+  m_pActiveGameObject.reset();
+  m_pRenamingGameObject.reset();
+  m_pActiveGameObject.reset();
 }
 
 void
@@ -1526,40 +1530,40 @@ GUI::setProjectResourceViewer()
 
 }
 
-void
-GUI::setIcon(const ICONS::E icon, const Vector2& size)
-{
-  ImTextureID* iconTex = cast::re<ImTextureID*>(&m_iconsTexture);
+//void
+//GUI::setIcon(const ICONS::E icon, const Vector2& size)
+//{
+//  ImTextureID* iconTex = cast::re<ImTextureID*>(&m_iconsTexture);
+//
+//  int32 index = cast::st<int32>(icon);
+//  int32 row = index / ICONS_PER_ROW;
+//  int32 col = index % ICONS_PER_ROW;
+//
+//  float u0 = cast::st<float>(col * ICON_SIZE) / m_iconsSize.x;
+//  float v0 = cast::st<float>(row * ICON_SIZE) / m_iconsSize.y;
+//  float u1 = cast::st<float>((col + 1) * ICON_SIZE) / m_iconsSize.x;
+//  float v1 = cast::st<float>((row + 1) * ICON_SIZE) / m_iconsSize.y;
+//
+//  ImGui::Image(iconTex,
+//               ImVec2(size.x, size.y),
+//               ImVec2(u0, v0),
+//               ImVec2(u1, v1));
+//}
 
-  int32 index = cast::st<int32>(icon);
-  int32 row = index / ICONS_PER_ROW;
-  int32 col = index % ICONS_PER_ROW;
-
-  float u0 = cast::st<float>(col * ICON_SIZE) / m_iconsSize.x;
-  float v0 = cast::st<float>(row * ICON_SIZE) / m_iconsSize.y;
-  float u1 = cast::st<float>((col + 1) * ICON_SIZE) / m_iconsSize.x;
-  float v1 = cast::st<float>((row + 1) * ICON_SIZE) / m_iconsSize.y;
-
-  ImGui::Image(iconTex,
-               ImVec2(size.x, size.y),
-               ImVec2(u0, v0),
-               ImVec2(u1, v1));
-}
-
-bool
-GUI::iconCollapsingHeader(const ICONS::E icon, const String& label)
-{
-  bool opened = false;
-  float y = ImGui::GetCursorPosY() + 2.0f;
-
-  ImGui::SetCursorPosY(y);
-  setIcon(icon);
-  ImGui::SameLine();
-
-  opened = ImGui::TreeNodeEx(label.c_str(), ImGuiTreeNodeFlags_SpanFullWidth);
-
-  return opened;
-}
+//bool
+//GUI::iconCollapsingHeader(const ICONS::E icon, const String& label)
+//{
+//  bool opened = false;
+//  float y = ImGui::GetCursorPosY() + 2.0f;
+//
+//  ImGui::SetCursorPosY(y);
+//  setIcon(icon);
+//  ImGui::SameLine();
+//
+//  opened = ImGui::TreeNodeEx(label.c_str(), ImGuiTreeNodeFlags_SpanFullWidth);
+//
+//  return opened;
+//}
 
 void
 GUI::setStyle()

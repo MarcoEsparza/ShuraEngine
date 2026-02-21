@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11Shader.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/02/07
 *  @brief   DirectX11 Program Shader class wrapper.
 *
 *  DirectX11 Program Shader class wrapper.
@@ -35,7 +35,7 @@ class DX11VertexShader : public VertexShader
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE virtual ~DX11VertexShader();
+  virtual ~DX11VertexShader();
 
   friend class DX11GraphicsManager;
 
@@ -70,7 +70,7 @@ class DX11PixelShader : public PixelShader
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE virtual ~DX11PixelShader();
+  virtual ~DX11PixelShader();
 
   friend class DX11GraphicsManager;
 
@@ -105,7 +105,7 @@ class DX11GeometryShader : public GeometryShader
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE virtual ~DX11GeometryShader();
+  virtual ~DX11GeometryShader();
 
   friend class DX11GraphicsManager;
 
@@ -140,7 +140,7 @@ class DX11ComputeShader : public ComputeShader
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE virtual ~DX11ComputeShader();
+  virtual ~DX11ComputeShader();
 
   friend class DX11GraphicsManager;
 
@@ -160,34 +160,4 @@ class DX11ComputeShader : public ComputeShader
   */
   ID3D11ComputeShader* m_pComputeShader = nullptr;
 };
-
-/*****************************************************************************/
-/*
-*  Implementations
-*/
-/*****************************************************************************/
-
-FORCEINLINE DX11VertexShader::~DX11VertexShader()
-{
-  SafeRelease(m_pBlob);
-  SafeRelease(m_pVertexShader);
-}
-
-FORCEINLINE DX11PixelShader::~DX11PixelShader()
-{
-  SafeRelease(m_pBlob);
-  SafeRelease(m_pPixelShader);
-}
-
-FORCEINLINE DX11GeometryShader::~DX11GeometryShader()
-{
-  SafeRelease(m_pBlob);
-  SafeRelease(m_pGeometryShader);
-}
-
-FORCEINLINE DX11ComputeShader::~DX11ComputeShader()
-{
-  SafeRelease(m_pBlob);
-  SafeRelease(m_pComputeShader);
-}
 }

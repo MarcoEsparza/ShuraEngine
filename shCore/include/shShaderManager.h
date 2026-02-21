@@ -172,7 +172,7 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   /**
   *  @brief Default destructor.
   */
-  virtual ~ShaderManager() = default;
+  virtual ~ShaderManager();
 
   /***************************************************************************/
   /*

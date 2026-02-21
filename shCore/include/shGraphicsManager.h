@@ -110,6 +110,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual void
   present(uint32 syncInterval = 0, uint32 flags = 0) = 0;
 
+  virtual void
+  unbindAll() = 0;
+
   /***************************************************************************/
   /*
   *  Functions: Getters
@@ -434,6 +437,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
                      const void* pData,
                      const uint32 dataSize) = 0;
+
+  virtual void
+  updateIndexBuffer(const WPtr<IndexBuffer> pIBuffer,
+                    const void* pData,
+                    const uint32 index) = 0;
 
   /**
   *  @brief Saves a Texture2D to a dds file.

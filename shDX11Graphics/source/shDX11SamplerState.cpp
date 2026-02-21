@@ -1,42 +1,25 @@
 /*****************************************************************************/
 /*
-*  @file    shBlendState.h
+*  @file    shDX11SamplerState.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/01/13
-*  @brief   Engine Blend State.
+*  @date    2026/02/07
+*  @brief   DirectX11 Sampler State class wrapper.
 *
-*  Engine Blend State.
+*  DirectX11 Sampler State class wrapper.
 *
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesCore.h"
+#include "shDX11SamplerState.h"
 
 namespace shEngineSDK {
-/**
-*  @brief Engine Blend State.
-*/
-class BlendState
-{
- public:
-  /**
-  *  @brief Default constructor.
-  */
-  BlendState() = default;
-
-  /**
-  *  @brief Default destructor.
-  */
-  virtual ~BlendState() = default;
-
-  virtual void
-  setDebugName(const String& name) = 0;
-};
+DX11SamplerState::~DX11SamplerState() {
+  SafeRelease(m_pSamplerLinear);
+}
 }

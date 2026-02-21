@@ -49,6 +49,17 @@ const uint32 ShaderManager::PREFILTERED_IRR_SHADER_ID =
 const uint32 ShaderManager::BRDF_SHADER_ID = StringID("BRDFShader").getID();
 const uint32 ShaderManager::EMMISIVE_SHADER_ID = StringID("EmmisiveShader").getID();
 
+ShaderManager::~ShaderManager() {
+  m_passes.clear();
+  m_pMainBuffer.reset();
+  m_pShaderDataBuffer.reset();
+  m_pPrefilteredCB.reset();
+  m_pLightBuffer.reset();
+  m_pLCBuffer.reset();
+  m_pModelTransformBuffer.reset();
+  m_pPBRData.reset();
+}
+
 void
 ShaderManager::createPipelinePasses()
 {

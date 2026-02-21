@@ -33,6 +33,14 @@ DX11Texture2D::~DX11Texture2D()
   SafeRelease(m_pTexture2D);
 }
 
+void
+DX11Texture2D::setDebugName(const String& name)
+{
+  if (m_pTexture2D) {
+    m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName, name.size(), name.c_str());
+  }
+}
+
 DX11Texture3D::~DX11Texture3D()
 {
   SafeRelease(m_pTexture3D);

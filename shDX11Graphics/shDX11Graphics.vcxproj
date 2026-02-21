@@ -33,8 +33,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\DDSTextureLoader11.cpp" />
+    <ClCompile Include="source\shDX11BlendState.cpp" />
+    <ClCompile Include="source\shDX11Buffers.cpp" />
+    <ClCompile Include="source\shDX11DepthStencilState.cpp" />
     <ClCompile Include="source\shDX11GraphicsManager.cpp" />
+    <ClCompile Include="source\shDX11InputLayout.cpp" />
     <ClCompile Include="source\shDX11LoadPlugin.cpp" />
+    <ClCompile Include="source\shDX11RasterizerState.cpp" />
+    <ClCompile Include="source\shDX11SamplerState.cpp" />
+    <ClCompile Include="source\shDX11Shader.cpp" />
     <ClCompile Include="source\shDX11Texture.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -27,9 +27,12 @@
 #include <Windows.h>
 
 #include <d3dcompiler.h>
-#include <dxgidebug.h>
 #pragma comment(lib, "dxguid.lib")
 #include "DDSTextureLoader11.h"
+
+#if SH_DEBUG_MODE
+#include <dxgidebug.h>
+#endif
 
 using namespace DirectX;
 
@@ -151,14 +154,29 @@ compileShaderFromFile(const String& fileName,
 
 DX11GraphicsManager::~DX11GraphicsManager()
 {
+  unbindAll();
+
+  m_pBackbuffer.reset();
+  m_pDepthStencil.reset();
   SafeRelease(m_pSwapChain);
+
+  ID3D11SamplerState* nullSamplers[16] = {};
+  m_pDeviceContext->CSSetSamplers(0, 16, nullSamplers);
+  m_pDeviceContext->PSSetSamplers(0, 16, nullSamplers);
+  m_pDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+  m_pDeviceContext->OMSetDepthStencilState(nullptr, 0);
+  m_pDeviceContext->RSSetState(nullptr);
+
   m_pDeviceContext->ClearState();
   m_pDeviceContext->Flush();
-  SafeRelease(m_pDeviceContext);
-  SafeRelease(m_pDevice);
 
+#if defined(SH_DEBUG_MODE)
   m_pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
   SafeRelease(m_pDebug);
+#endif
+
+  SafeRelease(m_pDeviceContext);
+  SafeRelease(m_pDevice);
 }
 
 void
@@ -211,9 +229,6 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-  //m_pDevice = sh_makeShared<DX11Device>();
-  //m_pDeviceContext = sh_makeShared<DX11DeviceContext>();
-
   //Create a device and immediate device context
   throwIfFailed(D3D11CreateDevice(vecAdapters[0],
                                   D3D_DRIVER_TYPE_UNKNOWN,
@@ -228,12 +243,12 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
 
 #if defined(SH_DEBUG_MODE)
   throwIfFailed(m_pDevice->QueryInterface(__uuidof(ID3D11Debug),
-                                          reinterpret_cast<void**>(&m_pDebug)));
+                                          cast::re<void**>(&m_pDebug)));
 #endif
 
   //Create a swap chain
   DXGI_SWAP_CHAIN_DESC scDesc;
-  memset(&scDesc, 0, sizeof(scDesc));
+  memset(&scDesc, 0, sizeof(DXGI_SWAP_CHAIN_DESC));
 
   scDesc.OutputWindow = hWnd;
   scDesc.Windowed = !m_bFullScreen;
@@ -273,8 +288,6 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   IDXGIFactory* dxgiFactory;
   dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
                          reinterpret_cast<void**>(&dxgiFactory));
-  
-  //m_pSwapChain = sh_makeUnique<IDXGISwapChain>();
 
   throwIfFailed(dxgiFactory->CreateSwapChain(m_pDevice,
                                              &scDesc,
@@ -311,6 +324,9 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   viewPort.topLeftY = 0.0f;
   setViewport(viewPort);
 
+  m_pBackbuffer = pBackbuffer;
+  pBackbuffer.reset();
+
 #if defined(SH_DEBUG_MODE)
   String DeviceName = "Main Device";
   m_pDevice->SetPrivateData(WKPDID_D3DDebugObjectName,
@@ -324,13 +340,8 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   m_pSwapChain->SetPrivateData(WKPDID_D3DDebugObjectName,
                                static_cast<uint32>(SwapChainName.size()),
                                SwapChainName.c_str());
-  String BBName = "My BackBuffer";
-  pBackbuffer->m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                            static_cast<uint32>(BBName.size()),
-                                            BBName.c_str());
+  m_pBackbuffer->setDebugName("My BackBuffer");
 #endif
-
-  m_pBackbuffer = pBackbuffer;
 
   //Release all objects
   SafeRelease(pFactory);
@@ -376,9 +387,29 @@ void
 DX11GraphicsManager::present(uint32 syncInterval, uint32 flags)
 {
   SH_ASSERT(m_pSwapChain);
-  //DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
-  //IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
   m_pSwapChain->Present(syncInterval, flags);
+}
+
+void
+DX11GraphicsManager::unbindAll()
+{
+  ID3D11ShaderResourceView* nullSRVs[128] = {};
+  m_pDeviceContext->VSSetShaderResources(0, 128, nullSRVs);
+  m_pDeviceContext->PSSetShaderResources(0, 128, nullSRVs);
+  m_pDeviceContext->CSSetShaderResources(0, 128, nullSRVs);
+  ID3D11UnorderedAccessView* nullUAVs[7] = {};
+  m_pDeviceContext->CSSetUnorderedAccessViews(0, 7, nullUAVs, nullptr);
+  ID3D11Buffer* nullCBs[14] = {};
+  m_pDeviceContext->VSSetConstantBuffers(0, 14, nullCBs);
+  m_pDeviceContext->PSSetConstantBuffers(0, 14, nullCBs);
+  m_pDeviceContext->CSSetConstantBuffers(0, 14, nullCBs);
+  ID3D11SamplerState* nullSamplers[16] = {};
+  m_pDeviceContext->VSSetSamplers(0, 16, nullSamplers);
+  m_pDeviceContext->PSSetSamplers(0, 16, nullSamplers);
+  m_pDeviceContext->CSSetSamplers(0, 16, nullSamplers);
+  m_pDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+  m_pDeviceContext->OMSetDepthStencilState(nullptr, 0);
+  m_pDeviceContext->RSSetState(nullptr);
 }
 
 WPtr<Texture2D>
@@ -683,7 +714,7 @@ DX11GraphicsManager::internalCreateVertexBuffer(const void* pData,
   desc.Usage = static_cast<D3D11_USAGE>(usage);
   desc.ByteWidth = bufferSize * stride;
   desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  desc.CPUAccessFlags = usage == D3D10_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
+  desc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
   desc.MiscFlags = 0;
 
   D3D11_SUBRESOURCE_DATA initData;
@@ -693,12 +724,6 @@ DX11GraphicsManager::internalCreateVertexBuffer(const void* pData,
 
   m_pDevice->CreateBuffer(&desc, &initData, &pVBuffer->m_pBuffer);
   pVBuffer->m_stride = stride;
-
-  String name = "VertexBuffer_" + std::to_string(m_vertexBufferCount);
-  pVBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                      static_cast<uint32>(name.size()),
-                                      name.c_str());
-  ++m_vertexBufferCount;
 
   return pVBuffer;
 }
@@ -713,7 +738,7 @@ DX11GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint
   desc.Usage = static_cast<D3D11_USAGE>(usage);
   desc.ByteWidth = static_cast<UINT>(indices.size() * sizeof(uint32));
   desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  desc.CPUAccessFlags = usage == D3D10_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
+  desc.CPUAccessFlags = usage == D3D11_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
   desc.MiscFlags = 0;
 
   D3D11_SUBRESOURCE_DATA initData;
@@ -724,11 +749,11 @@ DX11GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint
   m_pDevice->CreateBuffer(&desc, &initData, &pIBuffer->m_pBuffer);
   pIBuffer->m_dataFormat = DXGI_FORMAT_R32_UINT;
 
-  String name = "IndexBuffer_" + std::to_string(m_indexBufferCount);
+  /*String name = "IndexBuffer_" + std::to_string(m_indexBufferCount);
   pIBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
                                       static_cast<uint32>(name.size()),
                                       name.c_str());
-  ++m_indexBufferCount;
+  ++m_indexBufferCount;*/
 
   return pIBuffer;
 }
@@ -759,11 +784,6 @@ DX11GraphicsManager::createConstantBuffer(const uint32 bufferSize,
   throwIfFailed(m_pDevice->CreateBuffer(&desc,
                                                    pData ? &initData : nullptr,
                                                    &pCBuffer->m_pBuffer));
-  String name = "ConstantBuffer_" + std::to_string(m_constBufferCount);
-  pCBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                      static_cast<uint32>(name.size()),
-                                      name.c_str());
-  ++m_constBufferCount;
 
   return pCBuffer;
 }
@@ -784,11 +804,6 @@ DX11GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAd
   sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
   throwIfFailed(m_pDevice->CreateSamplerState(&sampDesc, &pSampleLinear->m_pSamplerLinear));
-
-  String name = "SamplerState_" + std::to_string(m_samplerStateCount);
-  pSampleLinear->m_pSamplerLinear->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                                  static_cast<uint32>(name.size()),
-                                                  name.c_str());
 
   return pSampleLinear;
 }
@@ -1227,7 +1242,7 @@ SPtr<Texture2D> DX11GraphicsManager::createBlackTexture()
 
 SPtr<BlendState>
 DX11GraphicsManager::createBlendState(const BlendDesc& blendDesc,
-                                              const LinearColor& blendFactor)
+                                      const LinearColor& blendFactor)
 {
   auto pBlendState = sh_makeShared<DX11BlendState>();
 
@@ -1252,11 +1267,6 @@ DX11GraphicsManager::createBlendState(const BlendDesc& blendDesc,
 
   pBlendState->m_blendFactor = blendFactor;
 
-  String name = "BlendState_" + std::to_string(m_blendStateCount);
-  pBlendState->m_pBlendS->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                         static_cast<uint32>(name.size()),
-                                          name.c_str());
-
   return pBlendState;
 }
 
@@ -1278,11 +1288,6 @@ DX11GraphicsManager::createRasterizerState(const RasterizerDesc& rasterizerDesc)
   rasterDesc.AntialiasedLineEnable = rasterizerDesc.antialiasedLineEnable;
 
   m_pDevice->CreateRasterizerState(&rasterDesc, &pRasterizerState->m_pRasterS);
-
-  String name = "RasterizerState_" + std::to_string(m_rasterizerStateCount);
-  pRasterizerState->m_pRasterS->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                               static_cast<uint32>(name.size()),
-                                               name.c_str());
 
   return pRasterizerState;
 }
@@ -1319,11 +1324,6 @@ DX11GraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
   d3d11DepthDesc.BackFace = backFace;
 
   m_pDevice->CreateDepthStencilState(&d3d11DepthDesc, &pDepthSS->m_pDepthSS);
-
-  String name = "DepthStencilState_" + std::to_string(m_depthStencilStateCount);
-  pDepthSS->m_pDepthSS->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                       static_cast<uint32>(name.size()),
-                                       name.c_str());
 
   return pDepthSS;
 }
@@ -1433,13 +1433,49 @@ DX11GraphicsManager::updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
   if (pVBuffer.expired() || pData == nullptr) {
     return;
   }
-  auto pVertexBuffer = sh_reinterpretPCast<DX11VertexBuffer>(pVBuffer.lock());
-  m_pDeviceContext->UpdateSubresource(pVertexBuffer->m_pBuffer,
+  auto pVertexBuffer = cast::re_ptr<DX11VertexBuffer>(pVBuffer.lock());
+  /*m_pDeviceContext->UpdateSubresource(pVertexBuffer->m_pBuffer,
                                       0,
                                       nullptr,
                                       pData,
-                                      dataSize,
-                                      0);
+                                      0,
+                                      0);*/
+
+  D3D11_MAPPED_SUBRESOURCE mappedResource;
+  throwIfFailed(m_pDeviceContext->Map(pVertexBuffer->m_pBuffer,
+                                      0,
+                                      D3D11_MAP_WRITE_DISCARD,
+                                      0,
+                                      &mappedResource));
+
+  memcpy(mappedResource.pData, pData, dataSize * pVertexBuffer->m_stride);
+  m_pDeviceContext->Unmap(pVertexBuffer->m_pBuffer, 0);
+}
+
+void
+DX11GraphicsManager::updateIndexBuffer(const WPtr<IndexBuffer> pIBuffer,
+                                       const void* pData,
+                                       const uint32 dataSize)
+{
+  if (pIBuffer.expired() || pData == nullptr) {
+    return;
+  }
+  auto pIndexBuffer = sh_reinterpretPCast<DX11IndexBuffer>(pIBuffer.lock());
+  /*m_pDeviceContext->UpdateSubresource(pIndexBuffer->m_pBuffer,
+                                      0,
+                                      nullptr,
+                                      pData,
+                                      0,
+                                      0);*/
+
+  D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+  throwIfFailed(m_pDeviceContext->Map(pIndexBuffer->m_pBuffer,
+                                      0,
+                                      D3D11_MAP_WRITE_DISCARD,
+                                      0,
+                                      &mappedResource));
+  memcpy(mappedResource.pData, pData, dataSize);
+  m_pDeviceContext->Unmap(pIndexBuffer->m_pBuffer, 0);
 }
 
 void

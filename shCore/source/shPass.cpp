@@ -19,8 +19,25 @@
 #include  "shPass.h"
 #include "shGraphicsManager.h"
 #include "shShader.h"
+#include "shBlendState.h"
+#include <shLogger.h>
 
 namespace shEngineSDK {
+Pass::~Pass() {
+  m_pVShader.reset();
+  m_pPShader.reset();
+  m_pGShader.reset();
+  m_pCShader.reset();
+  m_pInputLayout.reset();
+  m_pRasterState.reset();
+  m_pBlendState.reset();
+  m_pDsState.reset();
+  m_vsCBuffers.clear();
+  m_psCBuffers.clear();
+  m_gsCBuffers.clear();
+  m_csCBuffers.clear();
+}
+
 void
 Pass::setVShaderInfo(const String& shaderPath,
                      const String& entry,
@@ -75,6 +92,10 @@ void
 Pass::setBlendStateFromDesc(const BlendDesc& blendDesc)
 {
   m_pBlendState = g_graphicsMan().createBlendState(blendDesc);
+  if (m_vsPath != "") {
+    String name = m_vsPath + "_BlendState";
+    m_pBlendState->setDebugName(name);
+  }
 }
 
 void

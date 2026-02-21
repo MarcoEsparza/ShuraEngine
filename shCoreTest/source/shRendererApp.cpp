@@ -584,14 +584,14 @@ RendererApp::tempLoad()
 void
 RendererApp::playScene()
 {
-  SceneGraph& scene = g_sceneGraph();
-  m_tempGameObjects = scene.getGameObjectList();
+  //SceneGraph& scene = g_sceneGraph();
+  //m_tempGameObjects = scene.getGameObjectList();
 }
 
 void
 RendererApp::restartScene()
 {
-  SceneGraph& scene = g_sceneGraph();
-  scene.getGameObjectList() = m_tempGameObjects;
+  //SceneGraph& scene = g_sceneGraph();
+  //scene.getGameObjectList() = m_tempGameObjects;
 }
 }

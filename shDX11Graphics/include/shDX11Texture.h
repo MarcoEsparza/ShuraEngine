@@ -37,6 +37,9 @@ class DX11Texture2D final : public Texture2D
   */
   ~DX11Texture2D();
 
+  void
+  setDebugName(const String& name) override;
+
   friend class DX11GraphicsManager;
 
   /***************************************************************************/

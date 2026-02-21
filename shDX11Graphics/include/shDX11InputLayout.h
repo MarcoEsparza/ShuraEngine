@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11InputLayout.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/02/07
 *  @brief   DirectX11 Input Layout class wrapper.
 *
 *  DirectX11 Input Layout class wrapper.
@@ -35,7 +35,7 @@ class DX11InputLayout : public InputLayout
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11InputLayout();
+  virtual ~DX11InputLayout();
 
   friend class DX11GraphicsManager;
 
@@ -50,15 +50,4 @@ class DX11InputLayout : public InputLayout
   */
   ID3D11InputLayout* m_pLayout = nullptr;
 };
-
-/*****************************************************************************/
-/*
-*  Implementations
-*/
-/*****************************************************************************/
-
-FORCEINLINE DX11InputLayout::~DX11InputLayout()
-{
-  SafeRelease(m_pLayout);
-}
 }

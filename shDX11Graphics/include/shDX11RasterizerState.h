@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11RasterizerState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/02/07
 *  @brief   DirectX11 Rasterizer State.
 *
 *  DirectX11 Rasterizer State.
@@ -35,7 +35,7 @@ class DX11RasterizerState : public RasterizerState
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11RasterizerState();
+  virtual ~DX11RasterizerState();
 
   friend class DX11GraphicsManager;
 
@@ -50,15 +50,4 @@ class DX11RasterizerState : public RasterizerState
   */
   ID3D11RasterizerState* m_pRasterS = nullptr;
 };
-
-/*****************************************************************************/
-/*
-*  Implementations
-*/
-/*****************************************************************************/
-
-FORCEINLINE DX11RasterizerState::~DX11RasterizerState()
-{
-  SafeRelease(m_pRasterS);
-}
 }

@@ -110,6 +110,13 @@ Gizmos::drawGizmos(const Camera& camera)
 }
 
 void
+Gizmos::onShutDown()
+{
+  m_pass.reset();
+  m_vertexBuffer.reset();
+}
+
+void
 Gizmos::render()
 {
   GraphicsManager& graphMan = g_graphicsMan();

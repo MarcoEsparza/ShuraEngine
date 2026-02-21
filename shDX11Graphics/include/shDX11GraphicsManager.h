@@ -86,6 +86,9 @@ class DX11GraphicsManager : public GraphicsManager
   void
   present(uint32 syncInterval, uint32 flags) override;
 
+  void
+  unbindAll() override;
+
   /********************
   *  Getters
   ********************/
@@ -398,6 +401,11 @@ class DX11GraphicsManager : public GraphicsManager
   updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
                      const void* pData,
                      const uint32 dataSize) override;
+
+  void
+  updateIndexBuffer(const WPtr<IndexBuffer> pIBuffer,
+                    const void* pData,
+                    const uint32 dataSize) override;
 
   /**
   *  @brief Saves a Texture2D to a dds file.
@@ -767,13 +775,5 @@ class DX11GraphicsManager : public GraphicsManager
 #if defined(SH_DEBUG_MODE)
   ID3D11Debug* m_pDebug = nullptr;
 #endif
-
-  uint32 m_vertexBufferCount = 0;
-  uint32 m_indexBufferCount = 0;
-  uint32 m_constBufferCount = 0;
-  uint32 m_rasterizerStateCount = 0;
-  uint32 m_blendStateCount = 0;
-  uint32 m_depthStencilStateCount = 0;
-  uint32 m_samplerStateCount = 0;
 };
 }

@@ -359,6 +359,6 @@ class RendererApp : public BaseApp
 
   bool m_bPlayScene = false;
 
-  Vector<SPtr<GameObject>> m_tempGameObjects;
+  //Vector<SPtr<GameObject>> m_tempGameObjects;
 };
 }

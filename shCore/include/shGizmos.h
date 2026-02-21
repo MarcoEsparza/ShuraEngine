@@ -59,6 +59,9 @@ class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
   void
   drawGizmos(const Camera& camera);
 
+  void
+  onShutDown() override;
+
  private:
   void
   render();

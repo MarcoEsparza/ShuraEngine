@@ -287,11 +287,11 @@ class GUI
   void
   setProjectResourceViewer();
 
-  void
-  setIcon(const ICONS::E icon, const Vector2& size = Vector2(16.0f, 16.0f));
+  /*void
+  setIcon(const ICONS::E icon, const Vector2& size = Vector2(16.0f, 16.0f));*/
 
-  bool
-  iconCollapsingHeader(const ICONS::E icon, const String& label);
+  /*bool
+  iconCollapsingHeader(const ICONS::E icon, const String& label);*/
 
   void
   setStyle();
@@ -347,7 +347,7 @@ class GUI
   Vector2 m_iconsSize = Vector2::ZERO;
   //uint32 m_iconsPerRow = 0;
 
-  SPtr<Texture2D> m_iconsTexture;
+  //SPtr<Texture2D> m_iconsTexture;
 
   String m_sceneGraphWindowStr;
   String m_sceneWindowStr;

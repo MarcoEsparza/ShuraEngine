@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11BlendState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/02/06
 *  @brief   DirectX11 Blend State.
 *
 *  DirectX11 Blend State.
@@ -36,7 +36,10 @@ class DX11BlendState : public BlendState
   /**
   *  @brief Destructor. Release gpu memory.
   */
-  FORCEINLINE virtual ~DX11BlendState();
+  virtual ~DX11BlendState();
+
+  void
+  setDebugName(const String& name) override;
 
   friend class DX11GraphicsManager;
 
@@ -56,15 +59,4 @@ class DX11BlendState : public BlendState
   */
   LinearColor m_blendFactor;
 };
-
-/*****************************************************************************/
-/*
-*  Implementations
-*/
-/*****************************************************************************/
-
-FORCEINLINE DX11BlendState::~DX11BlendState()
-{
-  SafeRelease(m_pBlendS);
-}
 }

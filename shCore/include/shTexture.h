@@ -35,6 +35,9 @@ class Texture2D
   *  @brief Default destructor.
   */
   virtual ~Texture2D() = default;
+
+  virtual void
+  setDebugName(const String& name) = 0;
 };
 
 /**

@@ -52,7 +52,7 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Default destructor.
   */
-  virtual ~Pass() = default;
+  ~Pass();
 
   /***************************************************************************/
   /*

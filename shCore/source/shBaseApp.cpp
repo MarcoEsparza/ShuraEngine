@@ -31,7 +31,6 @@
 #include "shFileExplorer.h"
 #include "shPhysicsManager.h"
 #include "shGizmos.h"
-#include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
 BaseApp::~BaseApp()
@@ -123,7 +122,8 @@ BaseApp::loadGraphicAPI()
 
   // Load DLL
   DynamicLibrary myDLL(apiName);
-  auto dllSymbol = reinterpret_cast<void(*)()>(myDLL.getSymbol("loadPlugin"));
+  m_graphicDLL = myDLL;
+  auto dllSymbol = reinterpret_cast<void(*)()>(m_graphicDLL.getSymbol("loadPlugin"));
   if (!dllSymbol) {
     SH_ASSERT(dllSymbol && "Could not load function");
   }
@@ -274,5 +274,6 @@ BaseApp::destroyManagers()
   ShaderManager::shutDown();
   AudioManager::shutDown();
   GraphicsManager::shutDown();
+  m_graphicDLL.unload();
 }
 }

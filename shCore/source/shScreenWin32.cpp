@@ -1,19 +1,19 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shScreenWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/11/11
+*  @date    2026/02/21
 *  @brief   Base screen
 *
 *  Base screen
 */
-/*************************************************************/
+/*****************************************************************************/
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shScreen.h"
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
@@ -89,7 +89,7 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
   m_screenHandle = CreateWindowExA(0,
                                    wc.lpszClassName,
                                    desc.title.c_str(),
-                                   WS_OVERLAPPEDWINDOW,
+                                   WS_OVERLAPPEDWINDOW | WS_MAXIMIZE,
                                    CW_USEDEFAULT,
                                    CW_USEDEFAULT,
                                    m_width,

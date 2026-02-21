@@ -42,21 +42,28 @@
 using std::reinterpret_pointer_cast;
 
 namespace shEngineSDK {
+struct ImGuiTextureHandle
+{
+  Texture2D* tex;
+};
+
 struct ImGui_ImplShura_RendererData
 {
   SPtr<VertexBuffer>         pVB;
   SPtr<IndexBuffer>          pIB;
   SPtr<ConstantBuffer>       pProjBuffer;
-  UPtr<Pass>                 pImGuiShuraProgram;
+  SPtr<Pass>                 pImGuiShuraProgram;
   SPtr<Texture2D>            pFontTexture;
   uint32                     vertexBufferSize = 0;
   uint32                     indexBufferSize = 0;
 
-  ImGui_ImplShura_RendererData()
-  { 
-     memset((void*)this, 0, sizeof(this));
-     vertexBufferSize = VertexBufferMaxSize;
-     indexBufferSize = IndexBufferMaxSize;
+  ImGui_ImplShura_RendererData() = default;
+  ~ImGui_ImplShura_RendererData() {
+    pVB.reset();
+    pIB.reset();
+    pProjBuffer.reset();
+    pImGuiShuraProgram.reset();
+    pFontTexture.reset();
   }
 };
 
@@ -64,7 +71,7 @@ static ImGui_ImplShura_RendererData*
 ImGuiImplShura_BackendRendererData()
 {
   return ImGui::GetCurrentContext() ?
-         reinterpret_cast<ImGui_ImplShura_RendererData*>
+         cast::re<ImGui_ImplShura_RendererData*>
          (ImGui::GetIO().BackendRendererUserData) : nullptr;
 }
 
@@ -98,7 +105,7 @@ ImGui_ImplShura_Init(const WPtr<Screen>& screenHandle)
   //io.BackendFlags |= ImGuiBackendFlags_HasKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+  //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   
   float screenWidth = cast::st<float>(pScreen->getClientSize().x);
   float screenHeight = cast::st<float>(pScreen->getClientSize().y);
@@ -160,8 +167,12 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
   GraphicsManager& graphMan = g_graphicsMan();
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
 
+  // Get vertex and index buffers from command lists
+
   Vector<ImDrawVert> vertList;
   Vector<ImDrawIdx> idxList;
+  uint32 vbSize = 0;
+  uint32 ibSize = 0;
   for (int32 i = 0; i < drawData->CmdListsCount; ++i) {
     const ImDrawList* drawList = drawData->CmdLists[i];
     vertList.insert(vertList.end(),
@@ -175,10 +186,10 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
       return;
     }
   }
+  vbSize = cast::st<uint32>(vertList.size());
+  ibSize = cast::st<uint32>(idxList.size());
 
-  if (bd->pVB) {
-    bd->pVB.reset();
-  }
+  // Create and grow vertex/index buffers if needed
   Vector<GUIVertexData> vertVec;
   for (auto& imVert : vertList) {
     GUIVertexData vertex = {};
@@ -189,14 +200,35 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
     vertex.color = imVert.col;
     vertVec.push_back(vertex);
   }
+  
+  /*if (!bd->pVB || vbSize >= bd->vertexBufferSize) {
+    bd->pVB.reset();
+    bd->pVB = graphMan.createVertexBuffer(vertVec, USAGE::kDynamic);
+  }
+  else {
+    graphMan.updateVertexBuffer(bd->pVB, &vertVec, vertVec.size());
+  }
+  bd->vertexBufferSize = cast::st<uint32>(vertVec.size());*/
+  if (bd->pVB) {
+    bd->pVB.reset();
+  }
   bd->pVB = graphMan.createVertexBuffer(vertVec);
 
-  if (bd->pIB) {
-    bd->pIB.reset();
-  }
   Vector<uint32> idxVec;
   for (auto& idx : idxList) {
     idxVec.push_back(static_cast<uint32>(idx));
+  }
+
+  /*if (!bd->pIB || ibSize >= bd->indexBufferSize) {
+    bd->pIB.reset();
+    bd->pIB = graphMan.createIndexBuffer(idxVec, USAGE::kDynamic);
+  }
+  else {
+    graphMan.updateIndexBuffer(bd->pIB, &idxVec, bd->indexBufferSize * sizeof(uint32));
+  }
+  bd->indexBufferSize = cast::st<uint32>(idxVec.size());*/
+  if (bd->pIB) {
+    bd->pIB.reset();
   }
   bd->pIB = graphMan.createIndexBuffer(idxVec);
 
@@ -254,10 +286,14 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
 
         // Bind texture, Draw
         SPtr<Texture2D>& pTexture = *cast::re<SPtr<Texture2D>*>(pcmd->GetTexID());
+        /*auto pTextureID = cast::re<Texture2D*>(pcmd->GetTexID());
+        SPtr<Texture2D> pTexture(pTextureID);*/
         graphMan.psSetShaderResourceView(pTexture);
         graphMan.drawIndexed(pcmd->ElemCount,
                              pcmd->IdxOffset + global_idx_offset,
                              pcmd->VtxOffset + global_vtx_offset);
+        //pTextureID = nullptr;
+        //pTexture.reset();
       }
     }
     global_idx_offset += cmd_list->IdxBuffer.Size;
@@ -309,8 +345,11 @@ ImGui_ImplShura_CreateFontsTexture()
 
   graphMan.updateTexture2D(bd->pFontTexture, pixels, width, 4);
 
-  // How do i pass the texture id from the shader resource view?
-  atlas->SetTexID(reinterpret_cast<ImTextureID>(&bd->pFontTexture));
+  bd->pFontTexture->setDebugName("ImGuiFontTexture");
+
+  auto pTexture = bd->pFontTexture.get();
+  //atlas->SetTexID(cast::re<ImTextureID>(pTexture));
+  atlas->SetTexID(cast::re<ImTextureID>(&bd->pFontTexture));
 
   auto pSampler = graphMan.createSamplerState();
   bd->pImGuiShuraProgram->setSamplerState(pSampler);
@@ -327,7 +366,7 @@ ImGui_ImplShura_CreateDeviceObjects()
   }
 
   // Set pass
-  bd->pImGuiShuraProgram = sh_makeUnique<Pass>();
+  bd->pImGuiShuraProgram = sh_makeShared<Pass>();
   bd->pImGuiShuraProgram->setVShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
                                          "main",
                                          "vs_5_0");
@@ -413,11 +452,8 @@ ImGui_ImplShura_InvalidateDeviceObjects()
 {
   ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
 
-  bd->pVB.reset();
-  bd->pIB.reset();
-  bd->pProjBuffer.reset();
-  bd->pImGuiShuraProgram.reset();
-  bd->pFontTexture.reset();
+  IM_DELETE(bd);
+  bd = nullptr;
 }
 
 static void
@@ -878,14 +914,32 @@ ImGui_ImplShura_AddMouseWheelEvent(const float wheel, const float hWheel)
 void
 ImGui_ImplShura_Shutdown()
 {
-  ImGui_ImplShura_RendererData* bd = ImGuiImplShura_BackendRendererData();
+  GraphicsManager& graphMan = g_graphicsMan();
+  
+  //auto bd = ImGuiImplShura_BackendRendererData();
   auto& io = ImGui::GetIO();
+
+  graphMan.unbindAll();
+
+  //ImFontAtlas* atlas = io.Fonts;
+  //atlas->SetTexID(nullptr);
 
   ImGui_ImplShura_InvalidateDeviceObjects();
   io.BackendRendererName = nullptr;
   io.BackendRendererUserData = nullptr;
   io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
-  IM_DELETE(bd);
+
+  io.BackendPlatformName = nullptr;
+  io.BackendPlatformUserData = nullptr;
+  io.BackendFlags &= ~ImGuiBackendFlags_HasMouseCursors;
+  io.BackendFlags &= ~ImGuiBackendFlags_HasSetMousePos;
+
+  ImGui::GetMainViewport()->PlatformHandle = nullptr;
+  ImGui::DestroyPlatformWindows();
+
+  //IM_DELETE(bd);
+  //bd = nullptr;
+  ImGui::DestroyContext();
 }
 }
 
