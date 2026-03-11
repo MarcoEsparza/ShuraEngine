@@ -2,7 +2,7 @@
 /*
 *  @file    shTransformComponent.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/02/21
 *  @brief   Transform Component class.
 *
 *  Transform Component class.
@@ -21,6 +21,7 @@
 #include "shComponent.h"
 #include <shMatrix4.h>
 #include <shVector3.h>
+#include <shQuaternion.h>
 
 namespace shEngineSDK {
 /**
@@ -50,15 +51,15 @@ class SH_CORE_EXPORT TransformComponent : public Component
   * 
   *  @return Transform&
   */
-  Transform&
-  getTransform();
+  const Matrix4&
+  getTransformMatrix();
 
   /**
   *  @brief Gets the position.
   *
   *  @return Vector3
   */
-  Vector3
+  const Vector3&
   getPosition() const;
 
   /**
@@ -66,7 +67,7 @@ class SH_CORE_EXPORT TransformComponent : public Component
   *
   *  @return Vector3
   */
-  Vector3
+  const Quaternion&
   getRotation() const;
 
   /**
@@ -74,7 +75,7 @@ class SH_CORE_EXPORT TransformComponent : public Component
   *
   *  @return Vector3
   */
-  Vector3
+  const Vector3&
   getScale() const;
 
   /**
@@ -91,7 +92,7 @@ class SH_CORE_EXPORT TransformComponent : public Component
   *  @param Vector3& rotation
   */
   void
-  setRotation(const Vector3& rotation);
+  setRotation(const Quaternion& rotation);
 
   /**
   *  @brief Changes the scale.
@@ -114,21 +115,23 @@ class SH_CORE_EXPORT TransformComponent : public Component
   /**
   *  @brief Transform data.
   */
-  Transform m_transform;
+  Matrix4 m_transform = Matrix4::IDENTITY;
 
   /**
   *  @brief Position vector.
   */
-  Vector3 m_position;
+  Vector3 m_position = Vector3::ZERO;
 
   /**
   *  @brief Rotation vector.
   */
-  Vector3 m_rotation;
+  Quaternion m_rotation = Quaternion::IDENTITY;
 
   /**
   *  @brief Scale vector.
   */
-  Vector3 m_scale;
+  Vector3 m_scale = Vector3::ONE;
+
+  bool m_bDirty = false;
 };
 }

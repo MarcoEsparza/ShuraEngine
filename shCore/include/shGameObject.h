@@ -19,7 +19,6 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shTransformComponent.h"
-#include <shVector3.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -96,7 +95,7 @@ class SH_CORE_EXPORT GameObject
   *
   *  @return Vector3
   */
-  Vector3
+  Quaternion
   getRotation() const;
 
   /**
@@ -121,7 +120,7 @@ class SH_CORE_EXPORT GameObject
   *  @param Vector3& rotation
   */
   void
-  setRotation(const Vector3& rotation);
+  setRotation(const Quaternion& rotation);
 
   /**
   *  @brief Changes the GameObject scale.
@@ -156,6 +155,9 @@ class SH_CORE_EXPORT GameObject
   void
   scale(const Vector3& scale);
 
+  const Matrix4&
+  getTransformMatrix();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -165,25 +167,31 @@ class SH_CORE_EXPORT GameObject
   /**
   *  @brief Game Object name.
   */
-  String name;
+  String m_name;
 
   /**
   *  @brief Transform component.
   */
-  TransformComponent transform;
+  TransformComponent m_transform;
 
   /**
   *  @brief Component vector.
   */
-  Vector<SPtr<Component>> components;
+  Vector<SPtr<Component>> m_componentList;
 
   /**
   *  @brief Childs vector.
   */
-  Vector<SPtr<GameObject>> childs;
+  Vector<SPtr<GameObject>> m_childList;
 
-  WPtr<GameObject> parent;
+  /**
+  *  @brief Parent pointer.
+  */
+  WPtr<GameObject> m_parent;
 
+  /**
+  *  @brief Active state of the Game Object.
+  */
   bool m_bActive = true;
 };
 }

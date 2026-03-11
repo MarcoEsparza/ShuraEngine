@@ -19,6 +19,9 @@
 #include "shGameObject.h"
 #include "shMeshComponent.h"
 #include "shMeshResource.h"
+#include <shVector3.h>
+#include <shQuaternion.h>
+#include <shMatrix4.h>
 #include <shMath.h>
 #include <shRadian.h>
 
@@ -27,13 +30,13 @@ using std::find;
 namespace shEngineSDK {
 GameObject::~GameObject()
 {
-  for (auto& component : components) {
+  for (auto& component : m_componentList) {
     component.reset();
   }
 
-  components.clear();
+  m_componentList.clear();
 
-  for (auto& child : childs) {
+  for (auto& child : m_childList) {
     child->~GameObject();
   }
 }
@@ -41,61 +44,61 @@ GameObject::~GameObject()
 void
 GameObject::addComponent(const SPtr<Component>& comp)
 {
-  components.push_back(comp);
+  m_componentList.push_back(comp);
 }
 
 void
 GameObject::removeComponent(const SPtr<Component>& comp)
 {
-  components.erase(find(components.begin(), components.end(), comp));
+  m_componentList.erase(find(m_componentList.begin(), m_componentList.end(), comp));
 }
 
 void
 GameObject::addChild(const SPtr<GameObject>& child)
 {
-  childs.push_back(child);
+  m_childList.push_back(child);
 }
 
 void
 GameObject::removeChild(const SPtr<GameObject>& child)
 {
-  childs.erase(find(childs.begin(), childs.end(), child));
+  m_childList.erase(find(m_childList.begin(), m_childList.end(), child));
 }
 
 Vector3
 GameObject::getPosition() const
 {
-  return transform.getPosition();
+  return m_transform.getPosition();
 }
 
-Vector3
+Quaternion
 GameObject::getRotation() const
 {
-  return transform.getRotation();
+  return m_transform.getRotation();
 }
 
 Vector3
 GameObject::getScale() const
 {
-  return transform.getScale();
+  return m_transform.getScale();
 }
 
 void
 GameObject::setPosition(const Vector3& position)
 {
-  transform.setPosition(position);
+  m_transform.setPosition(position);
 
-  for (auto& child : childs) {
+  for (auto& child : m_childList) {
     child->setPosition(child->getPosition() + position);
   }
 }
 
 void
-GameObject::setRotation(const Vector3& rotation)
+GameObject::setRotation(const Quaternion& rotation)
 {
-  transform.setRotation(rotation);
+  m_transform.setRotation(rotation);
 
-  for (auto& child : childs) {
+  for (auto& child : m_childList) {
     child->setRotation(child->getRotation() + rotation);
   }
 }
@@ -103,9 +106,9 @@ GameObject::setRotation(const Vector3& rotation)
 void
 GameObject::setScale(const Vector3& scale)
 {
-  transform.setScale(scale);
+  m_transform.setScale(scale);
 
-  for (auto& child : childs) {
+  for (auto& child : m_childList) {
     child->setScale(child->getScale() + scale);
   }
 }
@@ -113,18 +116,44 @@ GameObject::setScale(const Vector3& scale)
 void
 GameObject::move(const Vector3& position)
 {
-  transform.getTransform() *= TranslationMatrix(position);
+  //transform.getTransformMatrix() *= TranslationMatrix(position);
+  m_transform.setPosition(m_transform.getPosition() + position);
+
+  for (auto& child : m_childList) {
+    child->move(position);
+  }
 }
 
 void
 GameObject::rotate(const Vector3& rotation, float angle)
 {
-  transform.getTransform() *= MatrixRotationAxis(rotation, angle);
+  //transform.getTransformMatrix() *= MatrixRotationAxis(rotation, angle);
+  m_transform.setRotation(m_transform.getRotation() + Quaternion(rotation, angle));
+
+  for (auto& child : m_childList) {
+    child->rotate(rotation, angle);
+  }
 }
 
 void
 GameObject::scale(const Vector3& scale)
 {
-  transform.getTransform() *= ScaleMatrix(scale);
+  //transform.getTransformMatrix() *= ScaleMatrix(scale);
+  m_transform.setScale(m_transform.getScale() + scale);
+
+  for (auto& child : m_childList) {
+    child->scale(scale);
+  }
+}
+
+const Matrix4&
+GameObject::getTransformMatrix()
+{
+  /*Matrix4 parentTransform = Matrix4::IDENTITY;
+  if (auto parent = m_parent.lock()) {
+    parentTransform = parent->getTransformMatrix();
+  }*/
+
+  return m_transform.getTransformMatrix();
 }
 }

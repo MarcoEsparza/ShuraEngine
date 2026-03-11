@@ -19,25 +19,34 @@
 #include "shTransformComponent.h"
 
 namespace shEngineSDK {
-Transform&
-TransformComponent::getTransform()
+const Matrix4&
+TransformComponent::getTransformMatrix()
 {
+  if (m_bDirty) {
+    Matrix4 translation = TranslationMatrix(m_position);
+    Matrix4 rotation = RotationMatrix(m_rotation);
+    Matrix4 scale = ScaleMatrix(m_scale);
+    Matrix4 result = translation * rotation * scale;
+    m_transform = result;
+    m_bDirty = false;
+  }
+
   return m_transform;
 }
 
-Vector3
+const Vector3&
 TransformComponent::getPosition() const
 {
   return m_position;
 }
 
-Vector3
+const Quaternion&
 TransformComponent::getRotation() const
 {
   return m_rotation;
 }
 
-Vector3
+const Vector3&
 TransformComponent::getScale() const
 {
   return m_scale;
@@ -46,21 +55,24 @@ TransformComponent::getScale() const
 void
 TransformComponent::setPosition(const Vector3& position)
 {
-  m_transform.setPosition(position);
+  //m_transform.setPosition(position);
   m_position = position;
+  m_bDirty = true;
 }
 
 void
-TransformComponent::setRotation(const Vector3& rotation)
+TransformComponent::setRotation(const Quaternion& rotation)
 {
-  m_transform.setRotation(rotation);
+  //m_transform.setRotation(rotation);
   m_rotation = rotation;
+  m_bDirty = true;
 }
 
 void
 TransformComponent::setScale(const Vector3& scale)
 {
-  m_transform.setScale(scale);
+  //m_transform.setScale(scale);
   m_scale = scale;
+  m_bDirty = true;
 }
 }

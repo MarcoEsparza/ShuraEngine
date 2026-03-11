@@ -66,6 +66,8 @@ class SH_UTILITY_EXPORT Matrix3
    */
   Matrix3(Matrix3&& other) noexcept = default;
 
+  Matrix3(const Vector3& eulerDegrees);
+
   /**
    *  @brief Default destructor.
    */
@@ -108,6 +110,12 @@ class SH_UTILITY_EXPORT Matrix3
   */
   static Matrix3
   getSkewSymmetric(const Vector3& vec);
+
+  Vector3
+  toEulerRadians() const;
+
+  Vector3
+  toEulerDegrees() const;
 
   /***************************************************************************/
   /*

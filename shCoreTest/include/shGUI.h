@@ -398,6 +398,9 @@ class GUI
 
   Vector2 m_sceneWindowSize = Vector2(0.0f, 0.0f);
 
+  Vector3 m_editorEuler = Vector3::ZERO;
+  bool m_bEditorEulerDirty = false;
+
   /**
   *  @brief Is scene playing?
   */

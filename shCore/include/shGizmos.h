@@ -31,7 +31,9 @@ class VertexBuffer;
 class OBBox;
 class Sphere;
 class Capsule;
-class Transform;
+//class Transform;
+class Matrix4;
+class TransformComponent;
 class Camera;
 
 struct GizmosVertex
@@ -70,13 +72,13 @@ class SH_CORE_EXPORT Gizmos : public Module<Gizmos>
   drawLine(const Vector3& from, const Vector3& to);
 
   void
-  drawBox(const OBBox& box, const Transform& InTfrm);
+  drawBox(const OBBox& box, const TransformComponent& InTfrm);
 
   void
-  drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& camera);
+  drawSphere(const Sphere& sphere, const TransformComponent& InTfrm, const Camera& camera);
 
   void
-  drawCapsule(const Capsule& capsule, const Transform& InTfrm, const Camera& camera);
+  drawCapsule(const Capsule& capsule, const TransformComponent& InTfrm, const Camera& camera);
 
   void
   drawFrustum(const Camera& camera);

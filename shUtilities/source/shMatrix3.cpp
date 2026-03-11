@@ -17,6 +17,9 @@
 */
 /*****************************************************************************/
 #include "shMatrix3.h"
+#include "shMath.h"
+#include "shRadian.h"
+#include "shDegree.h"
 #include "shVector3.h"
 #include "shQuaternion.h"
 
@@ -42,6 +45,25 @@ Matrix3::Matrix3(const Vector3& row0, const Vector3& row1, const Vector3& row2)
   m[0][0] = row0.x; m[0][1] = row0.y; m[0][2] = row0.z;
   m[1][0] = row1.x; m[1][1] = row1.y; m[1][2] = row1.z;
   m[2][0] = row2.x; m[2][1] = row2.y; m[2][2] = row2.z;
+}
+
+Matrix3::Matrix3(const Vector3& eulerDegrees)
+{
+  float cx = Math::cos(Degree(eulerDegrees.x).getValueOnRadians());
+  float sx = Math::sin(Degree(eulerDegrees.x).getValueOnRadians());
+  float cy = Math::cos(Degree(eulerDegrees.y).getValueOnRadians());
+  float sy = Math::sin(Degree(eulerDegrees.y).getValueOnRadians());
+  float cz = Math::cos(Degree(eulerDegrees.z).getValueOnRadians());
+  float sz = Math::sin(Degree(eulerDegrees.z).getValueOnRadians());
+  m[0][0] = cy * cz;
+  m[0][1] = -cy * sz;
+  m[0][2] = sy;
+  m[1][0] = sx * sy * cz + cx * sz;
+  m[1][1] = -sx * sy * sz + cx * cz;
+  m[1][2] = -sx * cy;
+  m[2][0] = -cx * sy * cz + sx * sz;
+  m[2][1] = cx * sy * sz + sx * cz;
+  m[2][2] = cx * cy;
 }
 
 Vector3
@@ -120,5 +142,43 @@ Matrix3::getSkewSymmetric(const Vector3& vec)
   return Matrix3(0.0f, -vec.z, vec.y,
                  vec.z, 0.0f, -vec.x,
                  -vec.y, vec.x, 0.0f);
+}
+
+Vector3
+Matrix3::toEulerRadians() const
+{
+  Vector3 euler = Vector3::ZERO;
+
+  if (m[2][1] < 1)
+  {
+    if (m[2][1] > -1)
+    {
+      euler.x = Math::asin(-m[2][1]);
+      euler.y = Math::atan2(m[2][0], m[2][2]);
+      euler.z = Math::atan2(m[0][1], m[1][1]);
+    }
+    else
+    {
+      // south pole
+      euler.x = Math::PI / 2;
+      euler.y = -Math::atan2(-m[1][0], m[0][0]);
+      euler.z = 0;
+    }
+  }
+  else
+  {
+    // north pole
+    euler.x = -Math::PI / 2;
+    euler.y = Math::atan2(-m[1][0], m[0][0]);
+    euler.z = 0;
+  }
+
+  return euler;
+}
+
+Vector3
+Matrix3::toEulerDegrees() const
+{
+  return toEulerRadians() * Math::RAD2DEG;
 }
 }

@@ -76,6 +76,11 @@ ScaleMatrix::ScaleMatrix(const Vector3& scale)
   m[3][0] = 0.0f;    m[3][1] = 0.0f;    m[3][2] = 0.0f;    m[3][3] = 1.0f;
 }
 
+RotationMatrix::RotationMatrix(const Quaternion& rotation)
+{
+  *this = quaternionToMatrix(rotation);
+}
+
 RotationXMatrix::RotationXMatrix(const float radAngle)
 {
   m[0][0] = 1.0f;

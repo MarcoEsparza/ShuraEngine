@@ -79,21 +79,21 @@ Gizmos::drawGizmos(const Camera& camera)
   SceneGraph& scene = g_sceneGraph();
 
   for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
+    for (auto& component : gameObject->m_componentList) {
       if (component->getType() == COMPONENT_TYPE::kCollider) {
         auto colliderComp = cast::re_ptr<ColliderComponent>(component);
         
         if (colliderComp->m_collider.m_type == COLLIDER_TYPE::kOBBox) {
-          drawBox(colliderComp->m_collider.m_box, gameObject->transform.getTransform());
+          drawBox(colliderComp->m_collider.m_box, gameObject->m_transform);
         }
         else if(colliderComp->m_collider.m_type == COLLIDER_TYPE::kSphere) {
           drawSphere(colliderComp->m_collider.m_sphere,
-                     gameObject->transform.getTransform(),
+                     gameObject->m_transform,
                      camera);
         }
         else if (colliderComp->m_collider.m_type == COLLIDER_TYPE::kCapsule) {
           drawCapsule(colliderComp->m_collider.m_capsule,
-                      gameObject->transform.getTransform(),
+                      gameObject->m_transform,
                       camera);
         }
       }
@@ -148,12 +148,12 @@ Gizmos::drawLine(const Vector3& from, const Vector3& to)
 }
 
 void
-Gizmos::drawBox(const OBBox& box, const Transform& InTfrm)
+Gizmos::drawBox(const OBBox& box, const TransformComponent& InTfrm)
 {
   auto verts = box.getVertices();
 
   for(uint32 i = 0; i < 8; ++i) {
-    verts[i] = InTfrm.transformPoint(verts[i]);
+    //verts[i] = InTfrm.transformPoint(verts[i]);
   }
 
   // Front face
@@ -176,7 +176,7 @@ Gizmos::drawBox(const OBBox& box, const Transform& InTfrm)
 }
 
 void
-Gizmos::drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& camera)
+Gizmos::drawSphere(const Sphere& sphere, const TransformComponent& InTfrm, const Camera& camera)
 {
   const Vector3 camPos = camera.getPosition();
   const float maxScale = Math::max(InTfrm.getScale().x,
@@ -211,7 +211,7 @@ Gizmos::drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& 
     vertices[k].y = cosAngle;
     vertices[k].z = sinAngle;
 
-    vertices[i] *= InTfrm.getScale();
+    /*vertices[i] *= InTfrm.getScale();
     vertices[i] *= InTfrm.getRotation();
     vertices[i] += InTfrm.getPosition();
 
@@ -221,7 +221,7 @@ Gizmos::drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& 
 
     vertices[k] *= InTfrm.getScale();
     vertices[k] *= InTfrm.getRotation();
-    vertices[k] += InTfrm.getPosition();
+    vertices[k] += InTfrm.getPosition();*/
   }
 
   uint32 numVerticesMinus1 = numVertices - 1;
@@ -239,7 +239,7 @@ Gizmos::drawSphere(const Sphere& sphere, const Transform& InTfrm, const Camera& 
 }
 
 void
-Gizmos::drawCapsule(const Capsule& capsule, const Transform& InTfrm, const Camera& camera)
+Gizmos::drawCapsule(const Capsule& capsule, const TransformComponent& InTfrm, const Camera& camera)
 {
   const Vector3 camPos = camera.getPosition();
   const float radius = capsule.radius * InTfrm.getScale().y;
@@ -272,7 +272,7 @@ Gizmos::drawCapsule(const Capsule& capsule, const Transform& InTfrm, const Camer
 
     for (uint32 j = 0; j < 4; ++j) {
       vertices[i + j] *= InTfrm.getScale();
-      vertices[i + j] *= InTfrm.getRotation();
+      //vertices[i + j] *= InTfrm.getRotation();
       vertices[i + j] += InTfrm.getPosition();
     }
 

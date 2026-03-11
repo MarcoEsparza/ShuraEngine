@@ -63,9 +63,11 @@ namespace shEngineSDK {
 */
 /*****************************************************************************/
 
-static void
+static bool
 dragVector3(const String& label, Vector3& vec, float speed)
 {
+  bool changed = false;
+
   ImVec4 red = ImVec4(0.8f, 0.2f, 0.2f, 0.6f);
   ImVec4 hoveredRed = ImVec4(0.9f, 0.3f, 0.3f, 0.8f);
   ImVec4 activeRed = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
@@ -84,7 +86,9 @@ dragVector3(const String& label, Vector3& vec, float speed)
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeRed);
   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoveredRed);
   ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat(xLabel.c_str(), &vec.x, speed);
+  if (ImGui::DragFloat(xLabel.c_str(), &vec.x, speed)) {
+    changed = true;
+  }
   ImGui::PopStyleColor(3);
 
   ImGui::SameLine();
@@ -92,7 +96,9 @@ dragVector3(const String& label, Vector3& vec, float speed)
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeGreen);
   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoveredGreen);
   ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat(yLabel.c_str(), &vec.y, speed);
+  if (ImGui::DragFloat(yLabel.c_str(), &vec.y, speed)) {
+    changed = true;
+  }
   ImGui::PopStyleColor(3);
 
   ImGui::SameLine();
@@ -100,8 +106,12 @@ dragVector3(const String& label, Vector3& vec, float speed)
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, activeBlue);
   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hoveredBlue);
   ImGui::SetNextItemWidth(50.0f);
-  ImGui::DragFloat(zLabel.c_str(), &vec.z, speed);
+  if (ImGui::DragFloat(zLabel.c_str(), &vec.z, speed)) {
+    changed = true;
+  }
   ImGui::PopStyleColor(3);
+
+  return changed;
 }
 
 static bool
@@ -161,7 +171,7 @@ IsDescendantOf(GameObject* child, GameObject* possibleAncestor) {
   while (current) {
     if (current == possibleAncestor)
       return true;
-    if (auto parent = current->parent.lock())
+    if (auto parent = current->m_parent.lock())
       current = parent.get();
     else
       break;
@@ -171,7 +181,7 @@ IsDescendantOf(GameObject* child, GameObject* possibleAncestor) {
 
 static SPtr<GameObject>
 FindSharedPtrInTreeRecursive(GameObject* raw, const SPtr<GameObject>& node) {
-  for (const auto& child : node->childs) {
+  for (const auto& child : node->m_childList) {
     if (child.get() == raw)
       return child;
     auto found = FindSharedPtrInTreeRecursive(raw, child);
@@ -238,7 +248,7 @@ GUI::init(const WPtr<Screen> pScreen)
     //SH_LOG_ERROR("GUI::init: Screen pointer is expired.");
     return;
   }
-  auto& resMan = g_resourceMan();
+  //auto& resMan = g_resourceMan();
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -249,11 +259,6 @@ GUI::init(const WPtr<Screen> pScreen)
   m_camFov = 30.0f;
   m_camNear = 0.1f;
   m_camFar = 2000.0f;
-
-  //Path resPath("resources/data/ImGui/ShuraIconsTexture.png");
-  //auto pRes = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(resPath));
-  //m_iconsTexture = pRes->texture;
-  //m_iconsSize = Vector2(cast::st<float>(pRes->width), cast::st<float>(pRes->height));
 
   m_sceneGraphWindowStr = iconToStr(FONT_ICONS::kSiteMap) + " Scenegraph";
   m_sceneWindowStr = iconToStr(FONT_ICONS::kPicture) + " Scene";
@@ -573,7 +578,7 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
                              ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
-  if (pNode->childs.empty()) {
+  if (pNode->m_childList.empty()) {
     flags |= ImGuiTreeNodeFlags_Leaf;
   }
 
@@ -586,7 +591,7 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
   bool opened = false;
 
   if (m_bRename && m_pRenamingGameObject == pNode) {
-    if (ImGui::InputText("##rename", pSelectedObj->name.data(), 256,
+    if (ImGui::InputText("##rename", pSelectedObj->m_name.data(), 256,
       ImGuiInputTextFlags_AutoSelectAll |
       ImGuiInputTextFlags_EnterReturnsTrue)) {
       m_bRename = false;
@@ -594,11 +599,12 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
     }
   }
   else {
-    opened = ImGui::TreeNodeEx(pNode->name.c_str(), flags);
+    opened = ImGui::TreeNodeEx(pNode->m_name.c_str(), flags);
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
       pSelectedObj = pNode;
       matSelection = -1; // Reset material selection when selecting a new object
+      m_bEditorEulerDirty = true; // Mark Euler angles as dirty to update them in the inspector
     }
     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       m_pRenamingGameObject = pNode;
@@ -610,8 +616,8 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
   if (ImGui::BeginPopupContextItem()) {
     if (ImGui::MenuItem("Add Child...")) {
       SPtr<GameObject> child = sh_makeShared<GameObject>();
-      child->name = "NewChild";
-      child->parent = pNode;
+      child->m_name = "NewChild";
+      child->m_parent = pNode;
       pNode->addChild(child);
     }
     if (ImGui::MenuItem("Rename")) {
@@ -629,7 +635,7 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
   // Begin Drag Source
   if (ImGui::BeginDragDropSource()) {
     ImGui::SetDragDropPayload("DND_GAMEOBJECT", &pNode, sizeof(GameObject*)); // Get pointer
-    ImGui::Text("Mover %s", pNode->name.c_str());
+    ImGui::Text("Mover %s", pNode->m_name.c_str());
     ImGui::EndDragDropSource();
   }
 
@@ -644,8 +650,8 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
         auto draggedShared = FindSharedPtrInTree(dragged, scene.getGameObjectList());
         if (draggedShared) {
           // Delete previous parent
-          if (auto oldParent = draggedShared->parent.lock()) {
-            auto& siblings = oldParent->childs;
+          if (auto oldParent = draggedShared->m_parent.lock()) {
+            auto& siblings = oldParent->m_childList;
             siblings.erase(remove_if(siblings.begin(), siblings.end(),
               [&](const SPtr<GameObject>& o) { return o.get() == dragged; }),
               siblings.end());
@@ -661,7 +667,7 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
           }
 
           // Assign new parent
-          draggedShared->parent = pNode;
+          draggedShared->m_parent = pNode;
           pNode->addChild(draggedShared);
         }
       }
@@ -670,7 +676,7 @@ GUI::showSceneGraph(const SPtr<GameObject>& pNode,
   }
 
   if (opened) {
-    for (auto& child : pNode->childs) {
+    for (auto& child : pNode->m_childList) {
       showSceneGraph(child, pSelectedObj, matSelection);
     }
     ImGui::TreePop();
@@ -743,7 +749,7 @@ GUI::showGameObjectInspector()
   ImGui::Separator();
   ImGui::Spacing();
   showTransformComponent();
-  for (auto& pComponent : m_pActiveGameObject->components) {
+  for (auto& pComponent : m_pActiveGameObject->m_componentList) {
     COMPONENT_TYPE::E type = pComponent->getType();
     if (type == COMPONENT_TYPE::kStaticMesh) {
       showStaticMeshComponent(cast::re_ptr<StaticMeshComponent>(pComponent));
@@ -867,8 +873,14 @@ void
 GUI::showTransformComponent()
 {
   Vector3 modelPos = m_pActiveGameObject->getPosition();
-  Vector3 modelRot = m_pActiveGameObject->getRotation() * Math::RAD2DEG;
+  if(m_bEditorEulerDirty) {
+    m_editorEuler = m_pActiveGameObject->getRotation().toEulerAngles();
+  }
   Vector3 modelScale = m_pActiveGameObject->getScale();
+
+  bool posChanged = false;
+  bool rotChanged = false;
+  bool scaleChanged = false;
   
   float windowWidth = ImGui::GetContentRegionAvail().x;
 
@@ -878,38 +890,43 @@ GUI::showTransformComponent()
     String posIcon = iconToStr(FONT_ICONS::kMove) + " Position:";
     ImGui::Text(posIcon.c_str());
     ImGui::SameLine(110.0f);
-    dragVector3("Position", modelPos, 0.01f);
+    posChanged = dragVector3("Position", modelPos, 0.01f);
 
     // Rotation
     String rotIcon = iconToStr(FONT_ICONS::kArrowsCW) + " Rotation:";
     ImGui::Text(rotIcon.c_str());
     ImGui::SameLine(110.0f);
-    dragVector3("Rotation", modelRot, 0.1f);
+    rotChanged = dragVector3("Rotation", m_editorEuler, 0.1f);
 
     // Scale
     String sclIcon = iconToStr(FONT_ICONS::kResizeFullAlt) + " Scale:";
     ImGui::Text(sclIcon.c_str());
     ImGui::SameLine(110.0f);
-    dragVector3("Scale", modelScale, 0.01f);
+    scaleChanged = dragVector3("Scale", modelScale, 0.01f);
 
     ImGui::Spacing();
     ImGui::Spacing();
     float bottonWidth = 150.0f;
     ImGui::SetCursorPosX((windowWidth - bottonWidth) * 0.5f);
     if (ImGui::Button("Reset", ImVec2(bottonWidth, 25.0f))) {
-      modelPos = { 0.0f, 0.0f, 0.0f };
-      modelRot = { 0.0f, 0.0f, 0.0f };
-      modelScale = { 1.0f, 1.0f, 1.0f };
+      modelPos = Vector3::ZERO;
+      m_editorEuler = Vector3::ZERO;
+      modelScale = Vector3::ONE;
+
+      posChanged = true;
+      rotChanged = true;
+      scaleChanged = true;
     }
   }
 
-  if (modelPos != m_pActiveGameObject->getPosition()) {
+  if (posChanged) {
     m_pActiveGameObject->setPosition(modelPos);
   }
-  if (modelRot != m_pActiveGameObject->getRotation()) {
-    m_pActiveGameObject->setRotation(modelRot * Math::DEG2RAD);
+  if (rotChanged) {
+    m_pActiveGameObject->setRotation(Quaternion(m_editorEuler * Math::DEG2RAD));
+    m_bEditorEulerDirty = true;
   }
-  if (modelScale != m_pActiveGameObject->getScale()) {
+  if (scaleChanged) {
     m_pActiveGameObject->setScale(modelScale);
   }
 }
@@ -1512,7 +1529,7 @@ GUI::addStaticMeshComponentToObject(SPtr<GameObject>& pObj)
     return;
   }
   bool bHasSMesh = false;
-  for (auto& pComp : pObj->components) {
+  for (auto& pComp : pObj->m_componentList) {
     if (pComp->getType() == COMPONENT_TYPE::kStaticMesh) {
       bHasSMesh = true;
       break;

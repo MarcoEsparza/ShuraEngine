@@ -196,7 +196,7 @@ RendererApp::onFixedUpdate()
   if (m_bPlayScene) {
     Vector<Rigidbody*> rigidbodies;
     for (auto& gameObject : scene.getGameObjectList()) {
-      for (auto& component : gameObject->components) {
+      for (auto& component : gameObject->m_componentList) {
         if (component->getType() == COMPONENT_TYPE::kRigidbody) {
           auto rb = cast::re_ptr<RigidbodyComponent>(component);
           rigidbodies.push_back(&rb->m_rigidbody);
@@ -206,11 +206,11 @@ RendererApp::onFixedUpdate()
     physicsMan.onUpdate(rigidbodies);
 
     for (auto& gameObject : scene.getGameObjectList()) {
-      for (auto& component : gameObject->components) {
+      for (auto& component : gameObject->m_componentList) {
         if (component->getType() == COMPONENT_TYPE::kRigidbody) {
           auto rb = cast::re_ptr<RigidbodyComponent>(component);
           gameObject->move(rb->m_rigidbody.m_position);
-          gameObject->setRotation(rb->m_rigidbody.m_rotation.toEulerAngles());
+          gameObject->setRotation(rb->m_rigidbody.m_rotation);
         }
       }
     }
@@ -234,6 +234,7 @@ RendererApp::onRender()
 void
 RendererApp::onResize(const ResizeData& rszData)
 {
+  SH_UNREFERENCED_PARAMETER(rszData);
   RenderManager& renderMan = g_renderMan();
 
   auto& pScreen = getScreen();
@@ -472,13 +473,13 @@ RendererApp::loadPistol()
                   resMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "Drakefire";
+  model->m_name = "Drakefire";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);
 
-  model->transform.getTransform() = Matrix4::IDENTITY;
+  //model->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 5.0f);
 
   float total = timer.getTime() - time;
@@ -523,13 +524,13 @@ RendererApp::loadSponza()
                         resMan.loadModelFromCache("resources/assets/models/Sponza.sha"));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "Sponza";
+  model->m_name = "Sponza";
   auto modelMC = sh_makeShared<StaticMeshComponent>();
 
   modelMC->setMeshData(sponzaModelRes);
   model->addComponent(modelMC);
 
-  model->transform.getTransform() = Matrix4::IDENTITY;
+  //model->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 0.25f);
 
   auto pCollider = sh_makeShared<ColliderComponent>();
@@ -546,8 +547,8 @@ RendererApp::loadSponza()
   pRigidbody->m_rigidbody.m_elasticity = 0.0f;
   pRigidbody->m_rigidbody.m_friction = 0.5f;
   pRigidbody->m_rigidbody.m_gravityScale = 0.0f;
-  pRigidbody->m_rigidbody.m_position = model->transform.getPosition();
-  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->transform.getRotation());
+  pRigidbody->m_rigidbody.m_position = model->m_transform.getPosition();
+  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->m_transform.getRotation());
 
   model->addComponent(pCollider);
   model->addComponent(pRigidbody);
@@ -565,13 +566,13 @@ RendererApp::tempLoad()
     resourceMan.loadResourceFromFile(Path("resources/models/Breakdance Freezes.fbx")));
 
   auto model = sh_makeShared<GameObject>();
-  model->name = "BlueMan";
+  model->m_name = "BlueMan";
   auto modelMC = sh_makeShared<SkeletalMeshComponent>();
 
   modelMC->setMeshData(modelRes);
   model->addComponent(modelMC);
 
-  model->transform.getTransform() = Matrix4::IDENTITY;
+  //model->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE);
 
   auto animator = sh_makeShared<AnimatorComponent>();

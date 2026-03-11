@@ -132,6 +132,12 @@ PlatformMath::is_NaN(const float value)
   return std::isnan(value);
 }
 
+float
+PlatformMath::copySign(float number, const float sign)
+{
+  return std::copysign(number, sign);
+}
+
 /*****************************************************************************/
 /*
 *  Trigonometric functions

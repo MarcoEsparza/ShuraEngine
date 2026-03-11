@@ -20,6 +20,7 @@
 #include "shMath.h"
 #include "shRadian.h"
 #include "shMatrix3.h"
+#include "shMatrix4.h"
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -51,7 +52,9 @@ const Quaternion Quaternion::UNIT = Quaternion(0.0f, 1.0f, 0.0f, 0.0f);
 
 Quaternion::Quaternion(const Vector3& vec)
 {
-  fromAngle(vec);
+  //fromAngle(vec);
+  //normalize();
+  *this = fromEulerAngles(vec);
 }
 
 Quaternion::Quaternion(const Vector3& axis, const float angle)
@@ -72,6 +75,43 @@ Quaternion::Quaternion(const Vector3& from, const Vector3& to)
   y = cross.y;
   z = cross.z;
   normalize();
+}
+
+Quaternion::Quaternion(const Matrix3& rotationMatrix)
+{
+  float trace = rotationMatrix.m[0][0] + rotationMatrix.m[1][1] + rotationMatrix.m[2][2];
+  if (trace > 0.0f) {
+    float s = Math::sqrt(trace + 1.0f) * 2.0f;
+    w = 0.25f * s;
+    x = (rotationMatrix.m[1][2] - rotationMatrix.m[2][1]) / s;
+    y = (rotationMatrix.m[2][0] - rotationMatrix.m[0][2]) / s;
+    z = (rotationMatrix.m[0][1] - rotationMatrix.m[1][0]) / s;
+  }
+  else if ((rotationMatrix.m[0][0] > rotationMatrix.m[1][1]) &&
+           (rotationMatrix.m[0][0] > rotationMatrix.m[2][2])) {
+    float s = Math::sqrt(1.0f + rotationMatrix.m[0][0] - rotationMatrix.m[1][1] -
+                         rotationMatrix.m[2][2]) * 2.0f;
+    w = (rotationMatrix.m[1][2] - rotationMatrix.m[2][1]) / s;
+    x = 0.25f * s;
+    y = (rotationMatrix.m[1][0] + rotationMatrix.m[0][1]) / s;
+    z = (rotationMatrix.m[2][0] + rotationMatrix.m[0][2]) / s;
+  }
+  else if (rotationMatrix.m[1][1] > rotationMatrix.m[2][2]) {
+    float s = Math::sqrt(1.0f + rotationMatrix.m[1][1] - rotationMatrix.m[0][0] -
+                         rotationMatrix.m[2][2]) * 2.0f;
+    w = (rotationMatrix.m[2][0] - rotationMatrix.m[0][2]) / s;
+    x = (rotationMatrix.m[1][0] + rotationMatrix.m[0][1]) / s;
+    y = 0.25f * s;
+    z = (rotationMatrix.m[2][1] + rotationMatrix.m[1][2]) / s;
+  }
+  else {
+    float s = Math::sqrt(1.0f + rotationMatrix.m[2][2] - rotationMatrix.m[0][0] -
+                         rotationMatrix.m[1][1]) * 2.0f;
+    w = (rotationMatrix.m[0][1] - rotationMatrix.m[1][0]) / s;
+    x = (rotationMatrix.m[2][0] + rotationMatrix.m[0][2]) / s;
+    y = (rotationMatrix.m[2][1] + rotationMatrix.m[1][2]) / s;
+    z = 0.25f * s;
+  }
 }
 
 Quaternion::Quaternion(const Quaternion& other)
@@ -97,8 +137,7 @@ Quaternion::operator*(const Matrix3& mat) const
   const float p22 = 1.0f - (2.0f * (x * x)) - (2.0f * (y * y));
   return Matrix3(p00, p01, p02,
                  p10, p11, p12,
-                 p20, p21, p22) *
-         mat;
+                 p20, p21, p22) * mat;
 }
 
 /*************************************************************/
@@ -110,14 +149,8 @@ Quaternion::operator*(const Matrix3& mat) const
 Vector3
 Quaternion::toEulerAngles() const
 {
-  const float theta = (Math::acos(Radian(w))) * 2;
-  const Radian radTheta(theta);
-  const Radian acosTheta(Math::acos(radTheta));
-  const float inv = 1 / (Math::sin(acosTheta));
-
-  return Vector3(x * inv,
-                 y * inv,
-                 z * inv);
+  Matrix3 rotMat = toMatrix3();
+  return rotMat.toEulerDegrees();
 }
 
 Vector3
@@ -159,17 +192,23 @@ Quaternion::toAxes(Vector3& right,
 Quaternion
 Quaternion::fromEulerAngles(const Vector3& vec) const
 {
-  const float cr = Math::cos(Radian(vec.x * 0.5f));  // Cosine Roll
-  const float sr = Math::sin(Radian(vec.x * 0.5f));  // Sine Roll
-  const float cp = Math::cos(Radian(vec.y * 0.5f));  // Cosine Pitch
-  const float sp = Math::sin(Radian(vec.y * 0.5f));  // Sine Pich
-  const float cy = Math::cos(Radian(vec.z * 0.5f));  // Cosine Yaw
-  const float sy = Math::sin(Radian(vec.z * 0.5f));  // Sine Yaw
+  float cx = Math::cos(vec.x * 0.5f);
+  float sx = Math::sin(vec.x * 0.5f);
+  float cy = Math::cos(vec.y * 0.5f);
+  float sy = Math::sin(vec.y * 0.5f);
+  float cz = Math::cos(vec.z * 0.5f);
+  float sz = Math::sin(vec.z * 0.5f);
 
-  return Quaternion((cr * cp * cy) + (sr * sp * sy),
-                    (sr * cp * cy) - (cr * sp * sy),
-                    (cr * sp * cy) + (sr * cp * sy),
-                    (cr * cp * sy) - (sr * sp * cy));
+  Quaternion q = Quaternion::ZERO;
+
+  q.w = cy * cx * cz + sy * sx * sz;
+  q.x = cy * sx * cz + sy * cx * sz;
+  q.y = sy * cx * cz - cy * sx * sz;
+  q.z = cy * cx * sz - sy * sx * cz;
+
+  return q.getNormalized();
+  /*Matrix3 rotMat(vec);
+  return Quaternion(rotMat);*/
 }
 
 void
@@ -340,11 +379,29 @@ Quaternion::toMatrix3() const
                  p10, p11, p12,
                  p20, p21, p22);*/
 
-  Vector3 right = rotate(Vector3::RIGHT);
+  /*Vector3 right = rotate(Vector3::RIGHT);
   Vector3 up = rotate(Vector3::UP);
   Vector3 forward = rotate(Vector3::FORWARD);
 
-  return Matrix3(right, up, forward);
+  return Matrix3(right, up, forward);*/
+
+  Quaternion q = getNormalized();
+
+  float xx = q.x * q.x;
+  float yy = q.y * q.y;
+  float zz = q.z * q.z;
+
+  float xy = q.x * q.y;
+  float xz = q.x * q.z;
+  float yz = q.y * q.z;
+
+  float wx = q.w * q.x;
+  float wy = q.w * q.y;
+  float wz = q.w * q.z;
+
+  return Matrix3(1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz), 2.0f * (xz - wy),
+                 2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx),
+                 2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (xx + yy));
 }
 
 Quaternion

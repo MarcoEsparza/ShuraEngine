@@ -197,6 +197,17 @@ public:
   static bool
   is_NaN(const float value);
 
+  /**
+  *  @brief Returns the value of the first parameter with the sign of the second parameter.
+  * 
+  *  @param float number: The value to be copied.
+  *  @param float sign: The value to be copied to the first parameter.
+  * 
+  *  @return float The result of the copy sign operation.
+  */
+  static float
+  copySign(float number, const float sign);
+
   /***************************************************************************/
   /*
   *  Trigonometric functions

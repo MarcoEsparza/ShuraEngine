@@ -47,12 +47,12 @@ SPtr<GameObject>
 SceneGraph::createEmptyObject(const String& objectName)
 {
   auto newObject = sh_makeShared<GameObject>();
-  newObject->name = objectName;
+  newObject->m_name = objectName;
   newObject->m_bActive = true;
-  newObject->transform.getTransform() = Matrix4::IDENTITY;
-  newObject->transform.setPosition(Vector3::ZERO);
-  newObject->transform.setRotation(Vector3::ZERO);
-  newObject->transform.setScale(Vector3::ONE);
+  //newObject->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
+  //newObject->m_transform.setPosition(Vector3::ZERO);
+  //newObject->m_transform.setRotation(Vector3::ZERO);
+  //newObject->m_transform.setScale(Vector3::ONE);
 
   addObject(newObject);
 
@@ -65,7 +65,7 @@ SceneGraph::createCubeObject()
   ResourceManager& resourceMan = g_resourceMan();
 
   auto newObject = sh_makeShared<GameObject>();
-  newObject->name = "Cube";
+  newObject->m_name = "Cube";
   auto meshComponent = sh_makeShared<StaticMeshComponent>();
   auto pCube = cast::re_ptr<StaticMeshResource>(resourceMan.getResource("cube.fbx"));
   meshComponent->setMeshData(pCube);
@@ -77,8 +77,8 @@ SceneGraph::createCubeObject()
 void
 SceneGraph::createDefaultScene()
 {
-  ResourceManager& resMan = g_resourceMan();
-  ShaderManager& shaderMan = g_shaderMan();
+  //ResourceManager& resMan = g_resourceMan();
+  //ShaderManager& shaderMan = g_shaderMan();
 
   // Load default skybox
   addDefaultSkybox();
@@ -97,19 +97,19 @@ SceneGraph::addDefaultSkybox()
   pSkyBox->setSkyBoxResource(skyboxTx);
   auto pSkyBoxGO = sh_makeShared<GameObject>();
   pSkyBoxGO->addComponent(pSkyBox);
-  pSkyBoxGO->name = "DefaultSkyBox";
+  pSkyBoxGO->m_name = "DefaultSkyBox";
   addObject(pSkyBoxGO);
 }
 
 void
 SceneGraph::addDefaultDirectionalLight()
 {
-  ResourceManager& resMan = g_resourceMan();
+  //ResourceManager& resMan = g_resourceMan();
   ShaderManager& shaderMan = g_shaderMan();
 
   auto light = sh_makeShared<GameObject>();
-  light->name = "DirectionalLight";
-  light->transform.getTransform() = Matrix4::IDENTITY;
+  light->m_name = "DirectionalLight";
+  //light->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
 
   auto pLightComp = sh_makeShared<LightComponent>();
   pLightComp->m_lightType = LIGHT_TYPE::kDirectional;
@@ -160,7 +160,7 @@ SceneGraph::getStaticMeshComponentInScene() const
   Vector<SPtr<StaticMeshComponent>> meshes;
 
   for (auto& gameObject : m_gameObjects) {
-    for (auto& component : gameObject->components) {
+    for (auto& component : gameObject->m_componentList) {
       if (component->getType() == COMPONENT_TYPE::kStaticMesh) {
         auto mesh = sh_reinterpretPCast<StaticMeshComponent>(component);
         meshes.push_back(mesh);
@@ -176,7 +176,7 @@ SceneGraph::update()
 {
   for(auto& gameObject : m_gameObjects) {
     if (gameObject->m_bActive) {
-      for (auto& component : gameObject->components) {
+      for (auto& component : gameObject->m_componentList) {
         component->update();
       }
     }

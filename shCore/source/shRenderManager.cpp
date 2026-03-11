@@ -297,7 +297,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 
   auto pGameObject = pGO.lock();
 
-  for (auto& component : pGameObject->components) {
+  for (auto& component : pGameObject->m_componentList) {
     if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
         pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
@@ -308,10 +308,9 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 
       graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
       graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
-      Transform modelT = pGameObject->transform.getTransform();
+      Matrix4 modelT = pGameObject->m_transform.getTransformMatrix();
       graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
-                                    &modelT,
-                                    sizeof(Matrix4));
+                                    &modelT, sizeof(Matrix4));
 
       uint32 indexCount = 0;
       uint32 vertexCount = 0;
@@ -330,7 +329,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
     }
   }
 
-  for (auto& pChild : pGameObject->childs) {
+  for (auto& pChild : pGameObject->m_childList) {
     drawStaticMesh(pChild);
   }
 }
@@ -346,7 +345,7 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
 
   auto pGameObject = pGO.lock();
 
-  for (auto& component : pGameObject->components) {
+  for (auto& component : pGameObject->m_componentList) {
     if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
       pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
@@ -358,10 +357,9 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
       graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
       graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
 
-      Transform modelT = pGameObject->transform.getTransform();
+      Matrix4 modelT = pGameObject->m_transform.getTransformMatrix();
       graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
-                                    &modelT,
-                                    sizeof(Matrix4));
+                                    &modelT, sizeof(Matrix4));
 
       uint32 indexCount = 0;
       uint32 vertexCount = 0;
@@ -380,7 +378,7 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
     }
   }
 
-  for (auto& pChild : pGameObject->childs) {
+  for (auto& pChild : pGameObject->m_childList) {
     drawTransparentStaticMesh(pChild);
   }
 }
@@ -396,7 +394,7 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
 
   auto pGameObject = pGO.lock();
 
-  for (auto& component : pGameObject->components) {
+  for (auto& component : pGameObject->m_componentList) {
     if (component->getType() == COMPONENT_TYPE::kSkeletalMesh &&
         pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<SkeletalMeshComponent>(component);
@@ -408,10 +406,9 @@ RenderManager::drawSkeletalMesh(const WPtr<GameObject> pGO)
       graphMan.setVertexBuffers(meshComponent->m_vertexBuffer);
       graphMan.setIndexBuffers(meshComponent->m_indexBuffer);
 
-      Transform modelT = pGameObject->transform.getTransform();
+      Matrix4 modelT = pGameObject->m_transform.getTransformMatrix();
       graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
-                                    &modelT,
-                                    sizeof(Matrix4));
+                                    &modelT, sizeof(Matrix4));
 
       uint32 indexCount = 0;
       uint32 vertexCount = 0;
@@ -441,7 +438,7 @@ RenderManager::drawShadowMap()
                                 sizeof(Matrix4));
 
   for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
+    for (auto& component : gameObject->m_componentList) {
       if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
           gameObject->m_bActive) {
         auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
@@ -451,10 +448,9 @@ RenderManager::drawShadowMap()
 
         graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
         graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
-        Transform modelT = gameObject->transform.getTransform();
+        Matrix4 modelT = gameObject->m_transform.getTransformMatrix();
         graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
-                                      &modelT,
-                                      sizeof(Matrix4));
+                                      &modelT, sizeof(Matrix4));
         
         uint32 indexCount = 0;
         uint32 vertexCount = 0;
@@ -931,7 +927,7 @@ RenderManager::computeIBL()
 
   SPtr<ImageResource> pSbImg;
   for (auto& gameObject : scene.getGameObjectList()) {
-    for (auto& component : gameObject->components) {
+    for (auto& component : gameObject->m_componentList) {
       if (component->getType() == COMPONENT_TYPE::kSkyBox) {
         auto pSkyBox = sh_reinterpretPCast<SkyBoxComponent>(component);
         pSbImg = pSkyBox->getSkyBoxResource();

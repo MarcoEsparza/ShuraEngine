@@ -64,6 +64,8 @@ class SH_UTILITY_EXPORT Quaternion
 
   Quaternion(const Vector3& from, const Vector3& to);
 
+  Quaternion(const Matrix3& rotationMatrix);
+
   /**
   *  @brief Copy constructor
   *
