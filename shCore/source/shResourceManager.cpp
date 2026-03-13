@@ -537,7 +537,7 @@ ResourceManager::loadModelFromFile(const String& fileName)
 SPtr<Material>
 ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
   auto pMeshMat = isMaterialLoaded(pMat->GetName().C_Str());
 
   if(pMeshMat){

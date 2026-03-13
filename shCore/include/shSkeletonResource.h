@@ -27,29 +27,28 @@ class AnimationResource;
 /**
 *  @brief Struct for the bone info.
 */
-struct SH_CORE_EXPORT ALIGN_AS(16) BoneInfo
+struct SH_CORE_EXPORT ALIGN_AS(8) BoneInfo
 {
-  /**
-  *  @brief Bone name.
-  */
-  String name;
-
   /**
   *  @brief Bone offset.
   */
   Matrix4 offset = Matrix4::IDENTITY;
 
   /**
+  *  @brief Bone name.
+  */
+  String name;
+  /**
   *  @brief Bone offset.
   */
   //Matrix4 finalTransformation = Matrix4::IDENTITY;
 };
 
-struct SH_CORE_EXPORT ALIGN_AS(16) BoneHierarchy
+struct SH_CORE_EXPORT ALIGN_AS(8) BoneHierarchy
 {
-  String name;
   Matrix4 transformation = Matrix4::IDENTITY;
   Vector<SPtr<BoneHierarchy>> children;
+  String name;
 };
 
 /**

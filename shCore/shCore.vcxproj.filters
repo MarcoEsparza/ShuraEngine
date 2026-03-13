@@ -103,6 +103,9 @@
     <Filter Include="Source Files\Material">
       <UniqueIdentifier>{7350573e-da4f-403d-b0ae-7c5adcb5b485}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\CodecManager">
+      <UniqueIdentifier>{6c3f2ba1-b21c-48db-862c-36d09fc19f0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\shPrerequisitesCore.h">
@@ -258,6 +261,9 @@
     <ClInclude Include="include\shCameraComponent.h">
       <Filter>Header Files\Component</Filter>
     </ClInclude>
+    <ClInclude Include="include\shDynamicLibraryManager.h">
+      <Filter>Header Files\DynamicLibrary</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\shScreenWin32.cpp">
@@ -346,6 +352,9 @@
     </ClCompile>
     <ClCompile Include="source\shResource.cpp">
       <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shDynamicLibraryManager.cpp">
+      <Filter>Source Files\DynamicLibrary</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

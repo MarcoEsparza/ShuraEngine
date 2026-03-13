@@ -2,7 +2,7 @@
 /*
 *  @file    shBaseApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2026/03/12
 *  @brief   Base app for engine.
 *
 *  Base app for engine.
@@ -19,6 +19,7 @@
 #include "shBaseApp.h"
 #include "shMath.h"
 
+#include "shDynamicLibraryManager.h"
 #include "shGraphicsManager.h"
 #include "shShaderManager.h"
 #include "shRenderManager.h"
@@ -35,8 +36,6 @@
 namespace shEngineSDK {
 BaseApp::~BaseApp()
 {
-  //onDestroy();
-  //destroyManagers();
 }
 
 void
@@ -44,9 +43,6 @@ BaseApp::run()
 {
   // Creates window
   createWindow();
-
-  // Load Graphic DLL
-  loadGraphicAPI();
 
   // Initate system
   initManagers();
@@ -102,6 +98,8 @@ BaseApp::createWindow()
 void
 BaseApp::loadGraphicAPI()
 {
+  DynamicLibraryManager& dynLibMan = g_dynLibMan();
+
   // Select dll name
   String apiName = "";
 #if SH_DEBUG_MODE == 1
@@ -121,29 +119,25 @@ BaseApp::loadGraphicAPI()
 #endif
 
   // Load DLL
-  DynamicLibrary myDLL(apiName);
-  m_graphicDLL = myDLL;
-  auto dllSymbol = reinterpret_cast<void(*)()>(m_graphicDLL.getSymbol("loadPlugin"));
-  if (!dllSymbol) {
-    SH_ASSERT(dllSymbol && "Could not load function");
-  }
-  dllSymbol();
+  dynLibMan.loadDynLibrary(apiName);
 }
 
 void
 BaseApp::loadAudioAPI()
 {
-  DynamicLibrary myDLL("shFMODAudiod");
-  auto dllSymbol = reinterpret_cast<void(*)()>(myDLL.getSymbol("loadPlugin"));
-  if (!dllSymbol) {
-    SH_ASSERT(dllSymbol && "Could not load function");
-  }
-  dllSymbol();
+  DynamicLibraryManager& dynLibMan = g_dynLibMan();
+#if SH_DEBUG_MODE == 1
+  dynLibMan.loadDynLibrary("shFMODAudiod");
+#else
+  dynLibMan.loadDynLibrary("shFMODAudio");
+#endif
 }
 
 void
 BaseApp::initManagers()
 {
+  DynamicLibraryManager::startUp();
+  loadGraphicAPI();
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
   ResourceManager::startUp();
   ShaderManager::startUp();
@@ -274,6 +268,6 @@ BaseApp::destroyManagers()
   ShaderManager::shutDown();
   AudioManager::shutDown();
   GraphicsManager::shutDown();
-  m_graphicDLL.unload();
+  DynamicLibraryManager::shutDown();
 }
 }

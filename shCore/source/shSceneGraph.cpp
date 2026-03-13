@@ -148,6 +148,13 @@ SceneGraph::addObject(const SPtr<GameObject>& object)
   m_gameObjects.push_back(object);
 }
 
+void
+SceneGraph::instantiate(const GameObject& object)
+{
+  auto newObject = sh_makeShared<GameObject>(object);
+  addObject(newObject);
+}
+
 Vector<SPtr<GameObject>>&
 SceneGraph::getGameObjectList()
 {

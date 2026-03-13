@@ -2,7 +2,7 @@
 /*
 *  @file    shDynamicLibrary.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/03/12
 *  @brief   Dynamic Library object.
 *
 *  Dynamic Library object.
@@ -34,6 +34,18 @@ DynamicLibrary::DynamicLibrary(const String& name)
   m_name = name + "." + EXTENSION;
   m_dynLibHandler = nullptr;
   load();
+}
+
+DynamicLibrary::DynamicLibrary(DynamicLibrary& other)
+{
+  m_name = other.m_name;
+  m_dynLibHandler = other.m_dynLibHandler;
+  other.m_dynLibHandler = nullptr;
+}
+
+DynamicLibrary::~DynamicLibrary()
+{
+  unload();
 }
 
 void

@@ -2,7 +2,7 @@
 /*
 *  @file    shDynamicLibrary.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/12/04
+*  @date    2026/03/12
 *  @brief   Dynamic Library object.
 *
 *  Dynamic Library object.
@@ -23,6 +23,7 @@
 
 struct HINSTANCE__;
 using hInstance = HINSTANCE__*;
+using LoadPluginFunc = void(*)(void);
 
 # define DYNAMIC_LIBRARY_HANDLE hInstance
 # define DYNAMIC_LIBRARY_LOAD(x) LoadLibraryA(x)
@@ -54,10 +55,12 @@ class DynamicLibrary
   */
   DynamicLibrary(const String& name);
 
+  DynamicLibrary(DynamicLibrary& other);
+
   /**
   *  @brief Default destructor.
   */
-  ~DynamicLibrary() = default;
+  ~DynamicLibrary();
 
 
   /**
@@ -79,6 +82,17 @@ class DynamicLibrary
   */
   void*
   getSymbol(const String& symbolName);
+
+ public:
+  DynamicLibrary& operator=(DynamicLibrary& other)
+  {
+    if (this != &other) {
+      m_name = other.m_name;
+      m_dynLibHandler = other.m_dynLibHandler;
+      other.m_dynLibHandler = nullptr;
+    }
+    return *this;
+  }
 
  private:
   /**

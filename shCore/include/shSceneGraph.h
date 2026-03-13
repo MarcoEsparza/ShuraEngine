@@ -78,6 +78,9 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   void
   addObject(const SPtr<GameObject>& object);
 
+  void
+  instantiate(const GameObject& object);
+
   /**
   *  @brief Gets the object list.
   * 

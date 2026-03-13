@@ -34,6 +34,7 @@
     <ClInclude Include="include\shCubeMap.h" />
     <ClInclude Include="include\shDepthStencilState.h" />
     <ClInclude Include="include\shDynamicLibrary.h" />
+    <ClInclude Include="include\shDynamicLibraryManager.h" />
     <ClInclude Include="include\shFileExplorer.h" />
     <ClInclude Include="include\shFrustum.h" />
     <ClInclude Include="include\shGameObject.h" />
@@ -79,6 +80,7 @@
     <ClCompile Include="source\shCamera.cpp" />
     <ClCompile Include="source\shCubeMap.cpp" />
     <ClCompile Include="source\shDynamicLibrary.cpp" />
+    <ClCompile Include="source\shDynamicLibraryManager.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
     <ClCompile Include="source\shFileExplorerWin32.cpp" />
     <ClCompile Include="source\shFrustum.cpp" />
