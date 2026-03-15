@@ -217,6 +217,9 @@ class RendererApp : public BaseApp
   void
   restartScene();
 
+  void
+  loadMods();
+
   /***************************************************************************/
   /*
   *  Variables
@@ -358,6 +361,8 @@ class RendererApp : public BaseApp
   GUI m_gui;
 
   bool m_bPlayScene = false;
+
+  Vector<uint32> m_loadedModIds;
 
   //Vector<SPtr<GameObject>> m_tempGameObjects;
 };

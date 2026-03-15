@@ -556,6 +556,10 @@ GUI::setRendererSettings()
     }
   }
 
+  if (ImGui::Button("ReloadMods")) {
+    m_bReloadMods = true;
+  }
+
   ImGui::End();
 
   if (m_bSSAO) {
@@ -972,7 +976,10 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     // Save to cache button
     if (ImGui::Button("Save Mesh to cache")) {
       if (!pMesh->m_mesh.expired()) {
-        resMan.saveResourceToAsset(pMesh->m_mesh.lock());
+        String filePath;
+        if (fileExp.openFile(filePath, ".sha", "resources/models/")) {
+          resMan.saveResourceToAsset(pMesh->m_mesh.lock(), filePath);
+        }
       }
     }
 

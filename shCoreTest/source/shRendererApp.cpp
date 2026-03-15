@@ -18,6 +18,7 @@
 /*****************************************************************************/
 #include "shRendererApp.h"
 
+#include <shDynamicLibraryManager.h>
 #include <shGraphicsManager.h>
 #include <shRenderManager.h>
 #include <shShaderManager.h>
@@ -51,6 +52,8 @@
 
 #include <shSound.h>
 #include <shTimer.h>
+
+using DirectoryIterator = std::filesystem::directory_iterator;
 
 namespace shEngineSDK {
 void
@@ -102,6 +105,8 @@ RendererApp::onCreate()
   if (m_testSound) {
     m_testSound->m_channel = CHANNEL_TYPE::kUI;
   }
+
+  loadMods();
 }
 
 void
@@ -184,6 +189,11 @@ RendererApp::onUpdate()
     else {
       restartScene();
     }
+  }
+
+  if(m_gui.m_bReloadMods) {
+    loadMods();
+    m_gui.m_bReloadMods = false;
   }
 }
 
@@ -594,5 +604,34 @@ RendererApp::restartScene()
 {
   //SceneGraph& scene = g_sceneGraph();
   //scene.getGameObjectList() = m_tempGameObjects;
+}
+
+void
+RendererApp::loadMods()
+{
+  DynamicLibraryManager& dllMan = g_dynLibMan();
+
+  const String modsPath = "mods/";
+
+  for (auto& entry : DirectoryIterator(modsPath)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+
+    if (entry.path().extension() != ".dll") {
+      continue;
+    }
+
+    SystemPath filename = entry.path().string();
+    filename.replace_extension("");
+
+    if (dllMan.isDynLibLoaded(filename.string())) {
+      dllMan.unloadDynLibrary(filename.string());
+    }
+
+    dllMan.loadDynLibrary(filename.string());
+
+    m_loadedModIds.push_back(StringID(filename.string()).getID());
+  }
 }
 }

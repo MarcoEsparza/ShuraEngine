@@ -405,6 +405,8 @@ class GUI
   *  @brief Is scene playing?
   */
   bool m_bPlay = false;
+
+  bool m_bReloadMods = false;
 };
 
 FORCEINLINE void

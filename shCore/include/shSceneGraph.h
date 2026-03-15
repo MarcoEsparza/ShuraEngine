@@ -101,6 +101,10 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   void
   deserialize();
 
+ private:
+  String
+  generateUniqueName(const String& baseName);
+
   /***************************************************************************/
   /*
   *  Functions

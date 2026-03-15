@@ -35,6 +35,24 @@ DynamicLibraryManager::loadDynLibrary(const String& name)
   dllSymbol();
 }
 
+bool
+DynamicLibraryManager::isDynLibLoaded(const String& name) const
+{
+  uint32 id = StringID(name).getID();
+  return m_dynamicLibraries.contains(id);
+}
+
+void
+DynamicLibraryManager::unloadDynLibrary(const String& name)
+{
+  uint32 id = StringID(name).getID();
+  auto it = m_dynamicLibraries.find(id);
+  if (it != m_dynamicLibraries.end()) {
+    it->second->unload();
+    m_dynamicLibraries.erase(it);
+  }
+}
+
 void
 DynamicLibraryManager::onStartUp()
 {

@@ -337,10 +337,10 @@ ResourceManager::getResource(const String& resourceName)
 }
 
 bool
-ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes)
+ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes, const String& path)
 {
   Asset resAsset;
-  return resAsset.saveResourceToAsset(pRes);
+  return resAsset.saveResourceToAsset(pRes, path);
 }
 
 SPtr<Resource>
@@ -412,8 +412,8 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
     }
   }
   else if(filePath.compareExtensions({ ".sha" })) {
-    SystemPath fullPath = "resources/assets/models/" + filePath.filename();
-    pRes = loadModelFromCache(fullPath.string());
+    //SystemPath fullPath = "resources/assets/models/" + filePath.filename();
+    pRes = loadModelFromCache(filePath.toString());
     return true;
   }
 
@@ -535,10 +535,12 @@ ResourceManager::loadModelFromFile(const String& fileName)
 }
 
 SPtr<Material>
-ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
+ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& resPath)
 {
   //GraphicsManager& graphMan = g_graphicsMan();
   auto pMeshMat = isMaterialLoaded(pMat->GetName().C_Str());
+  SystemPath path = resPath;
+  const String directory = path.parent_path().string() + "/";
 
   if(pMeshMat){
     return pMeshMat;
@@ -565,10 +567,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     aiString aiPath;
     pMat->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
-    String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = cast::re_ptr<ImageResource>(loadResourceFromFile(filePath));
-    if (pImage) {
+    if (!pImage) {
       pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
       auto it = m_loadedResources.find("ErrorTexture");
       pMeshMat->m_baseColor = cast::re_ptr<ImageResource>((*it).second);
@@ -588,10 +589,9 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     aiString aiPath;
     pMat->GetTexture(aiTextureType_NORMALS, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
-    String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
-    if (pImage) {
+    if (!pImage) {
       auto it = m_loadedResources.find("DefaultNormal");
       pMeshMat->m_normal = cast::re_ptr<ImageResource>((*it).second);
     }
@@ -610,7 +610,6 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     aiString aiPath;
     pMat->GetTexture(aiTextureType_METALNESS, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
-    String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
@@ -632,7 +631,6 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     aiString aiPath;
     pMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
-    String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
@@ -654,7 +652,6 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat)
     aiString aiPath;
     pMat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &aiPath);
     SystemPath filename = aiPath.C_Str();
-    String directory = "resources/textures/";
     Path filePath(directory + filename.filename().string());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
@@ -696,8 +693,12 @@ ResourceManager::loadModelFromCache(const String& fileName)
 {
   auto pRes = Asset::loadResourceFromAsset(Path(fileName));
 
+  if (pRes == nullptr) {
+    return nullptr;
+  }
   SystemPath path = fileName;
   pRes->setName(path.filename().string());
+  pRes->setPath(Path(fileName));
   m_loadedResources[pRes->getName()] = pRes;
 
   return pRes;
@@ -710,9 +711,10 @@ ResourceManager::createStaticMesh(const String& fileName,
 {
   auto currentMesh = sh_makeShared<StaticMeshResource>();
 
-  proccessStaticMeshNode(node, scene, currentMesh);
   SystemPath path = fileName;
   currentMesh->setName(path.filename().string());
+  currentMesh->setPath(Path(fileName));
+  proccessStaticMeshNode(node, scene, currentMesh);
   m_loadedResources[currentMesh->getName()] = currentMesh;
 
   return currentMesh;
@@ -746,7 +748,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 
   auto* aiMat = scene->mMaterials[mesh->mMaterialIndex];
   currentData.materialIndex = mesh->mMaterialIndex;
-  auto currentMat = createMaterialFromFile(aiMat);
+  auto currentMat = createMaterialFromFile(aiMat, currentMesh->getPath().toString());
 
   if(currentMat == nullptr) {
     auto it = m_loadedResources.find("ErrorTexture");
@@ -786,6 +788,7 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   //skeletalMesh->m_materials.resize(scene->mNumMaterials);
 
   auto rootBone = sh_makeShared<BoneHierarchy>();
+  skeletalMesh->setPath(Path(fileName));
   proccessSkeletalMeshNode(scene->mRootNode, scene, rootBone, skeletalMesh, skeleton);
 
   SystemPath file = fileName;
@@ -853,7 +856,8 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
     skeletalMesh->m_materials[currentMeshInfo.materialIndex] = meshMat;
   }*/
 
-  auto currentMat = createMaterialFromFile(scene->mMaterials[mesh->mMaterialIndex]);
+  auto currentMat = createMaterialFromFile(scene->mMaterials[mesh->mMaterialIndex],
+                                           skeletalMesh->getPath().toString());
 
   if (skeletalMesh->m_materials.empty()) {
     skeletalMesh->m_materials.push_back(currentMat);

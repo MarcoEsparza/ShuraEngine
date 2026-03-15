@@ -29,11 +29,11 @@ using std::getline;
 
 namespace shEngineSDK {
 bool
-Asset::saveResourceToAsset(const SPtr<Resource>& pRes)
+Asset::saveResourceToAsset(const SPtr<Resource>& pRes, const String& path)
 {
   RESOURCE_TYPE::E resType = pRes->getType();
   if (resType == RESOURCE_TYPE::kStaticMesh) {
-    saveStaticMesh(pRes);
+    saveStaticMesh(pRes, path);
     return true;
   }
 
@@ -230,15 +230,16 @@ Asset::loadResourceFromAsset(Path filePath)
 }
 
 void
-Asset::saveStaticMesh(const SPtr<Resource>& pRes)
+Asset::saveStaticMesh(const SPtr<Resource>& pRes, const String& path)
 {
   auto pStaticMesh = cast::re_ptr<StaticMeshResource>(pRes);
 
-  SystemPath pathName = pStaticMesh->getName();
-  pathName.replace_extension(".sha");
-  String fileName = "resources/assets/models/" + pathName.string();
+  //SystemPath pathName = pStaticMesh->getName();
+  //pathName.replace_extension(".sha");
+  //String fileName = "resources/assets/models/" + pathName.string();
+  //SystemPath fullPath = path;
   FILE* outFile = nullptr;
-  fopen_s(&outFile, fileName.c_str(), "wb");
+  fopen_s(&outFile, path.c_str(), "wb");
   if (!outFile) {
     return;
   }

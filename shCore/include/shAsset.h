@@ -71,7 +71,7 @@ class SH_CORE_EXPORT Asset
   ~Asset() = default;
 
   static bool
-  saveResourceToAsset(const SPtr<Resource>& pRes);
+  saveResourceToAsset(const SPtr<Resource>& pRes, const String& path);
 
   static SPtr<Resource>
   loadResourceFromAsset(Path filePath);
@@ -80,7 +80,7 @@ class SH_CORE_EXPORT Asset
 
  private:
   static void
-  saveStaticMesh(const SPtr<Resource>& pRes);
+  saveStaticMesh(const SPtr<Resource>& pRes, const String& path);
 
   SPtr<Resource>
   loadStaticMesh(sh_fstream& file);

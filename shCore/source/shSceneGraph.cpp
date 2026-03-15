@@ -28,6 +28,8 @@
 #include "shImageResource.h"
 #include <shPath.h>
 
+using std::to_string;
+
 namespace shEngineSDK {
 SceneGraph::~SceneGraph()
 {
@@ -145,6 +147,15 @@ SceneGraph::addDefaultDirectionalLight()
 void
 SceneGraph::addObject(const SPtr<GameObject>& object)
 {
+  /*String objectName = object->m_name;
+  uint32 copyCount = 1;
+  for (auto& gameObject : m_gameObjects) {
+    if (gameObject->m_name == objectName) {
+      object->m_name += "_(" + to_string(copyCount) + ")";
+      copyCount++;
+    }
+  }*/
+  object->m_name = generateUniqueName(object->m_name);
   m_gameObjects.push_back(object);
 }
 
@@ -199,6 +210,28 @@ SceneGraph::serialize()
 void
 SceneGraph::deserialize()
 {
+}
+
+String
+SceneGraph::generateUniqueName(const String& baseName)
+{
+  String uniqueName = baseName;
+  uint32 copyCount = 1;
+  bool isUnique = false;
+  
+  while (!isUnique) {
+    isUnique = true;
+    for (auto& gameObject : m_gameObjects) {
+      if (gameObject->m_name == uniqueName) {
+        uniqueName = baseName + "_(" + to_string(copyCount) + ")";
+        copyCount++;
+        isUnique = false;
+        break;
+      }
+    }
+  }
+  
+  return uniqueName;
 }
 
 SceneGraph& g_sceneGraph()

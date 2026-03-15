@@ -24,6 +24,8 @@
 #include "shMatrix4.h"
 #include "shPath.h"
 
+#define MODS_RESOURCES_PATH "resources/mods/"
+
 /*************************************************************/
 /*
 *  External forward declarations
@@ -102,7 +104,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  TODO: This function is not completed yet.
   */
   bool
-  saveResourceToAsset(const SPtr<Resource> pRes);
+  saveResourceToAsset(const SPtr<Resource> pRes, const String& path);
 
   /**
   *  @brief Load a model from cache.
@@ -195,7 +197,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiMaterial* pMat
   */
   SPtr<Material>
-  createMaterialFromFile(const aiMaterial* pMat);
+  createMaterialFromFile(const aiMaterial* pMat, const String& resPath);
 
   SPtr<Material>
   isMaterialLoaded(const String& materialName);

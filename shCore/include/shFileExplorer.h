@@ -48,6 +48,7 @@ class SH_CORE_EXPORT FileExplorer : public Module<FileExplorer>
   openFile(String& outPath,
            const String& filter = "All Files (*.*)\0*.*\0",
            const String& initialDir = "");
+
   /**
   *  @brief Opens a file explorer window to select a folder.
   *

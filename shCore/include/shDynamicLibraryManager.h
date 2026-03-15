@@ -22,7 +22,7 @@
 #include "shDynamicLibrary.h"
 
 namespace shEngineSDK {
-class DynamicLibraryManager : public Module<DynamicLibraryManager>
+class SH_CORE_EXPORT DynamicLibraryManager : public Module<DynamicLibraryManager>
 {
  public:
   /**
@@ -49,6 +49,12 @@ class DynamicLibraryManager : public Module<DynamicLibraryManager>
   void
   loadDynLibrary(const String& name);
 
+  bool
+  isDynLibLoaded(const String& name) const;
+
+  void
+  unloadDynLibrary(const String& name);
+
  private:
   /**
    *  @brief Start up the module, initialize any resources it needs and prepare it for use.
@@ -72,5 +78,6 @@ class DynamicLibraryManager : public Module<DynamicLibraryManager>
 /**
  *  @brief Easier way to access the Dynamic Library Manager module.
  */
-DynamicLibraryManager& g_dynLibMan();
+SH_CORE_EXPORT DynamicLibraryManager&
+g_dynLibMan();
 }
