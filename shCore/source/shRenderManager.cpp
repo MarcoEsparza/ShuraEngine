@@ -472,7 +472,7 @@ RenderManager::setShaderResourceFromMaterial(const SPtr<Material>& pMat)
 {
   GraphicsManager& graphMan = g_graphicsMan();
   ShaderManager& shaderMan = g_shaderMan();
-  ResourceManager& resMan = g_resourceMan();
+  //ResourceManager& resMan = g_resourceMan();
 
   shaderMan.m_materialData.baseColorFactor = pMat->baseColorFactor;
   shaderMan.m_materialData.metallicRoughnessFactor = pMat->metallicRoughnessFactor;

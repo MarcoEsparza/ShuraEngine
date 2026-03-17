@@ -45,6 +45,8 @@ JointConstraint::initRelativePositions(const Vector3& rw)
 void
 JointConstraint::solve(float deltaTime)
 {
+  SH_UNREFERENCED_PARAMETER(deltaTime);
+
   if (m_rigidbodies.size() < 2) {
     return; // Not enough rigidbodies to solve the constraint
   }

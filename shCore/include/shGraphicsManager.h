@@ -135,6 +135,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual WPtr<Texture2D>
   getMainDepthStencil() const = 0;
 
+  GRAPHIC_API::E
+  getAPI() const;
+
   /***************************************************************************/
   /*
   *  Functions: Creates
@@ -787,6 +790,9 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                              const uint32 bufferSize,
                              const uint32 stride,
                              const uint32 usage) = 0;
+
+ protected:
+  GRAPHIC_API::E m_graphicAPI = GRAPHIC_API::kDX11;
 };
 
 /**

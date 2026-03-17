@@ -37,7 +37,9 @@ void
 DX11Texture2D::setDebugName(const String& name)
 {
   if (m_pTexture2D) {
-    m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName, name.size(), name.c_str());
+    m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName,
+                                 cast::st<UINT>(name.size()),
+                                 name.c_str());
   }
 }
 

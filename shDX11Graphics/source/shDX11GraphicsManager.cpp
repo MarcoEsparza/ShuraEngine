@@ -51,7 +51,7 @@ class ShaderInclude : public ID3DInclude
     if (workingDirectory.back() != '\\' && workingDirectory.back() != '/') {  
       workingDirectory.append("\\");  
     }  
-    workingDirectory.append("resources/shaders/");  
+    workingDirectory.append("resources/shaders/DX11/");  
     workingDirectory.append(pFileName);  
 
     std::ifstream file(workingDirectory.c_str(), std::ios::binary | std::ios::ate);  
@@ -98,8 +98,11 @@ compileShaderFromFile(const String& fileName,
   shaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-  auto beg = (String::const_iterator)fileName.begin();
-  auto end = (String::const_iterator)fileName.end();
+  SystemPath path = fileName;
+  path.replace_extension(".hlsl");
+  String newFileName = path.string();
+  auto beg = (String::const_iterator)newFileName.begin();
+  auto end = (String::const_iterator)newFileName.end();
   WString wFileName(beg, end);
 
   static ShaderInclude shaderInclude;
@@ -189,7 +192,7 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
     return;
   }
   auto screen = pScreen.lock();
-
+  m_graphicAPI = GRAPHIC_API::kDX11;
   m_bFullScreen = screen->isFullscreen();
   
   auto hWnd = reinterpret_cast<HWND>(screen->getPlatformHandler());
@@ -1064,8 +1067,8 @@ DX11GraphicsManager::createTexture3D(const Vector3 size,
   D3D11_SUBRESOURCE_DATA initData = {};
   if (data) {
     initData.pSysMem = data->data();
-    initData.SysMemPitch = size.x * sizeof(LinearColor);
-    initData.SysMemSlicePitch = size.y * initData.SysMemPitch;
+    initData.SysMemPitch = cast::st<UINT>(size.x * sizeof(LinearColor));
+    initData.SysMemSlicePitch = cast::st<UINT>(size.y * initData.SysMemPitch);
   }
 
   throwIfFailed(m_pDevice->CreateTexture3D(&textureDesc,
@@ -1171,8 +1174,8 @@ DX11GraphicsManager::createDefaultNormalTexture()
   pixels.resize(normalSize * normalSize);
   for (uint32 y = 0; y < normalSize; ++y) {
     for (uint32 x = 0; x < normalSize; ++x) {
-      float u = static_cast<float>(x) / (normalSize - 1);
-      float v = static_cast<float>(y) / (normalSize - 1);
+      //float u = cast::st<float>(x / (normalSize - 1));
+      //float v = cast::st<float>(y / (normalSize - 1));
       // Generate a simple blue normal map
       pixels[y * normalSize + x] = 0xFFFF8080; // RGB: (128, 128, 255)
     }
@@ -1210,8 +1213,8 @@ SPtr<Texture2D> DX11GraphicsManager::createBlackTexture()
   pixels.resize(size * size);
   for (uint32 y = 0; y < size; ++y) {
     for (uint32 x = 0; x < size; ++x) {
-      float u = static_cast<float>(x) / (size - 1);
-      float v = static_cast<float>(y) / (size - 1);
+      //float u = cast::st<float>(x / (size - 1));
+      //float v = cast::st<float>(y / (size - 1));
       // Generate a simple blue normal map
       pixels[y * size + x] = 0xFF000000; // RGB: (128, 128, 255)
     }

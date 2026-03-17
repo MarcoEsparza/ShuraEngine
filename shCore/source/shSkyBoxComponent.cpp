@@ -24,7 +24,7 @@ namespace shEngineSDK {
 void
 SkyBoxComponent::setSkyBoxResource(const WPtr<ImageResource>& skyBoxResource)
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
 
   if (auto res = skyBoxResource.lock()) {
     if (m_skyBoxResource) {

@@ -174,6 +174,9 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   virtual ~ShaderManager();
 
+  void
+  onStartUp() override;
+
   /***************************************************************************/
   /*
   *  Functions
@@ -231,6 +234,18 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   */
   void
   updateMaterialCB();
+
+  String
+  getVSShaderModel() const;
+
+  String
+  getPSShaderModel() const;
+
+  String
+  getGSShaderModel() const;
+
+  String
+  getCSShaderModel() const;
 
   /***************************************************************************/
   /*
@@ -302,6 +317,8 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   *  @brief Material data structure.
   */
   PBRMaterialData m_materialData;
+
+  String m_shaderDirectory;
 
   /***************************************************************************/
   /*

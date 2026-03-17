@@ -51,7 +51,7 @@ FileExplorer::openFile(String& outPath,
 }
 
 bool
-FileExplorer::openFolder(String& outPath, const String& initialDir)
+FileExplorer::openFolder(String&, const String&)
 {
   return false;
 }

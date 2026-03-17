@@ -111,7 +111,6 @@ class SH_CORE_EXPORT Pass
   void
   setVShaderInfo(const String& shaderPath,
                  const String& entry,
-                 const String& model,
                  const Vector<ShaderMacro>& macros = {});
 
   /**
@@ -125,7 +124,6 @@ class SH_CORE_EXPORT Pass
   void
   setPShaderInfo(const String& shaderPath,
                  const String& entry,
-                 const String& model,
                  const Vector<ShaderMacro>& macros = {});
 
   /**
@@ -139,7 +137,6 @@ class SH_CORE_EXPORT Pass
   void
   setGShaderInfo(const String& shaderPath,
                  const String& entry,
-                 const String& model,
                  const Vector<ShaderMacro>& macros = {});
 
   /**
@@ -153,7 +150,6 @@ class SH_CORE_EXPORT Pass
   void
   setCShaderInfo(const String& shaderPath,
                  const String& entry,
-                 const String& model,
                  const Vector<ShaderMacro>& macros = {});
 
   /**
@@ -375,26 +371,6 @@ class SH_CORE_EXPORT Pass
   *  @brief Compute Shader entry point.
   */
   String m_csEntryPoint;
-
-  /**
-  *  @brief Vertex Shader model.
-  */
-  String m_vsModel;
-
-  /**
-  *  @brief Pixel Shader model.
-  */
-  String m_psModel;
-
-  /**
-  *  @brief Geometry Shader model.
-  */
-  String m_gsModel;
-
-  /**
-  *  @brief Compute Shader model.
-  */
-  String m_csModel;
 
  public:
   /**

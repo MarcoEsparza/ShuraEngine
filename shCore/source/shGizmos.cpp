@@ -44,13 +44,17 @@ Gizmos::onStartUp()
   GraphicsManager& graphMan = g_graphicsMan();
   ShaderManager& shaderMan = g_shaderMan();
 
+  String shaderDirectory;
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    shaderDirectory = "resources/shaders/DX11/DebugLines";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    shaderDirectory = "resources/shaders/OpenGL/DebugLines";
+  }
+
   m_pass = sh_makeShared<Pass>();
-  m_pass->setVShaderInfo("resources/shaders/DebugLines.hlsl",
-                         "main",
-                         "vs_5_0");
-  m_pass->setPShaderInfo("resources/shaders/DebugLines.hlsl",
-                         "mainPS",
-                         "ps_5_0");
+  m_pass->setVShaderInfo(shaderDirectory, "main");
+  m_pass->setPShaderInfo(shaderDirectory, "mainPS");
   m_pass->compileShader();
   m_pass->generateInputLayout();
 
@@ -148,7 +152,7 @@ Gizmos::drawLine(const Vector3& from, const Vector3& to)
 }
 
 void
-Gizmos::drawBox(const OBBox& box, const TransformComponent& InTfrm)
+Gizmos::drawBox(const OBBox& box, const TransformComponent&)
 {
   auto verts = box.getVertices();
 

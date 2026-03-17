@@ -288,10 +288,12 @@ ImGui_ImplShura_RenderDrawData(ImDrawData* drawData)
         SPtr<Texture2D>& pTexture = *cast::re<SPtr<Texture2D>*>(pcmd->GetTexID());
         /*auto pTextureID = cast::re<Texture2D*>(pcmd->GetTexID());
         SPtr<Texture2D> pTexture(pTextureID);*/
-        graphMan.psSetShaderResourceView(pTexture);
-        graphMan.drawIndexed(pcmd->ElemCount,
-                             pcmd->IdxOffset + global_idx_offset,
-                             pcmd->VtxOffset + global_vtx_offset);
+        if(pTexture){
+          graphMan.psSetShaderResourceView(pTexture);
+          graphMan.drawIndexed(pcmd->ElemCount,
+                               pcmd->IdxOffset + global_idx_offset,
+                               pcmd->VtxOffset + global_vtx_offset);
+        }
         //pTextureID = nullptr;
         //pTexture.reset();
       }
@@ -347,7 +349,7 @@ ImGui_ImplShura_CreateFontsTexture()
 
   bd->pFontTexture->setDebugName("ImGuiFontTexture");
 
-  auto pTexture = bd->pFontTexture.get();
+  //auto pTexture = bd->pFontTexture.get();
   //atlas->SetTexID(cast::re<ImTextureID>(pTexture));
   atlas->SetTexID(cast::re<ImTextureID>(&bd->pFontTexture));
 
@@ -365,14 +367,18 @@ ImGui_ImplShura_CreateDeviceObjects()
     ImGui_ImplShura_InvalidateDeviceObjects();
   }
 
+  String shaderDirectory;
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    shaderDirectory = "resources/shaders/DX11/ImGuiShuraShader";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    shaderDirectory = "resources/shaders/OpenGL/ImGuiShuraShader";
+  }
+
   // Set pass
   bd->pImGuiShuraProgram = sh_makeShared<Pass>();
-  bd->pImGuiShuraProgram->setVShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
-                                         "main",
-                                         "vs_5_0");
-  bd->pImGuiShuraProgram->setPShaderInfo("resources/shaders/ImGuiShuraShader.hlsl",
-                                         "mainPS",
-                                         "ps_5_0");
+  bd->pImGuiShuraProgram->setVShaderInfo(shaderDirectory, "main");
+  bd->pImGuiShuraProgram->setPShaderInfo(shaderDirectory, "mainPS");
   bd->pImGuiShuraProgram->compileShader();
 
   Vector<InputDesc> ilDesc;

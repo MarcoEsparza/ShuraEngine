@@ -555,6 +555,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
   uint32 metalCount = pMat->GetTextureCount(aiTextureType_METALNESS);
   uint32 roughCount = pMat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS);
   uint32 aoCount = pMat->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION);
+  uint32 emmCount = pMat->GetTextureCount(aiTextureType_EMISSIVE);
+  uint32 opacityCount = pMat->GetTextureCount(aiTextureType_OPACITY);
 
   if (diffCount == 0) {
     // Create error texture
@@ -660,6 +662,48 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     }
     else {
       pMeshMat->m_ao = pImage;
+    }
+  }
+
+  if (emmCount == 0) {
+    pMeshMat->m_properties.properties.flags.bHasEmissiveMap = false;
+    auto it = m_loadedResources.find("BlackTexture");
+    pMeshMat->m_emissive = cast::re_ptr<ImageResource>((*it).second);
+  }
+  else {
+    pMeshMat->m_properties.properties.flags.bHasEmissiveMap = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_EMISSIVE, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    if (!pImage) {
+      auto it = m_loadedResources.find("BlackTexture");
+      pMeshMat->m_emissive = cast::re_ptr<ImageResource>((*it).second);
+    }
+    else {
+      pMeshMat->m_emissive = pImage;
+    }
+  }
+
+  if (opacityCount == 0) {
+    pMeshMat->m_properties.properties.flags.bHasOpacityMask = false;
+    auto it = m_loadedResources.find("BlackTexture");
+    pMeshMat->m_opacityMask = cast::re_ptr<ImageResource>((*it).second);
+  }
+  else {
+    pMeshMat->m_properties.properties.flags.bHasOpacityMask = true;
+    aiString aiPath;
+    pMat->GetTexture(aiTextureType_OPACITY, 0, &aiPath);
+    SystemPath filename = aiPath.C_Str();
+    Path filePath(directory + filename.filename().string());
+    auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
+    if (!pImage) {
+      auto it = m_loadedResources.find("BlackTexture");
+      pMeshMat->m_opacityMask = cast::re_ptr<ImageResource>((*it).second);
+    }
+    else {
+      pMeshMat->m_opacityMask = pImage;
     }
   }
   

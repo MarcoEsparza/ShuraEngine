@@ -28,7 +28,9 @@ void
 DX11BlendState::setDebugName(const String& name)
 {
   if (m_pBlendS) {
-    m_pBlendS->SetPrivateData(WKPDID_D3DDebugObjectName, name.size(), name.c_str());
+    m_pBlendS->SetPrivateData(WKPDID_D3DDebugObjectName,
+                              cast::st<UINT>(name.size()),
+                              name.c_str());
   }
 }
 }

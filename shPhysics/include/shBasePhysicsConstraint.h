@@ -19,6 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesPhysics.h"
 #include "shRigidbody.h"
+#include <shException.h>
 
 namespace shEngineSDK {
 /**
@@ -58,7 +59,7 @@ class BasePhysicsConstraint
   *  @param float deltaTime: The time step for the physics simulation.
   */
   virtual void
-  preSolve(float deltaTime) {};
+  preSolve(float deltaTime) { SH_UNREFERENCED_PARAMETER(deltaTime); };
 
   /**
   *  @brief Solve function to be called during the physics solver.
@@ -66,7 +67,7 @@ class BasePhysicsConstraint
   *  @param float deltaTime: The time step for the physics simulation.
   */
   virtual void
-  solve(float deltaTime) {};
+  solve(float deltaTime) { SH_UNREFERENCED_PARAMETER(deltaTime); };
 
   /**
   *  @brief Post-solve function to be called after the physics solver.
@@ -74,7 +75,7 @@ class BasePhysicsConstraint
   *  @param float deltaTime: The time step for the physics simulation.
   */
   virtual void
-  postSolve(float deltaTime) {};
+  postSolve(float deltaTime) { SH_UNREFERENCED_PARAMETER(deltaTime); };
 
   /**
   *  @brief Calculate the error of the constraint.

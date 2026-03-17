@@ -61,151 +61,120 @@ ShaderManager::~ShaderManager() {
 }
 
 void
+ShaderManager::onStartUp() {
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    m_shaderDirectory = "resources/shaders/DX11/";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    m_shaderDirectory = "resources/shaders/OpenGL/";
+  }
+}
+
+void
 ShaderManager::createPipelinePasses()
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
   // Lightning
   auto pLightCS = sh_makeShared<Pass>();
-  pLightCS->setCShaderInfo("resources/shaders/LightCShader.hlsl",
-                           "CSMain",
-                           "cs_5_0");
+  pLightCS->setCShaderInfo(m_shaderDirectory + "LightCShader", "CSMain");
   pLightCS->compileShader();
 
   // AO
   auto pAOShader = sh_makeShared<Pass>();
-  pAOShader->setPShaderInfo("resources/shaders/AOShader.hlsl",
-                            "mainPS",
-                            "ps_5_0");
+  pAOShader->setPShaderInfo(m_shaderDirectory + "AOShader", "mainPS");
   pAOShader->compileShader();
 
   // HBlur
   auto pHBlurCS = sh_makeShared<Pass>();
-  pHBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                           "HBlurCS",
-                           "cs_5_0");
+  pHBlurCS->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "HBlurCS");
   pHBlurCS->compileShader();
 
   // VBlur
   auto pVBlurCS = sh_makeShared<Pass>();
-  pVBlurCS->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "VBlurCS",
-                            "cs_5_0");
+  pVBlurCS->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "VBlurCS");
   pVBlurCS->compileShader();
 
   // Shadow map
   auto pSMapShader = sh_makeShared<Pass>();
-  pSMapShader->setVShaderInfo("resources/shaders/SMapShader.hlsl",
-                              "main",
-                              "vs_5_0");
-  pSMapShader->setPShaderInfo("resources/shaders/SMapShader.hlsl",
-                              "mainPS",
-                              "ps_5_0");
+  pSMapShader->setVShaderInfo(m_shaderDirectory + "SMapShader", "main");
+  pSMapShader->setPShaderInfo(m_shaderDirectory + "SMapShader", "mainPS");
   pSMapShader->compileShader();
 
   // Skybox
   auto pSkyBoxShader = sh_makeShared<Pass>();
-  pSkyBoxShader->setCShaderInfo("resources/shaders/SkyBoxShader.hlsl",
-                                "CSMain",
-                                "cs_5_0");
+  pSkyBoxShader->setCShaderInfo(m_shaderDirectory + "SkyBoxShader", "CSMain");
   pSkyBoxShader->compileShader();
 
   // Final shader
   auto pFinalShader = sh_makeShared<Pass>();
-  pFinalShader->setPShaderInfo("resources/shaders/FinalShader.hlsl",
-                               "mainPS",
-                               "ps_5_0");
+  pFinalShader->setPShaderInfo(m_shaderDirectory + "FinalShader", "mainPS");
   pFinalShader->compileShader();
 
   // Plane Vertex shader
   auto pPlaneVS = sh_makeShared<Pass>();
-  pPlaneVS->setVShaderInfo("resources/shaders/PlaneVertexShader.hlsl",
-                           "main",
-                           "vs_5_0");
+  pPlaneVS->setVShaderInfo(m_shaderDirectory + "PlaneVertexShader", "main");
   pPlaneVS->compileShader();
 
   // Histogram shader
   auto pHistogramShader = sh_makeShared<Pass>();
-  pHistogramShader->setCShaderInfo("resources/shaders/HistogramShader.hlsl",
-                                   "CSMain",
-                                   "cs_5_0");
+  pHistogramShader->setCShaderInfo(m_shaderDirectory + "HistogramShader", "CSMain");
   pHistogramShader->compileShader();
 
   // Add skybox shader
   auto pASBShader = sh_makeShared<Pass>();
-  pASBShader->setCShaderInfo("resources/shaders/AddSkyboxShader.hlsl",
-                             "CSMain",
-                             "cs_5_0");
+  pASBShader->setCShaderInfo(m_shaderDirectory + "AddSkyboxShader", "CSMain");
   pASBShader->compileShader();
 
   // Luminance shader
   auto pLuminanceShader = sh_makeShared<Pass>();
-  pLuminanceShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                   "LuminanceCS",
-                                   "cs_5_0");
+  pLuminanceShader->setCShaderInfo(m_shaderDirectory + "LuminanceShader", "LuminanceCS");
   pLuminanceShader->compileShader();
 
   // Bright shader
   auto pBrightShader = sh_makeShared<Pass>();
-  pBrightShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                "BrightCS",
-                                "cs_5_0");
+  pBrightShader->setCShaderInfo(m_shaderDirectory + "LuminanceShader", "BrightCS");
   pBrightShader->compileShader();
 
   // ToneMap shader
   auto pToneMapShader = sh_makeShared<Pass>();
-  pToneMapShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                                 "ToneMapCS",
-                                 "cs_5_0");
+  pToneMapShader->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "ToneMapCS");
   pToneMapShader->compileShader();
 
   // AddMix shader
   auto pAddMixShader = sh_makeShared<Pass>();
-  pAddMixShader->setCShaderInfo("resources/shaders/LuminanceShader.hlsl",
-                                "AddMixCS",
-                                "cs_5_0");
+  pAddMixShader->setCShaderInfo(m_shaderDirectory + "LuminanceShader", "AddMixCS");
   pAddMixShader->compileShader();
 
   // PostProcess shader
   auto pPPShader = sh_makeShared<Pass>();
-  pPPShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                            "PostProcessCS",
-                            "cs_5_0");
+  pPPShader->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "PostProcessCS");
   pPPShader->compileShader();
 
   // Shader to calculate cube maps
   auto pCubeMapShader = sh_makeShared<Pass>();
-  pCubeMapShader->setCShaderInfo("resources/shaders/CubeMapShader.hlsl",
-                                 "CSMain",
-                                 "cs_5_0");
+  pCubeMapShader->setCShaderInfo(m_shaderDirectory + "CubeMapShader", "CSMain");
   pCubeMapShader->compileShader();
 
   // Irradiance cube shader
   auto pIrrCubeShader = sh_makeShared<Pass>();
-  pIrrCubeShader->setCShaderInfo("resources/shaders/IrradianceCubeShader.hlsl",
-                                 "CSMain",
-                                 "cs_5_0");
+  pIrrCubeShader->setCShaderInfo(m_shaderDirectory + "IrradianceCubeShader", "CSMain");
   pIrrCubeShader->compileShader();
 
   // Specular Prefiltered Cubemap shader
   auto pSPreCubeMap = sh_makeShared<Pass>();
-  pSPreCubeMap->setCShaderInfo("resources/shaders/SpecularPreMapShader.hlsl",
-                               "CSMain",
-                               "cs_5_0");
+  pSPreCubeMap->setCShaderInfo(m_shaderDirectory + "SpecularPreMapShader", "CSMain");
   pSPreCubeMap->compileShader();
 
   // BRDF LUT shader
   auto pBRDFShader = sh_makeShared<Pass>();
-  pBRDFShader->setCShaderInfo("resources/shaders/BRDFShader.hlsl",
-                              "CSMain",
-                              "cs_5_0");
+  pBRDFShader->setCShaderInfo(m_shaderDirectory + "BRDFShader", "CSMain");
   pBRDFShader->compileShader();
 
   // Emmisive pass
   auto pEmmisiveShader = sh_makeShared<Pass>();
-  pEmmisiveShader->setCShaderInfo("resources/shaders/PostProcessShader.hlsl",
-                                 "EmmisiveCS",
-                                 "cs_5_0");
+  pEmmisiveShader->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "EmmisiveCS");
   pEmmisiveShader->compileShader();
 
   // Raster state
@@ -436,8 +405,8 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   }
   // Add more macros based on other properties as needed
 
-  matPass->setVShaderInfo("resources/shaders/GBufferShader.hlsl", "main", "vs_5_0", macros);
-  matPass->setPShaderInfo("resources/shaders/GBufferShader.hlsl", "mainPS", "ps_5_0", macros);
+  matPass->setVShaderInfo(m_shaderDirectory + "GBufferShader", "main", macros);
+  matPass->setPShaderInfo(m_shaderDirectory + "GBufferShader", "mainPS", macros);
   matPass->compileShader();
   matPass->generateInputLayout();
 
@@ -545,6 +514,58 @@ ShaderManager::updateMaterialCB()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   graphMan.updateConstantBuffer(m_pPBRData, &m_materialData, sizeof(PBRMaterialData));
+}
+
+String
+ShaderManager::getVSShaderModel() const
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    return "vs_5_0";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    return "330";
+  }
+  return "";
+}
+
+String
+ShaderManager::getPSShaderModel() const
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    return "ps_5_0";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    return "330";
+  }
+  return "";
+}
+
+String
+ShaderManager::getGSShaderModel() const
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    return "gs_5_0";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    return "330";
+  }
+  return "";
+}
+
+String
+ShaderManager::getCSShaderModel() const
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    return "cs_5_0";
+  }
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    return "330";
+  }
+  return "";
 }
 
 ShaderManager&

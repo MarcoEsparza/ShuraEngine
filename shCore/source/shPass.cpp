@@ -18,6 +18,7 @@
 /*****************************************************************************/
 #include  "shPass.h"
 #include "shGraphicsManager.h"
+#include "shShaderManager.h"
 #include "shShader.h"
 #include "shBlendState.h"
 #include <shLogger.h>
@@ -41,45 +42,41 @@ Pass::~Pass() {
 void
 Pass::setVShaderInfo(const String& shaderPath,
                      const String& entry,
-                     const String& model,
                      const Vector<ShaderMacro>& macros)
 {
   m_vsPath = shaderPath;
   m_vsEntryPoint = entry;
-  m_vsModel = model;
+  m_macros = macros;
 }
 
 void
 Pass::setPShaderInfo(const String& shaderPath,
                      const String& entry,
-                     const String& model,
                      const Vector<ShaderMacro>& macros)
 {
   m_psPath = shaderPath;
   m_psEntryPoint = entry;
-  m_psModel = model;
+  m_macros = macros;
 }
 
 void
 Pass::setGShaderInfo(const String& shaderPath,
                      const String& entry,
-                     const String& model,
                      const Vector<ShaderMacro>& macros)
 {
   m_gsPath = shaderPath;
   m_gsEntryPoint = entry;
-  m_gsModel = model;
+  m_macros = macros;
 }
 
 void
 Pass::setCShaderInfo(const String& shaderPath,
                      const String& entry,
-                     const String& model,
                      const Vector<ShaderMacro>& macros)
 {
   m_csPath = shaderPath;
   m_csEntryPoint = entry;
-  m_csModel = model;
+  m_macros = macros;
 }
 
 void
@@ -132,6 +129,7 @@ void
 Pass::compileShader()
 {
   GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
 
   // Reset pointer if there's already a Vertex Shader in it.
   if (m_pVShader) {
@@ -141,7 +139,7 @@ Pass::compileShader()
   if (m_vsPath != "") {
     m_pVShader = graphMan.createVertexShader(m_vsPath,
                                              m_vsEntryPoint,
-                                             m_vsModel,
+                                             shaderMan.getVSShaderModel(),
                                              m_macros);
   }
 
@@ -153,7 +151,7 @@ Pass::compileShader()
   if (m_psPath != "") {
     m_pPShader = graphMan.createPixelShader(m_psPath,
                                             m_psEntryPoint,
-                                            m_psModel,
+                                            shaderMan.getPSShaderModel(),
                                             m_macros);
   }
 
@@ -165,7 +163,7 @@ Pass::compileShader()
   if (m_gsPath != "") {
     m_pGShader = graphMan.createGeometryShader(m_gsPath,
                                                m_gsEntryPoint,
-                                               m_gsModel,
+                                               shaderMan.getGSShaderModel(),
                                                m_macros);
   }
 
@@ -177,7 +175,7 @@ Pass::compileShader()
   if (m_csPath != "") {
     m_pCShader = graphMan.createComputeShader(m_csPath,
                                               m_csEntryPoint,
-                                              m_csModel,
+                                              shaderMan.getCSShaderModel(),
                                               m_macros);
   }
 }

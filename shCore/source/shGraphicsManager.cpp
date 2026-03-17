@@ -19,6 +19,12 @@
 #include "shGraphicsManager.h"
 
 namespace shEngineSDK {
+GRAPHIC_API::E
+GraphicsManager::getAPI() const
+{
+  return m_graphicAPI;
+}
+
 GraphicsManager& g_graphicsMan()
 {
   return GraphicsManager::instance();

@@ -34,7 +34,8 @@ CubeMap::loadFromFile(const String& filePath)
     return false;
   }
 
-  m_pTexture = graphMan.createTexture3D(Vector3(m_lutSize, m_lutSize, m_lutSize),
+  const float size = cast::st<float>(m_lutSize);
+  m_pTexture = graphMan.createTexture3D(Vector3(size, size, size),
                                         TEXTURE_FORMAT::kR32G32B32A32_FLOAT,
                                         &m_textureData);
   return true;

@@ -43,7 +43,7 @@ Asset::saveResourceToAsset(const SPtr<Resource>& pRes, const String& path)
 SPtr<Resource>
 Asset::loadResourceFromAsset(Path filePath)
 {
-  GraphicsManager& graphMan = g_graphicsMan();
+  //GraphicsManager& graphMan = g_graphicsMan();
   ResourceManager& resMan = g_resourceMan();
 
   FILE* file = nullptr;
@@ -336,7 +336,7 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes, const String& path)
 SPtr<Resource>
 Asset::loadStaticMesh(sh_fstream& file)
 {
-  ResourceManager& resMan = g_resourceMan();
+  //ResourceManager& resMan = g_resourceMan();
   auto pStaticMesh = sh_makeShared<StaticMeshResource>();
 
   StaticMeshAssetHeader meshAH = {};
