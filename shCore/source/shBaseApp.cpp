@@ -107,14 +107,14 @@ BaseApp::loadGraphicAPI()
     apiName = "shDX11Graphicsd";
   }
   else if (m_graphicAPI == GRAPHIC_API::kOGL) {
-    apiName = "shOGLGraphicsd";
+    apiName = "shOpenGLGraphicsd";
   }
 #else
   if (m_graphicAPI == GRAPHIC_API::kDX11) {
     apiName = "shDX11Graphics";
   }
   else if (m_graphicAPI == GRAPHIC_API::kOGL) {
-    apiName = "shOGLGraphics";
+    apiName = "shOpenGLGraphics";
   }
 #endif
 

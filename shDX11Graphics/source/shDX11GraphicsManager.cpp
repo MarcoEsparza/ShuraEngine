@@ -195,7 +195,7 @@ DX11GraphicsManager::initManager(const WPtr<Screen> pScreen,
   m_graphicAPI = GRAPHIC_API::kDX11;
   m_bFullScreen = screen->isFullscreen();
   
-  auto hWnd = reinterpret_cast<HWND>(screen->getPlatformHandler());
+  auto hWnd = cast::re<HWND>(screen->getPlatformHandler());
 
   Vector<IDXGIAdapter*> vecAdapters;
 

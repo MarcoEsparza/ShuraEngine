@@ -1,36 +1,26 @@
 /*****************************************************************************/
 /*
-*  @file    shOGLInputLayout.h
+*  @file    shOGLBlendstate.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/03/17
-*  @brief
+*  @brief   Open GL blend state class.
 *
-*
+*  Open GL blend state class.
 *
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shOGLBlendState.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+OGLBlendState::~OGLBlendState()
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
-
-  friend class OGLGraphicsManager;
-
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
-};
+  
+}
 }

@@ -121,7 +121,7 @@ class DX11GraphicsManager : public GraphicsManager
   * 
   *  @return SPtr<InputLayout>
   */
-  virtual SPtr<InputLayout>
+  SPtr<InputLayout>
   createInputLayout(const Vector<InputDesc>& desc,
                     const WPtr<VertexShader> pVShader) override;
 
@@ -132,7 +132,7 @@ class DX11GraphicsManager : public GraphicsManager
   *
   *  @return SPtr<InputLayout>
   */
-  virtual SPtr<InputLayout>
+  SPtr<InputLayout>
   createInputLayoutFromShader(const WPtr<VertexShader> pPShader) override;
 
   /**
@@ -145,7 +145,7 @@ class DX11GraphicsManager : public GraphicsManager
   *
   *  @return SPtr<VertexShader>
   */
-  virtual SPtr<VertexShader>
+  SPtr<VertexShader>
   createVertexShader(const String& fileName,
                      const String& entryPoint,
                      const String& shaderModel,
@@ -161,7 +161,7 @@ class DX11GraphicsManager : public GraphicsManager
   *
   *  @return SPtr<PixelShader>
   */
-  virtual SPtr<PixelShader>
+  SPtr<PixelShader>
   createPixelShader(const String& fileName,
                     const String& entryPoint,
                     const String& shaderModel,
@@ -177,7 +177,7 @@ class DX11GraphicsManager : public GraphicsManager
   *
   *  @return SPtr<GeometryShader>
   */
-  virtual SPtr<GeometryShader>
+  SPtr<GeometryShader>
   createGeometryShader(const String& fileName,
                        const String& entryPoint,
                        const String& shaderModel,
@@ -193,7 +193,7 @@ class DX11GraphicsManager : public GraphicsManager
   *
   *  @return SPtr<ComputeShader>
   */
-  virtual SPtr<ComputeShader>
+  SPtr<ComputeShader>
   createComputeShader(const String& fileName,
                       const String& entryPoint,
                       const String& shaderModel,

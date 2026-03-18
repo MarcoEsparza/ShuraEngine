@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shOGLSamplerState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/27
+*  @date    2026/03/17
 *  @brief
 *
 *
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesOGLGraphics.h"
 #include "shSamplerState.h"
 
@@ -25,16 +25,11 @@ class OGLSamplerState : public SamplerState
 {
  public:
    OGLSamplerState() = default;
-  FORCEINLINE ~OGLSamplerState();
+  virtual ~OGLSamplerState();
 
   friend class OGLGraphicsManager;
 
  protected:
   uint32 m_samplerID = 0;
 };
-
-FORCEINLINE OGLSamplerState::~OGLSamplerState()
-{
-  
-}
 }

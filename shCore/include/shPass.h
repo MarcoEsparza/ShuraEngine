@@ -372,6 +372,8 @@ class SH_CORE_EXPORT Pass
   */
   String m_csEntryPoint;
 
+  uint32 m_program = 0;
+
  public:
   /**
   *  @brief Vertex Shader macros.

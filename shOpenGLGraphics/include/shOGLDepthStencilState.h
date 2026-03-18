@@ -1,11 +1,11 @@
 /*****************************************************************************/
 /*
-*  @file    shOGLInputLayout.h
+*  @file    shOGLDepthStencilState.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/03/17
-*  @brief
+*  @brief   Open GL depth stencil state class.
 *
-*
+*  Open GL depth stencil state class.
 *
 *  @bug     No bug known.
 */
@@ -18,19 +18,15 @@
 */
 /*****************************************************************************/
 #include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shDepthStencilState.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+class OGLDepthStencilState : public DepthStencilState
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
-
-  friend class OGLGraphicsManager;
-
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
+  public:
+   OGLDepthStencilState() = default;
+   virtual ~OGLDepthStencilState();
+  private:
+    uint32 m_depthStencilStateID = 0;
 };
 }

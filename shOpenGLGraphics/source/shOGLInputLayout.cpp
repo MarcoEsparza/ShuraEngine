@@ -10,27 +10,16 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shOGLInputLayout.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+OGLInputLayout::~OGLInputLayout()
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
-
-  friend class OGLGraphicsManager;
-
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
-};
+}
 }

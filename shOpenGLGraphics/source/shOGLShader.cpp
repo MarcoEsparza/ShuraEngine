@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /*
-*  @file    shOGLInputLayout.h
+*  @file    shOGLShader.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/03/17
 *  @brief
@@ -10,27 +10,32 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shOGLShader.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+OGLVertexShader::~OGLVertexShader()
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
+  glDeleteShader(m_vertexShaderID);
+}
 
-  friend class OGLGraphicsManager;
+OGLPixelShader::~OGLPixelShader()
+{
+  glDeleteShader(m_pixelShaderID);
+}
 
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
-};
+OGLGeometryShader::~OGLGeometryShader()
+{
+  glDeleteShader(m_geometryShaderID);
+}
+
+OGLComputeShader::~OGLComputeShader()
+{
+  glDeleteShader(m_computeShaderID);
+}
 }

@@ -25,6 +25,7 @@
 
 namespace shEngineSDK {
 Pass::~Pass() {
+  GraphicsManager& graphMan = g_graphicsMan();
   m_pVShader.reset();
   m_pPShader.reset();
   m_pGShader.reset();
@@ -37,6 +38,10 @@ Pass::~Pass() {
   m_psCBuffers.clear();
   m_gsCBuffers.clear();
   m_csCBuffers.clear();
+
+  if (m_program != 0) {
+    graphMan.deleteProgram(m_program);
+  }
 }
 
 void
@@ -178,6 +183,22 @@ Pass::compileShader()
                                               shaderMan.getCSShaderModel(),
                                               m_macros);
   }
+
+  if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    if (m_program != 0) {
+      graphMan.deleteProgram(m_program);
+    }
+
+    if (m_pCShader != nullptr) {
+      m_program = graphMan.createProgram(m_pCShader);
+    }
+    else if (m_pVShader != nullptr && m_pPShader != nullptr && m_pGShader != nullptr) {
+      m_program = graphMan.createProgram(m_pVShader, m_pPShader);
+    }
+    else if (m_pVShader != nullptr && m_pPShader != nullptr) {
+      m_program = graphMan.createProgram(m_pVShader, m_pPShader, m_pGShader);
+    }
+  }
 }
 
 void
@@ -196,17 +217,24 @@ Pass::setPass() const
   GraphicsManager& graphMan = g_graphicsMan();
 
   // Set shaders
-  if (m_pVShader) {
-    graphMan.setVertexShader(m_pVShader);
+  if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
+    if (m_pVShader) {
+      graphMan.setVertexShader(m_pVShader);
+    }
+    if (m_pPShader) {
+      graphMan.setPixelShader(m_pPShader);
+    }
+    if (m_pGShader) {
+      graphMan.setGeometryShader(m_pGShader);
+    }
+    if (m_pCShader) {
+      graphMan.setComputeShader(m_pCShader);
+    }
   }
-  if (m_pPShader) {
-    graphMan.setPixelShader(m_pPShader);
-  }
-  if (m_pGShader) {
-    graphMan.setGeometryShader(m_pGShader);
-  }
-  if (m_pCShader) {
-    graphMan.setComputeShader(m_pCShader);
+  else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
+    if (m_program != 0) {
+      graphMan.useProgram(m_program);
+    }
   }
 
   // Set input layout

@@ -1,42 +1,71 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shOGLShader.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/27
+*  @date    2026/03/17
 *  @brief
 *
 *
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesOGLGraphics.h"
 #include "shShader.h"
 
 namespace shEngineSDK {
-class OGLProgramShader : public ProgramShader
+class OGLVertexShader : public VertexShader
 {
  public:
-  OGLProgramShader() = default;
-  FORCEINLINE ~OGLProgramShader();
+  OGLVertexShader() = default;
+  virtual ~OGLVertexShader();
 
   friend class OGLGraphicsManager;
 
- protected:
-  uint32 m_vertexShader = 0;
-  uint32 m_fragShader = 0;
-  uint32 m_programID = 0;
+ private:
+   uint32 m_vertexShaderID = 0;
 };
 
-FORCEINLINE OGLProgramShader::~OGLProgramShader()
+class OGLPixelShader : public PixelShader
 {
+ public:
+  OGLPixelShader() = default;
+  virtual ~OGLPixelShader();
 
-}
+  friend class OGLGraphicsManager;
+
+ private:
+   uint32 m_pixelShaderID = 0;
+};
+
+class OGLGeometryShader : public GeometryShader
+{
+ public:
+  OGLGeometryShader() = default;
+  virtual ~OGLGeometryShader();
+
+  friend class OGLGraphicsManager;
+
+ private:
+   uint32 m_geometryShaderID = 0;
+};
+
+class OGLComputeShader : public ComputeShader
+{
+ public:
+  OGLComputeShader() = default;
+  virtual ~OGLComputeShader();
+
+  friend class OGLGraphicsManager;
+
+ private:
+   uint32 m_computeShaderID = 0;
+};
 }

@@ -1,36 +1,25 @@
 /*****************************************************************************/
 /*
-*  @file    shOGLInputLayout.h
+*  @file    shOGLRasterizerState.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/03/17
-*  @brief
+*  @brief   Open GL rasterizer state class.
 *
-*
+*  Open GL rasterizer state class.
 *
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shOGLRasterizerState.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+OGLRasterizerState::~OGLRasterizerState()
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
-
-  friend class OGLGraphicsManager;
-
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
-};
+}
 }

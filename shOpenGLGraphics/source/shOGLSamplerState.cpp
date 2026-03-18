@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /*
-*  @file    shOGLInputLayout.h
+*  @file    shOGLSamplerState.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/03/17
 *  @brief
@@ -10,27 +10,16 @@
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shOGLSamplerState.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+OGLSamplerState::~OGLSamplerState()
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
-
-  friend class OGLGraphicsManager;
-
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
-};
+}
 }

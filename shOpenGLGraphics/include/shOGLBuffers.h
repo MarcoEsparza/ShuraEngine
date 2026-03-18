@@ -1,22 +1,22 @@
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  @file    shOGLBuffers.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/27
+*  @date    2026/03/17
 *  @brief   OpenGL buffer class wrappers.
 *
 *  OpenGL buffer class wrappers.
 *
 *  @bug     No bug known.
 */
-/*************************************************************/
+/*****************************************************************************/
 #pragma once
 
-/*************************************************************/
+/*****************************************************************************/
 /*
 *  Includes
 */
-/*************************************************************/
+/*****************************************************************************/
 #include "shPrerequisitesOGLGraphics.h"
 #include "shBuffers.h"
 
@@ -35,7 +35,7 @@ class OGLVertexBuffer : public VertexBuffer
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE ~OGLVertexBuffer();
+  virtual ~OGLVertexBuffer();
 
   friend class OGLGraphicsManager;
 
@@ -65,7 +65,7 @@ class OGLIndexBuffer : public IndexBuffer
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE ~OGLIndexBuffer();
+  virtual ~OGLIndexBuffer();
 
   friend class OGLGraphicsManager;
 
@@ -95,7 +95,7 @@ class OGLConstantBuffer : public ConstantBuffer
   /**
   *  @brief Default destructor.
   */
-  FORCEINLINE ~OGLConstantBuffer();
+  virtual ~OGLConstantBuffer();
 
   friend class OGLGraphicsManager;
 
@@ -115,19 +115,4 @@ class OGLConstantBuffer : public ConstantBuffer
   */
   uint32 m_binding = 0;
 };
-
-FORCEINLINE OGLVertexBuffer::~OGLVertexBuffer()
-{
-  glDeleteBuffers(1, &m_vbo);
-}
-
-FORCEINLINE OGLIndexBuffer::~OGLIndexBuffer()
-{
-  glDeleteBuffers(1, &m_ibo);
-}
-
-FORCEINLINE OGLConstantBuffer::~OGLConstantBuffer()
-{
-  glDeleteBuffers(1, &m_ubo);
-}
 }

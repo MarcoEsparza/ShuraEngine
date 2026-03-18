@@ -1,36 +1,45 @@
 /*****************************************************************************/
 /*
-*  @file    shOGLInputLayout.h
+*  @file    shOGLBuffers.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/03/17
-*  @brief
+*  @brief   OpenGL buffer class wrappers.
 *
-*
+*  OpenGL buffer class wrappers.
 *
 *  @bug     No bug known.
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
 *  Includes
 */
 /*****************************************************************************/
-#include "shPrerequisitesOGLGraphics.h"
-#include "shInputLayout.h"
+#include "shOGLBuffers.h"
 
 namespace shEngineSDK {
-class OGLInputLayout : public InputLayout
+OGLVertexBuffer::~OGLVertexBuffer()
 {
- public:
-  OGLInputLayout() = default;
-  virtual ~OGLInputLayout();
+  if (m_vbo != 0) {
+    glDeleteBuffers(1, &m_vbo);
+    m_vbo = 0;
+  }
+}
 
-  friend class OGLGraphicsManager;
+OGLIndexBuffer::~OGLIndexBuffer()
+{
+  if (m_ibo != 0) {
+    glDeleteBuffers(1, &m_ibo);
+    m_ibo = 0;
+  }
+}
 
- protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
-};
+OGLConstantBuffer::~OGLConstantBuffer()
+{
+  if (m_ubo != 0) {
+    glDeleteBuffers(1, &m_ubo);
+    m_ubo = 0;
+  }
+}
 }

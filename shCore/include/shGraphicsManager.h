@@ -24,6 +24,7 @@
 #include <shRect.h>
 #include <shVector3.h>
 #include <shVector4.h>
+#include <shException.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -112,6 +113,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
 
   virtual void
   unbindAll() = 0;
+
+  virtual void
+  deleteProgram(uint32 programID) {
+    SH_UNREFERENCED_PARAMETER(programID);
+  }
 
   /***************************************************************************/
   /*
@@ -389,6 +395,27 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual SPtr<DepthStencilState>
   createDepthStencilState(const DepthStencilDesc& depthSDesc) = 0;
+
+  virtual uint32
+  createProgram(const WPtr<VertexShader>& pVShader,
+                const WPtr<PixelShader>& pPShader,
+                const WPtr<GeometryShader>& pGShader) {
+    SH_UNREFERENCED_PARAMETER(pVShader);
+    SH_UNREFERENCED_PARAMETER(pPShader);
+    SH_UNREFERENCED_PARAMETER(pGShader);
+  }
+
+  virtual uint32
+  createProgram(const WPtr<VertexShader>& pVShader,
+                const WPtr<PixelShader>& pPShader) {
+    SH_UNREFERENCED_PARAMETER(pVShader);
+    SH_UNREFERENCED_PARAMETER(pPShader);
+  }
+
+  virtual uint32
+  createProgram(const WPtr<ComputeShader>& pCShader) {
+    SH_UNREFERENCED_PARAMETER(pCShader);
+  }
 
   /**
   *  @brief GenerateMips for a texture.
@@ -736,6 +763,11 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   */
   virtual void
   setScissorRects(const Rect& scissorClip) = 0;
+
+  virtual void
+  useProgram(uint32 programID) {
+    SH_UNREFERENCED_PARAMETER(programID);
+  }
 
   /***************************************************************************/
   /*
