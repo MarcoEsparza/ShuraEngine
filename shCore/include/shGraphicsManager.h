@@ -403,6 +403,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
     SH_UNREFERENCED_PARAMETER(pVShader);
     SH_UNREFERENCED_PARAMETER(pPShader);
     SH_UNREFERENCED_PARAMETER(pGShader);
+
+    return 0;
   }
 
   virtual uint32
@@ -410,11 +412,15 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                 const WPtr<PixelShader>& pPShader) {
     SH_UNREFERENCED_PARAMETER(pVShader);
     SH_UNREFERENCED_PARAMETER(pPShader);
+
+    return 0;
   }
 
   virtual uint32
   createProgram(const WPtr<ComputeShader>& pCShader) {
     SH_UNREFERENCED_PARAMETER(pCShader);
+
+    return 0;
   }
 
   /**

@@ -4,7 +4,6 @@ Texture2D t_depthMap : register(t0);
 Texture2D t_normalMap : register(t1);
 Texture2D t_colorMap : register(t2);
 Texture2D t_propMap : register(t3);
-//Texture2D t_emmisiveMap : register(t4);
 Texture2D t_ssaoMap : register(t4);
 Texture2D t_shadowMap : register(t5);
 Texture2D t_depthStencil : register(t6);
@@ -13,10 +12,7 @@ Texture2D t_diffIrr : register(t8);
 Texture2D t_skyReflect : register(t9);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-#define PCF_KERNEL_SIZE 5
-#define DELTA 0.00000001
-#define SAMPLE_DELTA 0.2f
-#define MAX_REFLECTION_LOD 5.0f
+#define DELTA 0.00000001f
 
 cbuffer LightData : register(b2)
 {
@@ -37,34 +33,6 @@ cbuffer PrefilterConstants : register(b3)
   float mipmapLevels;
   float3 pcPadding; // Padding to 16 bytes
 };
-
-//float
-//pcFiltering(float2 uv,
-//            float depth,
-//            float texelSize,
-//            float shadowBias)
-//{
-//  float shadow = 0.0f;
-//  //int sampleCount = 0;
-
-//  for (int y = -PCF_KERNEL_SIZE; y <= PCF_KERNEL_SIZE; ++y)
-//  {
-//    for (int x = -PCF_KERNEL_SIZE; x <= PCF_KERNEL_SIZE; ++x)
-//    {
-  
-//      float2 offset = float2(x, y) * texelSize;
-//      float sampledDepth = t_shadowMap.Load(uint3(uv + offset, 0)).r;
-
-//      sampledDepth = sampledDepth * 0.5f + 0.5f;
-//      float shadowIntensity = 0.8f; // Change to a variable in constant buffer
-//      shadow += depth > sampledDepth + shadowBias ? shadowIntensity : 1.0f;
-//    }
-//  }
-  
-//  shadow /= PCF_KERNEL_SIZE * PCF_KERNEL_SIZE;
-//  return saturate(shadow);
-//  //return 1.0f - (shadow / sampleCount);
-//}
 
 float
 pcFiltering(float2 uv,
@@ -317,11 +285,7 @@ void CSMain(uint3 dtID : SV_DispatchThreadID)
   if (ssaoEnabled) {
     ssao = ssaoMap.r;
   }
-  //float totalAO = clamp(ao + (1.0f - ssao), 0.0f, 1.0f);
   float totalAO = ao * ssao;
-  
-  //float3 finalColor = (ambientLight + directLight * shadowFactor) * ssao;
-  //float3 emmisive = emmisiveMap.rgb;
   
   float3 ambient = ambientLight * totalAO;
   float3 direct = directLight * shadowFactor;

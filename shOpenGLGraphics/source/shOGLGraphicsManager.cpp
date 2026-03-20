@@ -51,6 +51,40 @@ enum E
 };
 }
 
+String
+resolveIncludes(const String& shaderCode, const String& basePath)
+{
+  String resolvedCode;
+  size_t pos = 0;
+  while (pos < shaderCode.length()) {
+    size_t includePos = shaderCode.find("#include", pos);
+    if (includePos == String::npos) {
+      resolvedCode += shaderCode.substr(pos);
+      break;
+    }
+    resolvedCode += shaderCode.substr(pos, includePos - pos);
+    size_t startQuote = shaderCode.find('"', includePos);
+    size_t endQuote = shaderCode.find('"', startQuote + 1);
+    if (startQuote == String::npos || endQuote == String::npos) {
+      SH_ASSERT(false && "Invalid #include directive");
+      return resolvedCode;
+    }
+    String includeFileName = shaderCode.substr(startQuote + 1, endQuote - startQuote - 1);
+    String includeFilePath = basePath + "/" + includeFileName;
+    fstream includeFile(includeFilePath, ios::in);
+    if (!includeFile.is_open()) {
+      SH_ASSERT(false && "Failed to open included shader file");
+      return resolvedCode;
+    }
+    stringstream includeStream;
+    includeStream << includeFile.rdbuf();
+    String includeShaderCode = resolveIncludes(includeStream.str(), basePath);
+    resolvedCode += includeShaderCode;
+    pos = endQuote + 1;
+  }
+  return resolvedCode;
+}
+
 uint32
 compileShader(const String& fileName,
               const OPENGL_SHADER_TYPE::E shaderType,
@@ -60,12 +94,16 @@ compileShader(const String& fileName,
   fstream shaderFile(fileName, ios::in);
   if (!shaderFile.is_open()) {
     SH_ASSERT(false && "Failed to open shader file");
-    return;
+    return 0;
   }
 
   stringstream shaderStream;
   shaderStream << shaderFile.rdbuf();
   String shaderCode = shaderStream.str();
+
+  // Resolve #include directives.
+  String basePath = fileName.substr(0, fileName.find_last_of("/\\"));
+  shaderCode = resolveIncludes(shaderCode, basePath);
 
   // Insert macros into shader code.
   String macroDefinitions;

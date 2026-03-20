@@ -6,8 +6,8 @@ SamplerState samplerPointClamp : register(s4);
 SamplerState samplerAnisotropicClamp : register(s5);
 
 #define PI 3.14159265358979323f
-#define RECIPROCAL_PI 1.0f / 3.14159265359
-#define RECIPROCAL_2PI 1.0f / (2 * 3.14159265359)
+#define RECIPROCAL_PI 1.0f / PI
+#define RECIPROCAL_2PI 1.0f / (2.0f * PI)
 #define INV_PI 0.31830988618379067239521257108191f
 
 // ----------------------------------------------------------------------------
@@ -292,8 +292,8 @@ directionToSphericalEnvMap(float3 dir)
 {
   float phi = -atan2(dir.y, dir.x); // azimuthal angle
   float theta = acos(dir.z);
-  float s = 0.5f - phi / (2.0f * PI);
-  float t = 1.0f - theta / PI;
+  float s = 0.5f - phi * RECIPROCAL_2PI;
+  float t = 1.0f - theta * RECIPROCAL_PI;
   return float2(s, t);
 }
 
