@@ -1,14 +1,37 @@
 project(shCoreTest)
-# Añadir el ejecutable de tests
+# Add the executable target for the shCoreTest module
 add_executable(${PROJECT_NAME}
+    source/imgui.cpp
+    source/imgui_demo.cpp
+    source/imgui_draw.cpp
+    source/imgui_impl_shura.cpp
+    source/imgui_tables.cpp
+    source/imgui_widgets.cpp
     source/shCoreTestMain.cpp
+    source/shGUI.cpp
+    source/shRendererApp.cpp
 )
-# Incluir los headers de lCore
+# Include directories for the shCoreTest module
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/shCore/include
     include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/externals
 )
-# Añadir lCore como dependencia
-target_link_libraries(${PROJECT_NAME} PRIVATE shCore)
-# Establecer las rutas de salida
+# Add shCore as a dependency
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    shCore
+    shUtilities
+    shPhysics
+)
+# Platform-specific libraries
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        shDX11Graphics
+        shOpenGLGraphics
+    )
+elseif (UNIX)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        shOpenGLGraphics
+    )
+endif()
+# Set the output directories for the shCoreTest target
 set_output_directories(${PROJECT_NAME})

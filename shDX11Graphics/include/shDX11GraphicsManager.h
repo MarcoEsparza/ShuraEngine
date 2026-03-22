@@ -29,6 +29,8 @@
 #include "shDX11BlendState.h"
 #include "shDX11DepthStencilState.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief Graphics Manager for DirectX 11.
@@ -777,3 +779,5 @@ class DX11GraphicsManager : public GraphicsManager
 #endif
 };
 }
+
+#endif

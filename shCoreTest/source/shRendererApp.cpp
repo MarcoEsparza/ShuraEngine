@@ -100,11 +100,11 @@ RendererApp::onCreate()
   renderMan.computeIBL();
 
   // Create audio
-  Path audioPath("resources/cat.wav");
+  /*Path audioPath("resources/cat.wav");
   m_testSound = audioMan.createSound(audioPath);
   if (m_testSound) {
     m_testSound->m_channel = CHANNEL_TYPE::kUI;
-  }
+  }*/
 
   loadMods();
 }
@@ -170,11 +170,11 @@ RendererApp::onUpdate()
   //scene.update();
 
   // Update audio
-  if (bIsSoundPlaying) {
+  /*if (bIsSoundPlaying) {
     audioMan.playSound(m_testSound);
     bIsSoundPlaying = false;
   }
-  audioMan.update();
+  audioMan.update();*/
 
   m_delta = 0.0f;
   m_hdelta = 0.0f;

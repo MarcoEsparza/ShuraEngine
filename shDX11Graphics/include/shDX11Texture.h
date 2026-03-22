@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shTexture.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Texture2D class wrapper.
@@ -110,3 +112,5 @@ class DX11Texture3D final : public Texture3D
   ID3D11ShaderResourceView* m_pShaderRV = nullptr;
 };
 }
+
+#endif

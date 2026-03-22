@@ -18,8 +18,12 @@
 /*****************************************************************************/
 #include "shDX11DepthStencilState.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 DX11DepthStencilState::~DX11DepthStencilState() {
   SafeRelease(m_pDepthSS);
 }
 }
+
+#endif

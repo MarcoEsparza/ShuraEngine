@@ -15,6 +15,8 @@
 //--------------------------------------------------------------------------------------
 
 #pragma once
+#include <shPlatformDefines.h>
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 
 #include <d3d11_1.h>
 
@@ -156,3 +158,5 @@ namespace DirectX
         _Outptr_opt_ ID3D11ShaderResourceView** textureView,
         _Out_opt_ DDS_ALPHA_MODE* alphaMode = nullptr) noexcept;
 }
+
+#endif

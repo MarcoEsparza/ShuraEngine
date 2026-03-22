@@ -18,6 +18,8 @@
 /*****************************************************************************/
 #include "shDX11Texture.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK
 {
 DX11Texture2D::~DX11Texture2D()
@@ -49,3 +51,5 @@ DX11Texture3D::~DX11Texture3D()
   SafeRelease(m_pShaderRV);
 }
 }
+
+#endif

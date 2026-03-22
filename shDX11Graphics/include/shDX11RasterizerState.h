@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shRasterizerState.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Rasterizer State.
@@ -51,3 +53,5 @@ class DX11RasterizerState : public RasterizerState
   ID3D11RasterizerState* m_pRasterS = nullptr;
 };
 }
+
+#endif

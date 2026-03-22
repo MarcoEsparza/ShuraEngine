@@ -83,6 +83,7 @@
     <ClCompile Include="source\shDynamicLibraryManager.cpp" />
     <ClCompile Include="source\shEvent.cpp" />
     <ClCompile Include="source\shFileExplorerWin32.cpp" />
+    <ClCompile Include="source\shFileExplorerX11.cpp" />
     <ClCompile Include="source\shFrustum.cpp" />
     <ClCompile Include="source\shGameObject.cpp" />
     <ClCompile Include="source\shGizmos.cpp" />
@@ -98,7 +99,9 @@
     <ClCompile Include="source\shRigidbodyComponent.cpp" />
     <ClCompile Include="source\shSceneGraph.cpp" />
     <ClCompile Include="Source\shScreenEventHandleWin32.cpp" />
+    <ClCompile Include="source\shScreenEventHandleX11.cpp" />
     <ClCompile Include="Source\shScreenWin32.cpp" />
+    <ClCompile Include="source\shScreenX11.cpp" />
     <ClCompile Include="source\shShaderManager.cpp" />
     <ClCompile Include="source\shSkeletonResource.cpp" />
     <ClCompile Include="source\shSkyBoxComponent.cpp" />

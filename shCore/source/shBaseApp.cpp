@@ -89,6 +89,7 @@ BaseApp::createWindow()
 {
   m_mainScreen = sh_makeShared<Screen>();
   m_eventQueue = sh_makeShared<ScreenEventHandle>();
+  m_eventQueue->setParentScreen(m_mainScreen);
 
   if (!m_mainScreen->init(m_screenDesc, m_eventQueue)) {
     return;
@@ -150,7 +151,7 @@ BaseApp::initManagers()
   Logger::startUp();
   FileExplorer::startUp();
 
-  loadAudioAPI();
+  //loadAudioAPI();
 }
 
 void
@@ -266,7 +267,7 @@ BaseApp::destroyManagers()
   Gizmos::shutDown();
   RenderManager::shutDown();
   ShaderManager::shutDown();
-  AudioManager::shutDown();
+  //AudioManager::shutDown();
   GraphicsManager::shutDown();
   DynamicLibraryManager::shutDown();
 }

@@ -23,6 +23,7 @@
 #include <shException.h>
 #include "shMath.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -1927,3 +1928,5 @@ DX11GraphicsManager::dispatch(const uint32 threadGroupCountX,
   m_pDeviceContext->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 }
 }
+
+#endif

@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /*
-*  @file    shScreenEventHandle.cpp
+*  @file    shScreenEventHandleWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2025/07/17
 *  @brief   Base screen event handler for windows.
@@ -113,6 +113,12 @@ void
 ScreenEventHandle::setProcessingMode(const shPROCESSING_MODE::E& mode)
 {
   m_processingMode = mode;
+}
+
+void
+ScreenEventHandle::setParentScreen(const WPtr<Screen>& parentScreen)
+{
+  m_parentScreen = parentScreen;
 }
 
 SIZE_T

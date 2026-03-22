@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shInputLayout.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Input Layout class wrapper.
@@ -51,3 +53,5 @@ class DX11InputLayout : public InputLayout
   ID3D11InputLayout* m_pLayout = nullptr;
 };
 }
+
+#endif

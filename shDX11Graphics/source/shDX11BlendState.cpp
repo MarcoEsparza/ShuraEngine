@@ -18,6 +18,8 @@
 /*****************************************************************************/
 #include "shDX11BlendState.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 DX11BlendState::~DX11BlendState()
 {
@@ -34,3 +36,5 @@ DX11BlendState::setDebugName(const String& name)
   }
 }
 }
+
+#endif

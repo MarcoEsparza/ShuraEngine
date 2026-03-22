@@ -1,15 +1,33 @@
 project(shDX11Graphics)
-# Configurar la biblioteca compartida (DLL)
-add_library(${PROJECT_NAME} SHARED
-    source/shDX11GraphicsManager.cpp
-    source/shDX11LoadPlugin.cpp
+
+if(NOT WIN32)
+    message(FATAL_ERROR "shDX11Graphics is only supported on Windows.")
+endif()
+
+# Configure the shDX11Graphics library target
+file(GLOB SOURCE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp
 )
 
-# Incluir los archivos en la carpeta include
-target_include_directories(${PROJECT_NAME} PUBLIC include)
-# Configurar el sufijo 'd' para Debug
+add_library(${PROJECT_NAME} STATIC
+    ${SOURCE_FILES}
+)
+
+# Include directories for the shDX11Graphics library
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    include
+)
+
+# Link dependencies for the shDX11Graphics library
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    shCore
+    shUtilities
+)
+
+# Configure the debug suffix
 set_target_properties(${PROJECT_NAME} PROPERTIES
     DEBUG_POSTFIX "d"
 )
-# Establecer las rutas de salida
+# Set the output directories for the shDX11Graphics target
 set_output_directories(${PROJECT_NAME})

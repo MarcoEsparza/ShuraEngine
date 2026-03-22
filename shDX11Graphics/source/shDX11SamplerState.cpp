@@ -18,8 +18,12 @@
 /*****************************************************************************/
 #include "shDX11SamplerState.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 DX11SamplerState::~DX11SamplerState() {
   SafeRelease(m_pSamplerLinear);
 }
 }
+
+#endif

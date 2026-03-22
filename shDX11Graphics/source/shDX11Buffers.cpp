@@ -18,6 +18,8 @@
 /*****************************************************************************/
 #include "shDX11Buffers.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 DX11VertexBuffer::~DX11VertexBuffer() {
   SafeRelease(m_pBuffer);
@@ -31,3 +33,5 @@ DX11ConstantBuffer::~DX11ConstantBuffer() {
   SafeRelease(m_pBuffer);
 }
 }
+
+#endif

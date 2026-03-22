@@ -18,8 +18,12 @@
 /*****************************************************************************/
 #include "shDX11RasterizerState.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 DX11RasterizerState::~DX11RasterizerState() {
   SafeRelease(m_pRasterS);
 }
 }
+
+#endif

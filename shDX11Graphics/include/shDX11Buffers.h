@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shBuffers.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Vertex Buffer class wrapper.
@@ -121,3 +123,5 @@ protected:
   ID3D11Buffer* m_pBuffer = nullptr;
 };
 }
+
+#endif

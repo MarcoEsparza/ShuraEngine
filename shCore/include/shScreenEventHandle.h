@@ -19,6 +19,8 @@
 #include "shEvent.h"
 
 namespace shEngineSDK {
+class Screen;
+
 namespace shPROCESSING_MODE{
 enum E
 {
@@ -94,6 +96,9 @@ class SH_CORE_EXPORT ScreenEventHandle
   void
   setProcessingMode(const shPROCESSING_MODE::E& mode);
 
+  void
+  setParentScreen(const WPtr<Screen>& parentScreen);
+
   /**
   *  @brief Return the size
   * 
@@ -124,5 +129,7 @@ class SH_CORE_EXPORT ScreenEventHandle
   *  @brief Event queue.
   */
   Queue<Event> m_queue;
+
+  WPtr<Screen> m_parentScreen;
 };
 }

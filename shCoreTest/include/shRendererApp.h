@@ -351,7 +351,7 @@ class RendererApp : public BaseApp
   /**
   *  @brief Testing audio.
   */
-  SPtr<Sound> m_testSound;
+  //SPtr<Sound> m_testSound;
 
   /**
   *  @brief Is audio playing?

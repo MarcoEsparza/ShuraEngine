@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shSamplerState.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Sampler State class wrapper.
@@ -51,3 +53,5 @@ class DX11SamplerState : public SamplerState
   ID3D11SamplerState* m_pSamplerLinear = nullptr;
 };
 }
+
+#endif

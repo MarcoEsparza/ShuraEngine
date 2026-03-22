@@ -50,6 +50,10 @@ int main(int argc, const char** argv)
     api = GRAPHIC_API::kOGL;
   }
 
+#if SH_PLATFORM == SH_PLATFORM_LINUX
+  api = GRAPHIC_API::kOGL;
+#endif
+
   RendererApp app(desc, api);
   app.run();
 

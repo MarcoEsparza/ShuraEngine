@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shShader.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Vertex Shader class wrapper.
@@ -161,3 +163,5 @@ class DX11ComputeShader : public ComputeShader
   ID3D11ComputeShader* m_pComputeShader = nullptr;
 };
 }
+
+#endif

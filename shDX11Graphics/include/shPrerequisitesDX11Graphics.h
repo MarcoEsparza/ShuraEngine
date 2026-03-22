@@ -18,6 +18,9 @@
 */
 /*************************************************************/
 #include "shPrerequisitesCore.h"
+
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 #include "d3d11.h"
 
 namespace shEngineSDK {
@@ -29,3 +32,5 @@ void SafeRelease(T * &p){
   }
 }
 }
+
+#endif

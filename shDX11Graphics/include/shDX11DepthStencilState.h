@@ -20,6 +20,8 @@
 #include "shPrerequisitesDX11Graphics.h"
 #include <shDepthStencilState.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Depth Stencil State.
@@ -51,3 +53,5 @@ class DX11DepthStencilState : public DepthStencilState
   ID3D11DepthStencilState* m_pDepthSS = nullptr;
 };
 }
+
+#endif

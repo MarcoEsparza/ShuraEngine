@@ -16,6 +16,8 @@
 
 #include "DDSTextureLoader11.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -2074,3 +2076,5 @@ HRESULT DirectX::CreateDDSTextureFromFileEx(
 
     return hr;
 }
+
+#endif

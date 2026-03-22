@@ -23,7 +23,8 @@
 struct HWND__;
 using PlatformScreen = HWND__*;
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
-using PlatformScreen = void*;
+struct LinuxScreenHandle;
+using PlatformScreen = LinuxScreenHandle*;
 #endif
 
 namespace shEngineSDK {
@@ -172,6 +173,9 @@ class SH_CORE_EXPORT Screen
   FORCEINLINE uint32
   getHeight() const;
 
+  FORCEINLINE Vector2i
+  getPrevMousePos() const;
+
   /**
   *  @brief Get the Screen handler.
   * 
@@ -195,6 +199,9 @@ class SH_CORE_EXPORT Screen
   */
   FORCEINLINE void
   setHeight(uint32 height);
+
+  FORCEINLINE void
+  setPrevMousePos(const Vector2i& pos);
 
   /**
   *  @brief Is window open?
@@ -273,6 +280,12 @@ Screen::getHeight() const
   return m_height;
 }
 
+FORCEINLINE Vector2i
+Screen::getPrevMousePos() const
+{
+  return m_prevMousePos;
+}
+
 FORCEINLINE PlatformScreen
 Screen::getPlatformHandler() const
 {
@@ -289,6 +302,12 @@ FORCEINLINE void
 Screen::setHeight(uint32 height)
 {
   m_height = height;
+}
+
+FORCEINLINE void
+Screen::setPrevMousePos(const Vector2i& pos)
+{
+  m_prevMousePos = pos;
 }
 
 FORCEINLINE bool

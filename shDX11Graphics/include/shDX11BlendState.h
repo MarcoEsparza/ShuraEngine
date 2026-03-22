@@ -21,6 +21,8 @@
 #include <shBlendState.h>
 #include <shLinearColor.h>
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 /**
 *  @brief DirectX11 Blend State.
@@ -60,3 +62,5 @@ class DX11BlendState : public BlendState
   LinearColor m_blendFactor;
 };
 }
+
+#endif

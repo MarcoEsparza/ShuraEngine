@@ -25,9 +25,7 @@ using std::reinterpret_pointer_cast;
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
-#endif
-
-#if SH_PLATFORM == SH_PLATFORM_LINUX
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
 #include "X11/Xlib.h"
 #endif
 
@@ -179,11 +177,45 @@ enableOpenGL(const WPtr<Screen> screen, const bool bAntiliasing)
   wglMakeCurrent(hDC, hRC);
 
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
-  /*Display* display = XOpenDisplay(NULL);
-  if (display == nullptr) {
-    SH_ASSERT(false && "Failed to open X display");
+  
+  auto handle = screen.lock()->getPlatformHandler();
+  Display* display = handle.display;
+  Window window = handle.window;
+  
+  int32 fbAttribs[] = {
+    GLX_X_RENDERABLE, True,
+    GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+    GLX_RENDER_TYPE, GLX_RGBA_BIT,
+    GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+    GLX_RED_SIZE, 8,
+    GLX_GREEN_SIZE, 8,
+    GLX_BLUE_SIZE, 8,
+    GLX_ALPHA_SIZE, 8,
+    GLX_DEPTH_SIZE, 24,
+    GLX_STENCIL_SIZE, 8,
+    None
+  };
+
+  int32 fbCount;
+  GLXFBConfig* fbConfigs = glXChooseFBConfig(display, DefaultScreen(display),
+                                             fbAttribs, &fbCount);
+  if (fbConfigs == nullptr || fbCount == 0) {
+    SH_ASSERT(false && "Failed to choose FB config");
     return;
-  }*/
+  }
+
+  XVisualInfo* vi = glXGetVisualFromFBConfig(display, fbConfigs[0]);
+
+  GLXContext context = glXCreateContext(display, vi, nullptr, GL_TRUE);
+  if (context == nullptr) {
+    SH_ASSERT(false && "Failed to create OpenGL context");
+    return;
+  }
+
+  glXMakeCurrent(display, window, context);
+
+  XFree(vi);
+  XFree(fbConfigs);
 
 #endif
 

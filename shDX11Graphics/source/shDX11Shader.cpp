@@ -18,6 +18,8 @@
 /*****************************************************************************/
 #include "shDX11Shader.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+
 namespace shEngineSDK {
 DX11VertexShader::~DX11VertexShader() {
   SafeRelease(m_pBlob);
@@ -39,3 +41,5 @@ DX11ComputeShader::~DX11ComputeShader() {
   SafeRelease(m_pComputeShader);
 }
 }
+
+#endif

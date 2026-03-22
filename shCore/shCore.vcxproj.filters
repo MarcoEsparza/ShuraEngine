@@ -356,5 +356,14 @@
     <ClCompile Include="source\shDynamicLibraryManager.cpp">
       <Filter>Source Files\DynamicLibrary</Filter>
     </ClCompile>
+    <ClCompile Include="source\shScreenX11.cpp">
+      <Filter>Source Files\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shFileExplorerX11.cpp">
+      <Filter>Source Files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shScreenEventHandleX11.cpp">
+      <Filter>Source Files\Event</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
