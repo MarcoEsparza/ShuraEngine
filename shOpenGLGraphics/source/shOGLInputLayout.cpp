@@ -21,5 +21,9 @@
 namespace shEngineSDK {
 OGLInputLayout::~OGLInputLayout()
 {
+  if (m_vao != 0) {
+    glDeleteVertexArrays(1, &m_vao);
+    m_vao = 0;
+  }
 }
 }

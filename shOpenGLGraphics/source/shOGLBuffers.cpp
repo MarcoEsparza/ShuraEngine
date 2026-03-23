@@ -21,25 +21,29 @@
 namespace shEngineSDK {
 OGLVertexBuffer::~OGLVertexBuffer()
 {
-  if (m_vbo != 0) {
-    glDeleteBuffers(1, &m_vbo);
-    m_vbo = 0;
+  if (m_bufferID != 0) {
+    glDeleteBuffers(1, &m_bufferID);
+    m_bufferID = 0;
+    m_stride = 0;
+    m_size = 0;
   }
 }
 
 OGLIndexBuffer::~OGLIndexBuffer()
 {
-  if (m_ibo != 0) {
-    glDeleteBuffers(1, &m_ibo);
-    m_ibo = 0;
+  if (m_bufferID != 0) {
+    glDeleteBuffers(1, &m_bufferID);
+    m_bufferID = 0;
+    m_count = 0;
   }
 }
 
 OGLConstantBuffer::~OGLConstantBuffer()
 {
-  if (m_ubo != 0) {
-    glDeleteBuffers(1, &m_ubo);
-    m_ubo = 0;
+  if (m_bufferID != 0) {
+    glDeleteBuffers(1, &m_bufferID);
+    m_bufferID = 0;
+    m_size = 0;
   }
 }
 }

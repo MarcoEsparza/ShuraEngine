@@ -753,12 +753,6 @@ DX11GraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint
   m_pDevice->CreateBuffer(&desc, &initData, &pIBuffer->m_pBuffer);
   pIBuffer->m_dataFormat = DXGI_FORMAT_R32_UINT;
 
-  /*String name = "IndexBuffer_" + std::to_string(m_indexBufferCount);
-  pIBuffer->m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName,
-                                      static_cast<uint32>(name.size()),
-                                      name.c_str());
-  ++m_indexBufferCount;*/
-
   return pIBuffer;
 }
 
@@ -785,9 +779,8 @@ DX11GraphicsManager::createConstantBuffer(const uint32 bufferSize,
     initData.SysMemSlicePitch = 0;
   }
 
-  throwIfFailed(m_pDevice->CreateBuffer(&desc,
-                                                   pData ? &initData : nullptr,
-                                                   &pCBuffer->m_pBuffer));
+  throwIfFailed(m_pDevice->CreateBuffer(&desc, pData ? &initData : nullptr,
+                                        &pCBuffer->m_pBuffer));
 
   return pCBuffer;
 }
@@ -953,8 +946,6 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
         // If mipLevels is 0, we will auto-generate mipmaps
         texMipLevels = static_cast<uint32>(Math::log2(Math::max(static_cast<float>(width),
                                                       static_cast<float>(height)))) + 1;
-        // Temporary fix for log2, later we should use a proper log2 function
-        //texMipLevels = static_cast<uint32>(std::log2(max(width, height)) + 1);
         autoGenMipMaps = true;
       }
     }
@@ -1280,8 +1271,8 @@ DX11GraphicsManager::createRasterizerState(const RasterizerDesc& rasterizerDesc)
   auto pRasterizerState = sh_makeShared<DX11RasterizerState>();
 
   D3D11_RASTERIZER_DESC rasterDesc = {};
-  rasterDesc.FillMode = static_cast<D3D11_FILL_MODE>(rasterizerDesc.fillMode);
-  rasterDesc.CullMode = static_cast<D3D11_CULL_MODE>(rasterizerDesc.cullMode);
+  rasterDesc.FillMode = cast::st<D3D11_FILL_MODE>(rasterizerDesc.fillMode);
+  rasterDesc.CullMode = cast::st<D3D11_CULL_MODE>(rasterizerDesc.cullMode);
   rasterDesc.FrontCounterClockwise = rasterizerDesc.frontCounterClockwise;
   rasterDesc.DepthBias = rasterizerDesc.depthBias;
   rasterDesc.DepthBiasClamp = rasterizerDesc.depthBiasClamp;
@@ -1303,26 +1294,25 @@ DX11GraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
 
   D3D11_DEPTH_STENCIL_DESC d3d11DepthDesc = {};
   d3d11DepthDesc.DepthEnable = depthSDesc.depthEnable;
-  d3d11DepthDesc.DepthWriteMask =
-    static_cast<D3D11_DEPTH_WRITE_MASK>(depthSDesc.depthWriteMask);
-  d3d11DepthDesc.DepthFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.depthFunc);
+  d3d11DepthDesc.DepthWriteMask = cast::st<D3D11_DEPTH_WRITE_MASK>(depthSDesc.depthWriteMask);
+  d3d11DepthDesc.DepthFunc = cast::st<D3D11_COMPARISON_FUNC>(depthSDesc.depthFunc);
   d3d11DepthDesc.StencilEnable = depthSDesc.stencilEnable;
   d3d11DepthDesc.StencilReadMask = depthSDesc.stencilReadMask;
   d3d11DepthDesc.StencilWriteMask = depthSDesc.stencilWriteMask;
 
   D3D11_DEPTH_STENCILOP_DESC frontFace = {};
-  frontFace.StencilFailOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilFailOp);
+  frontFace.StencilFailOp = cast::st<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilFailOp);
   frontFace.StencilDepthFailOp =
-    static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilDepthFailOp);
-  frontFace.StencilPassOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilPassOp);
-  frontFace.StencilFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.frontFace.stencilFunc);
+    cast::st<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilDepthFailOp);
+  frontFace.StencilPassOp = cast::st<D3D11_STENCIL_OP>(depthSDesc.frontFace.stencilPassOp);
+  frontFace.StencilFunc = cast::st<D3D11_COMPARISON_FUNC>(depthSDesc.frontFace.stencilFunc);
 
   D3D11_DEPTH_STENCILOP_DESC backFace = {};
-  backFace.StencilFailOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilFailOp);
+  backFace.StencilFailOp = cast::st<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilFailOp);
   backFace.StencilDepthFailOp =
-    static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilDepthFailOp);
-  backFace.StencilPassOp = static_cast<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilPassOp);
-  backFace.StencilFunc = static_cast<D3D11_COMPARISON_FUNC>(depthSDesc.backFace.stencilFunc);
+    cast::st<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilDepthFailOp);
+  backFace.StencilPassOp = cast::st<D3D11_STENCIL_OP>(depthSDesc.backFace.stencilPassOp);
+  backFace.StencilFunc = cast::st<D3D11_COMPARISON_FUNC>(depthSDesc.backFace.stencilFunc);
 
   d3d11DepthDesc.FrontFace = frontFace;
   d3d11DepthDesc.BackFace = backFace;
@@ -1392,8 +1382,6 @@ DX11GraphicsManager::updateScreenSize(const Vector2& size)
     m_pBackbuffer = nullptr;
   }
 
-  //DX11SwapChain* obj = reinterpret_cast<DX11SwapChain*>(m_pSwapChain.get());
-  //IDXGISwapChain* pSwapChain = obj->m_pSwapChain;
   m_pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
 
   auto pBackbuffer = sh_makeShared<DX11Texture2D>();
@@ -1413,10 +1401,6 @@ DX11GraphicsManager::updateScreenSize(const Vector2& size)
                                     D3D11_USAGE_DEFAULT,
                                     D3D11_BIND_DEPTH_STENCIL,
                                     1);
-
-  /*m_pDeviceContext->m_pDeviceContext->OMSetRenderTargets(1,
-                                                         &m_pRenderTargetView->m_pRenderTV,
-                                                         m_pDepthStencil->m_pDepthSV);*/
 
   //Setup the viewport
   Viewport viewPort;
@@ -1684,7 +1668,7 @@ DX11GraphicsManager::csSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
 void
 DX11GraphicsManager::setPrimitiveTopology(uint32 primitive)
 {
-  m_pDeviceContext->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(primitive));
+  m_pDeviceContext->IASetPrimitiveTopology(cast::st<D3D_PRIMITIVE_TOPOLOGY>(primitive));
 }
 
 void

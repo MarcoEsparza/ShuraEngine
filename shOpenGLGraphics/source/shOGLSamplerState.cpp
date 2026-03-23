@@ -21,5 +21,9 @@
 namespace shEngineSDK {
 OGLSamplerState::~OGLSamplerState()
 {
+  if (m_samplerID != 0) {
+    glDeleteSamplers(1, &m_samplerID);
+    m_samplerID = 0;
+  }
 }
 }

@@ -62,7 +62,7 @@ RendererApp::onCreate()
   //GraphicsManager& graphMan = g_graphicsMan();
   RenderManager& renderMan = g_renderMan();
   ShaderManager& shaderMan = g_shaderMan();
-  AudioManager& audioMan = AudioManager::instance();
+  //AudioManager& audioMan = AudioManager::instance();
   SceneGraph& scene = g_sceneGraph();
 
   m_shadowTexSize = 2048.0f;
@@ -112,7 +112,7 @@ RendererApp::onCreate()
 void
 RendererApp::onUpdate()
 {
-  AudioManager& audioMan = AudioManager::instance();
+  //AudioManager& audioMan = AudioManager::instance();
   Time& time = g_time();
   //SceneGraph& scene = g_sceneGraph();
 

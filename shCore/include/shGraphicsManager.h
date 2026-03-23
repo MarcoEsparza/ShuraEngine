@@ -172,6 +172,13 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   virtual SPtr<InputLayout>
   createInputLayoutFromShader(const WPtr<VertexShader> pShader) = 0;
 
+  virtual SPtr<InputLayout>
+  createInputLayoutFromVertexBuffer(const Vector<InputDesc>& desc,
+                                    const WPtr<VertexBuffer> pVBuffer) {
+    SH_UNREFERENCED_PARAMETER(desc);
+    SH_UNREFERENCED_PARAMETER(pVBuffer);
+  }
+
   /**
   *  @brief Creates a Vertex Shader.
   *

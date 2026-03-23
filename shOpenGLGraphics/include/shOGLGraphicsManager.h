@@ -96,6 +96,10 @@ class OGLGraphicsManager : public GraphicsManager
   SPtr<InputLayout>
   createInputLayoutFromShader(const WPtr<VertexShader> pPShader) override;
 
+  SPtr<InputLayout>
+  createInputLayoutFromVertexBuffer(const Vector<InputDesc>& desc,
+                                    const WPtr<VertexBuffer> pVBuffer) override;
+
   SPtr<VertexShader>
   createVertexShader(const String& fileName,
                      const String& entryPoint,
@@ -595,6 +599,9 @@ class OGLGraphicsManager : public GraphicsManager
            const uint32 threadGroupCountY,
            const uint32 threadGroupCountZ) override;
 
+  void
+  setUniformBuffers(WPtr<ConstantBuffer> pCBuffer, uint32 startSlot);
+
   /***************************************************************************/
   /*
   *  Variables
@@ -608,6 +615,10 @@ class OGLGraphicsManager : public GraphicsManager
   uint32 m_depthStencilRBO = 0;
   SPtr<Texture2D> m_pBackBuffer;
   SPtr<Texture2D> m_pDepthStencil;
+  uint32 m_currentTopology = 0;
+  uint32 m_currentIBO = 0;
+  uint32 m_frameBufferHeight = 0;
+  Viewport m_currentViewport;
 
 #if defined(SH_DEBUG_MODE)
   bool m_debugEnabled = false;

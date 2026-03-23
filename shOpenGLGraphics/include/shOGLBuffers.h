@@ -48,7 +48,9 @@ class OGLVertexBuffer : public VertexBuffer
   /**
   *  @brief OpenGL buffer.
   */
-  uint32 m_vbo = 0;
+  uint32 m_bufferID = 0;
+  uint32 m_stride = 0;
+  uint32 m_size = 0;
 };
 
 /**
@@ -78,7 +80,8 @@ class OGLIndexBuffer : public IndexBuffer
   /**
   *  @brief OpenGL buffer.
   */
-  uint32 m_ibo = 0;
+  uint32 m_bufferID = 0;
+  uint32 m_count = 0;
 };
 
 /**
@@ -108,11 +111,11 @@ class OGLConstantBuffer : public ConstantBuffer
   /**
   *  @brief OpenGL buffer.
   */
-  uint32 m_ubo = 0;
+  uint32 m_bufferID = 0;
 
   /**
   *  @brief Buffer size.
   */
-  uint32 m_binding = 0;
+  uint32 m_size = 0;
 };
 }

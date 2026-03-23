@@ -227,6 +227,99 @@ enableOpenGL(const WPtr<Screen> screen, const bool bAntiliasing)
   }
 }
 
+GLenum
+translateBlend(uint32 blend)
+{
+  switch (blend)
+  {
+  case BLEND::kZero: return GL_ZERO;
+  case BLEND::kOne: return GL_ONE;
+  case BLEND::kSrcColor: return GL_SRC_COLOR;
+  case BLEND::kInvSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+  case BLEND::kSrcAlpha: return GL_SRC_ALPHA;
+  case BLEND::kInvSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+  case BLEND::kDestAlpha: return GL_DST_ALPHA;
+  case BLEND::kInvDestAlpha: return GL_ONE_MINUS_DST_ALPHA;
+  case BLEND::kDestColor: return GL_DST_COLOR;
+  case BLEND::kInvDestColor: return GL_ONE_MINUS_DST_COLOR;
+  case BLEND::kSrcAlphaSat: return GL_SRC_ALPHA_SATURATE;
+  case BLEND::kBlendFactor: return GL_CONSTANT_COLOR;
+  case BLEND::kInvBlendFactor: return GL_ONE_MINUS_CONSTANT_COLOR;
+  default: return GL_ONE;
+  }
+}
+
+GLenum
+translateBlendOp(uint32 op)
+{
+  switch (op)
+  {
+  case BLEND_OP::kAdd: return GL_FUNC_ADD;
+  case BLEND_OP::kSubtract: return GL_FUNC_SUBTRACT;
+  case BLEND_OP::kRevSubtract: return GL_FUNC_REVERSE_SUBTRACT;
+  case BLEND_OP::kMin: return GL_MIN;
+  case BLEND_OP::kMax: return GL_MAX;
+  default: return GL_FUNC_ADD;
+  }
+}
+
+GLenum
+translateComparison(uint32 func)
+{
+  switch (func)
+  {
+  case COMPARISON_FUNC::kNever: return GL_NEVER;
+  case COMPARISON_FUNC::kLess: return GL_LESS;
+  case COMPARISON_FUNC::kEqual: return GL_EQUAL;
+  case COMPARISON_FUNC::kLessEqual: return GL_LEQUAL;
+  case COMPARISON_FUNC::kGreater: return GL_GREATER;
+  case COMPARISON_FUNC::kNotEqual: return GL_NOTEQUAL;
+  case COMPARISON_FUNC::kGreaterEqual: return GL_GEQUAL;
+  case COMPARISON_FUNC::kAlways: return GL_ALWAYS;
+  default: return GL_LESS;
+  }
+}
+
+GLenum
+translateStencilOp(uint32 op)
+{
+  switch (op)
+  {
+  case STENCIL_OP::kKeep: return GL_KEEP;
+  case STENCIL_OP::kZero: return GL_ZERO;
+  case STENCIL_OP::kReplace: return GL_REPLACE;
+  case STENCIL_OP::kIncr: return GL_INCR;
+  case STENCIL_OP::kIncrSat: return GL_INCR_WRAP;
+  case STENCIL_OP::kDecr: return GL_DECR;
+  case STENCIL_OP::kDecrSat: return GL_DECR_WRAP;
+  case STENCIL_OP::kInvert: return GL_INVERT;
+  default: return GL_KEEP;
+  }
+}
+
+GLenum
+translateFillMode(uint32 mode)
+{
+  switch (mode)
+  {
+  case FILL_MODE::kSolid: return GL_FILL;
+  case FILL_MODE::kWireframe: return GL_LINE;
+  default: return GL_FILL;
+  }
+}
+
+GLenum
+translateCullMode(uint32 mode)
+{
+  switch (mode)
+  {
+  case CULL_MODE::kNone: return GL_NONE;
+  case CULL_MODE::kFront: return GL_FRONT;
+  case CULL_MODE::kBack: return GL_BACK;
+  default: return GL_BACK;
+  }
+}
+
 OGLGraphicsManager::~OGLGraphicsManager()
 {
 
@@ -309,11 +402,12 @@ OGLGraphicsManager::initManager(const WPtr<Screen> screen,
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  glViewport(0, 0, width, height);
+  //glViewport(0, 0, width, height);
+  m_frameBufferHeight = height;
 
   Viewport viewPort;
-  viewPort.width = static_cast<float>(width);
-  viewPort.height = static_cast<float>(height);
+  viewPort.width = cast::st<float>(width);
+  viewPort.height = cast::st<float>(height);
   viewPort.minDepth = 0.0f;
   viewPort.maxDepth = 1.0f;
   viewPort.topLeftX = 0.0f;
@@ -365,7 +459,8 @@ OGLGraphicsManager::present(uint32 syncInterval, uint32 flags)
 {
 }
 
-void OGLGraphicsManager::unbindAll()
+void
+OGLGraphicsManager::unbindAll()
 {
 }
 
@@ -391,13 +486,77 @@ SPtr<InputLayout>
 OGLGraphicsManager::createInputLayout(const Vector<InputDesc>& desc,
                                       const WPtr<VertexShader> pVShader)
 {
+  SH_UNREFERENCED_PARAMETER(desc);
+  SH_UNREFERENCED_PARAMETER(pVShader);
   return SPtr<InputLayout>();
 }
 
 SPtr<InputLayout>
 OGLGraphicsManager::createInputLayoutFromShader(const WPtr<VertexShader> pPShader)
 {
+  SH_UNREFERENCED_PARAMETER(pPShader);
   return SPtr<InputLayout>();
+}
+
+SPtr<InputLayout>
+OGLGraphicsManager::createInputLayoutFromVertexBuffer(const Vector<InputDesc>& desc,
+                                                      const WPtr<VertexBuffer> pVBuffer)
+{
+  if (pVBuffer.expired()) {
+    SH_ASSERT(false && "Vertex buffer expired!");
+    return SPtr<InputLayout>();
+  }
+
+  auto pInputLayout = sh_makeShared<OGLInputLayout>();
+  uint32 vbo = cast::re_ptr<OGLVertexBuffer>(pVBuffer.lock())->m_bufferID;
+
+  GLuint vao;
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+  uint32 offset = 0;
+  uint32 stride = 0;
+
+  for (const auto& element : desc) {
+    stride += element.size;
+  }
+
+  for (uint32 i = 0; i < desc.size(); ++i) {
+    const auto& element = desc[i];
+    
+    GLint componentCount = 0;
+    GLenum glType = GL_FLOAT;
+    GLboolean normalized = GL_FALSE;
+
+    switch (element.type) {
+      case INPUT_LAYOUT_TYPES::kPosition:
+      componentCount = 3;
+      glType = GL_FLOAT;
+      break;
+
+    
+      break;
+    }
+
+    glEnableVertexAttribArray(i);
+
+    glVertexAttribPointer(i,
+                          componentCount,
+                          glType,
+                          normalized,
+                          stride,
+                          cast::re<void*>(offset));
+
+    offset += element.size;
+  }
+
+  glBindVertexArray(0);
+
+  pInputLayout->m_vao = vao;
+
+  return pInputLayout;
 }
 
 SPtr<VertexShader>
@@ -468,13 +627,77 @@ OGLGraphicsManager::internalCreateVertexBuffer(const void* pData,
                                                const uint32 stride,
                                                const uint32 usage)
 {
-  return SPtr<VertexBuffer>();
+  auto pVBuffer = sh_makeShared<OGLVertexBuffer>();
+
+  GLuint vbo;
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+  GLenum glUsage = GL_STATIC_DRAW;
+
+  switch (usage) {
+  case USAGE::kImmutable:
+    glUsage = GL_STATIC_DRAW;
+    break;
+  case USAGE::kDynamic:
+    glUsage = GL_DYNAMIC_DRAW;
+    break;
+  case USAGE::kStaging:
+    glUsage = GL_STREAM_DRAW;
+    break;
+  default:
+    glUsage = GL_STATIC_DRAW;
+    break;
+  }
+
+  glBufferData(GL_ARRAY_BUFFER, bufferSize * stride, pData, glUsage);
+
+  pVBuffer->m_bufferID = vbo;
+  pVBuffer->m_stride = stride;
+  pVBuffer->m_size = bufferSize;
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  return pVBuffer;
 }
 
 SPtr<IndexBuffer>
 OGLGraphicsManager::createIndexBuffer(const Vector<uint32>& indices, const uint32 usage)
 {
-  return SPtr<IndexBuffer>();
+  auto pIBuffer = sh_makeShared<OGLIndexBuffer>();
+
+  GLuint ibo;
+  glGenBuffers(1, &ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+  GLenum glUsage = GL_STATIC_DRAW;
+
+  switch (usage) {
+  case USAGE::kImmutable:
+    glUsage = GL_STATIC_DRAW;
+    break;
+  case USAGE::kDynamic:
+    glUsage = GL_DYNAMIC_DRAW;
+    break;
+  case USAGE::kStaging:
+    glUsage = GL_STREAM_DRAW;
+    break;
+  default:
+    glUsage = GL_STATIC_DRAW;
+    break;
+  }
+
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               indices.size() * sizeof(uint32),
+               indices.data(),
+               glUsage);
+
+  pIBuffer->m_bufferID = ibo;
+  pIBuffer->m_count = static_cast<uint32>(indices.size());
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  return pIBuffer;
 }
 
 SPtr<ConstantBuffer>
@@ -482,13 +705,107 @@ OGLGraphicsManager::createConstantBuffer(const uint32 bufferSize,
                                          const uint32 usage,
                                          const void* pData)
 {
-  return SPtr<ConstantBuffer>();
+  auto pCBuffer = sh_makeShared<OGLConstantBuffer>();
+  
+  GLuint ubo = 0;
+  glGenBuffers(1, &ubo);
+  glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+
+  GLenum glUsage = GL_STATIC_DRAW;
+
+  switch (usage) {
+  case USAGE::kImmutable:
+    glUsage = GL_STATIC_DRAW;
+    break;
+
+  case USAGE::kDynamic:
+    glUsage = GL_DYNAMIC_DRAW;
+    break;
+
+  case USAGE::kStaging:
+    glUsage = GL_STREAM_DRAW;
+    break;
+
+  default:
+    glUsage = GL_STATIC_DRAW;
+    break;
+  }
+
+  glBufferData(GL_UNIFORM_BUFFER, bufferSize, pData, glUsage);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  pCBuffer->m_bufferID = ubo;
+  pCBuffer->m_size = bufferSize;
+
+  return pCBuffer;
 }
 
 SPtr<SamplerState>
 OGLGraphicsManager::createSamplerState(const uint32 filter, const uint32 textAddress)
 {
-  return SPtr<SamplerState>();
+  auto pSamplerState = sh_makeShared<OGLSamplerState>();
+
+  GLuint sampler = 0;
+  glGenSamplers(1, &sampler);
+
+  GLenum minFilter = GL_LINEAR;
+  GLenum magFilter = GL_LINEAR;
+
+  switch (filter) {
+  case SAMPLER_FILTER::kFilterMinMagMipPoint:
+    minFilter = GL_NEAREST_MIPMAP_NEAREST;
+    magFilter = GL_NEAREST;
+    break;
+  case SAMPLER_FILTER::kFilterMinMagMipLinear:
+    minFilter = GL_LINEAR_MIPMAP_LINEAR;
+    magFilter = GL_LINEAR;
+    break;
+  case SAMPLER_FILTER::kFilterAnisotropic:
+    minFilter = GL_LINEAR_MIPMAP_LINEAR;
+    magFilter = GL_LINEAR;
+    break;
+  default:
+    minFilter = GL_LINEAR;
+    magFilter = GL_LINEAR;
+    break;
+  }
+
+  glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, minFilter);
+  glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, magFilter);
+
+  GLenum wrapMode = GL_REPEAT;
+
+  switch (textAddress) {
+  case TEXTURE_ADDRESS_MODE::kWrap:
+    wrapMode = GL_REPEAT;
+    break;
+  case TEXTURE_ADDRESS_MODE::kMirror:
+    wrapMode = GL_MIRRORED_REPEAT;
+    break;
+  case TEXTURE_ADDRESS_MODE::kClamp:
+    wrapMode = GL_CLAMP_TO_EDGE;
+    break;
+  case TEXTURE_ADDRESS_MODE::kBorder:
+    wrapMode = GL_CLAMP_TO_BORDER;
+    break;
+  default:
+    wrapMode = GL_REPEAT;
+    break;
+  }
+
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, wrapMode);
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, wrapMode);
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, wrapMode);
+
+  glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, 0.0f);
+  glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, FLT_MAX);
+
+  glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+  glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
+
+  pSamplerState->m_samplerID = sampler;
+
+  return pSamplerState;
 }
 
 SPtr<Texture2D>
@@ -549,19 +866,83 @@ SPtr<BlendState>
 OGLGraphicsManager::createBlendState(const BlendDesc& blendDesc,
                                      const LinearColor& blendFactor)
 {
-  return SPtr<BlendState>();
+  auto pBlendState = std::make_shared<OGLBlendState>();
+
+  const auto& rt = blendDesc.renderTarget[0];
+
+  pBlendState->m_blendEnable = rt.blendEnable;
+
+  pBlendState->m_srcRGB = translateBlend(rt.srcBlend);
+  pBlendState->m_dstRGB = translateBlend(rt.destBlend);
+  pBlendState->m_opRGB = translateBlendOp(rt.blendOp);
+
+  pBlendState->m_srcAlpha = translateBlend(rt.srcBlendAlpha);
+  pBlendState->m_dstAlpha = translateBlend(rt.destBlendAlpha);
+  pBlendState->m_opAlpha = translateBlendOp(rt.blendOpAlpha);
+
+  pBlendState->m_writeMask = rt.renderTargetWriteMask;
+
+  pBlendState->m_blendFactor = blendFactor;
+
+  return pBlendState;
 }
 
 SPtr<RasterizerState>
 OGLGraphicsManager::createRasterizerState(const RasterizerDesc& rasterizerDesc)
 {
-  return SPtr<RasterizerState>();
+  auto pRState = std::make_shared<OGLRasterizerState>();
+
+  pRState->m_fillMode = translateFillMode(rasterizerDesc.fillMode);
+  pRState->m_cullMode = translateCullMode(rasterizerDesc.cullMode);
+  pRState->m_bFrontCounterClockwise = rasterizerDesc.frontCounterClockwise;
+
+  pRState->m_depthBias = rasterizerDesc.depthBias;
+  pRState->m_depthBiasClamp = rasterizerDesc.depthBiasClamp;
+  pRState->m_slopeScaledDepthBias = rasterizerDesc.slopeScaledDepthBias;
+
+  pRState->m_bDepthClipEnable = !rasterizerDesc.depthClipEnable;
+  pRState->m_bScissorEnable = rasterizerDesc.scissorEnable;
+  pRState->m_bMultisampleEnable = rasterizerDesc.multisampleEnable;
+  pRState->m_bAntialiasedLineEnable = rasterizerDesc.antialiasedLineEnable;
+
+  return pRState;
 }
 
 SPtr<DepthStencilState>
 OGLGraphicsManager::createDepthStencilState(const DepthStencilDesc& depthSDesc)
 {
-  return SPtr<DepthStencilState>();
+  auto pDSState = std::make_shared<OGLDepthStencilState>();
+
+  // Depth state
+  pDSState->m_depthEnable = depthSDesc.depthEnable;
+  pDSState->m_depthWriteMask = (depthSDesc.depthWriteMask ==
+                                          DEPTH_WRITE_MASK::kAll);
+  pDSState->m_depthFunc = translateComparison(depthSDesc.depthFunc);
+
+  // Stencil state
+  pDSState->m_stencilEnable = depthSDesc.stencilEnable;
+  pDSState->m_stencilReadMask = depthSDesc.stencilReadMask;
+  pDSState->m_stencilWriteMask = depthSDesc.stencilWriteMask;
+
+  // Front face stencil operations
+  pDSState->m_frontFace.func = translateComparison(depthSDesc.frontFace.stencilFunc);
+  pDSState->m_frontFace.stencilFailOp =
+            translateStencilOp(depthSDesc.frontFace.stencilFailOp);
+  pDSState->m_frontFace.depthFailOp =
+            translateStencilOp(depthSDesc.frontFace.stencilDepthFailOp);
+  pDSState->m_frontFace.passOp =
+            translateStencilOp(depthSDesc.frontFace.stencilPassOp);
+
+  // Back face stencil operations
+  pDSState->m_backFace.func = translateComparison(depthSDesc.backFace.stencilFunc);
+  pDSState->m_backFace.stencilFailOp =
+            translateStencilOp(depthSDesc.backFace.stencilFailOp);
+  pDSState->m_backFace.depthFailOp =
+            translateStencilOp(depthSDesc.backFace.stencilDepthFailOp);
+  pDSState->m_backFace.passOp =
+            translateStencilOp(depthSDesc.backFace.stencilPassOp);
+
+  return pDSState;
 }
 
 uint32
@@ -668,6 +1049,15 @@ OGLGraphicsManager::updateConstantBuffer(const WPtr<ConstantBuffer> pCBuffer,
                                          const void* pData,
                                          const uint32 dataSize)
 {
+  if (pCBuffer.expired()) {
+    SH_ASSERT(false && "Constant buffer expired!");
+    return;
+  }
+
+  auto pOGLCBuffer = cast::re_ptr<OGLConstantBuffer>(pCBuffer.lock());
+  glBindBuffer(GL_UNIFORM_BUFFER, pOGLCBuffer->m_bufferID);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, dataSize, pData);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void
@@ -700,11 +1090,20 @@ void
 OGLGraphicsManager::saveTextureToDDS(const WPtr<Texture2D> pTexture,
                                      const String& filePath)
 {
+  SH_UNREFERENCED_PARAMETER(pTexture);
+  SH_UNREFERENCED_PARAMETER(filePath);
 }
 
 void
 OGLGraphicsManager::setViewport(const Viewport& vp)
 {
+  int32 x = cast::st<int32>(vp.topLeftX);
+  int32 y = m_frameBufferHeight - cast::st<int32>(vp.topLeftY + vp.height);
+
+  glViewport(x, y, cast::st<int32>(vp.width), cast::st<int32>(vp.height));
+  glDepthRange(cast::st<GLclampd>(vp.minDepth), cast::st<GLclampd>(vp.maxDepth));
+
+  m_currentViewport = vp;
 }
 
 void
@@ -736,6 +1135,8 @@ OGLGraphicsManager::vsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                          const uint32 startSlot,
                                          const uint32 numBuffers)
 {
+  SH_UNREFERENCED_PARAMETER(numBuffers);
+  setUniformBuffers(pCBuffer, startSlot);
 }
 
 void
@@ -743,6 +1144,8 @@ OGLGraphicsManager::psSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                          const uint32 startSlot,
                                          const uint32 numBuffers)
 {
+  SH_UNREFERENCED_PARAMETER(numBuffers);
+  setUniformBuffers(pCBuffer, startSlot);
 }
 
 void
@@ -750,6 +1153,8 @@ OGLGraphicsManager::gsSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                          const uint32 startSlot,
                                          const uint32 numBuffers)
 {
+  SH_UNREFERENCED_PARAMETER(numBuffers);
+  setUniformBuffers(pCBuffer, startSlot);
 }
 
 void
@@ -757,11 +1162,30 @@ OGLGraphicsManager::csSetConstantBuffers(const WPtr<ConstantBuffer> pCBuffer,
                                          const uint32 startSlot,
                                          const uint32 numBuffers)
 {
+  SH_UNREFERENCED_PARAMETER(numBuffers);
+  setUniformBuffers(pCBuffer, startSlot);
 }
 
 void
 OGLGraphicsManager::setPrimitiveTopology(const uint32 primitive)
 {
+  switch (primitive) {
+  case PRIMITIVE_TOPOLOGY::kPointList:
+    m_currentTopology = GL_POINTS;
+    break;
+  case PRIMITIVE_TOPOLOGY::kLineList:
+    m_currentTopology = GL_LINES;
+    break;
+  case PRIMITIVE_TOPOLOGY::kLineStrip:
+    m_currentTopology = GL_LINE_STRIP;
+    break;
+  case PRIMITIVE_TOPOLOGY::kTrianglelist:
+    m_currentTopology = GL_TRIANGLES;
+    break;
+  default:
+    m_currentTopology = GL_TRIANGLES;
+    break;
+  }
 }
 
 void
@@ -843,22 +1267,168 @@ OGLGraphicsManager::csSetSamplerState(const WPtr<SamplerState> pSamplerLinear,
 void
 OGLGraphicsManager::setBlendState(const WPtr<BlendState> pBlendState)
 {
+  if (pBlendState.expired()) {
+    SH_ASSERT(false && "Blend state expired!");
+    return;
+  }
+
+  auto pOGLBlendState = cast::re_ptr<OGLBlendState>(pBlendState.lock());
+
+  if (pOGLBlendState->m_blendEnable) {
+    glEnable(GL_BLEND);
+  }
+  else {
+    glDisable(GL_BLEND);
+  }
+
+  glBlendFuncSeparate(pOGLBlendState->m_srcRGB,
+                      pOGLBlendState->m_dstRGB,
+                      pOGLBlendState->m_srcAlpha,
+                      pOGLBlendState->m_dstAlpha);
+
+  glBlendEquationSeparate(pOGLBlendState->m_opRGB,
+                          pOGLBlendState->m_opAlpha);
+
+  glBlendColor(pOGLBlendState->m_blendFactor.r,
+               pOGLBlendState->m_blendFactor.g,
+               pOGLBlendState->m_blendFactor.b,
+               pOGLBlendState->m_blendFactor.a);
+
+  glColorMask((pOGLBlendState->m_writeMask & 0x1) != 0,
+              (pOGLBlendState->m_writeMask & 0x2) != 0,
+              (pOGLBlendState->m_writeMask & 0x4) != 0,
+              (pOGLBlendState->m_writeMask & 0x8) != 0);
 }
 
 void
 OGLGraphicsManager::setRasterizerState(const WPtr<RasterizerState> pRasterizerState)
 {
+  if (pRasterizerState.expired()) {
+    SH_ASSERT(false && "Rasterizer state expired!");
+    return;
+  }
+
+  auto pRState = cast::re_ptr<OGLRasterizerState>(pRasterizerState.lock());
+
+  // Fill mode
+  glPolygonMode(GL_FRONT_AND_BACK, pRState->m_fillMode);
+
+  // Culling mode
+  if (pRState->m_cullMode != GL_NONE) {
+    glEnable(GL_CULL_FACE);
+    glCullFace(pRState->m_cullMode);
+  }
+  else {
+    glDisable(GL_CULL_FACE);
+  }
+
+  // Front face winding order
+  glFrontFace(pRState->m_bFrontCounterClockwise ? GL_CCW : GL_CW);
+
+  // Depth bias (polygon offset)
+  if (pRState->m_depthBias != 0.0f || pRState->m_slopeScaledDepthBias != 0.0f) {
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(pRState->m_slopeScaledDepthBias, cast::st<float>(pRState->m_depthBias));
+  }
+  else {
+    glDisable(GL_POLYGON_OFFSET_FILL);
+  }
+
+  // Depth clipping
+  if (pRState->m_bDepthClipEnable) {
+    glEnable(GL_DEPTH_CLAMP);
+  }
+  else {
+    glDisable(GL_DEPTH_CLAMP);
+  }
+
+  // Scissor test
+  if(pRState->m_bScissorEnable) {
+    glEnable(GL_SCISSOR_TEST);
+  }
+  else {
+    glDisable(GL_SCISSOR_TEST);
+  }
+
+  // Multisampling
+  if (pRState->m_bMultisampleEnable) {
+    glEnable(GL_MULTISAMPLE);
+  }
+  else {
+    glDisable(GL_MULTISAMPLE);
+  }
+
+  // Antialiased lines
+  if (pRState->m_bAntialiasedLineEnable) {
+    glEnable(GL_LINE_SMOOTH);
+  }
+  else {
+    glDisable(GL_LINE_SMOOTH);
+  }
 }
 
 void
 OGLGraphicsManager::setDepthStencilState(const WPtr<DepthStencilState> pDepthSState,
                                          const uint8 stencilRef)
 {
+  if (pDepthSState.expired()) {
+    SH_ASSERT(false && "Depth stencil state expired!");
+    return;
+  }
+
+  auto pDSState = cast::re_ptr<OGLDepthStencilState>(pDepthSState.lock());
+
+  // Depth state
+  if (pDSState->m_depthEnable) {
+    glEnable(GL_DEPTH_TEST);
+  }
+  else {
+    glDisable(GL_DEPTH_TEST);
+  }
+
+  glDepthFunc(pDSState->m_depthFunc);
+  glDepthMask(pDSState->m_depthWriteMask ? GL_TRUE : GL_FALSE);
+
+  // Stencil state
+  if (pDSState->m_stencilEnable) {
+    glEnable(GL_STENCIL_TEST);
+  }
+  else {
+    glDisable(GL_STENCIL_TEST);
+  }
+
+  glStencilMask(pDSState->m_stencilWriteMask);
+
+  // Front face stencil operations
+  glStencilOpSeparate(GL_FRONT,
+                      pDSState->m_frontFace.stencilFailOp,
+                      pDSState->m_frontFace.depthFailOp,
+                      pDSState->m_frontFace.passOp);
+
+  glStencilFuncSeparate(GL_FRONT,
+                        pDSState->m_frontFace.func,
+                        stencilRef,
+                        pDSState->m_stencilReadMask);
+
+  // Back face stencil operations
+  glStencilOpSeparate(GL_BACK,
+                      pDSState->m_backFace.stencilFailOp,
+                      pDSState->m_backFace.depthFailOp,
+                      pDSState->m_backFace.passOp);
 }
 
 void
 OGLGraphicsManager::setScissorRects(const Rect& scissorClip)
 {
+  Viewport& currentVP = m_currentViewport;
+
+  int32 x = cast::st<int32>(currentVP.topLeftX + scissorClip.min.x);
+  int32 y = m_frameBufferHeight - cast::st<int32>(currentVP.topLeftY + scissorClip.max.y);
+
+  int32 width = cast::st<int32>(scissorClip.max.x - scissorClip.min.x);
+  int32 height = cast::st<int32>(scissorClip.max.y - scissorClip.min.y);
+
+  glScissor(x, y, width, height);
 }
 
 void
@@ -870,6 +1440,7 @@ OGLGraphicsManager::useProgram(uint32 programID)
 void
 OGLGraphicsManager::draw(const uint32 vertexCount, const uint32 startVertexLocation)
 {
+  glDrawArrays(cast::st<GLenum>(m_currentTopology), startVertexLocation, vertexCount);
 }
 
 void
@@ -877,6 +1448,16 @@ OGLGraphicsManager::drawIndexed(const uint32 indexCount,
                                 const uint32 startIndexLocation,
                                 const uint32 baseVertexLocation)
 {
+  uint32 ibo = m_currentIBO;
+  GLenum indexType = GL_UNSIGNED_INT;
+
+  const void* offset = cast::re<void*>(startIndexLocation * sizeof(uint32));
+
+  glDrawElementsBaseVertex(cast::st<GLenum>(m_currentTopology),
+                           indexCount,
+                           indexType,
+                           offset,
+                           baseVertexLocation);
 }
 
 void
@@ -884,5 +1465,21 @@ OGLGraphicsManager::dispatch(const uint32 threadGroupCountX,
                              const uint32 threadGroupCountY,
                              const uint32 threadGroupCountZ)
 {
+  glDispatchCompute(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
+
+  glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT |
+                  GL_SHADER_STORAGE_BARRIER_BIT |
+                  GL_UNIFORM_BARRIER_BIT);
+}
+
+void
+OGLGraphicsManager::setUniformBuffers(WPtr<ConstantBuffer> pCBuffer, uint32 startSlot)
+{
+  if (pCBuffer.expired()) {
+    SH_ASSERT(false && "Constant buffer expired!");
+    return;
+  }
+  auto pUBO = cast::re_ptr<OGLConstantBuffer>(pCBuffer.lock());
+  glBindBufferBase(GL_UNIFORM_BUFFER, startSlot, pUBO->m_bufferID);
 }
 }

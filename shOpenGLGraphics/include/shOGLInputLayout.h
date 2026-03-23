@@ -30,7 +30,7 @@ class OGLInputLayout : public InputLayout
   friend class OGLGraphicsManager;
 
  protected:
-   UMap<uint32, String> m_inputData;
-   uint32 m_shaderID = 0;
+   //UMap<uint32, String> m_inputData;
+   uint32 m_vao = 0;
 };
 }
