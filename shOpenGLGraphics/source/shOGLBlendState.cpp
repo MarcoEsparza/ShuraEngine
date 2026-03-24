@@ -17,6 +17,7 @@
 */
 /*****************************************************************************/
 #include "shOGLBlendState.h"
+#include <shException.h>
 
 namespace shEngineSDK {
 OGLBlendState::~OGLBlendState()
@@ -30,5 +31,10 @@ OGLBlendState::~OGLBlendState()
   m_opAlpha = 0;
   m_writeMask = 0;
   m_blendFactor = LinearColor::WHITE;
+}
+void
+OGLBlendState::setDebugName(const String& name)
+{
+  SH_UNREFERENCED_PARAMETER(name);
 }
 }

@@ -30,6 +30,9 @@ class OGLBlendState : public BlendState
 
   friend class OGLGraphicsManager;
 
+  void
+  setDebugName(const String& name) override;
+
  protected:
    bool m_blendEnable = false;
    uint32 m_srcRGB = 0;

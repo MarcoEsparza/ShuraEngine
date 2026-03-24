@@ -105,14 +105,15 @@ class DynamicLibrary
   */
   DYNAMIC_LIBRARY_HANDLE m_dynLibHandler;
 
+ public:
   /**
   *  @brief Static variable for dll extension.
   */
-  static const char* EXTENSION;
+  static const String EXTENSION;
 
   /**
   *  @brief Static variable for dll prefix.
   */
-  static const char* PREFIX;
+  static const String PREFIX;
 };
 }

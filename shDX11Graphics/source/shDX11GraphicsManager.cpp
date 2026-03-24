@@ -848,11 +848,11 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
     format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
   }
   auto pTexture = cast::re_ptr<DX11Texture2D>(createTexture2D(width,
-                                                                 height,
-                                                                 format,
-                                                                 D3D11_USAGE_DEFAULT,
-                                                                 D3D11_BIND_SHADER_RESOURCE,
-                                                                 1));
+                                                              height,
+                                                              format,
+                                                              D3D11_USAGE_DEFAULT,
+                                                              D3D11_BIND_SHADER_RESOURCE,
+                                                              1));
   
   if (path.extension() == ".hdr") {
     m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
@@ -1229,8 +1229,8 @@ SPtr<Texture2D> DX11GraphicsManager::createBlackTexture()
   throwIfFailed(m_pDevice->CreateTexture2D(&desc, &initData, &pTexture->m_pTexture2D));
 
   throwIfFailed(m_pDevice->CreateShaderResourceView(pTexture->m_pTexture2D,
-    nullptr,
-    &pTexture->m_pShaderRV));
+                nullptr,
+                &pTexture->m_pShaderRV));
 
   return pTexture;
 }

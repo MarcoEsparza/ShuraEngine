@@ -2,12 +2,12 @@
 /*
 *  @file    shOGLGraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2024/10/29
+*  @date    2026/03/23
 *  @brief   Graphics Manager for Open GL.
 *
 *  Graphics Manager for Open GL.
 *
-*  @bug     No bug known.
+*  @bug     Not currently working.
 */
 /*************************************************************/
 
@@ -19,6 +19,7 @@
 #include "shOGLGraphicsManager.h"
 #include "shScreen.h"
 #include "shException.h"
+#include <shMath.h>
 
 using std::reinterpret_pointer_cast;
 
@@ -144,7 +145,7 @@ compileShader(const String& fileName,
 }
 
 void
-enableOpenGL(const WPtr<Screen> screen, const bool bAntiliasing)
+enableOpenGL(const WPtr<Screen> screen)
 {
 #if SH_PLATFORM == SH_PLATFORM_WIN32
   
@@ -320,6 +321,152 @@ translateCullMode(uint32 mode)
   }
 }
 
+GLenum
+translateInternalTextureFormat(uint32 format)
+{
+  switch (format)
+  {
+  case TEXTURE_FORMAT::kR32G32B32A32_FLOAT: return GL_RGBA32F;
+  case TEXTURE_FORMAT::kR32G32B32A32_UINT:  return GL_RGBA32UI;
+  case TEXTURE_FORMAT::kR32G32B32A32_SINT:  return GL_RGBA32I;
+
+  case TEXTURE_FORMAT::kR32G32B32_FLOAT: return GL_RGB32F;
+  case TEXTURE_FORMAT::kR32G32B32_UINT:  return GL_RGB32UI;
+  case TEXTURE_FORMAT::kR32G32B32_SINT:  return GL_RGB32I;
+
+  case TEXTURE_FORMAT::kR16G16B16A16_FLOAT: return GL_RGBA16F;
+  case TEXTURE_FORMAT::kR16G16B16A16_UNORM: return GL_RGBA16;
+  case TEXTURE_FORMAT::kR16G16B16A16_UINT:  return GL_RGBA16UI;
+  case TEXTURE_FORMAT::kR16G16B16A16_SNORM: return GL_RGBA16_SNORM;
+  case TEXTURE_FORMAT::kR16G16B16A16_SINT:  return GL_RGBA16I;
+
+  case TEXTURE_FORMAT::kR32G32_FLOAT: return GL_RG32F;
+  case TEXTURE_FORMAT::kR32G32_UINT:  return GL_RG32UI;
+  case TEXTURE_FORMAT::kR32G32_SINT:  return GL_RG32I;
+
+  case TEXTURE_FORMAT::kR10G10B10A2_UNORM: return GL_RGB10_A2;
+  case TEXTURE_FORMAT::kR10G10B10A2_UINT:  return GL_RGB10_A2UI;
+
+  case TEXTURE_FORMAT::kR11G11B10_FLOAT: return GL_R11F_G11F_B10F;
+
+  case TEXTURE_FORMAT::kR8G8B8A8_UNORM:      return GL_RGBA8;
+  case TEXTURE_FORMAT::kR8G8B8A8_UNORM_SRGB: return GL_SRGB8_ALPHA8;
+  case TEXTURE_FORMAT::kR8G8B8A8_UINT:       return GL_RGBA8UI;
+  case TEXTURE_FORMAT::kR8G8B8A8_SNORM:      return GL_RGBA8_SNORM;
+  case TEXTURE_FORMAT::kR8G8B8A8_SINT:       return GL_RGBA8I;
+
+  case TEXTURE_FORMAT::kR16G16_FLOAT: return GL_RG16F;
+  case TEXTURE_FORMAT::kR16G16_UNORM: return GL_RG16;
+  case TEXTURE_FORMAT::kR16G16_UINT:  return GL_RG16UI;
+  case TEXTURE_FORMAT::kR16G16_SNORM: return GL_RG16_SNORM;
+  case TEXTURE_FORMAT::kR16G16_SINT:  return GL_RG16I;
+
+  case TEXTURE_FORMAT::kR32_FLOAT: return GL_R32F;
+  case TEXTURE_FORMAT::kR32_UINT:  return GL_R32UI;
+  case TEXTURE_FORMAT::kR32_SINT:  return GL_R32I;
+
+  case TEXTURE_FORMAT::kR8G8_UNORM: return GL_RG8;
+  case TEXTURE_FORMAT::kR8G8_UINT:  return GL_RG8UI;
+  case TEXTURE_FORMAT::kR8G8_SNORM: return GL_RG8_SNORM;
+  case TEXTURE_FORMAT::kR8G8_SINT:  return GL_RG8I;
+
+  case TEXTURE_FORMAT::kR16_FLOAT: return GL_R16F;
+  case TEXTURE_FORMAT::kR16_UNORM: return GL_R16;
+  case TEXTURE_FORMAT::kR16_UINT:  return GL_R16UI;
+  case TEXTURE_FORMAT::kR16_SNORM: return GL_R16_SNORM;
+  case TEXTURE_FORMAT::kR16_SINT:  return GL_R16I;
+
+  case TEXTURE_FORMAT::kD32_FLOAT:       return GL_DEPTH_COMPONENT32F;
+  case TEXTURE_FORMAT::kD24_UNORM_S8_UINT: return GL_DEPTH24_STENCIL8;
+  case TEXTURE_FORMAT::kD16_UNORM:       return GL_DEPTH_COMPONENT16;
+
+  default: return GL_RGBA8;
+  }
+}
+
+GLenum
+translateTextureFormat(uint32 format)
+{
+  switch (format)
+  {
+  case TEXTURE_FORMAT::kR32G32B32A32_FLOAT:
+  case TEXTURE_FORMAT::kR32G32B32A32_UINT:
+  case TEXTURE_FORMAT::kR32G32B32A32_SINT:
+  case TEXTURE_FORMAT::kR16G16B16A16_FLOAT:
+  case TEXTURE_FORMAT::kR16G16B16A16_UNORM:
+  case TEXTURE_FORMAT::kR16G16B16A16_UINT:
+  case TEXTURE_FORMAT::kR16G16B16A16_SNORM:
+  case TEXTURE_FORMAT::kR16G16B16A16_SINT:
+  case TEXTURE_FORMAT::kR8G8B8A8_UNORM:
+  case TEXTURE_FORMAT::kR8G8B8A8_UNORM_SRGB:
+    return GL_RGBA;
+
+  case TEXTURE_FORMAT::kR32G32B32_FLOAT:
+    return GL_RGB;
+
+  case TEXTURE_FORMAT::kR32G32_FLOAT:
+  case TEXTURE_FORMAT::kR16G16_FLOAT:
+  case TEXTURE_FORMAT::kR8G8_UNORM:
+    return GL_RG;
+
+  case TEXTURE_FORMAT::kR32_FLOAT:
+  case TEXTURE_FORMAT::kR16_FLOAT:
+  case TEXTURE_FORMAT::kR16_UNORM:
+    return GL_RED;
+
+  case TEXTURE_FORMAT::kD32_FLOAT:
+  case TEXTURE_FORMAT::kD16_UNORM:
+    return GL_DEPTH_COMPONENT;
+
+  case TEXTURE_FORMAT::kD24_UNORM_S8_UINT:
+    return GL_DEPTH_STENCIL;
+
+  default:
+    return GL_RGBA;
+  }
+}
+
+GLenum
+translateTextureType(uint32 format)
+{
+  switch (format)
+  {
+  case TEXTURE_FORMAT::kR32G32B32A32_FLOAT:
+  case TEXTURE_FORMAT::kR32G32B32_FLOAT:
+  case TEXTURE_FORMAT::kR32G32_FLOAT:
+  case TEXTURE_FORMAT::kR32_FLOAT:
+    return GL_FLOAT;
+
+  case TEXTURE_FORMAT::kR16G16B16A16_FLOAT:
+  case TEXTURE_FORMAT::kR16G16_FLOAT:
+  case TEXTURE_FORMAT::kR16_FLOAT:
+    return GL_HALF_FLOAT;
+
+  case TEXTURE_FORMAT::kR8G8B8A8_UNORM:
+  case TEXTURE_FORMAT::kR8G8_UNORM:
+    return GL_UNSIGNED_BYTE;
+
+  case TEXTURE_FORMAT::kR16_UNORM:
+    return GL_UNSIGNED_SHORT;
+
+  case TEXTURE_FORMAT::kR32_UINT:
+  case TEXTURE_FORMAT::kR32G32_UINT:
+  case TEXTURE_FORMAT::kR32G32B32A32_UINT:
+    return GL_UNSIGNED_INT;
+
+  case TEXTURE_FORMAT::kR32_SINT:
+  case TEXTURE_FORMAT::kR32G32_SINT:
+  case TEXTURE_FORMAT::kR32G32B32A32_SINT:
+    return GL_INT;
+
+  case TEXTURE_FORMAT::kD24_UNORM_S8_UINT:
+    return GL_UNSIGNED_INT_24_8;
+
+  default:
+    return GL_UNSIGNED_BYTE;
+  }
+}
+
 OGLGraphicsManager::~OGLGraphicsManager()
 {
 
@@ -340,7 +487,7 @@ OGLGraphicsManager::initManager(const WPtr<Screen> screen,
   m_graphicAPI = GRAPHIC_API::kOGL;
   m_bFullScreen = pScreen->isFullscreen();
 
-  enableOpenGL(screen, bAntiliasing);
+  enableOpenGL(screen);
 
   m_multiSampleConfig.count = 1;
   m_multiSampleConfig.quality = 0;
@@ -360,8 +507,8 @@ OGLGraphicsManager::initManager(const WPtr<Screen> screen,
 
   auto pBackbuffer = sh_makeShared<OGLTexture2D>();
 
-  glGenTextures(1, &pBackbuffer->m_texture);
-  glBindTexture(GL_TEXTURE_2D, pBackbuffer->m_texture);
+  glGenTextures(1, &pBackbuffer->m_textureID);
+  glBindTexture(GL_TEXTURE_2D, pBackbuffer->m_textureID);
 
   glTexImage2D(GL_TEXTURE_2D,
                0,
@@ -379,7 +526,7 @@ OGLGraphicsManager::initManager(const WPtr<Screen> screen,
   glFramebufferTexture2D(GL_FRAMEBUFFER,
                          GL_COLOR_ATTACHMENT0,
                          GL_TEXTURE_2D,
-                         pBackbuffer->m_texture,
+                         pBackbuffer->m_textureID,
                          0);
 
   // Create depth stencil buffer
@@ -426,12 +573,12 @@ OGLGraphicsManager::initManager(const WPtr<Screen> screen,
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     glDebugMessageCallback([](GLenum source,
-      GLenum type,
-      GLuint id,
-      GLenum severity,
-      GLsizei length,
-      const GLchar* message,
-      const void* userParam)
+                           GLenum type,
+                           GLuint id,
+                           GLenum severity,
+                           GLsizei length,
+                           const GLchar* message,
+                           const void* userParam)
       {
         //SH_LOG("OpenGL Debug: {}", message);
       }, nullptr);
@@ -443,7 +590,17 @@ void
 OGLGraphicsManager::clearRenderTarget(const WPtr<Texture2D> pTarget,
                                       const LinearColor& color)
 {
+  if (pTarget.expired()) {
+    SH_ASSERT(false && "Render target expired!");
+    return;
+  }
 
+  auto pTexture = cast::re_ptr<OGLTexture2D>(pTarget.lock());
+  glBindFramebuffer(GL_FRAMEBUFFER, pTexture->m_textureID);
+  glClearColor(color.r, color.g, color.b, color.a);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void
@@ -452,16 +609,60 @@ OGLGraphicsManager::clearDepthStencil(const WPtr<Texture2D> pDepthSV,
                                       const float depth,
                                       const uint8 stencil)
 {
+  if (pDepthSV.expired()) {
+    SH_ASSERT(false && "Depth stencil view expired!");
+    return;
+  }
+
+  auto pTexture = cast::re_ptr<OGLTexture2D>(pDepthSV.lock());
+
+  glBindFramebuffer(GL_FRAMEBUFFER, pTexture->m_textureID);
+
+  GLbitfield glFlags = 0;
+
+  if (flags & CLEAR_FLAGS::kDepth) {
+    glFlags |= GL_DEPTH_BUFFER_BIT;
+    glClearDepth(depth);
+  }
+
+  if (flags & CLEAR_FLAGS::kStencil) {
+    glFlags |= GL_STENCIL_BUFFER_BIT;
+    glClearStencil(stencil);
+  }
+
+  glClear(glFlags);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void
 OGLGraphicsManager::present(uint32 syncInterval, uint32 flags)
 {
+  SH_UNREFERENCED_PARAMETER(syncInterval);
+  SH_UNREFERENCED_PARAMETER(flags);
+
+  auto pBackBuffer = cast::re_ptr<OGLTexture2D>(m_pBackBuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindTexture(GL_TEXTURE_2D, pBackBuffer->m_textureID);
 }
 
 void
 OGLGraphicsManager::unbindAll()
 {
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  
+  for (uint32 i = 0; i < 16; ++i) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+  }
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  glBindVertexArray(0);
+
+  glUseProgram(0);
 }
 
 void
@@ -815,7 +1016,57 @@ OGLGraphicsManager::createTextureFromFile(const String& fileName,
                                           const uint32 height,
                                           const uint32 bpp)
 {
-  return SPtr<Texture2D>();
+  if(!pData) {
+    SH_ASSERT(false && "Texture data is null!");
+    return SPtr<Texture2D>();
+  }
+
+  SystemPath path(fileName);
+  uint32 format = 0;
+  uint32 pitch = width * bpp;
+
+  Vector<uint8> textureData;
+  const void* finalData = pData;
+
+  if(path.extension() == ".hdr") {
+    format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT;
+    pitch = width * 4 * sizeof(float);
+  }
+  else {
+    if (bpp == 3) {
+      textureData.resize(width * height * 4);
+
+      const uint8* src = reinterpret_cast<const uint8*>(pData);
+
+      for (uint32 i = 0; i < width * height; ++i)
+      {
+        textureData[i * 4 + 0] = src[i * 3 + 0];
+        textureData[i * 4 + 1] = src[i * 3 + 1];
+        textureData[i * 4 + 2] = src[i * 3 + 2];
+        textureData[i * 4 + 3] = 255;
+      }
+
+      finalData = textureData.data();
+      pitch = width * 4;
+    }
+
+    format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
+  }
+
+  auto pTexture = cast::st_ptr<OGLTexture2D>(createTexture2D(width, height, format,
+                                                             0, 0, 1, 1));
+
+  glBindTexture(pTexture->m_target, pTexture->m_textureID);
+
+  GLenum dataFormat = translateTextureFormat(format);
+  GLenum dataType = translateTextureType(format);
+
+  glTexSubImage2D(pTexture->m_target, 0, 0, 0, width, height,
+                  dataFormat, dataType, finalData);
+
+  glBindTexture(pTexture->m_target, 0);
+
+  return pTexture;
 }
 
 SPtr<Texture2D> OGLGraphicsManager::createTextureFromDDS(const String& fileName)
@@ -832,7 +1083,53 @@ OGLGraphicsManager::createTexture2D(const uint32 width,
                                     const uint32 mipLevels,
                                     const uint32 arraySize)
 {
-  return SPtr<Texture2D>();
+  auto pTexture = sh_makeShared<OGLTexture2D>();
+
+  GLuint textureID = 0;
+  glGenTextures(1, &textureID);
+
+  GLenum target = (arraySize > 1) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+
+  glBindTexture(target, textureID);
+
+  GLenum internalFormat = translateInternalTextureFormat(format);
+  GLenum dataFormat = translateTextureFormat(format);
+  GLenum dataType = translateTextureType(format);
+
+  uint32 levels = mipLevels;
+
+  if (levels == 0) {
+    levels = cast::st<uint32>(Math::floor(Math::log2(Math::max(width, height)))) + 1;
+  }
+
+  if(arraySize > 1) {
+    glTexStorage3D(target, levels, internalFormat, width, height, arraySize);
+  } else {
+    glTexStorage2D(target, levels, internalFormat, width, height);
+  }
+
+  glTexParameteri(target, GL_TEXTURE_MIN_FILTER,
+                  levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+  glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  pTexture->m_textureID = textureID;
+  pTexture->m_target = target;
+  pTexture->m_width = width;
+  pTexture->m_height = height;
+  pTexture->m_mipLevels = levels;
+  pTexture->m_arraySize = arraySize;
+  pTexture->m_format = format;
+
+  glBindTexture(target, 0);
+
+  if (mipLevels > 1) {
+    generateMips(pTexture);
+  }
+
+  return pTexture;
 }
 
 SPtr<Texture3D>
@@ -847,19 +1144,123 @@ OGLGraphicsManager::createTexture3D(const Vector3 size,
 SPtr<Texture2D>
 OGLGraphicsManager::createErrorTexture()
 {
-  return SPtr<Texture2D>();
+  auto pTexture = sh_makeShared<OGLTexture2D>();
+  
+  const uint32 errorSize = 128;
+  Vector<uint32> pixels;
+  pixels.resize(errorSize * errorSize);
+
+  for (uint32 y = 0; y < errorSize; ++y) {
+    for(uint32 x = 0; x < errorSize; ++x) {
+      bool isPink = ((x / 16) % 2) == ((y / 16) % 2);
+      pixels[y * errorSize + x] = isPink ? 0xFFFF00FF : 0xFF000000;
+    }
+  }
+
+  GLuint textureID = 0;
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, errorSize, errorSize, 0,
+               GL_BGRA, GL_UNSIGNED_BYTE, pixels.data());
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  pTexture->m_textureID = textureID;
+  pTexture->m_target = GL_TEXTURE_2D;
+  pTexture->m_width = errorSize;
+  pTexture->m_height = errorSize;
+  pTexture->m_mipLevels = 1;
+  pTexture->m_arraySize = 1;
+  pTexture->m_format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
+
+  return pTexture;
 }
 
 SPtr<Texture2D>
 OGLGraphicsManager::createDefaultNormalTexture()
 {
-  return SPtr<Texture2D>();
+  auto pTexture = sh_makeShared<OGLTexture2D>();
+
+  const uint32 normalSize = 128;
+  Vector<uint32> pixels;
+  pixels.resize(normalSize * normalSize);
+  for (uint32 y = 0; y < normalSize; ++y) {
+    for (uint32 x = 0; x < normalSize; ++x) {
+      pixels[y * normalSize + x] = 0xFFFF8080;
+    }
+  }
+
+  GLuint textureID = 0;
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, normalSize, normalSize, 0,
+               GL_BGRA, GL_UNSIGNED_BYTE, pixels.data());
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  pTexture->m_textureID = textureID;
+  pTexture->m_target = GL_TEXTURE_2D;
+  pTexture->m_width = normalSize;
+  pTexture->m_height = normalSize;
+  pTexture->m_mipLevels = 1;
+  pTexture->m_arraySize = 1;
+  pTexture->m_format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
+
+  return pTexture;
 }
 
 SPtr<Texture2D>
 OGLGraphicsManager::createBlackTexture()
 {
-  return SPtr<Texture2D>();
+  auto pTexture = sh_makeShared<OGLTexture2D>();
+
+  const uint32 size = 128;
+  Vector<uint32> pixels;
+  pixels.resize(size * size);
+  for (uint32 y = 0; y < size; ++y) {
+    for (uint32 x = 0; x < size; ++x) {
+      pixels[y * size + x] = 0xFF000000;
+    }
+  }
+
+  GLuint textureID = 0;
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, size, 0,
+               GL_BGRA, GL_UNSIGNED_BYTE, pixels.data());
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  pTexture->m_textureID = textureID;
+  pTexture->m_target = GL_TEXTURE_2D;
+  pTexture->m_width = size;
+  pTexture->m_height = size;
+  pTexture->m_mipLevels = 1;
+  pTexture->m_arraySize = 1;
+  pTexture->m_format = TEXTURE_FORMAT::kR8G8B8A8_UNORM;
+
+  return pTexture;
 }
 
 SPtr<BlendState>
@@ -1042,6 +1443,15 @@ OGLGraphicsManager::createProgram(const WPtr<ComputeShader>& pCShader)
 void
 OGLGraphicsManager::generateMips(const WPtr<Texture2D> pTexture)
 {
+  if (pTexture.expired()) {
+    SH_ASSERT(false && "Texture expired!");
+    return;
+  }
+
+  auto pOGLTexture = cast::re_ptr<OGLTexture2D>(pTexture.lock());
+  glBindTexture(pOGLTexture->m_target, pOGLTexture->m_textureID);
+  glGenerateMipmap(pOGLTexture->m_target);
+  glBindTexture(pOGLTexture->m_target, 0);
 }
 
 void
@@ -1066,12 +1476,54 @@ OGLGraphicsManager::updateTexture2D(WPtr<Texture2D> pTexture,
                                     uint32 width,
                                     uint32 bpp)
 {
+  if (pTexture.expired()) {
+    SH_ASSERT(false && "Texture expired!");
+    return;
+  }
+
+  auto pOGLTexture = cast::re_ptr<OGLTexture2D>(pTexture.lock());
+
+  glBindTexture(pOGLTexture->m_target, pOGLTexture->m_textureID);
+  GLenum dataFormat = translateTextureFormat(pOGLTexture->m_format);
+  GLenum dataType = translateTextureType(pOGLTexture->m_format);
+  glTexSubImage2D(pOGLTexture->m_target, 0, 0, 0, width, pOGLTexture->m_height,
+                  dataFormat, dataType, pData);
+  glBindTexture(pOGLTexture->m_target, 0);
 }
 
 void
 OGLGraphicsManager::updateScreenSize(const Vector2& size)
 {
+  uint32 newWidth = cast::st<uint32>(size.x);
+  uint32 newHeight = cast::st<uint32>(size.y);
+
+  if(m_pBackBuffer) {
+    m_pBackBuffer.reset();
+  }
+
+  if (m_pDepthStencil) {
+    m_pDepthStencil.reset();
+  }
+
+  auto pBackBuffer = createTexture2D(newWidth, newHeight, TEXTURE_FORMAT::kR8G8B8A8_UNORM,
+                                     0, BIND_FLAGS::kRenderTarget, 1, 1);
+
+  auto pDepthStencil = createTexture2D(newWidth, newHeight, TEXTURE_FORMAT::kD24_UNORM_S8_UINT,
+                                      0, BIND_FLAGS::kDepthStencil, 1, 1);
+
+  m_pBackBuffer = pBackBuffer;
+  m_pDepthStencil = pDepthStencil;
+
+  Viewport vp;
+  vp.topLeftX = m_currentViewport.topLeftX;
+  vp.topLeftY = m_currentViewport.topLeftY;
+  vp.width = newWidth;
+  vp.height = newHeight;
+  vp.minDepth = m_currentViewport.minDepth;
+  vp.maxDepth = m_currentViewport.maxDepth;
+  setViewport(vp);
 }
+
 void
 OGLGraphicsManager::updateVertexBuffer(const WPtr<VertexBuffer> pVBuffer,
                                        const void* pData,

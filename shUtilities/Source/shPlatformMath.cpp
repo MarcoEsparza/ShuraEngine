@@ -138,6 +138,12 @@ PlatformMath::copySign(float number, const float sign)
   return std::copysign(number, sign);
 }
 
+float
+PlatformMath::floor(const float value)
+{
+  return std::floor(value);
+}
+
 /*****************************************************************************/
 /*
 *  Trigonometric functions

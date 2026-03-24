@@ -177,6 +177,8 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
                                     const WPtr<VertexBuffer> pVBuffer) {
     SH_UNREFERENCED_PARAMETER(desc);
     SH_UNREFERENCED_PARAMETER(pVBuffer);
+
+    return SPtr<InputLayout>();
   }
 
   /**

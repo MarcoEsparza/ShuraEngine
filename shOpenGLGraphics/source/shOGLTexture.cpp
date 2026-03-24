@@ -21,16 +21,15 @@
 namespace shEngineSDK {
 OGLTexture2D::~OGLTexture2D()
 {
-  glDeleteTextures(1, &m_texture);
-  glDeleteTextures(1, &m_shaderResourceView);
-  glDeleteTextures(1, &m_depthStencilView);
-
-  for (auto& rtv : m_renderTargetViews) {
-    glDeleteTextures(1, &rtv);
-  }
-
-  for (auto& uav : m_unorderedAccessViews) {
-    glDeleteTextures(1, &uav);
+  if (m_textureID != 0) {
+    glDeleteTextures(1, &m_textureID);
+    m_textureID = 0;
+    m_target = 0;
+    m_width = 0;
+    m_height = 0;
+    m_mipLevels = 0;
+    m_arraySize = 0;
+    m_format = 0;
   }
 }
 

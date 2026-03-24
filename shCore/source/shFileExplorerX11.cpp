@@ -19,6 +19,8 @@
 #include "shFileExplorer.h"
 #include <shException.h>
 
+#if SH_PLATFORM == SH_PLATFORM_LINUX
+
 namespace shEngineSDK{
 bool
 FileExplorer::openFile(String& outPath,
@@ -37,3 +39,5 @@ FileExplorer::openFolder(String&, const String&)
   return false;
 }
 }
+
+#endif

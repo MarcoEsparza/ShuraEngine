@@ -618,7 +618,15 @@ RendererApp::loadMods()
       continue;
     }
 
-    if (entry.path().extension() != ".dll") {
+    String extension = "";
+
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+    extension = ".dll";
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
+    extension = ".so";
+#endif
+
+    if (entry.path().extension() != extension) {
       continue;
     }
 

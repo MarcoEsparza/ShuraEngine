@@ -24,14 +24,19 @@
 namespace shEngineSDK {
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 
-  const char* DynamicLibrary::EXTENSION = "dll";
-  const char* DynamicLibrary::PREFIX = nullptr;
+const String DynamicLibrary::EXTENSION = ".dll";
+const String DynamicLibrary::PREFIX = "";
+
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
+
+const String DynamicLibrary::EXTENSION = ".so";
+const String DynamicLibrary::PREFIX = "lib";
 
 #endif
 
 DynamicLibrary::DynamicLibrary(const String& name)
 {
-  m_name = name + "." + EXTENSION;
+  m_name = name + EXTENSION;
   m_dynLibHandler = nullptr;
   load();
 }

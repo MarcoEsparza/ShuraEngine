@@ -33,11 +33,13 @@ class OGLTexture2D final : public Texture2D
   setDebugName(const String& name) override;
 
  protected:
-  uint32 m_texture = 0;
-  uint32 m_shaderResourceView = 0;
-  uint32 m_depthStencilView = 0;
-  Vector<uint32> m_renderTargetViews;
-  Vector<uint32> m_unorderedAccessViews;
+  uint32 m_textureID = 0;
+  uint32 m_target = 0;
+  uint32 m_width = 0;
+  uint32 m_height = 0;
+  uint32 m_mipLevels = 0;
+  uint32 m_arraySize = 0;
+  uint32 m_format = 0;
 };
 
 class OGLTexture3D final : public Texture3D

@@ -208,6 +208,9 @@ public:
   static float
   copySign(float number, const float sign);
 
+  static float
+  floor(const float value);
+
   /***************************************************************************/
   /*
   *  Trigonometric functions
