@@ -35,6 +35,11 @@
 #include <dxgidebug.h>
 #endif
 
+#define MAX_CONSTANT_BUFFER_SLOTS                             14
+#define MAX_SHADER_RESOURCE_VIEW_SLOTS                        128
+#define MAX_SAMPLERS                                          16
+#define MAX_UNORDERED_ACCESS_VIEW_SLOTS                       7
+
 using namespace DirectX;
 
 namespace shEngineSDK {
@@ -397,23 +402,24 @@ DX11GraphicsManager::present(uint32 syncInterval, uint32 flags)
 void
 DX11GraphicsManager::unbindAll()
 {
-  ID3D11ShaderResourceView* nullSRVs[128] = {};
-  m_pDeviceContext->VSSetShaderResources(0, 128, nullSRVs);
-  m_pDeviceContext->PSSetShaderResources(0, 128, nullSRVs);
-  m_pDeviceContext->CSSetShaderResources(0, 128, nullSRVs);
-  ID3D11UnorderedAccessView* nullUAVs[7] = {};
-  m_pDeviceContext->CSSetUnorderedAccessViews(0, 7, nullUAVs, nullptr);
-  ID3D11Buffer* nullCBs[14] = {};
-  m_pDeviceContext->VSSetConstantBuffers(0, 14, nullCBs);
-  m_pDeviceContext->PSSetConstantBuffers(0, 14, nullCBs);
-  m_pDeviceContext->CSSetConstantBuffers(0, 14, nullCBs);
-  ID3D11SamplerState* nullSamplers[16] = {};
-  m_pDeviceContext->VSSetSamplers(0, 16, nullSamplers);
-  m_pDeviceContext->PSSetSamplers(0, 16, nullSamplers);
-  m_pDeviceContext->CSSetSamplers(0, 16, nullSamplers);
-  m_pDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-  m_pDeviceContext->OMSetDepthStencilState(nullptr, 0);
-  m_pDeviceContext->RSSetState(nullptr);
+  ID3D11ShaderResourceView* nullSRVs[MAX_SHADER_RESOURCE_VIEW_SLOTS] = {};
+  m_pDeviceContext->VSSetShaderResources(0, MAX_SHADER_RESOURCE_VIEW_SLOTS, nullSRVs);
+  m_pDeviceContext->PSSetShaderResources(0, MAX_SHADER_RESOURCE_VIEW_SLOTS, nullSRVs);
+  m_pDeviceContext->CSSetShaderResources(0, MAX_SHADER_RESOURCE_VIEW_SLOTS, nullSRVs);
+  ID3D11UnorderedAccessView* nullUAVs[MAX_UNORDERED_ACCESS_VIEW_SLOTS] = {};
+  m_pDeviceContext->CSSetUnorderedAccessViews(0, MAX_UNORDERED_ACCESS_VIEW_SLOTS,
+                                              nullUAVs, nullptr);
+  ID3D11Buffer* nullCBs[MAX_CONSTANT_BUFFER_SLOTS] = {};
+  m_pDeviceContext->VSSetConstantBuffers(0, MAX_CONSTANT_BUFFER_SLOTS, nullCBs);
+  m_pDeviceContext->PSSetConstantBuffers(0, MAX_CONSTANT_BUFFER_SLOTS, nullCBs);
+  m_pDeviceContext->CSSetConstantBuffers(0, MAX_CONSTANT_BUFFER_SLOTS, nullCBs);
+  //ID3D11SamplerState* nullSamplers[MAX_SAMPLERS] = {};
+  //m_pDeviceContext->VSSetSamplers(0, MAX_SAMPLERS, nullSamplers);
+  //m_pDeviceContext->PSSetSamplers(0, MAX_SAMPLERS, nullSamplers);
+  //m_pDeviceContext->CSSetSamplers(0, MAX_SAMPLERS, nullSamplers);
+  //m_pDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+  //m_pDeviceContext->OMSetDepthStencilState(nullptr, 0);
+  //m_pDeviceContext->RSSetState(nullptr);
 }
 
 WPtr<Texture2D>

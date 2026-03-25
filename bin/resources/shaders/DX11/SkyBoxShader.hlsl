@@ -3,16 +3,6 @@
 Texture2D<float4> t_skybox : register(t0);
 RWTexture2D<float4> t_outputMap : register(u0);
 
-cbuffer PrefilterConstants : register(b2)
-{
-  uint width;
-  uint height;
-  uint samples;
-  float roughness;
-  float mipmapLevels;
-  float3 pcPadding; // Padding to 16 bytes
-};
-
 [numthreads(32, 32, 1)]
 void
 CSMain(uint3 dtID : SV_DispatchThreadID)
@@ -32,16 +22,9 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
   
   float3 dir = normalize(pos.xyz);
   float2 skyUV = getSkyBoxUV(dir);
-  uint mip = mipmapLevels;
   float3 color = float3(0.0f, 0.0f, 0.0f);
   
-  color = t_skybox.SampleLevel(samplerLinearClamp, skyUV, mip).xyz;
-  
-  //float mipFloor = floor(mip);
-  //float mipFrac = mip - mipFloor;
-  //float3 color1 = t_skybox.SampleLevel(samplerLinearClamp, skyUV, mipFloor).xyz;
-  //float3 color2 = t_skybox.SampleLevel(samplerLinearClamp, skyUV, mipFloor + 1).xyz;
-  //color = lerp(color1, color2, mipFrac);
+  color = t_skybox.SampleLevel(samplerLinearClamp, skyUV, 0).xyz;
 
   t_outputMap[dtID.xy] = float4(color, 1.0f);
 }

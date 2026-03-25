@@ -220,7 +220,9 @@ RenderManager::onStartUp()
 void
 RenderManager::onShutDown()
 {
-  cleanShaderObjects();
+  GraphicsManager& graphMan = g_graphicsMan();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 }
 
 void
@@ -610,7 +612,8 @@ RenderManager::renderScene()
   graphMan.setRenderTargets({{ pShadowTemp.pTexture }}, pShadowMap.pTexture);
   shaderMan.m_passes[shaderMan.SHADOWMAP_SHADER_ID]->setPass();
   drawShadowMap();
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*              GBuffer              */
@@ -630,7 +633,8 @@ RenderManager::renderScene()
                              {pEmmisiveMap.pTexture }}, pGbufferDepth.pTexture);
   setSamplers();
   drawMeshesOnScene();
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   // Reset buffer miplevels
   shaderMan.m_shaderData.mipLevel0 = 0.0f;
@@ -649,7 +653,8 @@ RenderManager::renderScene()
   graphMan.psSetShaderResourceView(pDepthMap.pTexture, 0);
   graphMan.psSetShaderResourceView(pNormalMap.pTexture, 1);
   graphMan.draw(3, 0);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*        SSAO Horizontal Blur       */
@@ -664,7 +669,8 @@ RenderManager::renderScene()
   graphMan.dispatch(threadGroups(screenWidth, BLURH_THREADS_X),
                     threadGroups(screenHeight, BLURH_THREADS_Y),
                     1);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*          SSAO Vetical Blur        */
@@ -679,7 +685,8 @@ RenderManager::renderScene()
   graphMan.dispatch(threadGroups(screenWidth, BLURV_THREADS_X),
                     threadGroups(screenHeight, BLURV_THREADS_Y),
                     1);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*              Sky Box              */
@@ -703,7 +710,8 @@ RenderManager::renderScene()
   graphMan.setUnorderedAccessView({ pSkyBoxMap.pTexture }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
 
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   float tempRoughness = shaderMan.m_prefilteredData.roughness;
   shaderMan.m_prefilteredData.roughness = 0.0f;
@@ -729,7 +737,8 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(m_pSpecularPreMap, 10);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*            Add Sky Box            */
@@ -743,7 +752,8 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*              Emmisive             */
@@ -754,7 +764,8 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pEmmisiveMap.pTexture, 1);
   graphMan.setUnorderedAccessView({ pEmmProcessMap.pTexture }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*             Luminance             */
@@ -766,7 +777,8 @@ RenderManager::renderScene()
   graphMan.csSetShaderResourceView(pInput, 0);
   graphMan.setUnorderedAccessView({ pOutput }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
   graphMan.generateMips(pOutput);
 
   /*************************************/
@@ -782,7 +794,8 @@ RenderManager::renderScene()
   graphMan.dispatch(threadGroups(static_cast<uint32>(screenWidth * 0.5f), DEFAULT_THREADS),
                     threadGroups(static_cast<uint32>(screenHeight * 0.5f), DEFAULT_THREADS),
                     1);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
   graphMan.generateMips(pOutput);
 
   /*************************************/
@@ -816,7 +829,8 @@ RenderManager::renderScene()
       graphMan.dispatch(threadGroups(width, DEFAULT_THREADS),
                         threadGroups(height, DEFAULT_THREADS),
                         1);
-      cleanShaderObjects();
+      //cleanShaderObjects();
+      graphMan.unbindAll();
     }
 
     /*************************************/
@@ -829,7 +843,8 @@ RenderManager::renderScene()
     graphMan.dispatch(threadGroups(width, BLURH_THREADS_X),
                       threadGroups(height, BLURH_THREADS_Y),
                       1);
-    cleanShaderObjects();
+    //cleanShaderObjects();
+    graphMan.unbindAll();
 
     /*************************************/
     /*            Vetical Blur           */
@@ -841,7 +856,8 @@ RenderManager::renderScene()
     graphMan.dispatch(threadGroups(width, BLURV_THREADS_X),
                       threadGroups(height, BLURV_THREADS_Y),
                       1);
-    cleanShaderObjects();
+    //cleanShaderObjects();
+    graphMan.unbindAll();
   }
 
   /*************************************/
@@ -878,7 +894,8 @@ RenderManager::renderScene()
   graphMan.setUnorderedAccessView({ pToneMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   shaderMan.m_shaderData.toneMappingIndex = cast::st<float>(index);
   shaderMan.updateShaderDataCB();
@@ -893,7 +910,8 @@ RenderManager::renderScene()
   graphMan.setUnorderedAccessView({ pPPMap.pTexture }, 0);
 
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ); 
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   /*************************************/
   /*             Histogram             */
@@ -975,7 +993,8 @@ RenderManager::computeIBL()
                     threadGroups(128, 16),
                     1);
 
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   graphMan.generateMips(m_pDiffIrr);
 
@@ -1004,7 +1023,8 @@ RenderManager::computeIBL()
     graphMan.setUnorderedAccessView({ m_pSpecularPreMap, mip }, 0);
     graphMan.dispatch(dispatchSize.x, dispatchSize.y, 1);
 
-    cleanShaderObjects();
+    //cleanShaderObjects();
+    graphMan.unbindAll();
   }
 
   shaderMan.m_prefilteredData = specPreCB;
@@ -1033,7 +1053,8 @@ RenderManager::computeBRDF()
   graphMan.setUnorderedAccessView({ m_pBRDF }, 0);
   graphMan.dispatch(lutDispatch, lutDispatch, 1);
 
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 }
 
 SPtr<Texture2D>&
@@ -1055,7 +1076,8 @@ RenderManager::createSceneTexture(const Vector2& winSize)
                                                       1, 1);
   }
 
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
   graphMan.clearRenderTarget(m_sceneTarget.pTexture, LinearColor::BLUE);
   Rect scissorRect = {};
   scissorRect.min = { 0, 0 };
@@ -1073,7 +1095,8 @@ RenderManager::createSceneTexture(const Vector2& winSize)
   graphMan.psSetShaderResourceView(pPPMap.pTexture, 0);
   graphMan.draw(3, 0);
 
-  cleanShaderObjects();
+  //cleanShaderObjects();
+  graphMan.unbindAll();
 
   return m_sceneTarget.pTexture;
 }

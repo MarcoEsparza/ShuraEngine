@@ -1,4 +1,4 @@
-#version 450 core
+#version 430 core
 
 layout(binding = 0) uniform Sampler2D samplerLinearWrap;
 layout(binding = 1) uniform Sampler2D samplerPointWrap;
@@ -9,7 +9,7 @@ layout(binding = 5) uniform Sampler2D samplerAnisotropicClamp;
 
 #define PI 3.14159265358979323f
 #define RECIPROCAL_PI 1.0f / PI
-#define RECIPROCAL_PI2 1.0f / (2.0f * PI)
+#define RECIPROCAL_2PI 1.0f / (2.0f * PI)
 #define INV_PI 0.31830988618379067239521257108191f
 
 // ----------------------------------------------------------------------------
@@ -215,6 +215,20 @@ float specularD(float roughness, float NoH)
   float b = exp((NoH2 - 1.0f) / (r2 * NoH2));
 
   return a2 * b;
+}
+
+vec4 sumSpecular(vec3 hdrPixel, float NoL, vec4 result)
+{
+  result.xyz += hdrPixel * NoL;
+  result.w += NoL;
+  return result;
+}
+
+vec4 sumDiffuse(vec3 hdrPixel, float NoL, vec4 result)
+{
+  result.xyz += hdrPixel * NoL;
+  result.w += NoL;
+  return result;
 }
 
 float t2p(float t, int nOfPixels)

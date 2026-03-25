@@ -68,7 +68,7 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
   {
     float2 coord1 = reflect(vec[j], rand) * rad;
     float2 coord2 = float2(coord1.x * 0.707 - coord1.y * 0.707,
-                           coord1.x * 0.707 - coord1.y * 0.707);
+                           coord1.x * 0.707 + coord1.y * 0.707);
      
     ao += computeAO(screenUV, coord1 * 0.25f, pos.xyz, n);
     ao += computeAO(screenUV, coord2 * 0.5f,  pos.xyz, n);

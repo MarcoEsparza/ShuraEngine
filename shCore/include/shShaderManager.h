@@ -369,7 +369,7 @@ class SH_CORE_EXPORT ShaderManager : public Module<ShaderManager>
   /**
   *  @brief Static ID for the histogram shader.
   */
-  static const uint32 HISTOGRAM_SHADER_ID;
+  //static const uint32 HISTOGRAM_SHADER_ID;
 
   /**
   *  @brief Static ID for the add skybox shader.

@@ -13,8 +13,6 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
     return;
   }
 
-  //float2 uv = (dtID.xy + 0.5f) / screenSize;
-
   float depth = t_depthMap.Load(uint3(dtID.xy, 0));
   float4 color;
     

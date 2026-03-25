@@ -35,7 +35,7 @@ const uint32 ShaderManager::SHADOWMAP_SHADER_ID = StringID("ShadowMapShader").ge
 const uint32 ShaderManager::SKYBOX_SHADER_ID = StringID("SkyBoxShader").getID();
 const uint32 ShaderManager::FINAL_SHADER_ID = StringID("FinalShader").getID();
 const uint32 ShaderManager::PLANE_SHADER_ID = StringID("PlaneShader").getID();
-const uint32 ShaderManager::HISTOGRAM_SHADER_ID = StringID("HistogramShader").getID();
+//const uint32 ShaderManager::HISTOGRAM_SHADER_ID = StringID("HistogramShader").getID();
 const uint32 ShaderManager::ADDSKYBOX_SHADER_ID = StringID("AddSkyboxShader").getID();
 const uint32 ShaderManager::LUMINANCE_SHADER_ID = StringID("LuminanceShader").getID();
 const uint32 ShaderManager::BRIGHT_SHADER_ID = StringID("BrightShader").getID();
@@ -118,9 +118,9 @@ ShaderManager::createPipelinePasses()
   pPlaneVS->compileShader();
 
   // Histogram shader
-  auto pHistogramShader = sh_makeShared<Pass>();
+  /*auto pHistogramShader = sh_makeShared<Pass>();
   pHistogramShader->setCShaderInfo(m_shaderDirectory + "HistogramShader", "CSMain");
-  pHistogramShader->compileShader();
+  pHistogramShader->compileShader();*/
 
   // Add skybox shader
   auto pASBShader = sh_makeShared<Pass>();
@@ -290,7 +290,7 @@ ShaderManager::createPipelinePasses()
   pFinalShader->addPSConstantBuffer(m_pMainBuffer, 0);
 
   // Histogram
-  pHistogramShader->addCSConstantBuffer(m_pMainBuffer, 0);
+  //pHistogramShader->addCSConstantBuffer(m_pMainBuffer, 0);
 
   // Add skybox
   pASBShader->addCSConstantBuffer(m_pMainBuffer, 0);
@@ -310,7 +310,7 @@ ShaderManager::createPipelinePasses()
   m_passes[SKYBOX_SHADER_ID] = pSkyBoxShader;
   m_passes[FINAL_SHADER_ID] = pFinalShader;
   m_passes[PLANE_SHADER_ID] = pPlaneVS;
-  m_passes[HISTOGRAM_SHADER_ID] = pHistogramShader;
+  //m_passes[HISTOGRAM_SHADER_ID] = pHistogramShader;
   m_passes[ADDSKYBOX_SHADER_ID] = pASBShader;
   m_passes[LUMINANCE_SHADER_ID] = pLuminanceShader;
   m_passes[BRIGHT_SHADER_ID] = pBrightShader;

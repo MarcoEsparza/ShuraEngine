@@ -32,7 +32,13 @@ using LoadPluginFunc = void(*)(void);
 
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
 
-// TODO: Macros for linux.
+using hInstance = void*;
+using LoadPluginFunc = void(*)(void);
+
+# define DYNAMIC_LIBRARY_HANDLE hInstance
+# define DYNAMIC_LIBRARY_LOAD(x) dlopen(x, RTLD_NOW)
+# define DYNAMIC_LIBRARY_GET_SYMBOL(x, y) dlsym(x, y)
+# define DYNAMIC_LIBRARY_UNLOAD(x) !dlclose(x)
 
 #endif
 

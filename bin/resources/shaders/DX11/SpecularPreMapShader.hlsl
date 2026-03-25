@@ -39,7 +39,6 @@ CSMain(uint3 dtID : SV_DispatchThreadID)
   // Get number of mips
   float adaptFactor = saturate(roughness + mipmapLevels / 8.0f);
   float maxBrightness = lerp(20.0f, 80.0f, adaptFactor);
-  //float maxBrightness = lerp(0.0f, 1.0f, adaptFactor);
   
   for (uint n = 0u; n < samples; ++n)
   {

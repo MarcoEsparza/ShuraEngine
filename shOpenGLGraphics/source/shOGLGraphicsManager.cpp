@@ -54,16 +54,16 @@ String
 resolveIncludes(const String& shaderCode, const String& basePath)
 {
   String resolvedCode;
-  size_t pos = 0;
+  SIZE_T pos = 0;
   while (pos < shaderCode.length()) {
-    size_t includePos = shaderCode.find("#include", pos);
+    SIZE_T includePos = shaderCode.find("#include", pos);
     if (includePos == String::npos) {
       resolvedCode += shaderCode.substr(pos);
       break;
     }
     resolvedCode += shaderCode.substr(pos, includePos - pos);
-    size_t startQuote = shaderCode.find('"', includePos);
-    size_t endQuote = shaderCode.find('"', startQuote + 1);
+    SIZE_T startQuote = shaderCode.find('"', includePos);
+    SIZE_T endQuote = shaderCode.find('"', startQuote + 1);
     if (startQuote == String::npos || endQuote == String::npos) {
       SH_ASSERT(false && "Invalid #include directive");
       return resolvedCode;
@@ -75,7 +75,7 @@ resolveIncludes(const String& shaderCode, const String& basePath)
       SH_ASSERT(false && "Failed to open included shader file");
       return resolvedCode;
     }
-    stringstream includeStream;
+    StringStream includeStream;
     includeStream << includeFile.rdbuf();
     String includeShaderCode = resolveIncludes(includeStream.str(), basePath);
     resolvedCode += includeShaderCode;
@@ -90,7 +90,10 @@ compileShader(const String& fileName,
               const Vector<ShaderMacro>& macros)
 {
   // Read shader code from file.
-  fstream shaderFile(fileName, ios::in);
+  SystemPath path(fileName);
+  path.replace_extension(".glsl");
+  String newFileName = path.string();
+  fstream shaderFile(newFileName, ios::in);
   if (!shaderFile.is_open()) {
     SH_ASSERT(false && "Failed to open shader file");
     return 0;
@@ -101,7 +104,7 @@ compileShader(const String& fileName,
   String shaderCode = shaderStream.str();
 
   // Resolve #include directives.
-  String basePath = fileName.substr(0, fileName.find_last_of("/\\"));
+  String basePath = newFileName.substr(0, newFileName.find_last_of("/\\"));
   shaderCode = resolveIncludes(shaderCode, basePath);
 
   // Insert macros into shader code.
@@ -766,10 +769,13 @@ OGLGraphicsManager::createVertexShader(const String& fileName,
                                        const String& shaderModel,
                                        const Vector<ShaderMacro>& macros)
 {
-  SH_UNREFERENCED_PARAMETER(entryPoint);
+  //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  uint32 shaderID = compileShader(fileName, OPENGL_SHADER_TYPE::VERTEX_SHADER, macros);
+  SystemPath path(fileName);
+  String newFileName = path.filename().string() + entryPoint + "VS";
+
+  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::VERTEX_SHADER, macros);
   auto pVertexShader = sh_makeShared<OGLVertexShader>();
   pVertexShader->m_vertexShaderID = shaderID;
 
@@ -782,10 +788,13 @@ OGLGraphicsManager::createPixelShader(const String& fileName,
                                       const String& shaderModel,
                                       const Vector<ShaderMacro>& macros)
 {
-  SH_UNREFERENCED_PARAMETER(entryPoint);
+  //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  uint32 shaderID = compileShader(fileName, OPENGL_SHADER_TYPE::PIXEL_SHADER, macros);
+  SystemPath path(fileName);
+  String newFileName = path.filename().string() + entryPoint + "FS";
+
+  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::PIXEL_SHADER, macros);
   auto pPixelShader = sh_makeShared<OGLPixelShader>();
   pPixelShader->m_pixelShaderID = shaderID;
 
@@ -798,10 +807,13 @@ OGLGraphicsManager::createGeometryShader(const String& fileName,
                                          const String& shaderModel,
                                          const Vector<ShaderMacro>& macros)
 {
-  SH_UNREFERENCED_PARAMETER(entryPoint);
+  //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  uint32 shaderID = compileShader(fileName, OPENGL_SHADER_TYPE::GEOMETRY_SHADER, macros);
+  SystemPath path(fileName);
+  String newFileName = path.filename().string() + entryPoint + "GS";
+
+  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::GEOMETRY_SHADER, macros);
   auto pGeometryShader = sh_makeShared<OGLGeometryShader>();
   pGeometryShader->m_geometryShaderID = shaderID;
   return pGeometryShader;
@@ -813,10 +825,13 @@ OGLGraphicsManager::createComputeShader(const String& fileName,
                                         const String& shaderModel,
                                         const Vector<ShaderMacro>& macros)
 {
-  SH_UNREFERENCED_PARAMETER(entryPoint);
+  //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  uint32 shaderID = compileShader(fileName, OPENGL_SHADER_TYPE::COMPUTE_SHADER, macros);
+  SystemPath path(fileName);
+  String newFileName = path.filename().string() + entryPoint + "CS";
+
+  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::COMPUTE_SHADER, macros);
   auto pComputeShader = sh_makeShared<OGLComputeShader>();
   pComputeShader->m_computeShaderID = shaderID;
   return pComputeShader;

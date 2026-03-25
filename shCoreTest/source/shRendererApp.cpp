@@ -238,7 +238,8 @@ RendererApp::onRender()
   renderMan.renderScene();
   //gizmos.drawGizmos(m_camera);
   m_gui.render();
-  renderMan.cleanShaderObjects();
+  //renderMan.cleanShaderObjects();
+  graphMan.unbindAll();
 }
 
 void

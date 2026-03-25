@@ -18,8 +18,12 @@
 /*****************************************************************************/
 #include "shDynamicLibrary.h"
 
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
+#include <dlfcn.h>
+#endif
 
 namespace shEngineSDK {
 #if SH_PLATFORM == SH_PLATFORM_WIN32
@@ -56,11 +60,16 @@ DynamicLibrary::~DynamicLibrary()
 void
 DynamicLibrary::load()
 {
-  m_dynLibHandler = static_cast<DYNAMIC_LIBRARY_HANDLE>(DYNAMIC_LIBRARY_LOAD(m_name.c_str()));
+  m_dynLibHandler = cast::st<DYNAMIC_LIBRARY_HANDLE>(DYNAMIC_LIBRARY_LOAD(m_name.c_str()));
 
   if (!m_dynLibHandler) {
+#if SH_PLATFORM == SH_PLATFORM_WIN32
     auto error = GetLastError();
     SH_ASSERT(false && error);
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
+    auto error = dlerror();
+    SH_ASSERT(false && error);
+#endif
   }
 }
 
