@@ -1,4 +1,4 @@
-project(shCore)
+#project(shCore)
 
 find_package(assimp REQUIRED)
 
@@ -17,26 +17,26 @@ elseif(UNIX)
     )
 endif()
 
-add_library(${PROJECT_NAME} STATIC
+add_library(shCore SHARED
     ${SOURCE_FILES}
     ${PLATFORM_SOURCES}
 )
 
 # Include directories for the shCore library
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(shCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/externals
     include
 )
 # Link dependencies for the shCore library
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(shCore PUBLIC
     shUtilities
     shPhysics
     assimp::assimp
 )
 # Configure the debug suffix
-set_target_properties(${PROJECT_NAME} PROPERTIES
+set_target_properties(shCore PROPERTIES
     DEBUG_POSTFIX "d"
 )
 # Set the output directories for the shCore target
-set_output_directories(${PROJECT_NAME})
+set_output_directories(shCore)

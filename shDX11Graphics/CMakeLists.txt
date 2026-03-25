@@ -1,4 +1,4 @@
-project(shDX11Graphics)
+#project(shDX11Graphics)
 
 if(NOT WIN32)
     message(FATAL_ERROR "shDX11Graphics is only supported on Windows.")
@@ -9,25 +9,23 @@ file(GLOB SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp
 )
 
-add_library(${PROJECT_NAME} STATIC
-    ${SOURCE_FILES}
-)
+add_library(shDX11Graphics SHARED ${SOURCE_FILES})
 
 # Include directories for the shDX11Graphics library
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(shDX11Graphics PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     include
 )
 
 # Link dependencies for the shDX11Graphics library
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(shDX11Graphics PUBLIC
     shCore
     shUtilities
 )
 
 # Configure the debug suffix
-set_target_properties(${PROJECT_NAME} PROPERTIES
+set_target_properties(shDX11Graphics PROPERTIES
     DEBUG_POSTFIX "d"
 )
 # Set the output directories for the shDX11Graphics target
-set_output_directories(${PROJECT_NAME})
+set_output_directories(shDX11Graphics)
