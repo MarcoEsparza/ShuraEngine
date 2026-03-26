@@ -2,6 +2,10 @@
 
 find_package(assimp REQUIRED)
 
+if(UNIX)
+    find_package(X11 REQUIRED)
+endif()
+
 # Configure the shCore library target
 file(GLOB SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp
@@ -33,6 +37,7 @@ target_link_libraries(shCore PUBLIC
     shUtilities
     shPhysics
     assimp::assimp
+    $<$<PLATFORM_ID:Linux>:${X11_LIBRARIES}>
 )
 # Configure the debug suffix
 set_target_properties(shCore PROPERTIES

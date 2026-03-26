@@ -30,7 +30,8 @@ struct LinuxScreenHandle
 
 namespace shEngineSDK{
 bool
-Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler) {
+Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler)
+{
   m_eventQueue = eventHandler;
   m_width = desc.width;
   m_height = desc.height;
@@ -53,7 +54,7 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
   windowAttributes.border_pixel = 0;
   windowAttributes.event_mask = KeyPressMask |
                                 KeyReleaseMask |
-                                StructNotifyMask |
+                                StructureNotifyMask |
                                 ExposureMask;
 
   m_screenHandle->window = XCreateWindow(m_screenHandle->display,
@@ -64,7 +65,7 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
                                          &windowAttributes);
 
   XSizeHints sizeHints = {};
-  sizehints.flags = PMinSize;
+  sizeHints.flags = PMinSize;
   sizeHints.min_width = 200;
   sizeHints.min_height = 200;
   XSetWMNormalHints(m_screenHandle->display, m_screenHandle->window, &sizeHints);
@@ -83,7 +84,8 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
 }
 
 void
-Screen::Close(){
+Screen::close()
+{
   if (m_screenHandle) {
     XDestroyWindow(m_screenHandle->display, m_screenHandle->window);
     XCloseDisplay(m_screenHandle->display);
@@ -93,7 +95,8 @@ Screen::Close(){
 }
 
 Vector2i
-Screen::getClientSize(){
+Screen::getClientSize() const
+{
   return Vector2i(m_width, m_height);
 }
 }

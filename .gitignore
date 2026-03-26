@@ -408,3 +408,6 @@ FodyWeavers.xsd
 *.sha
 *.tga
 *.fbx
+
+build_linux/
+Linux/

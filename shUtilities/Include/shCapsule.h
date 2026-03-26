@@ -77,21 +77,21 @@ class SH_UTILITY_EXPORT Capsule
   /**
   *  @brief The radius of the capsule figure.
   */
-  float radius;
+  float radius = 0.0f;
 
   /**
   *  @brief The center of the figure
   */
-  Vector3 center;
+  Vector3 center = Vector3::ZERO;
 
   /**
   *  @brief The direction.
   */
-  Vector3 direction;
+  Vector3 direction = Vector3::ZERO;
 
   /**
   *  @brief The height between the two points of the capsule.
   */
-  float height;
+  float height = 0.0f;
 };
 }

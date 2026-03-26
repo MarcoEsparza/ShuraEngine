@@ -10,7 +10,6 @@
 *  @bug     No bug known
 */
 /*****************************************************************************/
-#pragma once
 
 /*****************************************************************************/
 /*
@@ -55,6 +54,7 @@
 using std::remove;
 using std::strncpy;
 using std::remove_if;
+using std::get;
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -126,7 +126,7 @@ tablePropertyDragFloat(const String& label,
 
   ImGui::TableNextRow();
   ImGui::TableSetColumnIndex(0);
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::TableNextColumn();
   changed = ImGui::DragFloat(("##" + label).c_str(), &value, speed, min, max, format);
 
@@ -140,7 +140,7 @@ tablePropertyCheckbox(const String& label, bool& value)
 
   ImGui::TableNextRow();
   ImGui::TableSetColumnIndex(0);
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::TableNextColumn();
   changed = ImGui::Checkbox(("##" + label).c_str(), &value);
 
@@ -300,7 +300,7 @@ GUI::update()
   setRendererSettings();
 
   ImGui::Begin(m_projectResWindowStr.c_str());
-  ImGui::Text("Resource1");
+  ImGui::Text("%s", "Resource1");
   ImGui::End();
 
   setConsoleLogs();
@@ -449,7 +449,7 @@ GUI::setRendererSettings()
 
   String strCount = std::to_string(m_fpsCountGUI);
   String text = strCount + ": fps";
-  ImGui::Text(text.c_str());
+  ImGui::Text("%s",text.c_str());
   ImGui::SetNextItemWidth(150.0f);
   if (ImGui::Button("Recompile Shaders")) {
     shaderMan.recompileShaders();
@@ -515,19 +515,19 @@ GUI::setRendererSettings()
 
       tablePropertyDragFloat("Min red:", minR, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
       ImGui::TableNextColumn();
-      ImGui::Text("Max red:");
+      ImGui::Text("%s", "Max red:");
       ImGui::TableNextColumn();
       ImGui::DragFloat("##Max red:", &maxR, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
 
       tablePropertyDragFloat("Min green:", minG, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
       ImGui::TableNextColumn();
-      ImGui::Text("Max green:");
+      ImGui::Text("%s", "Max green:");
       ImGui::TableNextColumn();
       ImGui::DragFloat("##Max green:", &maxG, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
 
       tablePropertyDragFloat("Min blue:", minB, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
       ImGui::TableNextColumn();
-      ImGui::Text("Max blue:");
+      ImGui::Text("%s", "Max blue:");
       ImGui::TableNextColumn();
       ImGui::DragFloat("##Max blue:", &maxB, 1.0f, 0.0f, COLOR_LIMIT, "%.1f");
 
@@ -892,19 +892,19 @@ GUI::showTransformComponent()
   if (ImGui::CollapsingHeader(headerStr.c_str())) {
     // Position
     String posIcon = iconToStr(FONT_ICONS::kMove) + " Position:";
-    ImGui::Text(posIcon.c_str());
+    ImGui::Text("%s", posIcon.c_str());
     ImGui::SameLine(110.0f);
     posChanged = dragVector3("Position", modelPos, 0.01f);
 
     // Rotation
     String rotIcon = iconToStr(FONT_ICONS::kArrowsCW) + " Rotation:";
-    ImGui::Text(rotIcon.c_str());
+    ImGui::Text("%s", rotIcon.c_str());
     ImGui::SameLine(110.0f);
     rotChanged = dragVector3("Rotation", m_editorEuler, 0.1f);
 
     // Scale
     String sclIcon = iconToStr(FONT_ICONS::kResizeFullAlt) + " Scale:";
-    ImGui::Text(sclIcon.c_str());
+    ImGui::Text("%s", sclIcon.c_str());
     ImGui::SameLine(110.0f);
     scaleChanged = dragVector3("Scale", modelScale, 0.01f);
 
@@ -1456,26 +1456,27 @@ GUI::showColliderComponent(const WPtr<ColliderComponent> wpCollider)
 
     // Show collider properties based on type
     if (colliderType == COLLIDER_TYPE::kOBBox) {
+      OBBox& box = get<OBBox>(pCollider->m_collider.m_shape);
       ImGui::Text("Offset:");
       ImGui::Text("X");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(50.0f);
       ImGui::DragFloat("##OBBoxXOffset",
-                       &pCollider->m_collider.m_box.center.x,
+                       &box.center.x,
                        0.01f);
       ImGui::SameLine();
       ImGui::Text("Y");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(50.0f);
       ImGui::DragFloat("##OBBoxYOffset",
-                       &pCollider->m_collider.m_box.center.y,
+                       &box.center.y,
                        0.01f);
       ImGui::SameLine();
       ImGui::Text("Z");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(50.0f);
       ImGui::DragFloat("##OBBoxZOffset",
-                       &pCollider->m_collider.m_box.center.z,
+                       &box.center.z,
                        0.01f);
 
       ImGui::Text("Size:");
@@ -1483,21 +1484,21 @@ GUI::showColliderComponent(const WPtr<ColliderComponent> wpCollider)
       ImGui::SameLine();
       ImGui::SetNextItemWidth(50.0f);
       ImGui::DragFloat("##OBBoxXSize",
-                       &pCollider->m_collider.m_box.extent.x,
+                       &box.extent.x,
                        0.01f);
       ImGui::SameLine();
       ImGui::Text("Y");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(50.0f);
       ImGui::DragFloat("##OBBoxYSize",
-                       &pCollider->m_collider.m_box.extent.y,
+                       &box.extent.y,
                        0.01f);
       ImGui::SameLine();
       ImGui::Text("Z");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(50.0f);
       ImGui::DragFloat("##OBBoxZSize",
-                       &pCollider->m_collider.m_box.extent.z,
+                       &box.extent.z,
                        0.01f);
     }
   }

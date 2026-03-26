@@ -14,7 +14,7 @@ void main()
 {
   uvec3 dtID = gl_GlobalInvocationID;
 
-  if (dtID.x >= uScreenSize.x || dtID.y >= uScreenSize.y) 
+  if (dtID.x >= screenSize.x || dtID.y >= screenSize.y) 
   {
     return;
   }

@@ -29,6 +29,7 @@ using LoadPluginFunc = void(*)(void);
 # define DYNAMIC_LIBRARY_LOAD(x) LoadLibraryA(x)
 # define DYNAMIC_LIBRARY_GET_SYMBOL(x, y) GetProcAddress(x, y)
 # define DYNAMIC_LIBRARY_UNLOAD(x) !FreeLibrary(x)
+# define DYNAMIC_LIBRARY_ERROR() GetLastError() 
 
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
 
@@ -39,6 +40,7 @@ using LoadPluginFunc = void(*)(void);
 # define DYNAMIC_LIBRARY_LOAD(x) dlopen(x, RTLD_NOW)
 # define DYNAMIC_LIBRARY_GET_SYMBOL(x, y) dlsym(x, y)
 # define DYNAMIC_LIBRARY_UNLOAD(x) !dlclose(x)
+# define DYNAMIC_LIBRARY_ERROR() dlerror()
 
 #endif
 

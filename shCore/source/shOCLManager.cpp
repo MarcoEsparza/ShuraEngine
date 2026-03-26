@@ -17,9 +17,9 @@
 */
 /*************************************************************/
 #include "shOCLManager.h"
-#include "CL/cl.h"
+//#include "CL/cl.h"
 //#include "CL/cl.hpp"
-#include "shLogger.h"
+//#include "shLogger.h"
 
 namespace shEngineSDK {
 //void

@@ -1,6 +1,6 @@
 #version 430 core
 
-#include "ShaderConstans.glsl"
+#include "ShaderConstants.glsl"
 
 in vec2 TexCoords;
 out vec4 FragColor;
@@ -18,9 +18,9 @@ vec3 getPosition(vec2 uv)
   return texture(t_posMap, uv).xyz;
 }
 
-vec3 getNormal(vec2 uv)
+vec4 getNormal(vec2 uv)
 {
-  return texture(t_normalMap, uv).xyz;
+  return texture(t_normalMap, uv);
 }
 
 vec3 getRandom(vec2 uv)
@@ -43,7 +43,7 @@ float computeAO(vec2 tcoord, vec2 uv, vec3 p, vec3 cnorm)
 
 void main()
 {
-  vec2 screenUV = Texcoord;
+  vec2 screenUV = TexCoords;
   vec4 normal = getNormal(screenUV);
 
   if (normal.w == 0.0)

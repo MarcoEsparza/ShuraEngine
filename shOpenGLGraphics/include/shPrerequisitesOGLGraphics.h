@@ -19,5 +19,10 @@
 /*************************************************************/
 #include "shPrerequisitesCore.h"
 #include "GL/glew.h"
+//#include "GL/GLU.h"
+
+#if SH_PLATFORM == SH_PLATFORM_WIN32
 #include "GL/wglew.h"
-#include "GL/GLU.h"
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
+#include "GL/glxew.h"
+#endif

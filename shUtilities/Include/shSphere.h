@@ -60,11 +60,11 @@ public:
   /**
   *  @brief The sphere radius.
   */
-  float radius;
+  float radius = 0.0f;
 
   /**
   *  @brief The position of the center of the sphere.
   */
-  Vector3 center;
+  Vector3 center = Vector3::ZERO;
 };
 }

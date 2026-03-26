@@ -19,6 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesPhysics.h"
 #include "shBasePhysicsConstraint.h"
+#include <shVector3.h>
 
 namespace shEngineSDK {
 class JointConstraint : public BasePhysicsConstraint

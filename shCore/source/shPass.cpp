@@ -193,10 +193,10 @@ Pass::compileShader()
       m_program = graphMan.createProgram(m_pCShader);
     }
     else if (m_pVShader != nullptr && m_pPShader != nullptr && m_pGShader != nullptr) {
-      m_program = graphMan.createProgram(m_pVShader, m_pPShader);
+      m_program = graphMan.createProgram(m_pVShader, m_pPShader, m_pGShader);
     }
     else if (m_pVShader != nullptr && m_pPShader != nullptr) {
-      m_program = graphMan.createProgram(m_pVShader, m_pPShader, m_pGShader);
+      m_program = graphMan.createProgram(m_pVShader, m_pPShader);
     }
   }
 }

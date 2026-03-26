@@ -27,6 +27,7 @@
 
 // Temporary include for sorting
 using std::sort;
+using std::get;
 
 namespace shEngineSDK {
 //void
@@ -137,15 +138,15 @@ PhysicsManager::computeInertiaTensor(Collider& collider, float mass) const
   switch (collider.m_type) {
   case COLLIDER_TYPE::kOBBox:
   {
-    return getInertiaTensor(collider.m_box, mass);
+    return getInertiaTensor(get<OBBox>(collider.m_shape), mass);
   }
   case COLLIDER_TYPE::kSphere:
   {
-    return getInertiaTensor(collider.m_sphere, mass);
+    return getInertiaTensor(get<Sphere>(collider.m_shape), mass);
   }
   case COLLIDER_TYPE::kCapsule:
   {
-    return getInertiaTensor(collider.m_capsule, mass);
+    return getInertiaTensor(get<Capsule>(collider.m_shape), mass);
   }
   case COLLIDER_TYPE::kConvexMesh:
   {

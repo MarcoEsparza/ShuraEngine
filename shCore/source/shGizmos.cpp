@@ -37,6 +37,8 @@
 #define MIN_VERTICES_IN_SPHERE        8.0f
 #define MAX_VERTICES_IN_SPHERE        180.0f
 
+using std::get;
+
 namespace shEngineSDK {
 void
 Gizmos::onStartUp()
@@ -88,15 +90,15 @@ Gizmos::drawGizmos(const Camera& camera)
         auto colliderComp = cast::re_ptr<ColliderComponent>(component);
         
         if (colliderComp->m_collider.m_type == COLLIDER_TYPE::kOBBox) {
-          drawBox(colliderComp->m_collider.m_box, gameObject->m_transform);
+          drawBox(get<OBBox>(colliderComp->m_collider.m_shape), gameObject->m_transform);
         }
         else if(colliderComp->m_collider.m_type == COLLIDER_TYPE::kSphere) {
-          drawSphere(colliderComp->m_collider.m_sphere,
+          drawSphere(get<Sphere>(colliderComp->m_collider.m_shape),
                      gameObject->m_transform,
                      camera);
         }
         else if (colliderComp->m_collider.m_type == COLLIDER_TYPE::kCapsule) {
-          drawCapsule(colliderComp->m_collider.m_capsule,
+          drawCapsule(get<Capsule>(colliderComp->m_collider.m_shape),
                       gameObject->m_transform,
                       camera);
         }

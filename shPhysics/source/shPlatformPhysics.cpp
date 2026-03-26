@@ -10,7 +10,6 @@
 * @bug      No bug known
 */
 /*************************************************************/
-#pragma once
 
 /*************************************************************/
 /*
@@ -24,6 +23,8 @@
 #include "shCapsule.h"
 #include "shSphere.h"
 #include "shCollisionInfo.h"
+
+#define MAX_FLOAT 3.402823466e+38F
 
 namespace shEngineSDK {
 const float PlatformPhysics::SLOP = 0.01f; // Tolerance for collision detection
@@ -283,7 +284,7 @@ PlatformPhysics::EPA(const OBBox& obb1,
   for (int i = 0; i < maxEPAIterations; ++i) {
     // Look for closest face to origin
     int closest = -1;
-    float minDist = FLT_MAX;
+    float minDist = MAX_FLOAT;
     for (int j = 0; j < faces.size(); ++j) {
       float dist = Math::abs(faces[j].normal.dot(faces[j].a));
       if (dist < minDist) {

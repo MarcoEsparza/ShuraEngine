@@ -544,7 +544,7 @@ RendererApp::loadSponza()
   //model->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
   model->setScale(Vector3::ONE * 0.25f);
 
-  auto pCollider = sh_makeShared<ColliderComponent>();
+  /*auto pCollider = sh_makeShared<ColliderComponent>();
   pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
   pCollider->m_collider.m_box.center = Vector3::ZERO;
   pCollider->m_collider.m_box.extent = Vector3(50.0f, 5.0f, 50.0f);
@@ -562,7 +562,7 @@ RendererApp::loadSponza()
   pRigidbody->m_rigidbody.m_rotation = Quaternion(model->m_transform.getRotation());
 
   model->addComponent(pCollider);
-  model->addComponent(pRigidbody);
+  model->addComponent(pRigidbody);*/
 
   sceneG.addObject(model);
 }

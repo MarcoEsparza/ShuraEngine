@@ -1,6 +1,6 @@
 #project(shCoreTest)
 # Add the executable target for the shCoreTest module
-add_executable(shCoreTest}
+add_executable(shCoreTest
     source/imgui.cpp
     source/imgui_demo.cpp
     source/imgui_draw.cpp
@@ -12,12 +12,12 @@ add_executable(shCoreTest}
     source/shRendererApp.cpp
 )
 # Include directories for the shCoreTest module
-target_include_directories(shCoreTest} PRIVATE
+target_include_directories(shCoreTest PRIVATE
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/externals
 )
 # Add shCore as a dependency
-target_link_libraries(shCoreTest} PRIVATE
+target_link_libraries(shCoreTest PRIVATE
     shCore
     shUtilities
     shPhysics

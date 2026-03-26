@@ -1,4 +1,6 @@
-#project(shOpenGLGraphics)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+
 # Configure the shOpenGLGraphics library target
 file(GLOB SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp
@@ -14,6 +16,8 @@ target_include_directories(shOpenGLGraphics PUBLIC
 target_link_libraries(shOpenGLGraphics PUBLIC
     shCore
     shUtilities
+    OpenGL::GL
+    GLEW::GLEW
 )
 # Configure the debug suffix
 set_target_properties(shOpenGLGraphics PROPERTIES

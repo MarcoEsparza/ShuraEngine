@@ -18,7 +18,7 @@
 */
 /*************************************************************/
 #include "shPrerequisitesPhysics.h"
-#include "shVector3.h"
+#include <shVector3.h>
 
 namespace shEngineSDK {
 class OBBox;
@@ -30,7 +30,7 @@ struct CollisionInfo;
 /**
 *  @breif Face structure
 */
-struct Face
+struct SH_PHYSICS_EXPORT Face
 {
   Face(const Vector3& _a, const Vector3& _b, const Vector3& _c);
   
@@ -90,13 +90,13 @@ class SH_PHYSICS_EXPORT PlatformPhysics
   static Vector3
   supportCSO(const Sphere& sphere1, const Sphere& sphere2, const Vector3& dir);
 
-  bool
+  static bool
   doSimplex(Vector<Vector3>& simplex, Vector3& direction);
 
-  bool
+  static bool
   GJK(const OBBox& obb1, const OBBox& obb2, Vector<Vector3>& simplex);
 
-  bool
+  static bool
   EPA(const OBBox& obb1, const OBBox& obb2, Vector<Vector3>& simplex, CollisionInfo& info);
 
   static const float SLOP;

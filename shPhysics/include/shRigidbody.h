@@ -84,67 +84,67 @@ public:
   /**
   *  @brief Integration type for the rigidbody (Euler or Verlet).
   */
-  INTEGRATION::E m_integrationType;
+  INTEGRATION::E m_integrationType = INTEGRATION::kEuler;
 
   /**
   *  @brief Linear velocity of the rigidbody in world space.
   */
-  Vector3 m_linearVelocity;
+  Vector3 m_linearVelocity = Vector3::ZERO;
 
   /**
   *  @brief Angular velocity of the rigidbody in world space.
   */
-  Vector3 m_angularVelocity;
+  Vector3 m_angularVelocity = Vector3::ZERO;
 
   /**
   *  @brief Previous position of the rigidbody in world space.
   */
-  Vector3 m_prevPosition;
+  Vector3 m_prevPosition = Vector3::ZERO;
 
   /**
   *  @brief Position of the rigidbody in world space.
   */
-  Vector3 m_position;
+  Vector3 m_position = Vector3::ZERO;
 
   /**
   *  @brief Linear acceleration of the rigidbody.
   */
-  Vector3 m_accel;
+  Vector3 m_accel = Vector3::ZERO;
 
   /**
   *  @brief Angular acceleration of the rigidbody
   */
-  Vector3 m_angularAccel;
+  Vector3 m_angularAccel = Vector3::ZERO;
 
   /**
   *  @brief Scale of gravity applied to the rigidbody
   */
-  float m_gravityScale;
+  float m_gravityScale = 1.0f;
 
   /**
   *  @brief Mass of the rigidbody
   */
-  float m_mass;
+  float m_mass = 1.0f;
 
-  float m_invMass;
+  float m_invMass = 1.0f;
 
   /**
   *  @brief Coefficient of restitution
   */
-  float m_elasticity;
+  float m_elasticity = 0.5f;
 
   /**
   *  @brief Friction coefficient for the rigidbody
   */
-  float m_friction;
+  float m_friction = 0.5f;
 
   float m_dragCoefficent = 1.0f;
 
-  Matrix3 m_invAngularInertia;
+  Matrix3 m_invAngularInertia = Matrix3::IDENTITY;
 
   //SPtr<GameObject> m_owner;
 
-  Quaternion m_rotation;
+  Quaternion m_rotation = Quaternion::IDENTITY;
 
   COLLIDER_TYPE::E m_colliderType = COLLIDER_TYPE::kNone;
 };

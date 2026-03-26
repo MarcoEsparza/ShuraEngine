@@ -18,12 +18,14 @@
 */
 /*************************************************************/
 #include "shPrerequisitesPhysics.h"
-#include "shAABBox.h"
-#include "shOBBox.h"
-#include "shCapsule.h"
-#include "shSphere.h"
+#include <shAABBox.h>
+#include <shOBBox.h>
+#include <shCapsule.h>
+#include <shSphere.h>
 
 namespace shEngineSDK {
+using Shape = std::variant<Sphere, Capsule, OBBox>;
+
 /**
 *  @brief Collider type enumeration.
 */
@@ -70,10 +72,6 @@ public:
   /**
   *  @brief Collider.
   */
-  union {
-    Sphere m_sphere;
-    Capsule m_capsule;
-    OBBox m_box;
-  };
+  Shape m_shape;
 };
 }

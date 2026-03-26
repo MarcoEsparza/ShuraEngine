@@ -22,7 +22,7 @@ void main()
 
   ivec2 coord = ivec2(dtID);
 
-  vec4 a = texelFetch(t_inputMap, coord, mipLevel0);
+  vec4 a = texelFetch(t_inputMap, coord, int(mipLevel0));
 
   vec2 uv = (vec2(dtID) + 0.5) / vec2(textureSize);
   vec4 b = textureLod(t_texture1, uv, float(mipLevel1));

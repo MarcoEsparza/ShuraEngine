@@ -22,11 +22,12 @@ const float weights[9] = float[](
 
 void main()
 {
-  ivec3 base = ivec3(gl_GlobalInvocationID.x * BLURH_THREADS_X, gl_GlobalInvocationID.y, mipLevel0);
+  ivec2 base = ivec2(gl_GlobalInvocationID.x * BLURH_THREADS_X, gl_GlobalInvocationID.y);
   vec4 input[BLUR_WIDTH + BLURH_THREADS_X];
+  int mip = int(mipLevel0);
 
   for(int i = 0; i < BLUR_WIDTH + BLURH_THREADS_X; i++) {
-    input[i] = texelFetch(t_inputMap, base + ivec3(i, 0, 0), mipLevel0);
+    input[i] = texelFetch(t_inputMap, base + ivec2(i, 0), mip);
   }
 
   for(int i = 0; i < BLURH_THREADS_X; i++) {
@@ -34,6 +35,6 @@ void main()
     for(int j = 0; j < BLUR_WIDTH; j++) {
     sum += input[i + j] * weights[j];
     }
-    imageStore(t_outputMap, base + ivec3(i, 0, 0), sum);
+    imageStore(t_outputMap, base + ivec2(i, 0), sum);
   }
 }

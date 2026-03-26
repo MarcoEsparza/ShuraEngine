@@ -47,7 +47,12 @@ Asset::loadResourceFromAsset(Path filePath)
   ResourceManager& resMan = g_resourceMan();
 
   FILE* file = nullptr;
+
+#if SH_COMPILER == SH_COMPILER_MSVC
   fopen_s(&file, filePath.toString().c_str(), "rb");
+#else
+  file = fopen(filePath.toString().c_str(), "rb");
+#endif
   
   if (!file) {
     return nullptr;
@@ -234,12 +239,13 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes, const String& path)
 {
   auto pStaticMesh = cast::re_ptr<StaticMeshResource>(pRes);
 
-  //SystemPath pathName = pStaticMesh->getName();
-  //pathName.replace_extension(".sha");
-  //String fileName = "resources/assets/models/" + pathName.string();
-  //SystemPath fullPath = path;
   FILE* outFile = nullptr;
+#if SH_COMPILER == SH_COMPILER_MSVC
   fopen_s(&outFile, path.c_str(), "wb");
+#else
+  outFile = fopen(path.c_str(), "wb");
+#endif
+
   if (!outFile) {
     return;
   }

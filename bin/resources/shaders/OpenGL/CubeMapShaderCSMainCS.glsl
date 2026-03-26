@@ -4,7 +4,7 @@
 
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
-#define CUBE_MAP_SIZE 1024
+#define CUBEMAP_SIZE 1024
 
 layout (binding = 0) uniform sampler2D t_skybox;
 
@@ -17,9 +17,10 @@ vec2 equirrectUV(vec3 dir)
   return vec2(u, v);
 }
 
-vec3 texcoordToDir(uint faceIndex, vec2 uv)
+vec3 texCoordToDir(uint faceIndex, vec2 uv)
 {
   uv = uv * 2.0 - 1.0;
+  vec3 dir = vec3(0, 0, 0);
   if (faceIndex == 0u) {
     dir = vec3( 1.0, -uv.y, -uv.x);
   }

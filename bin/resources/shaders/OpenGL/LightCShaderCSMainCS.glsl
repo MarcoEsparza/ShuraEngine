@@ -4,6 +4,8 @@
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
+#define DELTA 0.00000001f
+
 // === Textures ===
 layout(binding = 0) uniform sampler2D t_depthMap;
 layout(binding = 1) uniform sampler2D t_normalMap;
@@ -46,14 +48,14 @@ float pcFiltering(vec2 uv, float currentDepth, float texelSize, float bias)
     {
         for(int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(shadowMap, uv.xy + vec2(x, y) * texelSize).r; 
+            float pcfDepth = texture(t_shadowMap, uv.xy + vec2(x, y) * texelSize).r; 
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
     return shadow /= 9.0f;
 }
 
-float shadowCalculation(vec4 fragPosLightSpace)
+float shadowCalculation(vec4 fragPosLightSpace, float NdL)
 {
     // Perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -61,16 +63,15 @@ float shadowCalculation(vec4 fragPosLightSpace)
     projCoords = projCoords * 0.5 + 0.5;
 
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    float closestDepth = texture(t_shadowMap, projCoords.xy).r; 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
-
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+    float bias = max(0.05 * (1.0 - NdL), 0.005);
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     // PCF
-    float texelSize = 1.0 / textureSize(shadowMap, 0).x;
+    float texelSize = 1.0 / textureSize(t_shadowMap, 0).x;
     shadow = pcFiltering(projCoords.xy, currentDepth, texelSize, bias);
 
     // Check if fragment is outside the shadow map
@@ -83,7 +84,7 @@ float shadowCalculation(vec4 fragPosLightSpace)
 
 float saturate(float x) { return clamp(x, 0.0, 1.0); }
 
-float3 fresnelSchlick(vec3 F0, float cosTheta)
+vec3 fresnelSchlick(vec3 F0, float cosTheta)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
@@ -128,6 +129,62 @@ vec3 cookTorrenceSpecular(vec3 normal, vec3 viewDir, vec3 lightDir, float roughn
     return (D * G * F) / denom;
 }
 
+vec4 getSpecularSample(vec3 reflection, float lod)
+{
+  float u_EnvIntensity = 1.0;
+
+  vec2 uv = getSkyBoxUV(normalize(reflection));
+  vec4 texSample = textureLod(t_skyReflect, uv, lod);
+
+  texSample.rgb *= u_EnvIntensity;
+  return vec4(texSample.rgb, 1.0);
+}
+
+vec3 getIBLRadianceGGX(vec3 n, vec3 v, float roughness)
+{
+  float NdotV = clamp(dot(n, v), 0.0, 1.0);
+
+  int width = textureSize(t_skyReflect, 0).x;
+  float levels = float(textureQueryLevels(t_skyReflect));
+
+  float lod = min(roughness * float(width), levels);
+
+  vec3 reflection = normalize(reflect(-v, n));
+  vec4 specularSample = getSpecularSample(reflection, lod);
+
+  return specularSample.rgb;
+}
+
+vec3 getIBLGGXFresnel(vec3 n, vec3 v, float roughness, vec3 F0, float specularWeight)
+{
+  // Roughness dependent Fresnel
+  float nDotV = clamp(dot(n, v), 0.0, 1.0);
+
+  vec2 brdfSamplePoint = clamp(vec2(nDotV, 1.0 - roughness), 0.0, 1.0);
+  vec2 f_ab = textureLod(t_brdfLUT, brdfSamplePoint, 0.0).rg;
+
+  vec3 Fr = max(vec3(1.0 - roughness), F0) - F0;
+  vec3 kS = F0 + Fr * pow(1.0 - nDotV, 5.0);
+
+  vec3 FssEss = specularWeight * (kS * f_ab.x + vec3(f_ab.y));
+
+  // Multiple scattering
+  float Ems = (1.0 - (f_ab.x + f_ab.y));
+  vec3 F_avg = specularWeight * (F0 + (vec3(1.0) - F0) / 21.0);
+  vec3 FmsEms = Ems * FssEss * F_avg / (vec3(1.0) - F_avg * Ems);
+
+  return FssEss + FmsEms;
+}
+
+vec3 getDiffuseLight(vec3 n)
+{
+  float envIntensity = 1.0f;
+  vec2 dir = getSkyBoxUV(n);
+  vec3 texSample = texture(t_diffIrr, dir).rgb;
+  texSample *= envIntensity;
+  return texSample;
+}
+
 void main()
 {
     uvec3 dtID = gl_GlobalInvocationID;
@@ -158,9 +215,21 @@ void main()
     normal = normal * 2.0 - 1.0;
 
     vec3 posWorld = depth.xyz;
-    vec3 viewDir = normalize(viewPos - posWorld);
+    vec3 viewDir = normalize(viewPos.xyz - posWorld.xyz);
 
     vec3 F0 = mix(vec3(0.04), albedo, metalness);
+
+    // === IBL ===
+    vec3 R = reflect(-viewDir, normal);
+    float nDotV = saturate(dot(normal, viewDir));
+
+    vec3 diffuseIBL = getDiffuseLight(normal) * (albedo / PI);
+
+    vec3 specularMetal = getIBLRadianceGGX(normal, viewDir, roughness);
+    vec3 metalFresnel = getIBLGGXFresnel(normal, viewDir, roughness, F0, 1.0);
+
+    metalFresnel *= specularMetal;
+    vec3 ambientLight = diffuseIBL + metalFresnel;
 
     // === Direct Light ===
     vec3 lightDir = normalize(LightPos.xyz - posWorld);
@@ -171,10 +240,19 @@ void main()
     vec3 directLight = (specular + albedo) * NdL * lightIntensity;
 
     // === AO ===
-    float ssao = ssaoEnabled ? ssaoMap.r : 1.0;
+    vec4 lightWorldPos = (lightView * lightProj) * vec4(posWorld, 1.0);
+    float shadow = shadowCalculation(lightWorldPos, NdL);
+
+    float ssao = 1.0;
+    if(ssaoEnabled == 1.0)
+    {
+      ssao = ssaoMap.r;
+    }
     float totalAO = ao * ssao;
 
-    vec3 finalColor = directLight * totalAO;
+    vec3 ambient = ambientLight * totalAO;
+    vec3 direct = directLight * (1.0 - shadow);
+    vec3 finalColor = ambient + direct;
 
     imageStore(t_outputMap, coord, vec4(finalColor, 1.0));
 }

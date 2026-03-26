@@ -1,6 +1,6 @@
 #project(shUtilities)
 
-find_package(Lua 5.4.6 REQUIRED)
+find_package(Lua REQUIRED)
 
 # Configure the shUtilities library target
 file(GLOB SOURCE_FILES
@@ -13,7 +13,7 @@ add_library(shUtilities SHARED ${SOURCE_FILES})
 target_include_directories(shUtilities PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/externals
-    ${LUA_INCLUDE_DIRS}
+    ${LUA_INCLUDE_DIR}
 )
 # Link dependencies for the shUtilities library
 target_link_libraries(shUtilities PUBLIC

@@ -38,6 +38,12 @@ FileExplorer::openFolder(String&, const String&)
 {
   return false;
 }
+
+FileExplorer&
+g_fileExplorer()
+{
+  return FileExplorer::instance();
+}
 }
 
 #endif

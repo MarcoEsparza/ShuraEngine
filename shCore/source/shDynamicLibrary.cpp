@@ -40,7 +40,7 @@ const String DynamicLibrary::PREFIX = "lib";
 
 DynamicLibrary::DynamicLibrary(const String& name)
 {
-  m_name = name + EXTENSION;
+  m_name = PREFIX + name + EXTENSION;
   m_dynLibHandler = nullptr;
   load();
 }
@@ -63,13 +63,8 @@ DynamicLibrary::load()
   m_dynLibHandler = cast::st<DYNAMIC_LIBRARY_HANDLE>(DYNAMIC_LIBRARY_LOAD(m_name.c_str()));
 
   if (!m_dynLibHandler) {
-#if SH_PLATFORM == SH_PLATFORM_WIN32
-    auto error = GetLastError();
+    auto error = DYNAMIC_LIBRARY_ERROR();
     SH_ASSERT(false && error);
-#elif SH_PLATFORM == SH_PLATFORM_LINUX
-    auto error = dlerror();
-    SH_ASSERT(false && error);
-#endif
   }
 }
 

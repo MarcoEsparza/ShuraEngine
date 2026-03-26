@@ -1,12 +1,3 @@
-#version 430 core
-
-layout(binding = 0) uniform Sampler2D samplerLinearWrap;
-layout(binding = 1) uniform Sampler2D samplerPointWrap;
-layout(binding = 2) uniform Sampler2D samplerAnisotropicWrap;
-layout(binding = 3) uniform Sampler2D samplerLinearClamp;
-layout(binding = 4) uniform Sampler2D samplerPointClamp;
-layout(binding = 5) uniform Sampler2D samplerAnisotropicClamp;
-
 #define PI 3.14159265358979323f
 #define RECIPROCAL_PI 1.0f / PI
 #define RECIPROCAL_2PI 1.0f / (2.0f * PI)
@@ -214,7 +205,7 @@ float specularD(float roughness, float NoH)
   float a = 1.0f / (PI * r2 * pow(NoH, 4.0f));
   float b = exp((NoH2 - 1.0f) / (r2 * NoH2));
 
-  return a2 * b;
+  return a * b;
 }
 
 vec4 sumSpecular(vec3 hdrPixel, float NoL, vec4 result)
@@ -247,26 +238,23 @@ vec3 sphericalEnvMapToDirection(vec2 uv)
   );
 }
 
-vec2 directionToSphericalEnvMap(uvec3 dir)
+vec2 directionToSphericalEnvMap(vec3 dir)
 {
-  //float theta = acos(dir.z);
-  //float phi = atan(dir.y, dir.x);
-  //return vec2(0.5f - phi * RECIPROCAL_2PI, 1.0f - theta * RECIPROCAL_PI);
+  float phi = -atan(dir.y, dir.x);
+  float theta = acos(clamp(dir.z, -1.0, 1.0));
+  float s = 0.5 - phi * RECIPROCAL_2PI;
+  float t = 1.0 - theta * RECIPROCAL_PI;
 
-  float phi = atan2(dir.y, dir.x);
-  float theta = acos(dir.z);
-  float s = 0.5f - phi * RECIPROCAL_2PI;
-  float t = 1.0f - theta * RECIPROCAL_PI;
   return vec2(s, t);
 }
 
-vec3 random_pcg3d(vec3 v)
+vec3 random_pcg3d(uvec3 v)
 {
   v = v * 1664525u + 1013904223u;
   v.x += v.y * v.z;
   v.y += v.z * v.x;
   v.z += v.x * v.y;
-  v ^= v >> 16u;
+  v ^= (v >> 16u);
   v.x += v.y * v.z;
   v.y += v.z * v.x;
   v.z += v.x * v.y;

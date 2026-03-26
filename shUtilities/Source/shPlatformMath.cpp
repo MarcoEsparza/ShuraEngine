@@ -31,6 +31,10 @@
 #include "shRadian.h"
 #include "shCollisionInfo.h"
 
+#define MAX_FLOAT 3.402823466e+38F
+
+using std::all_of;
+
 namespace shEngineSDK {
 /*****************************************************************************/
 /*
@@ -652,7 +656,7 @@ PlatformMath::intersect(const OBBox& box, const OBBox& box1, CollisionInfo& colI
   // 3. Vector between centers
   Vector3 t = box.center - box1.center;
 
-  float minPenetration = FLT_MAX;
+  float minPenetration = MAX_FLOAT;
   Vector3 bestAxis;
 
   // Evaluate axes
@@ -798,7 +802,7 @@ PlatformMath::intersect(const AABBox& boxA, const OBBox& boxO, CollisionInfo& co
 
   Vector3 t = boxO.center - center;
 
-  float minPenetration = FLT_MAX;
+  float minPenetration = MAX_FLOAT;
   Vector3 bestAxis;
 
   for(uint32 i = 0; i < 3; ++i) {
@@ -914,7 +918,7 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap, CollisionInfo& co
 
   // Test on multiple points along the segment
   const int steps = 10;
-  float minDistSq = FLT_MAX;
+  float minDistSq = MAX_FLOAT;
   Vector3 bestP = Vector3::ZERO;
   Vector3 bestQ = Vector3::ZERO;
 
@@ -967,7 +971,7 @@ PlatformMath::intersect(const AABBox& box, const Capsule& cap)
 
   // Test on multiple points along the segment
   const int steps = 10;
-  float minDistSq = FLT_MAX;
+  float minDistSq = MAX_FLOAT;
   Vector3 bestP = Vector3::ZERO;
   Vector3 bestQ = Vector3::ZERO;
 
@@ -1003,7 +1007,7 @@ PlatformMath::intersect(const OBBox& box, const Capsule& cap, CollisionInfo& col
 
   // Test multiple points along the capsule axis
   const int steps = 10;
-  float minDistSq = FLT_MAX;
+  float minDistSq = MAX_FLOAT;
   Vector3 bestP = Vector3::ZERO;
   Vector3 bestQ = Vector3::ZERO;
 
@@ -1058,7 +1062,7 @@ PlatformMath::intersect(const OBBox& box, const Capsule& cap)
 
   // Test multiple points along the capsule axis
   const int steps = 10;
-  float minDistSq = FLT_MAX;
+  float minDistSq = MAX_FLOAT;
   Vector3 bestP = Vector3::ZERO;
   Vector3 bestQ = Vector3::ZERO;
 

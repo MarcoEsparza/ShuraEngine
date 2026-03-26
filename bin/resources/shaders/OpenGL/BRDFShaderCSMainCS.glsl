@@ -1,5 +1,7 @@
 #version 430 core
 
+#include "ShaderConstants.glsl"
+
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout(binding = 0, rgba16f) uniform image2D lutImage;
 
@@ -9,7 +11,7 @@ float GGX(float NoV, float roughness)
   return NoV / (NoV * (1.0 - k) + k);
 }
 
-float geometryForLut(float roughness, gloat NoL)
+float geometryForLut(float roughness, float NoL)
 {
   return GGX(NoL, roughness * roughness);
 }

@@ -16,11 +16,19 @@
 /*****************************************************************************/
 #include "shScreenEventHandle.h"
 #include <shVector2i.h>
+#include "shScreen.h"
 
 #if SH_PLATFORM == SH_PLATFORM_LINUX
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+
+struct LinuxScreenHandle
+{
+  Display* display;
+  Window window;
+  Atom wmDelete;
+};
 
 namespace shEngineSDK {
 void
@@ -32,9 +40,9 @@ ScreenEventHandle::update() {
   if (m_parentScreen.expired()) {
       return;
   }
-  auto parentScreenPtr = m_parentScreen.lock();
+  SPtr<Screen> parentScreenPtr = m_parentScreen.lock();
 
-  auto display = parentScreenPtr->getPlatformHandler()->display;
+  Display* display = parentScreenPtr->getPlatformHandler()->display;
 
   while (XPending(display) > 0) {
     XNextEvent(display, &event);
@@ -127,8 +135,8 @@ ScreenEventHandle::getSize() const
 
 void
 pushEvent(const XEvent& event, WPtr<Screen> screen, Queue<Event>& eventQueue) {
-  auto handle = screen->getPlatformHandler();
   auto pScreen = screen.lock();
+  auto handle = pScreen->getPlatformHandler();
   Event currentEvent;
   switch (event.type) {
     case FocusIn:
@@ -150,25 +158,25 @@ pushEvent(const XEvent& event, WPtr<Screen> screen, Queue<Event>& eventQueue) {
       //currentEvent = Event(EVENT_TYPE::kHide);
       break; 
     case ClientMessage:
-      if((Atom)event.xclient.data.1[0] == handle->wDelete){
+      if(cast::st<Atom>(event.xclient.data.l[0]) == handle->wmDelete){
         currentEvent = Event(EVENT_TYPE::kClose);
       }
       break;
     case ButtonPress:
     case ButtonRelease:
     {
-      XButtonEvent& buttonEvent = event.xbutton;
+      const XButtonEvent& buttonEvent = event.xbutton;
 
-      MOUSE_BUTTON::E button;
+      MOUSE_INPUT::E button;
       switch (buttonEvent.button) {
-        case Button1: button = MOUSE_BUTTON::E::kLeft; break;
-        case Button2: button = MOUSE_BUTTON::E::kMiddle; break;
-        case Button3: button = MOUSE_BUTTON::E::kRight; break;
-        case Button4: button = MOUSE_BUTTON::E::kWheelUp; break;
-        case Button5: button = MOUSE_BUTTON::E::kWheelDown; break;
-        case 6: button = MOUSE_BUTTON::E::kWheelLeft; break;
-        case 7: button = MOUSE_BUTTON::E::kWheelRight; break;
-        default: button = MOUSE_BUTTON::E::kButtonsMax; break;
+        case Button1: button = MOUSE_INPUT::E::kLeft; break;
+        case Button2: button = MOUSE_INPUT::E::kMiddle; break;
+        case Button3: button = MOUSE_INPUT::E::kRight; break;
+        //case Button4: button = MOUSE_BUTTON::E::kWheelUp; break;
+        //case Button5: button = MOUSE_BUTTON::E::kWheelDown; break;
+        //case 6: button = MOUSE_BUTTON::E::kWheelLeft; break;
+        //case 7: button = MOUSE_BUTTON::E::kWheelRight; break;
+        default: button = MOUSE_INPUT::E::kMouseInputMax; break;
       }
 
       // 🔹 Modifier state
@@ -189,32 +197,30 @@ pushEvent(const XEvent& event, WPtr<Screen> screen, Queue<Event>& eventQueue) {
     }
     case MotionNotify:
     {
-      XMotionEvent& motionEvent = event.xmotion;
+      const XMotionEvent& motionEvent = event.xmotion;
 
       // 🔹 Modifier state
-      ModifierState ms;
+      /*ModifierState ms;
       ms.shift = motionEvent.state & ShiftMask;
       ms.ctrl  = motionEvent.state & ControlMask;
       ms.alt   = motionEvent.state & Mod1Mask;
-      ms.meta  = motionEvent.state & Mod4Mask;
+      ms.meta  = motionEvent.state & Mod4Mask;*/
 
       uint32 deltaX = motionEvent.x - pScreen->getPrevMousePos().x;
-      uint32 deltaY = motionEvent.y - pScreen->getPrevMousePos().y
+      uint32 deltaY = motionEvent.y - pScreen->getPrevMousePos().y;
 
       currentEvent = Event(motionEvent.x, motionEvent.y,
                            motionEvent.x_root, motionEvent.y_root,
-                           deltaX, deltaY, ms);
+                           deltaX, deltaY);
 
       pScreen->setPrevMousePos(Vector2i(motionEvent.x, motionEvent.y));
       break;
     }
-    case KeyPress:
-    case KeyRelease:
-    {
-    XKeyEvent& keyEvent = event.xkey;
-
+  case KeyPress:
+  case KeyRelease:
+  {
+    XKeyEvent keyEvent = event.xkey;
     KeySym sym = XLookupKeysym(&keyEvent, 0);
-
     KEY::E key;
 
     switch (sym)
@@ -332,8 +338,8 @@ pushEvent(const XEvent& event, WPtr<Screen> screen, Queue<Event>& eventQueue) {
     break;
     }
     // Additional event mappings can be added here
-    default:
-      return; // Unhandled event type
+  default:
+    return; // Unhandled event type
   }
   
   if(currentEvent.type != EVENT_TYPE::kNone) {

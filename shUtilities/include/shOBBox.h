@@ -102,16 +102,16 @@ class SH_UTILITY_EXPORT OBBox
   /**
   *  @brief Box center.
   */
-  Vector3 center;
+  Vector3 center = Vector3::ZERO;
 
   /**
   *  @brief Rotation in radians.
   */
-  Quaternion rotation;
+  Quaternion rotation = Quaternion::IDENTITY;
 
   /**
   *  @brief Half size of the box, how much its "extending" in all axes.
   */
-  Vector3 extent;
+  Vector3 extent = Vector3::ZERO;
 };
 }

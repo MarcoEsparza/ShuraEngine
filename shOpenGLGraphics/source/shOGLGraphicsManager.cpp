@@ -21,13 +21,20 @@
 #include "shException.h"
 #include <shMath.h>
 
-using std::reinterpret_pointer_cast;
+#define MAX_FLOAT 3.402823466e+38F
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
 #include "X11/Xlib.h"
+
+struct LinuxScreenHandle
+{
+  Display* display;
+  Window window;
+  Atom wmDelete;
+};
 #endif
 
 // TODO: Delete this, make a wrapper.
@@ -183,8 +190,8 @@ enableOpenGL(const WPtr<Screen> screen)
 #elif SH_PLATFORM == SH_PLATFORM_LINUX
   
   auto handle = screen.lock()->getPlatformHandler();
-  Display* display = handle.display;
-  Window window = handle.window;
+  Display* display = handle->display;
+  Window window = handle->window;
   
   int32 fbAttribs[] = {
     GLX_X_RENDERABLE, True,
@@ -773,7 +780,8 @@ OGLGraphicsManager::createVertexShader(const String& fileName,
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
   SystemPath path(fileName);
-  String newFileName = path.filename().string() + entryPoint + "VS";
+  String directory = path.parent_path().string() + "/";
+  String newFileName = directory + path.filename().string() + entryPoint + "VS";
 
   uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::VERTEX_SHADER, macros);
   auto pVertexShader = sh_makeShared<OGLVertexShader>();
@@ -792,7 +800,8 @@ OGLGraphicsManager::createPixelShader(const String& fileName,
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
   SystemPath path(fileName);
-  String newFileName = path.filename().string() + entryPoint + "FS";
+  String directory = path.parent_path().string() + "/";
+  String newFileName = directory + path.filename().string() + entryPoint + "FS";
 
   uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::PIXEL_SHADER, macros);
   auto pPixelShader = sh_makeShared<OGLPixelShader>();
@@ -811,7 +820,8 @@ OGLGraphicsManager::createGeometryShader(const String& fileName,
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
   SystemPath path(fileName);
-  String newFileName = path.filename().string() + entryPoint + "GS";
+  String directory = path.parent_path().string() + "/";
+  String newFileName = directory + path.filename().string() + entryPoint + "GS";
 
   uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::GEOMETRY_SHADER, macros);
   auto pGeometryShader = sh_makeShared<OGLGeometryShader>();
@@ -829,7 +839,8 @@ OGLGraphicsManager::createComputeShader(const String& fileName,
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
   SystemPath path(fileName);
-  String newFileName = path.filename().string() + entryPoint + "CS";
+  String directory = path.parent_path().string() + "/";
+  String newFileName = directory + path.filename().string() + entryPoint + "CS";
 
   uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::COMPUTE_SHADER, macros);
   auto pComputeShader = sh_makeShared<OGLComputeShader>();
@@ -1014,7 +1025,7 @@ OGLGraphicsManager::createSamplerState(const uint32 filter, const uint32 textAdd
   glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, wrapMode);
 
   glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, 0.0f);
-  glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, FLT_MAX);
+  glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, MAX_FLOAT);
 
   glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, GL_NONE);
   glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
