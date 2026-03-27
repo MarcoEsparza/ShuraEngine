@@ -27,6 +27,8 @@
 #include "shAnimationResource.h"
 #include "shAsset.h"
 #include "shCubeMap.h"
+#include <shLogger.h>
+#include <shTimer.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "externals/stb_image.h"
@@ -296,6 +298,7 @@ ResourceManager::onStartUp()
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {
+  auto& logger = g_logger();
   SPtr<Resource> resource;
 
   // Check if resource is already on memory
@@ -315,7 +318,11 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
     resource = loadTextureFromFile(filePath.toString());
   }
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
+    Timer timer;
     resource = loadModelFromFile(filePath.toString());
+    float elapsed = timer.getTime();
+    logger.Log(filePath.toString() + " loaded in "
+               + std::to_string(elapsed) + " seconds.");
   }
   else if (filePath.compareExtensions({ ".cube" })) {
     resource = loadCubeMapFromFile(filePath.toString());
@@ -386,6 +393,8 @@ ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
 bool
 ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
 {
+  auto& logger = g_logger();
+
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
     SystemPath path = filePath.toString();
     path.replace_extension(".dds");
@@ -413,7 +422,11 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
   }
   else if(filePath.compareExtensions({ ".sha" })) {
     //SystemPath fullPath = "resources/assets/models/" + filePath.filename();
+    Timer timer;
     pRes = loadModelFromCache(filePath.toString());
+    float elapsed = timer.getTime();
+    logger.Log(filePath.toString() + " loaded from cache in " +
+               std::to_string(elapsed) + " seconds.");
     return true;
   }
 
