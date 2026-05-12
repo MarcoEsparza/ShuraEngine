@@ -23,6 +23,11 @@
 #include "Windows.h"
 
 namespace shEngineSDK {
+const String FileExplorer::DEFAULT_ASSETS_FOLDER = "resources/EngineData/DefaultAssets/";
+const String FileExplorer::ASSETS_FOLDER = "resources/Assets/";
+const String FileExplorer::SHADERS_FOLDER = "resources/EngineData/Shaders/";
+const String FileExplorer::DEFAULT_FONTS_FOLDER = "resources/EngineData/Fonts/";
+
 bool
 FileExplorer::openFile(String& outPath,
                        const String& filter,

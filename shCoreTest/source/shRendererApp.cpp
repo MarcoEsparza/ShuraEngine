@@ -106,7 +106,7 @@ RendererApp::onCreate()
     m_testSound->m_channel = CHANNEL_TYPE::kUI;
   }*/
 
-  loadMods();
+  //loadMods();
 }
 
 void
@@ -180,7 +180,7 @@ RendererApp::onUpdate()
   m_hdelta = 0.0f;
   m_lastMousePos = m_currentMousePos;
 
-  if(m_gui.m_bPlay != m_bPlayScene) {
+  /*if(m_gui.m_bPlay != m_bPlayScene) {
     m_bPlayScene = m_gui.m_bPlay;
 
     if (m_bPlayScene) {
@@ -189,12 +189,12 @@ RendererApp::onUpdate()
     else {
       restartScene();
     }
-  }
+  }*/
 
-  if(m_gui.m_bReloadMods) {
+  /*if(m_gui.m_bReloadMods) {
     loadMods();
     m_gui.m_bReloadMods = false;
-  }
+  }*/
 }
 
 void

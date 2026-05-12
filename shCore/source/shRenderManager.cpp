@@ -21,6 +21,7 @@
 #include "shSceneGraph.h"
 #include "shResourceManager.h"
 #include "shShaderManager.h"
+#include "shFileExplorer.h"
 
 #include "shMeshComponent.h"
 #include "shSkyBoxComponent.h"
@@ -206,12 +207,14 @@ RenderManager::onStartUp()
 
   m_pDiffIrr->setDebugName("DiffuseIrradianceMap");
 
-  auto pLut = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/Guardians-LogC4.cube"));
+  auto pLut = resMan.loadResourceFromFile(Path(FileExplorer::ASSETS_FOLDER +
+                                               "LUTs/Guardians-LogC4.cube"));
   if (pLut) {
     m_pLutTexture = cast::re_ptr<CubeMap>(pLut);
   }
 
-  auto pLut1 = resMan.loadResourceFromFile(Path("resources/Assets/LUTs/LBK-K-Tone_33.cube"));
+  auto pLut1 = resMan.loadResourceFromFile(Path(FileExplorer::ASSETS_FOLDER +
+                                                "/LUTs/LBK-K-Tone_33.cube"));
   if (pLut1) {
     m_pLutLBK = cast::re_ptr<CubeMap>(pLut1);
   }
@@ -1064,7 +1067,7 @@ RenderManager::createSceneTexture(const Vector2& winSize)
   ShaderManager& shaderMan = g_shaderMan();
   auto& pPPMap = m_renderTargetMap[POSTPROCESS_TEX_ID];
   //auto& pSceneTex = m_renderTargetMap[SCENE_TEX_ID];
-  if (m_sceneTarget.pTexture != nullptr ||
+  if (m_sceneTarget.pTexture == nullptr ||
       m_sceneTarget.width != winSize.x ||
       m_sceneTarget.height != winSize.y) {
     m_sceneTarget.pTexture = graphMan.createTexture2D(cast::st<uint32>(winSize.x),
@@ -1074,6 +1077,8 @@ RenderManager::createSceneTexture(const Vector2& winSize)
                                                       BIND_FLAGS::kShaderResource |
                                                       BIND_FLAGS::kRenderTarget,
                                                       1, 1);
+    m_sceneTarget.width = winSize.x;
+    m_sceneTarget.height = winSize.y;
   }
 
   //cleanShaderObjects();

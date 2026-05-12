@@ -20,6 +20,8 @@
 #include "shGraphicsManager.h"
 #include "shResourceManager.h"
 #include "shShaderManager.h"
+#include "shFileExplorer.h"
+
 #include "shGameObject.h"
 #include "shMeshComponent.h"
 #include "shAnimatorComponent.h"
@@ -27,6 +29,8 @@
 #include "shLightComponent.h"
 #include "shImageResource.h"
 #include <shPath.h>
+
+#define DEFAULT_SKYBOX_NAME "Textures/castel_st_angelo_roof_2k.hdr"
 
 using std::to_string;
 
@@ -93,7 +97,7 @@ SceneGraph::addDefaultSkybox()
 {
   ResourceManager& resMan = g_resourceMan();
 
-  Path skyboxPath("resources/textures/castel_st_angelo_roof_2k.hdr");
+  Path skyboxPath(FileExplorer::DEFAULT_ASSETS_FOLDER + DEFAULT_SKYBOX_NAME);
   auto skyboxTx = cast::re_ptr<ImageResource>(resMan.loadResourceFromFile(skyboxPath));
   auto pSkyBox = sh_makeShared<SkyBoxComponent>();
   pSkyBox->setSkyBoxResource(skyboxTx);

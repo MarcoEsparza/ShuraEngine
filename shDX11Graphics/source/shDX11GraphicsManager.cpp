@@ -18,6 +18,8 @@
 /*****************************************************************************/
 #include "shDX11GraphicsManager.h"
 #include <shLogger.h>
+#include <shFileExplorer.h>
+
 #include <shScreen.h>
 #include <shLinearColor.h>
 #include <shException.h>
@@ -57,7 +59,7 @@ class ShaderInclude : public ID3DInclude
     if (workingDirectory.back() != '\\' && workingDirectory.back() != '/') {  
       workingDirectory.append("\\");  
     }  
-    workingDirectory.append("resources/shaders/DX11/");  
+    workingDirectory.append(FileExplorer::SHADERS_FOLDER + "DX11/");  
     workingDirectory.append(pFileName);  
 
     std::ifstream file(workingDirectory.c_str(), std::ios::binary | std::ios::ate);  
@@ -918,11 +920,11 @@ DX11GraphicsManager::createTexture2D(const uint32 width,
                                      const uint32 mipLevels,
                                      const uint32 arraySize)
 {
-  auto pTexture = std::make_shared<DX11Texture2D>();
+  auto pTexture = sh_makeShared<DX11Texture2D>();
   uint32 texMipLevels = mipLevels;
 
   D3D11_TEXTURE2D_DESC textureDesc;
-  memset(&textureDesc, 0, sizeof(textureDesc));
+  memset(&textureDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
   textureDesc.Width = width;
   textureDesc.Height = height;
   textureDesc.MipLevels = texMipLevels;

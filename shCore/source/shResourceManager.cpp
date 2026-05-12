@@ -18,8 +18,11 @@
 */
 /*************************************************************/
 #include "shResourceManager.h"
-
 #include "shGraphicsManager.h"
+#include <shLogger.h>
+#include <shTimer.h>
+#include "shFileExplorer.h"
+
 #include "shResource.h"
 #include "shMeshResource.h"
 #include "shImageResource.h"
@@ -27,8 +30,6 @@
 #include "shAnimationResource.h"
 #include "shAsset.h"
 #include "shCubeMap.h"
-#include <shLogger.h>
-#include <shTimer.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "externals/stb_image.h"
@@ -287,12 +288,13 @@ ResourceManager::onStartUp()
   pBlackImg->texture = pBlackTex;
   m_loadedResources["BlackTexture"] = pBlackImg;
 
-  auto white = cast::re_ptr<ImageResource>(loadResourceFromFile(
-                                              Path("resources/White.png")));
-  auto normal = cast::re_ptr<ImageResource>(loadResourceFromFile(
-                                              Path("resources/textures/normal.png")));
-  auto pCube = cast::re_ptr<StaticMeshResource>(loadResourceFromFile(
-                                                   Path("resources/models/cube.fbx")));
+  Path whiteTexPath(FileExplorer::DEFAULT_ASSETS_FOLDER + "Textures/White.png");
+  auto white = cast::re_ptr<ImageResource>(loadResourceFromFile(whiteTexPath));
+  /*auto normal = cast::re_ptr<ImageResource>(loadResourceFromFile(
+                                              Path("resources/textures/normal.png")));*/
+
+  Path cubePath(FileExplorer::DEFAULT_ASSETS_FOLDER + "Models/cube.fbx");
+  auto pCube = cast::re_ptr<StaticMeshResource>(loadResourceFromFile(cubePath));
 }
 
 SPtr<Resource>

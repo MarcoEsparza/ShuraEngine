@@ -137,6 +137,7 @@ BaseApp::loadAudioAPI()
 void
 BaseApp::initManagers()
 {
+  FileExplorer::startUp();
   DynamicLibraryManager::startUp();
   loadGraphicAPI();
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
@@ -149,7 +150,6 @@ BaseApp::initManagers()
   SceneGraph::startUp();
   PhysicsManager::startUp();
   Logger::startUp();
-  FileExplorer::startUp();
 
   //loadAudioAPI();
 }
@@ -257,7 +257,6 @@ BaseApp::render()
 void
 BaseApp::destroyManagers()
 {
-  FileExplorer::shutDown();
   Logger::shutDown();
   PhysicsManager::shutDown();
   SceneGraph::shutDown();
@@ -270,5 +269,6 @@ BaseApp::destroyManagers()
   //AudioManager::shutDown();
   GraphicsManager::shutDown();
   DynamicLibraryManager::shutDown();
+  FileExplorer::shutDown();
 }
 }

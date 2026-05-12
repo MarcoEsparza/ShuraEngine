@@ -38,7 +38,7 @@ int main(int argc, const char** argv)
   desc.positionY = 0;
   desc.width = 1920;
   desc.height = 1080;
-  desc.iconPath = "resources/ShuraIcon.ico";
+  desc.iconPath = "ShuraIcon.ico";
 
   GRAPHIC_API::E api = GRAPHIC_API::kDX11;
 

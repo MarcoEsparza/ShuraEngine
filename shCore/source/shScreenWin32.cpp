@@ -15,6 +15,7 @@
 */
 /*****************************************************************************/
 #include "shScreen.h"
+#include "shFileExplorer.h"
 
 #if SH_PLATFORM == SH_PLATFORM_WIN32
 
@@ -47,8 +48,9 @@ Screen::init(const ScreenDesc& desc, const SPtr<ScreenEventHandle>& eventHandler
   wc.cbWndExtra = sizeof(ScreenEventHandle*);
 
   if (desc.iconPath != "") {
+    String fullIconPath = FileExplorer::DEFAULT_ASSETS_FOLDER + "Textures/" + desc.iconPath;
     HICON hIcon = reinterpret_cast<HICON>(::LoadImage(hInstance,
-                                            desc.iconPath.c_str(),
+                                            fullIconPath.c_str(),
                                             IMAGE_ICON,
                                             32,
                                             32,

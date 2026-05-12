@@ -18,6 +18,7 @@
 /*****************************************************************************/
 #include "shShaderManager.h"
 #include "shGraphicsManager.h"
+#include "shFileExplorer.h"
 #include "shPass.h"
 //#include "shMaterial.h"
 #include "shBuffers.h"
@@ -64,10 +65,10 @@ void
 ShaderManager::onStartUp() {
   GraphicsManager& graphMan = g_graphicsMan();
   if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
-    m_shaderDirectory = "resources/shaders/DX11/";
+    m_shaderDirectory = FileExplorer::SHADERS_FOLDER + "DX11/";
   }
   else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
-    m_shaderDirectory = "resources/shaders/OpenGL/";
+    m_shaderDirectory = FileExplorer::SHADERS_FOLDER + "OpenGL/";
   }
 }
 

@@ -60,6 +60,12 @@ class SH_CORE_EXPORT FileExplorer : public Module<FileExplorer>
   bool
   openFolder(String& outPath,
   const String& initialDir = "");
+
+ public:
+  static const String DEFAULT_ASSETS_FOLDER;
+  static const String ASSETS_FOLDER;
+  static const String SHADERS_FOLDER;
+  static const String DEFAULT_FONTS_FOLDER;
 };
 
 /**

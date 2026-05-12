@@ -22,6 +22,7 @@
 
 #include <shGraphicsManager.h>
 #include <shRenderManager.h>
+#include <shFileExplorer.h>
 #include <shScreen.h>
 
 #include <shBuffers.h>
@@ -315,14 +316,15 @@ ImGui_ImplShura_CreateFontsTexture()
   ImFontAtlas* atlas = io.Fonts;
   ImFontConfig config;
   config.RasterizerDensity = 2.0f;
-  auto font = atlas->AddFontFromFileTTF("resources/fonts/Ruda-VariableFont_wght.ttf",
-                                        18.0f);
+  String fontPath = FileExplorer::DEFAULT_FONTS_FOLDER + "Ruda-VariableFont_wght.ttf";
+  auto font = atlas->AddFontFromFileTTF(fontPath.c_str(), 18.0f);
 
   static const ImWchar icon_ranges[] = { 0xe800, 0xf527, 0 };
   config.MergeMode = true;
   config.PixelSnapH = true;
-  auto iconFont = atlas->AddFontFromFileTTF("resources/fonts/shuraicons.ttf",
-                                            18.0f, &config, icon_ranges);
+  String iconFontPath = FileExplorer::DEFAULT_FONTS_FOLDER + "shuraicons.ttf";
+  auto iconFont = atlas->AddFontFromFileTTF(iconFontPath.c_str(), 18.0f,
+                                            &config, icon_ranges);
   
   if (font == nullptr) {
     SH_ASSERT(false && "Font loading failed");
@@ -369,10 +371,10 @@ ImGui_ImplShura_CreateDeviceObjects()
 
   String shaderDirectory;
   if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
-    shaderDirectory = "resources/shaders/DX11/ImGuiShuraShader";
+    shaderDirectory = FileExplorer::SHADERS_FOLDER + "DX11/ImGuiShuraShader";
   }
   else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
-    shaderDirectory = "resources/shaders/OpenGL/ImGuiShuraShader";
+    shaderDirectory = FileExplorer::SHADERS_FOLDER + "OpenGL/ImGuiShuraShader";
   }
 
   // Set pass
