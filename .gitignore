@@ -402,6 +402,16 @@ FodyWeavers.xsd
 *.exe
 *.exp
 
+#IgnoreLocalFiles
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.vscode/
+*bin/
+*build_linux/
+*intermediate/
+*lib/
 
 *.hdr
 *.dds
