@@ -88,4 +88,25 @@ using TYPE_OF_NULL = int32;
 */
 /*****************************************************************************/
 using SIZE_T = std::size_t;
+
+/*****************************************************************************/
+/*
+*  Unique identifier type. This can be used for any kind of ID system, such as
+*  object IDs, resource IDs, etc. The actual size of the UID can be adjusted
+*  based on the needs of the engine. For example, if we want to support a large
+*  number of objects, we might want to use a 64-bit integer for the UID. If we
+*  want to save memory and we know that we won't have more than 4 billion objects, we
+*  can use a 32-bit integer for the UID.
+*/
+/*****************************************************************************/
+
+/**
+*  @brief Small unique identifier type. 32 bits id.
+*/
+using UID = uint32;
+
+/**
+*  @brief Large unique identifier type. 64 bits id.
+*/
+using UUID = uint64;
 }

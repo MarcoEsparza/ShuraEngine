@@ -2,7 +2,7 @@
 /*
 *  @file    shStringID.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2026/05/13
 *  @brief   Class for ID generetion from Strings.
 *
 *  Class for ID generetion from Strings.
@@ -57,6 +57,12 @@ class StringID
   FORCEINLINE uint32
   getID() const;
 
+  FORCEINLINE UID
+  getUID() const;
+
+  FORCEINLINE UUID
+  getUUID() const;
+
   /**
   *  @brief Sets the string.
   * 
@@ -95,6 +101,18 @@ FORCEINLINE uint32
 StringID::getID() const
 {
   return static_cast<uint32>(sh_hash<String>{}(m_string));
+}
+
+FORCEINLINE UID
+StringID::getUID() const
+{
+  return static_cast<UID>(sh_hash<String>{}(m_string));
+}
+
+FORCEINLINE UUID
+StringID::getUUID() const
+{
+  return static_cast<UUID>(sh_hash<String>{}(m_string));
 }
 
 FORCEINLINE void

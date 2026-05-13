@@ -478,7 +478,7 @@ RendererApp::loadPistol()
 
   Timer timer;
   float time = timer.getTime();
-  logger.Log("Loading DrakeFire Shura Asset model...");
+  logger.consoleLog("Loading DrakeFire Shura Asset model...");
 
   auto modelRes = cast::re_ptr<StaticMeshResource>(
                   resMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
@@ -494,7 +494,7 @@ RendererApp::loadPistol()
   model->setScale(Vector3::ONE * 5.0f);
 
   float total = timer.getTime() - time;
-  logger.Log("Model loaded in " + std::to_string(total) + " seconds.");
+  logger.consoleLog("Model loaded in " + std::to_string(total) + " seconds.");
 
   /*auto pCollider = sh_makeShared<ColliderComponent>();
   pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;

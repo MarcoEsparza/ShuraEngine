@@ -335,7 +335,7 @@ class GUI
   /**
   *  @brief Console logs.
   */
-  Vector<String> m_logs;
+  //Vector<String> m_logs;
 
   /**
   *  @brief Is renaming a game object?

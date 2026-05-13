@@ -2,7 +2,7 @@
 /*
 *  @file    shFileExplorer.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/08/06
+*  @date    2026/05/13
 *  @brief   File Explorer class platform independent.
 *
 *  File Explorer class platform independent.
@@ -46,6 +46,21 @@ class SH_CORE_EXPORT FileExplorer : public Module<FileExplorer>
   */
   bool
   openFile(String& outPath,
+           const String& filter = "All Files (*.*)\0*.*\0",
+           const String& initialDir = "");
+
+  /**
+  *  @brief Opens a file explorer window to select a file for saving.
+  * 
+  *  @param outPath The path of the selected file will be stored here.
+  *  @param filter The filter for the file types
+  *         (e.g., "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0").
+  *  @param initialDir The initial directory to open in the file explorer.
+  * 
+  *  @return true if a file was selected, false otherwise.
+  */ 
+  bool
+  saveFile(String& outPath,
            const String& filter = "All Files (*.*)\0*.*\0",
            const String& initialDir = "");
 

@@ -19,13 +19,39 @@
 #include "shLogger.h"
 #include <iostream>
 
+#define MAX_LOG_BUFFER_SIZE 256
+
 using std::cout;
 
 namespace shEngineSDK {
 void
-Logger::Log(const String& logStr)
+Logger::consoleLog(const String& logStr)
 {
   cout << logStr << "\n";
+}
+
+void
+Logger::log(LogVerbosity verbosity,
+            const String& message,
+            const String& timestamp,
+            const String& srcFile,
+            uint32 srcLine,
+            const String& srcFunction)
+{
+  LogEntry entry;
+  entry.verbosity = verbosity;
+  entry.message = message;
+  entry.timestamp = timestamp;
+  entry.srcFile = srcFile;
+  entry.srcLine = srcLine;
+  entry.srcFunction = srcFunction;
+  m_logs.push_back(entry);
+}
+
+const
+Vector<LogEntry>& Logger::getLogs() const
+{
+  return m_logs;
 }
 
 SH_UTILITY_EXPORT Logger&

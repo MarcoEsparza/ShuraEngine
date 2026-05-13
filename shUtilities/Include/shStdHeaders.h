@@ -156,6 +156,9 @@ sh_reinterpretPCast(const SPtr<from>& pFrom)
   return std::reinterpret_pointer_cast<to>(pFrom);
 }
 
+template<typename from>
+using sh_enableShared = std::enable_shared_from_this<from>;
+
 /**
 *  @brief Byte wrapper to use along the engine.
 */

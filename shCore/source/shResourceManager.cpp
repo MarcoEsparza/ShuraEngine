@@ -300,7 +300,7 @@ ResourceManager::onStartUp()
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {
-  auto& logger = g_logger();
+  //auto& logger = g_logger();
   SPtr<Resource> resource;
 
   // Check if resource is already on memory
@@ -323,8 +323,11 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
     Timer timer;
     resource = loadModelFromFile(filePath.toString());
     float elapsed = timer.getTime();
-    logger.Log(filePath.toString() + " loaded in "
-               + std::to_string(elapsed) + " seconds.");
+    /*logger.consoleLog(filePath.toString() + " loaded in "
+                      + std::to_string(elapsed) + " seconds.");*/
+    String logMsg = filePath.toString() + " loaded in " +
+                    std::to_string(elapsed) + " seconds.";
+    SH_LOG(LogVerbosity::kInfo, logMsg);
   }
   else if (filePath.compareExtensions({ ".cube" })) {
     resource = loadCubeMapFromFile(filePath.toString());
@@ -395,7 +398,7 @@ ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
 bool
 ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
 {
-  auto& logger = g_logger();
+  //auto& logger = g_logger();
 
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
     SystemPath path = filePath.toString();
@@ -427,8 +430,11 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
     Timer timer;
     pRes = loadModelFromCache(filePath.toString());
     float elapsed = timer.getTime();
-    logger.Log(filePath.toString() + " loaded from cache in " +
-               std::to_string(elapsed) + " seconds.");
+    /*logger.consoleLog(filePath.toString() + " loaded from cache in " +
+                      std::to_string(elapsed) + " seconds.");*/
+    String logMsg = filePath.toString() + " loaded from cache in " +
+                    std::to_string(elapsed) + " seconds.";
+    SH_LOG(LogVerbosity::kInfo, logMsg);
     return true;
   }
 

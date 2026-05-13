@@ -25,7 +25,7 @@
 #include <shSceneGraph.h>
 #include <shResourceManager.h>
 #include <shFileExplorer.h>
-//#include <shLogger.h>
+#include <shLogger.h>
 #include <shTexture.h>
 #include <shMath.h>
 #include <shException.h>
@@ -235,6 +235,31 @@ iconToStr(FONT_ICONS::E icon)
   return result;
 }
 
+static ImColor
+getLogColor(LogVerbosity logV, String& outPrefix)
+{
+  switch (logV) {
+    case LogVerbosity::kFatal:
+      outPrefix = "[FATAL] ";
+      return ImColor(1.0f, 0.0f, 0.0f, 1.0f); // Red
+    case LogVerbosity::kError:
+      outPrefix = "[ERROR] ";
+      return ImColor(1.0f, 0.5f, 0.5f, 1.0f); // Light Red
+    case LogVerbosity::kWarning:
+      outPrefix = "[WARNING] ";
+      return ImColor(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+    case LogVerbosity::kInfo:
+      outPrefix = "[INFO] ";
+      return ImColor(1.0f, 1.0f, 1.0f, 1.0f); // White
+    case LogVerbosity::kDebug:
+      outPrefix = "[DEBUG] ";
+      return ImColor(0.5f, 0.5f, 1.0f, 1.0f); // Light Blue
+    default:
+      outPrefix = "";
+      return ImColor(1.0f, 1.0f, 1.0f, 1.0f); // Default to white
+  }
+}
+
 /*****************************************************************************/
 /*
 *  Class Functions
@@ -427,10 +452,24 @@ GUI::setScene()
 void
 GUI::setConsoleLogs()
 {
+  Logger& logger = g_logger();
+
   ImGui::Begin(m_consoleWindowStr.c_str());
   
-  for (const auto& log : m_logs) {
+  /*for (const auto& log : m_logs) {
     ImGui::TextWrapped("%s", log.c_str());
+  }*/
+
+  for (const auto& log : logger.getLogs()) {
+    String logPrefix;
+    ImColor txtColor = getLogColor(log.verbosity, logPrefix);
+    ImU32 imColorU32 = ImGui::ColorConvertFloat4ToU32(txtColor);
+    String fullMessage = logPrefix + log.message + " (" + log.srcFile + ":" +
+                         std::to_string(log.srcLine) + " in " + log.srcFunction + ")";
+
+    ImGui::PushStyleColor(ImGuiCol_Text, imColorU32);
+    ImGui::TextWrapped("%s", fullMessage.c_str());
+    ImGui::PopStyleColor();
   }
 
   ImGui::End();
@@ -964,12 +1003,13 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
         float timeEnd = timer.getTime();
         float loadTime = timeEnd - timeStart;
         SystemPath pathObj(filePath);
-        String log = "Loaded " +
+        /*String log = "Loaded " +
                      pathObj.filename().string() +
                      " in " +
                      std::to_string(loadTime) +
-                     " seconds.";
-        m_logs.push_back(log);
+                     " seconds.";*/
+        //m_logs.push_back(log);
+        //SH_LOG(LogVerbosity::kInfo, log.c_str());
       }
     }
 
@@ -977,7 +1017,7 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     if (ImGui::Button("Save Mesh to cache")) {
       if (!pMesh->m_mesh.expired()) {
         String filePath;
-        if (fileExp.openFile(filePath, ".sha", "resources/models/")) {
+        if (fileExp.saveFile(filePath, ".sha", "resources/models/")) {
           resMan.saveResourceToAsset(pMesh->m_mesh.lock(), filePath);
         }
       }
