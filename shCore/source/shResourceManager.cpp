@@ -316,21 +316,21 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   //}
 
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
-    resource = loadTextureFromFile(filePath.toString());
+    resource = loadTextureFromFile(filePath.string());
   }
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
     Timer timer;
-    resource = loadModelFromFile(filePath.toString());
+    resource = loadModelFromFile(filePath.string());
     float elapsed = timer.getTime();
-    String logMsg = filePath.toString() + " loaded in " +
+    String logMsg = filePath.string() + " loaded in " +
                     std::to_string(elapsed) + " seconds.";
     SH_LOG(LogVerbosity::kInfo, logMsg);
   }
   else if (filePath.compareExtensions({ ".cube" })) {
-    resource = loadCubeMapFromFile(filePath.toString());
+    resource = loadCubeMapFromFile(filePath.string());
   }
   else if (filePath.compareExtensions({ ".dds" })) {
-    resource = loadTextureFromDDS(filePath.toString());
+    resource = loadTextureFromDDS(filePath.string());
   }
   else {
     return nullptr;
@@ -385,7 +385,7 @@ ResourceManager::isResourceLoaded(const String& fileName)
 SPtr<Resource>
 ResourceManager::isResourceLoaded(const Path& fileName)
 {
-  auto resObj = m_loadedResources.find(fileName.toString());
+  auto resObj = m_loadedResources.find(fileName.string());
 
   if (resObj != m_loadedResources.end()) {
     return (*resObj).second;
@@ -397,7 +397,7 @@ ResourceManager::isResourceLoaded(const Path& fileName)
 bool
 ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
 {
-  SystemPath path = filePath.toString();
+  SystemPath path = filePath.string();
 
   auto resObj = m_loadedResources.find(path.filename().string());
 
@@ -416,7 +416,7 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
   //auto& logger = g_logger();
 
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
-    SystemPath path = filePath.toString();
+    SystemPath path = filePath.string();
     path.replace_extension(".dds");
     SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
 
@@ -431,7 +431,7 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
     return true;
   }
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
-    SystemPath path = filePath.toString();
+    SystemPath path = filePath.string();
     path.replace_extension(".sha");
     SystemPath fullPath = "resources/assets/models/" + path.filename().string();
 
@@ -443,11 +443,11 @@ ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
   else if(filePath.compareExtensions({ ".sha" })) {
     //SystemPath fullPath = "resources/assets/models/" + filePath.filename();
     Timer timer;
-    pRes = loadModelFromCache(filePath.toString());
+    pRes = loadModelFromCache(filePath.string());
     float elapsed = timer.getTime();
     /*logger.consoleLog(filePath.toString() + " loaded from cache in " +
                       std::to_string(elapsed) + " seconds.");*/
-    String logMsg = filePath.toString() + " loaded from cache in " +
+    String logMsg = filePath.string() + " loaded from cache in " +
                     std::to_string(elapsed) + " seconds.";
     SH_LOG(LogVerbosity::kInfo, logMsg);
     return true;
@@ -828,7 +828,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 
   auto* aiMat = scene->mMaterials[mesh->mMaterialIndex];
   currentData.materialIndex = mesh->mMaterialIndex;
-  auto currentMat = createMaterialFromFile(aiMat, currentMesh->getPath().toString());
+  auto currentMat = createMaterialFromFile(aiMat, currentMesh->getPath().string());
 
   if(currentMat == nullptr) {
     auto it = m_loadedResources.find("ErrorTexture");
@@ -937,7 +937,7 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   }*/
 
   auto currentMat = createMaterialFromFile(scene->mMaterials[mesh->mMaterialIndex],
-                                           skeletalMesh->getPath().toString());
+                                           skeletalMesh->getPath().string());
 
   if (skeletalMesh->m_materials.empty()) {
     skeletalMesh->m_materials.push_back(currentMat);

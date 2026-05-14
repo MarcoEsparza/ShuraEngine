@@ -60,6 +60,10 @@ class SH_CORE_EXPORT CodecManager : public Module<CodecManager>
   /*void
   registerCodec(const SPtr<Codec>& pCodec);*/
 
+  /**
+  *  @brief Registers a codec to the manager. Codec will be registered using its UID,
+  *         and the provided type must derive from Codec and have a default constructor.
+  */
   template <typename CodecType>
   void
   registerCodec()

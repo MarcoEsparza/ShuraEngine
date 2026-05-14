@@ -49,7 +49,7 @@ Asset::loadResourceFromAsset(Path filePath)
   FILE* file = nullptr;
 
 #if SH_COMPILER == SH_COMPILER_MSVC
-  fopen_s(&file, filePath.toString().c_str(), "rb");
+  fopen_s(&file, filePath.string().c_str(), "rb");
 #else
   file = fopen(filePath.toString().c_str(), "rb");
 #endif
@@ -282,35 +282,35 @@ Asset::saveStaticMesh(const SPtr<Resource>& pRes, const String& path)
     // Get texture paths
     String baseColorPath;
     if (!currentMat->m_baseColor.expired()) {
-      baseColorPath = currentMat->m_baseColor.lock()->getPath().toString();
+      baseColorPath = currentMat->m_baseColor.lock()->getPath().string();
     }
     String normalPath;
     if (!currentMat->m_normal.expired()) {
-      normalPath = currentMat->m_normal.lock()->getPath().toString();
+      normalPath = currentMat->m_normal.lock()->getPath().string();
     }
     String metallicPath;
     if (!currentMat->m_metalness.expired()) {
-      metallicPath = currentMat->m_metalness.lock()->getPath().toString();
+      metallicPath = currentMat->m_metalness.lock()->getPath().string();
     }
     String roughnessPath;
     if (!currentMat->m_roughness.expired()) {
-      roughnessPath = currentMat->m_roughness.lock()->getPath().toString();
+      roughnessPath = currentMat->m_roughness.lock()->getPath().string();
     }
     String aoPath;
     if (!currentMat->m_ao.expired()) {
-      aoPath = currentMat->m_ao.lock()->getPath().toString();
+      aoPath = currentMat->m_ao.lock()->getPath().string();
     }
     String emissivePath;
     if (!currentMat->m_emissive.expired()) {
-      emissivePath = currentMat->m_emissive.lock()->getPath().toString();
+      emissivePath = currentMat->m_emissive.lock()->getPath().string();
     }
     String specularPath;
     if (!currentMat->m_specular.expired()) {
-      specularPath = currentMat->m_specular.lock()->getPath().toString();
+      specularPath = currentMat->m_specular.lock()->getPath().string();
     }
     String opacityMaskPath;
     if (!currentMat->m_opacityMask.expired()) {
-      opacityMaskPath = currentMat->m_opacityMask.lock()->getPath().toString();
+      opacityMaskPath = currentMat->m_opacityMask.lock()->getPath().string();
     }
 
     // Save path sizes

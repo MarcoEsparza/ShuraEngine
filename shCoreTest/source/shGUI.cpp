@@ -1115,7 +1115,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pBaseColorImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pBaseColorImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pBaseColorImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1154,7 +1154,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pNormalImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pNormalImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pNormalImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1170,7 +1170,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pMetalnessImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pMetalnessImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pMetalnessImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1191,7 +1191,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pRoughnessImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pRoughnessImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pRoughnessImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1212,7 +1212,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pAOImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pAOImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pAOImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1248,7 +1248,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pEmissiveImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pEmissiveImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pEmissiveImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1280,7 +1280,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::IsItemHovered()) {
     if (!pOpacityImg.expired()) {
       ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pOpacityImg.lock()->getPath().toString().c_str());
+      ImGui::TextUnformatted(pOpacityImg.lock()->getPath().string().c_str());
       ImGui::EndTooltip();
     }
   }
@@ -1341,7 +1341,7 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
       ImGui::BeginChild("##ReadOnlyBox",
                         ImVec2(windowSize.x, ImGui::GetFrameHeight()),
                         true, ImGuiWindowFlags_NoScrollWithMouse);
-      String textPath = pSkyBox->getSkyBoxResource()->getPath().toString();
+      String textPath = pSkyBox->getSkyBoxResource()->getPath().string();
       ImGui::TextUnformatted((iconToStr(FONT_ICONS::kFolder) + " " + textPath).c_str());
       ImGui::EndChild();
 
