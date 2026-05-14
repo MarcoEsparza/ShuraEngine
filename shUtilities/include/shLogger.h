@@ -104,9 +104,6 @@ class SH_UTILITY_EXPORT Logger : public Module<Logger>
    Vector<LogEntry> m_logs;
 };
 
-#define SH_LOG(verbosity, message) \
-  g_logger().log(verbosity, message, __TIME__, __FILE__, __LINE__, __FUNCTION__)
-
 /*****************************************************************************/
 /*
 *  Implementations
@@ -118,4 +115,12 @@ class SH_UTILITY_EXPORT Logger : public Module<Logger>
 */
 SH_UTILITY_EXPORT Logger&
 g_logger();
+
+#define SH_LOG(verbosity, message) \
+  g_logger().log(verbosity, message, __TIME__, __FILE__, __LINE__, __FUNCTION__)
+
+#define SH_LOG_ERROR(message) SH_LOG(LogVerbosity::kError, message)
+#define SH_LOG_WARNING(message) SH_LOG(LogVerbosity::kWarning, message)
+#define SH_LOG_INFO(message) SH_LOG(LogVerbosity::kInfo, message)
+#define SH_LOG_DEBUG(message) SH_LOG(LogVerbosity::kDebug, message)
 }

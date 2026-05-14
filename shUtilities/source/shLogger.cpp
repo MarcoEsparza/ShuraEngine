@@ -19,7 +19,7 @@
 #include "shLogger.h"
 #include <iostream>
 
-#define MAX_LOG_BUFFER_SIZE 256
+#define MAX_LOG_BUFFER_SIZE 255
 
 using std::cout;
 
@@ -38,13 +38,11 @@ Logger::log(LogVerbosity verbosity,
             uint32 srcLine,
             const String& srcFunction)
 {
-  LogEntry entry;
-  entry.verbosity = verbosity;
-  entry.message = message;
-  entry.timestamp = timestamp;
-  entry.srcFile = srcFile;
-  entry.srcLine = srcLine;
-  entry.srcFunction = srcFunction;
+  if (m_logs.size() >= MAX_LOG_BUFFER_SIZE) {
+    m_logs.erase(m_logs.begin());
+  }
+
+  LogEntry entry(verbosity, message, timestamp, srcFile, srcLine, srcFunction);
   m_logs.push_back(entry);
 }
 

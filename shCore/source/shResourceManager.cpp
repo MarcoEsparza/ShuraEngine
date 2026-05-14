@@ -300,21 +300,20 @@ ResourceManager::onStartUp()
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {
-  //auto& logger = g_logger();
+  // Check if resource is already on memory
+  if (isResourceLoaded(filePath.filename())) {
+    return m_loadedResources[filePath.filename()];
+  }
+
   SPtr<Resource> resource;
 
-  // Check if resource is already on memory
-  if (isResourceOnMemory(filePath, resource)) {
-    return resource;
-  }
-
   // Check if there is a cache for resource
-  if (isCacheForResource(filePath, resource)) {
-    if(resource) {
-      return resource;
-    }
-    //return resource;
-  }
+  //if (isCacheForResource(filePath, resource)) {
+  //  if(resource) {
+  //    return resource;
+  //  }
+  //  //return resource;
+  //}
 
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
     resource = loadTextureFromFile(filePath.toString());
@@ -323,8 +322,6 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
     Timer timer;
     resource = loadModelFromFile(filePath.toString());
     float elapsed = timer.getTime();
-    /*logger.consoleLog(filePath.toString() + " loaded in "
-                      + std::to_string(elapsed) + " seconds.");*/
     String logMsg = filePath.toString() + " loaded in " +
                     std::to_string(elapsed) + " seconds.";
     SH_LOG(LogVerbosity::kInfo, logMsg);
@@ -342,10 +339,28 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   return resource;
 }
 
+bool
+ResourceManager::addResource(const SPtr<Resource> pRes)
+{
+  if(isResourceLoaded(pRes->getName())) {
+    return false;
+  }
+
+  m_loadedResources[pRes->getName()] = pRes;
+  if (isResourceLoaded(pRes->getName())) {
+    return true;
+  }
+
+  return false;
+}
+
 SPtr<Resource>
 ResourceManager::getResource(const String& resourceName)
 {
-  return isResourceLoaded(resourceName);
+  if (isResourceLoaded(resourceName)) {
+    return m_loadedResources[resourceName];
+  }
+  return nullptr;
 }
 
 bool
@@ -355,16 +370,16 @@ ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes, const String& pa
   return resAsset.saveResourceToAsset(pRes, path);
 }
 
-SPtr<Resource>
+bool
 ResourceManager::isResourceLoaded(const String& fileName)
 {
   auto resObj = m_loadedResources.find(fileName);
 
   if (resObj != m_loadedResources.end()) {
-    return (*resObj).second;
+    return true;
   }
 
-  return nullptr;
+  return false;
 }
 
 SPtr<Resource>

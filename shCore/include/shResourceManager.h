@@ -88,6 +88,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   loadResourceFromFile(const Path& filePath);
 
+  bool
+  addResource(const SPtr<Resource> pRes);
+
   /**
   *  @brief Get the desired resource by its name.
   * 
@@ -123,7 +126,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   * 
   *  @param String& fileName
   */
-  SPtr<Resource>
+  bool
   isResourceLoaded(const String& fileName);
 
   /**
