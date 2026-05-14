@@ -2,7 +2,7 @@
 /*
 *  @file    shCubeMap.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/21
+*  @date    2026/05/14
 *  @brief   Cube Map class for reading and storing cube map textures.
 *
 *  Cube Map class for reading and storing cube map textures.
@@ -22,6 +22,7 @@
 #include "shTexture.h"
 #include <shVector3.h>
 #include <shLinearColor.h>
+#include <shPath.h>
 
 namespace shEngineSDK {
 class CubeMap : public Resource
@@ -47,7 +48,7 @@ class CubeMap : public Resource
    *  @return bool
    */
   bool
-  loadFromFile(const String& filePath);
+  loadFromFile(const Path& filePath);
 
   /**
    *  @brief Get the cube map texture ID.
@@ -62,7 +63,7 @@ class CubeMap : public Resource
 
  private:
   bool
-  parseCubeFile(const String& filePath);
+  parseCubeFile(const Path& filePath);
 
  private:
   /**

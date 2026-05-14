@@ -1002,7 +1002,7 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
         }
         float timeEnd = timer.getTime();
         float loadTime = timeEnd - timeStart;
-        SystemPath pathObj(filePath);
+        //SystemPath pathObj(filePath);
         /*String log = "Loaded " +
                      pathObj.filename().string() +
                      " in " +

@@ -32,6 +32,11 @@ class SH_UTILITY_EXPORT Path
   Path() = default;
 
   /**
+  *  @brief Default copy constructor.
+  */
+  Path(const Path& other) = default;
+
+  /**
   *  @brief Constructor from string.
   * 
   *  @param String& filePath
@@ -220,11 +225,21 @@ class SH_UTILITY_EXPORT Path
   * 
   *  @param String& other: String to assign to this Path, parsing it as a path.
   * 
-  *  @return String: The full path as string, after parsing the string and
-  *                  assigning it to this Path.
+  *  @return Path&: This Path with the content of the string assigned.
   */
-  FORCEINLINE String
+  FORCEINLINE Path&
   operator=(const String& other);
+
+  /**
+  *  @brief Operator to assign the content of a const char* to this Path,
+  *         parsing the const char* as a path.
+  * 
+  *  @param const char* other: Const char* to assign to this Path, parsing it as a path.
+  * 
+  *  @return Path&: This Path with the content of the const char* assigned.
+  */
+  FORCEINLINE Path&
+  operator=(const char* other);
 
   /***************************************************************************/
   /*
@@ -269,11 +284,19 @@ Path::operator=(const Path& other)
   return *this;
 }
 
-FORCEINLINE String
+FORCEINLINE Path&
 Path::operator=(const String& other)
 {
   Path tempPath(other);
   *this = tempPath;
-  return m_fullPath;
+  return *this;
+}
+
+FORCEINLINE Path&
+Path::operator=(const char* other)
+{
+  Path tempPath(other);
+  *this = tempPath;
+  return *this;
 }
 }

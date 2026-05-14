@@ -34,6 +34,7 @@
 #include <shBlendState.h>
 #include <shDepthStencilState.h>
 #include <shPass.h>
+#include <shPath.h>
 
 #include <shVector2i.h>
 
@@ -379,8 +380,8 @@ ImGui_ImplShura_CreateDeviceObjects()
 
   // Set pass
   bd->pImGuiShuraProgram = sh_makeShared<Pass>();
-  bd->pImGuiShuraProgram->setVShaderInfo(shaderDirectory, "main");
-  bd->pImGuiShuraProgram->setPShaderInfo(shaderDirectory, "mainPS");
+  bd->pImGuiShuraProgram->setVShaderInfo(Path(shaderDirectory), "main");
+  bd->pImGuiShuraProgram->setPShaderInfo(Path(shaderDirectory), "mainPS");
   bd->pImGuiShuraProgram->compileShader();
 
   Vector<InputDesc> ilDesc;

@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/23
+*  @date    2026/05/14
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -115,7 +115,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param String& fileName
   */
   SPtr<Resource>
-  loadModelFromCache(const String& fileName);
+  loadModelFromCache(const Path& filePath);
 
   void
   loadMaterial(const SPtr<Material>& material);
@@ -143,8 +143,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param Path& fileName
   *  @param SPtr<Resource>& pRes
   */
-  bool
-  isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes);
+  /*bool
+  isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes);*/
 
   /**
   *  @brief Checks if there is a cache for resource.
@@ -152,8 +152,8 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param Path& fileName
   *  @param SPtr<Resource>& pRes
   */
-  bool
-  isCacheForResource(const Path& filePath, SPtr<Resource>& pRes);
+  /*bool
+  isCacheForResource(const Path& filePath, SPtr<Resource>& pRes);*/
 
   /***************************************************************************/
   /*
@@ -167,7 +167,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param String& fileName
   */
   SPtr<Resource>
-  loadTextureFromFile(const String& fileName);
+  loadTextureFromFile(const Path& filePath);
 
   /**
   *  @brief Load a dds image and creates a texture.
@@ -175,10 +175,10 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param String& fileName
   */
   SPtr<Resource>
-  loadTextureFromDDS(const String& filename);
+  loadTextureFromDDS(const Path& filePath);
 
   SPtr<Resource>
-  loadCubeMapFromFile(const String& fileName);
+  loadCubeMapFromFile(const Path& filePath);
 
   /***************************************************************************/
   /*
@@ -192,7 +192,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param String& fileName
   */
   SPtr<Resource>
-  loadModelFromFile(const String& fileName);
+  loadModelFromFile(const Path& filePath);
 
   /**
   *  @brief Creates an engine material from an aiMaterial.
@@ -200,7 +200,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiMaterial* pMat
   */
   SPtr<Material>
-  createMaterialFromFile(const aiMaterial* pMat, const String& resPath);
+  createMaterialFromFile(const aiMaterial* pMat, const Path& resPath);
 
   SPtr<Material>
   isMaterialLoaded(const String& materialName);
@@ -219,7 +219,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param aiScene* scene
   */
   SPtr<Resource>
-  createStaticMesh(const String& fileName,
+  createStaticMesh(const Path& filePath,
                    const aiNode* node,
                    const aiScene* scene);
 
@@ -259,7 +259,7 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @param String& fileName
   */
   SPtr<Resource>
-  createSkeletalMesh(const aiScene* scene, const String& fileName);
+  createSkeletalMesh(const aiScene* scene, const Path & filePath);
 
   /**
   *  @brief Process all nodes on the file scene for the skeletal mesh.

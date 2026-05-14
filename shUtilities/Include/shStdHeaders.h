@@ -48,7 +48,7 @@
 *  Standard Containers defined as own
 */
 /*****************************************************************************/
-#include <filesystem>
+//#include <filesystem>
 
 /*****************************************************************************/
 /*
@@ -177,7 +177,7 @@ using std::ios;
 /**
 *  @brief File system path wrapper.
 */
-using SystemPath = std::filesystem::path;
+//using SystemPath = std::filesystem::path;
 
 /**
 *  @brief Hash wrapper.

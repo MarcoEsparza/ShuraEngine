@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/04/14
+*  @date    2026/05/14
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -19,6 +19,7 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shGraphicTypes.h"
+#include <shPath.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -109,7 +110,7 @@ class SH_CORE_EXPORT Pass
   *  @param Vector<ShaderMacro>& macros = {}
   */
   void
-  setVShaderInfo(const String& shaderPath,
+  setVShaderInfo(const Path& shaderPath,
                  const String& entry,
                  const Vector<ShaderMacro>& macros = {});
 
@@ -122,7 +123,7 @@ class SH_CORE_EXPORT Pass
   *  @param Vector<ShaderMacro>& macros = {}
   */
   void
-  setPShaderInfo(const String& shaderPath,
+  setPShaderInfo(const Path& shaderPath,
                  const String& entry,
                  const Vector<ShaderMacro>& macros = {});
 
@@ -135,7 +136,7 @@ class SH_CORE_EXPORT Pass
   *  @param Vector<ShaderMacro>& macros = {}
   */
   void
-  setGShaderInfo(const String& shaderPath,
+  setGShaderInfo(const Path& shaderPath,
                  const String& entry,
                  const Vector<ShaderMacro>& macros = {});
 
@@ -148,7 +149,7 @@ class SH_CORE_EXPORT Pass
   *  @param Vector<ShaderMacro>& macros = {}
   */
   void
-  setCShaderInfo(const String& shaderPath,
+  setCShaderInfo(const Path& shaderPath,
                  const String& entry,
                  const Vector<ShaderMacro>& macros = {});
 
@@ -335,22 +336,22 @@ class SH_CORE_EXPORT Pass
   /**
   *  @brief Path of the vertex shader file.
   */
-  String m_vsPath = "";
+  Path m_vsPath;
 
   /**
   *  @brief Path of the pixel shader file.
   */
-  String m_psPath = "";
+  Path m_psPath;
 
   /**
   *  @brief Path of the geometry shader file.
   */
-  String m_gsPath = "";
+  Path m_gsPath;
 
   /**
   *  @brief Path of the compute shader file.
   */
-  String m_csPath = "";
+  Path m_csPath;
 
   /**
   *  @brief Vertex Shader entry point.

@@ -25,6 +25,7 @@
 #include <shVector3.h>
 #include <shVector4.h>
 #include <shException.h>
+#include <shPath.h>
 
 namespace shEngineSDK {
 /*****************************************************************************/
@@ -192,7 +193,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<VertexShader>
   */
   virtual SPtr<VertexShader>
-  createVertexShader(const String& fileName,
+  createVertexShader(const Path& filePath,
                      const String& entryPoint,
                      const String& shaderModel,
                      const Vector<ShaderMacro>& macros = {}) = 0;
@@ -208,7 +209,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<PixelShader>
   */
   virtual SPtr<PixelShader>
-  createPixelShader(const String& fileName,
+  createPixelShader(const Path& filePath,
                     const String& entryPoint,
                     const String& shaderModel,
                     const Vector<ShaderMacro>& macros = {}) = 0;
@@ -224,7 +225,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<GeometryShader>
   */
   virtual SPtr<GeometryShader>
-  createGeometryShader(const String& fileName,
+  createGeometryShader(const Path& filePath,
                        const String& entryPoint,
                        const String& shaderModel,
                        const Vector<ShaderMacro>& macros = {}) = 0;
@@ -240,7 +241,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<ComputeShader>
   */
   virtual SPtr<ComputeShader>
-  createComputeShader(const String& fileName,
+  createComputeShader(const Path& filePath,
                       const String& entryPoint,
                       const String& shaderModel,
                       const Vector<ShaderMacro>& macros = {}) = 0;
@@ -310,7 +311,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<Texture2D>
   */
   virtual SPtr<Texture2D>
-  createTextureFromFile(const String& fileName,
+  createTextureFromFile(const Path& filePath,
                         const void* pData,
                         const uint32 width,
                         const uint32 height,
@@ -324,7 +325,7 @@ class SH_CORE_EXPORT GraphicsManager : public Module<GraphicsManager>
   *  @return SPtr<Texture2D>
   */
   virtual SPtr<Texture2D>
-  createTextureFromDDS(const String& fileName) = 0;
+  createTextureFromDDS(const Path& filePath) = 0;
 
   /**
   *  @brief Creates a Texture2D.

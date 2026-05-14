@@ -2,7 +2,7 @@
 /*
 *  @file    shShaderManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/10/08
+*  @date    2026/05/14
 *  @brief   Shader managment module.
 *
 *  Shader managment module.
@@ -26,6 +26,7 @@
 #include "shBlendState.h"
 #include "shDepthStencilState.h"
 #include "shStringID.h"
+#include <shPath.h>
 
 namespace shEngineSDK {
 const uint32 ShaderManager::SSAO_SHADER_ID = StringID("AOShader").getID();
@@ -79,43 +80,43 @@ ShaderManager::createPipelinePasses()
 
   // Lightning
   auto pLightCS = sh_makeShared<Pass>();
-  pLightCS->setCShaderInfo(m_shaderDirectory + "LightCShader", "CSMain");
+  pLightCS->setCShaderInfo(Path(m_shaderDirectory + "LightCShader"), "CSMain");
   pLightCS->compileShader();
 
   // AO
   auto pAOShader = sh_makeShared<Pass>();
-  pAOShader->setPShaderInfo(m_shaderDirectory + "AOShader", "mainPS");
+  pAOShader->setPShaderInfo(Path(m_shaderDirectory + "AOShader"), "mainPS");
   pAOShader->compileShader();
 
   // HBlur
   auto pHBlurCS = sh_makeShared<Pass>();
-  pHBlurCS->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "HBlurCS");
+  pHBlurCS->setCShaderInfo(Path(m_shaderDirectory + "PostProcessShader"), "HBlurCS");
   pHBlurCS->compileShader();
 
   // VBlur
   auto pVBlurCS = sh_makeShared<Pass>();
-  pVBlurCS->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "VBlurCS");
+  pVBlurCS->setCShaderInfo(Path(m_shaderDirectory + "PostProcessShader"), "VBlurCS");
   pVBlurCS->compileShader();
 
   // Shadow map
   auto pSMapShader = sh_makeShared<Pass>();
-  pSMapShader->setVShaderInfo(m_shaderDirectory + "SMapShader", "main");
-  pSMapShader->setPShaderInfo(m_shaderDirectory + "SMapShader", "mainPS");
+  pSMapShader->setVShaderInfo(Path(m_shaderDirectory + "SMapShader"), "main");
+  pSMapShader->setPShaderInfo(Path(m_shaderDirectory + "SMapShader"), "mainPS");
   pSMapShader->compileShader();
 
   // Skybox
   auto pSkyBoxShader = sh_makeShared<Pass>();
-  pSkyBoxShader->setCShaderInfo(m_shaderDirectory + "SkyBoxShader", "CSMain");
+  pSkyBoxShader->setCShaderInfo(Path(m_shaderDirectory + "SkyBoxShader"), "CSMain");
   pSkyBoxShader->compileShader();
 
   // Final shader
   auto pFinalShader = sh_makeShared<Pass>();
-  pFinalShader->setPShaderInfo(m_shaderDirectory + "FinalShader", "mainPS");
+  pFinalShader->setPShaderInfo(Path(m_shaderDirectory + "FinalShader"), "mainPS");
   pFinalShader->compileShader();
 
   // Plane Vertex shader
   auto pPlaneVS = sh_makeShared<Pass>();
-  pPlaneVS->setVShaderInfo(m_shaderDirectory + "PlaneVertexShader", "main");
+  pPlaneVS->setVShaderInfo(Path(m_shaderDirectory + "PlaneVertexShader"), "main");
   pPlaneVS->compileShader();
 
   // Histogram shader
@@ -125,57 +126,59 @@ ShaderManager::createPipelinePasses()
 
   // Add skybox shader
   auto pASBShader = sh_makeShared<Pass>();
-  pASBShader->setCShaderInfo(m_shaderDirectory + "AddSkyboxShader", "CSMain");
+  pASBShader->setCShaderInfo(Path(m_shaderDirectory + "AddSkyboxShader"), "CSMain");
   pASBShader->compileShader();
 
   // Luminance shader
   auto pLuminanceShader = sh_makeShared<Pass>();
-  pLuminanceShader->setCShaderInfo(m_shaderDirectory + "LuminanceShader", "LuminanceCS");
+  pLuminanceShader->setCShaderInfo(Path(m_shaderDirectory + "LuminanceShader"),
+                                   "LuminanceCS");
   pLuminanceShader->compileShader();
 
   // Bright shader
   auto pBrightShader = sh_makeShared<Pass>();
-  pBrightShader->setCShaderInfo(m_shaderDirectory + "LuminanceShader", "BrightCS");
+  pBrightShader->setCShaderInfo(Path(m_shaderDirectory + "LuminanceShader"), "BrightCS");
   pBrightShader->compileShader();
 
   // ToneMap shader
   auto pToneMapShader = sh_makeShared<Pass>();
-  pToneMapShader->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "ToneMapCS");
+  pToneMapShader->setCShaderInfo(Path(m_shaderDirectory + "PostProcessShader"), "ToneMapCS");
   pToneMapShader->compileShader();
 
   // AddMix shader
   auto pAddMixShader = sh_makeShared<Pass>();
-  pAddMixShader->setCShaderInfo(m_shaderDirectory + "LuminanceShader", "AddMixCS");
+  pAddMixShader->setCShaderInfo(Path(m_shaderDirectory + "LuminanceShader"), "AddMixCS");
   pAddMixShader->compileShader();
 
   // PostProcess shader
   auto pPPShader = sh_makeShared<Pass>();
-  pPPShader->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "PostProcessCS");
+  pPPShader->setCShaderInfo(Path(m_shaderDirectory + "PostProcessShader"), "PostProcessCS");
   pPPShader->compileShader();
 
   // Shader to calculate cube maps
   auto pCubeMapShader = sh_makeShared<Pass>();
-  pCubeMapShader->setCShaderInfo(m_shaderDirectory + "CubeMapShader", "CSMain");
+  pCubeMapShader->setCShaderInfo(Path(m_shaderDirectory + "CubeMapShader"), "CSMain");
   pCubeMapShader->compileShader();
 
   // Irradiance cube shader
   auto pIrrCubeShader = sh_makeShared<Pass>();
-  pIrrCubeShader->setCShaderInfo(m_shaderDirectory + "IrradianceCubeShader", "CSMain");
+  pIrrCubeShader->setCShaderInfo(Path(m_shaderDirectory + "IrradianceCubeShader"), "CSMain");
   pIrrCubeShader->compileShader();
 
   // Specular Prefiltered Cubemap shader
   auto pSPreCubeMap = sh_makeShared<Pass>();
-  pSPreCubeMap->setCShaderInfo(m_shaderDirectory + "SpecularPreMapShader", "CSMain");
+  pSPreCubeMap->setCShaderInfo(Path(m_shaderDirectory + "SpecularPreMapShader"), "CSMain");
   pSPreCubeMap->compileShader();
 
   // BRDF LUT shader
   auto pBRDFShader = sh_makeShared<Pass>();
-  pBRDFShader->setCShaderInfo(m_shaderDirectory + "BRDFShader", "CSMain");
+  pBRDFShader->setCShaderInfo(Path(m_shaderDirectory + "BRDFShader"), "CSMain");
   pBRDFShader->compileShader();
 
   // Emmisive pass
   auto pEmmisiveShader = sh_makeShared<Pass>();
-  pEmmisiveShader->setCShaderInfo(m_shaderDirectory + "PostProcessShader", "EmmisiveCS");
+  pEmmisiveShader->setCShaderInfo(Path(m_shaderDirectory + "PostProcessShader"),
+                                  "EmmisiveCS");
   pEmmisiveShader->compileShader();
 
   // Raster state
@@ -406,8 +409,8 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   }
   // Add more macros based on other properties as needed
 
-  matPass->setVShaderInfo(m_shaderDirectory + "GBufferShader", "main", macros);
-  matPass->setPShaderInfo(m_shaderDirectory + "GBufferShader", "mainPS", macros);
+  matPass->setVShaderInfo(Path(m_shaderDirectory + "GBufferShader"), "main", macros);
+  matPass->setPShaderInfo(Path(m_shaderDirectory + "GBufferShader"), "mainPS", macros);
   matPass->compileShader();
   matPass->generateInputLayout();
 

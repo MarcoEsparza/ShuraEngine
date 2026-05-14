@@ -101,25 +101,25 @@ class OGLGraphicsManager : public GraphicsManager
                                     const WPtr<VertexBuffer> pVBuffer) override;
 
   SPtr<VertexShader>
-  createVertexShader(const String& fileName,
+  createVertexShader(const Path& filePath,
                      const String& entryPoint,
                      const String& shaderModel,
                      const Vector<ShaderMacro>& macros) override;
 
   SPtr<PixelShader>
-  createPixelShader(const String& fileName,
+  createPixelShader(const Path& filePath,
                     const String& entryPoint,
                     const String& shaderModel,
                     const Vector<ShaderMacro>& macros) override;
 
   SPtr<GeometryShader>
-  createGeometryShader(const String& fileName,
+  createGeometryShader(const Path& filePath,
                        const String& entryPoint,
                        const String& shaderModel,
                        const Vector<ShaderMacro>& macros) override;
 
   SPtr<ComputeShader>
-  createComputeShader(const String& fileName,
+  createComputeShader(const Path& filePath,
                       const String& entryPoint,
                       const String& shaderModel,
                       const Vector<ShaderMacro>& macros) override;
@@ -143,14 +143,14 @@ class OGLGraphicsManager : public GraphicsManager
   createSamplerState(const uint32 filter, const uint32 textAddress) override;
 
   SPtr<Texture2D>
-  createTextureFromFile(const String& fileName,
+  createTextureFromFile(const Path& filePath,
                         const void* pData,
                         const uint32 width,
                         const uint32 height,
                         const uint32 bpp) override;
 
   SPtr<Texture2D>
-  createTextureFromDDS(const String& fileName) override;
+  createTextureFromDDS(const Path& filePath) override;
 
   SPtr<Texture2D>
   createTexture2D(const uint32 width,

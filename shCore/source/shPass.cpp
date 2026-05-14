@@ -2,7 +2,7 @@
 /*
 *  @file    shPass.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/17
+*  @date    2026/05/14
 *  @brief   Pass for renderer.
 *
 *  Pass for renderer.
@@ -45,7 +45,7 @@ Pass::~Pass() {
 }
 
 void
-Pass::setVShaderInfo(const String& shaderPath,
+Pass::setVShaderInfo(const Path& shaderPath,
                      const String& entry,
                      const Vector<ShaderMacro>& macros)
 {
@@ -55,7 +55,7 @@ Pass::setVShaderInfo(const String& shaderPath,
 }
 
 void
-Pass::setPShaderInfo(const String& shaderPath,
+Pass::setPShaderInfo(const Path& shaderPath,
                      const String& entry,
                      const Vector<ShaderMacro>& macros)
 {
@@ -65,7 +65,7 @@ Pass::setPShaderInfo(const String& shaderPath,
 }
 
 void
-Pass::setGShaderInfo(const String& shaderPath,
+Pass::setGShaderInfo(const Path& shaderPath,
                      const String& entry,
                      const Vector<ShaderMacro>& macros)
 {
@@ -75,7 +75,7 @@ Pass::setGShaderInfo(const String& shaderPath,
 }
 
 void
-Pass::setCShaderInfo(const String& shaderPath,
+Pass::setCShaderInfo(const Path& shaderPath,
                      const String& entry,
                      const Vector<ShaderMacro>& macros)
 {
@@ -94,8 +94,8 @@ void
 Pass::setBlendStateFromDesc(const BlendDesc& blendDesc)
 {
   m_pBlendState = g_graphicsMan().createBlendState(blendDesc);
-  if (m_vsPath != "") {
-    String name = m_vsPath + "_BlendState";
+  if (m_vsPath.empty()) {
+    String name = m_vsPath.filename() + "_BlendState";
     m_pBlendState->setDebugName(name);
   }
 }
@@ -141,7 +141,7 @@ Pass::compileShader()
     m_pVShader.reset();
   }
   // It will not compile if there's no path for shader
-  if (m_vsPath != "") {
+  if (!m_vsPath.empty()) {
     m_pVShader = graphMan.createVertexShader(m_vsPath,
                                              m_vsEntryPoint,
                                              shaderMan.getVSShaderModel(),
@@ -153,7 +153,7 @@ Pass::compileShader()
     m_pPShader.reset();
   }
   // It will not compile if there's no path for shader
-  if (m_psPath != "") {
+  if (!m_psPath.empty()) {
     m_pPShader = graphMan.createPixelShader(m_psPath,
                                             m_psEntryPoint,
                                             shaderMan.getPSShaderModel(),
@@ -165,7 +165,7 @@ Pass::compileShader()
     m_pGShader.reset();
   }
   // It will not compile if there's no path for shader
-  if (m_gsPath != "") {
+  if (!m_gsPath.empty()) {
     m_pGShader = graphMan.createGeometryShader(m_gsPath,
                                                m_gsEntryPoint,
                                                shaderMan.getGSShaderModel(),
@@ -177,7 +177,7 @@ Pass::compileShader()
     m_pCShader.reset();
   }
   // It will not compile if there's no path for shader
-  if (m_csPath != "") {
+  if (!m_csPath.empty()) {
     m_pCShader = graphMan.createComputeShader(m_csPath,
                                               m_csEntryPoint,
                                               shaderMan.getCSShaderModel(),

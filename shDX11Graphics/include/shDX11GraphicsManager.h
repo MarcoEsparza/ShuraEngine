@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/18
+*  @date    2026/05/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -148,7 +148,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<VertexShader>
   */
   SPtr<VertexShader>
-  createVertexShader(const String& fileName,
+  createVertexShader(const Path& filePath,
                      const String& entryPoint,
                      const String& shaderModel,
                      const Vector<ShaderMacro>& macros) override;
@@ -164,7 +164,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<PixelShader>
   */
   SPtr<PixelShader>
-  createPixelShader(const String& fileName,
+  createPixelShader(const Path& filePath,
                     const String& entryPoint,
                     const String& shaderModel,
                     const Vector<ShaderMacro>& macros) override;
@@ -180,7 +180,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<GeometryShader>
   */
   SPtr<GeometryShader>
-  createGeometryShader(const String& fileName,
+  createGeometryShader(const Path& filePath,
                        const String& entryPoint,
                        const String& shaderModel,
                        const Vector<ShaderMacro>& macros) override;
@@ -196,7 +196,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<ComputeShader>
   */
   SPtr<ComputeShader>
-  createComputeShader(const String& fileName,
+  createComputeShader(const Path& filePath,
                       const String& entryPoint,
                       const String& shaderModel,
                       const Vector<ShaderMacro>& macros) override;
@@ -260,7 +260,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  createTextureFromFile(const String& fileName,
+  createTextureFromFile(const Path& filePath,
                         const void* pData,
                         const uint32 width,
                         const uint32 height,
@@ -274,7 +274,7 @@ class DX11GraphicsManager : public GraphicsManager
   *  @return SPtr<Texture2D>
   */
   SPtr<Texture2D>
-  createTextureFromDDS(const String& fileName) override;
+  createTextureFromDDS(const Path& filePath) override;
 
   /**
   *  @brief Creates a Texture2D.

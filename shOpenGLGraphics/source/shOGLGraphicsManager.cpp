@@ -92,13 +92,13 @@ resolveIncludes(const String& shaderCode, const String& basePath)
 }
 
 uint32
-compileShader(const String& fileName,
+compileShader(const Path& filePath,
               const OPENGL_SHADER_TYPE::E shaderType,
               const Vector<ShaderMacro>& macros)
 {
   // Read shader code from file.
-  SystemPath path(fileName);
-  path.replace_extension(".glsl");
+  Path path(filePath);
+  path.replaceExtension(".glsl");
   String newFileName = path.string();
   fstream shaderFile(newFileName, ios::in);
   if (!shaderFile.is_open()) {
@@ -771,7 +771,7 @@ OGLGraphicsManager::createInputLayoutFromVertexBuffer(const Vector<InputDesc>& d
 }
 
 SPtr<VertexShader>
-OGLGraphicsManager::createVertexShader(const String& fileName,
+OGLGraphicsManager::createVertexShader(const Path& filePath,
                                        const String& entryPoint,
                                        const String& shaderModel,
                                        const Vector<ShaderMacro>& macros)
@@ -779,11 +779,11 @@ OGLGraphicsManager::createVertexShader(const String& fileName,
   //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  SystemPath path(fileName);
-  String directory = path.parent_path().string() + "/";
-  String newFileName = directory + path.filename().string() + entryPoint + "VS";
+  Path path(filePath);
+  String directory = path.directory() + "/";
+  String newFileName = directory + path.filename() + entryPoint + "VS";
 
-  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::VERTEX_SHADER, macros);
+  uint32 shaderID = compileShader(Path(newFileName), OPENGL_SHADER_TYPE::VERTEX_SHADER, macros);
   auto pVertexShader = sh_makeShared<OGLVertexShader>();
   pVertexShader->m_vertexShaderID = shaderID;
 
@@ -791,7 +791,7 @@ OGLGraphicsManager::createVertexShader(const String& fileName,
 }
 
 SPtr<PixelShader>
-OGLGraphicsManager::createPixelShader(const String& fileName,
+OGLGraphicsManager::createPixelShader(const Path& filePath,
                                       const String& entryPoint,
                                       const String& shaderModel,
                                       const Vector<ShaderMacro>& macros)
@@ -799,11 +799,11 @@ OGLGraphicsManager::createPixelShader(const String& fileName,
   //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  SystemPath path(fileName);
-  String directory = path.parent_path().string() + "/";
-  String newFileName = directory + path.filename().string() + entryPoint + "FS";
+  Path path(filePath);
+  String directory = path.directory() + "/";
+  String newFileName = directory + path.filename() + entryPoint + "FS";
 
-  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::PIXEL_SHADER, macros);
+  uint32 shaderID = compileShader(Path(newFileName), OPENGL_SHADER_TYPE::PIXEL_SHADER, macros);
   auto pPixelShader = sh_makeShared<OGLPixelShader>();
   pPixelShader->m_pixelShaderID = shaderID;
 
@@ -811,7 +811,7 @@ OGLGraphicsManager::createPixelShader(const String& fileName,
 }
 
 SPtr<GeometryShader>
-OGLGraphicsManager::createGeometryShader(const String& fileName,
+OGLGraphicsManager::createGeometryShader(const Path& filePath,
                                          const String& entryPoint,
                                          const String& shaderModel,
                                          const Vector<ShaderMacro>& macros)
@@ -819,18 +819,18 @@ OGLGraphicsManager::createGeometryShader(const String& fileName,
   //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  SystemPath path(fileName);
-  String directory = path.parent_path().string() + "/";
-  String newFileName = directory + path.filename().string() + entryPoint + "GS";
+  Path path(filePath);
+  String directory = path.directory() + "/";
+  String newFileName = directory + path.filename() + entryPoint + "GS";
 
-  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::GEOMETRY_SHADER, macros);
+  uint32 shaderID = compileShader(Path(newFileName), OPENGL_SHADER_TYPE::GEOMETRY_SHADER, macros);
   auto pGeometryShader = sh_makeShared<OGLGeometryShader>();
   pGeometryShader->m_geometryShaderID = shaderID;
   return pGeometryShader;
 }
 
 SPtr<ComputeShader>
-OGLGraphicsManager::createComputeShader(const String& fileName,
+OGLGraphicsManager::createComputeShader(const Path& filePath,
                                         const String& entryPoint,
                                         const String& shaderModel,
                                         const Vector<ShaderMacro>& macros)
@@ -838,11 +838,11 @@ OGLGraphicsManager::createComputeShader(const String& fileName,
   //SH_UNREFERENCED_PARAMETER(entryPoint);
   SH_UNREFERENCED_PARAMETER(shaderModel);
 
-  SystemPath path(fileName);
-  String directory = path.parent_path().string() + "/";
-  String newFileName = directory + path.filename().string() + entryPoint + "CS";
+  Path path(filePath);
+  String directory = path.directory() + "/";
+  String newFileName = directory + path.filename() + entryPoint + "CS";
 
-  uint32 shaderID = compileShader(newFileName, OPENGL_SHADER_TYPE::COMPUTE_SHADER, macros);
+  uint32 shaderID = compileShader(Path(newFileName), OPENGL_SHADER_TYPE::COMPUTE_SHADER, macros);
   auto pComputeShader = sh_makeShared<OGLComputeShader>();
   pComputeShader->m_computeShaderID = shaderID;
   return pComputeShader;
@@ -1036,7 +1036,7 @@ OGLGraphicsManager::createSamplerState(const uint32 filter, const uint32 textAdd
 }
 
 SPtr<Texture2D>
-OGLGraphicsManager::createTextureFromFile(const String& fileName,
+OGLGraphicsManager::createTextureFromFile(const Path& filePath,
                                           const void* pData,
                                           const uint32 width,
                                           const uint32 height,
@@ -1047,14 +1047,14 @@ OGLGraphicsManager::createTextureFromFile(const String& fileName,
     return SPtr<Texture2D>();
   }
 
-  SystemPath path(fileName);
+  Path path(filePath);
   uint32 format = 0;
   uint32 pitch = width * bpp;
 
   Vector<uint8> textureData;
   const void* finalData = pData;
 
-  if(path.extension() == ".hdr") {
+  if(path.compareExtensions({ ".hdr" })) {
     format = TEXTURE_FORMAT::kR32G32B32A32_FLOAT;
     pitch = width * 4 * sizeof(float);
   }
@@ -1095,8 +1095,10 @@ OGLGraphicsManager::createTextureFromFile(const String& fileName,
   return pTexture;
 }
 
-SPtr<Texture2D> OGLGraphicsManager::createTextureFromDDS(const String& fileName)
+SPtr<Texture2D>
+OGLGraphicsManager::createTextureFromDDS(const Path& filePath)
 {
+  SH_UNREFERENCED_PARAMETER(filePath);
   return SPtr<Texture2D>();
 }
 

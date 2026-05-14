@@ -22,16 +22,19 @@
 #include "shRenderManager.h"
 #include "shShaderManager.h"
 #include "shSceneGraph.h"
+#include "shFileExplorer.h"
+
 #include "shGameObject.h"
 #include "shPass.h"
-#include "shCollider.h"
+#include <shCollider.h>
 #include "shColliderComponent.h"
-#include "shOBBox.h"
-#include "shSphere.h"
-#include "shCapsule.h"
+#include <shOBBox.h>
+#include <shSphere.h>
+#include <shCapsule.h>
 #include "shCamera.h"
-#include "shMatrix4.h"
-#include "shMath.h"
+#include <shMatrix4.h>
+#include <shMath.h>
+#include <shPath.h>
 
 #define MAX_LINES                     1000
 #define MIN_VERTICES_IN_SPHERE        8.0f
@@ -48,15 +51,15 @@ Gizmos::onStartUp()
 
   String shaderDirectory;
   if (graphMan.getAPI() == GRAPHIC_API::kDX11) {
-    shaderDirectory = "resources/shaders/DX11/DebugLines";
+    shaderDirectory = FileExplorer::SHADERS_FOLDER + "DX11/DebugLines";
   }
   else if (graphMan.getAPI() == GRAPHIC_API::kOGL) {
-    shaderDirectory = "resources/shaders/OpenGL/DebugLines";
+    shaderDirectory = FileExplorer::SHADERS_FOLDER + "OpenGL/DebugLines";
   }
 
   m_pass = sh_makeShared<Pass>();
-  m_pass->setVShaderInfo(shaderDirectory, "main");
-  m_pass->setPShaderInfo(shaderDirectory, "mainPS");
+  m_pass->setVShaderInfo(Path(shaderDirectory), "main");
+  m_pass->setPShaderInfo(Path(shaderDirectory), "mainPS");
   m_pass->compileShader();
   m_pass->generateInputLayout();
 

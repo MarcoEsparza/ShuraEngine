@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/11/14
+*  @date    2026/05/14
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -196,26 +196,8 @@ class RendererApp : public BaseApp
   void
   updateMainBuffer();
 
-  /**
-  *  @brief Load pistol model, materials and game object.
-  */
-  void
-  loadPistol();
-
-  /**
-  *  @brief Load sponza model, materials and game object.
-  */
-  void
-  loadSponza();
-
   void
   tempLoad();
-
-  void
-  playScene();
-
-  void
-  restartScene();
 
   void
   loadMods();

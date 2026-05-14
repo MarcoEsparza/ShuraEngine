@@ -25,7 +25,7 @@ using std::istringstream;
 
 namespace shEngineSDK {
 bool
-CubeMap::loadFromFile(const String& filePath)
+CubeMap::loadFromFile(const Path& filePath)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
@@ -42,9 +42,9 @@ CubeMap::loadFromFile(const String& filePath)
 }
 
 bool
-CubeMap::parseCubeFile(const String& filePath)
+CubeMap::parseCubeFile(const Path& filePath)
 {
-  sh_fstream fileStream(filePath, std::ios::in | std::ios::binary);
+  sh_fstream fileStream(filePath.string(), std::ios::in | std::ios::binary);
   if (!fileStream.is_open()) {
     //SH_LOG_ERROR("CubeMap::parseCubeFile: Failed to open file: " + filePath);
     return false;

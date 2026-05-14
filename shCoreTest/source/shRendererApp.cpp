@@ -2,7 +2,7 @@
 /*
 *  @file    shRendererApp.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/11/14
+*  @date    2026/05/14
 *  @brief   App for render testing.
 *
 *  App for render testing.
@@ -53,6 +53,8 @@
 #include <shSound.h>
 #include <shTimer.h>
 
+#include <filesystem>
+using SystemPath = std::filesystem::path;
 using DirectoryIterator = std::filesystem::directory_iterator;
 
 namespace shEngineSDK {
@@ -470,104 +472,6 @@ RendererApp::updateMainBuffer()
 }
 
 void
-RendererApp::loadPistol()
-{
-  ResourceManager& resMan = g_resourceMan();
-  SceneGraph& sceneG = g_sceneGraph();
-  Logger& logger = g_logger();
-
-  Timer timer;
-  float time = timer.getTime();
-  logger.consoleLog("Loading DrakeFire Shura Asset model...");
-
-  auto modelRes = cast::re_ptr<StaticMeshResource>(
-                  resMan.loadModelFromCache("resources/assets/models/DrakeFire.sha"));
-
-  auto model = sh_makeShared<GameObject>();
-  model->m_name = "Drakefire";
-  auto modelMC = sh_makeShared<StaticMeshComponent>();
-
-  modelMC->setMeshData(modelRes);
-  model->addComponent(modelMC);
-
-  //model->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
-  model->setScale(Vector3::ONE * 5.0f);
-
-  float total = timer.getTime() - time;
-  logger.consoleLog("Model loaded in " + std::to_string(total) + " seconds.");
-
-  /*auto pCollider = sh_makeShared<ColliderComponent>();
-  pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
-  pCollider->m_collider.m_box.center = Vector3::ZERO;
-  pCollider->m_collider.m_box.extent = Vector3(0.5f, 0.5f, 0.5f);
-  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;*/
-  //pCollider->m_collider.m_sphere.center = Vector3::ZERO;
-  //pCollider->m_collider.m_sphere.radius = 0.5f;
-  //pCollider->m_collider.m_capsule.center = Vector3::ZERO;
-  //pCollider->m_collider.m_capsule.radius = 0.5f;
-  //pCollider->m_collider.m_capsule.height = 1.0f;
-  //pCollider->m_collider.m_capsule.direction = Vector3::ZERO;
-
-  /*auto pRigidbody = sh_makeShared<RigidbodyComponent>();
-  pRigidbody->m_rigidbody.m_mass = 1.0f;
-  pRigidbody->m_rigidbody.m_integrationType = INTEGRATION::kVerlet;
-  pRigidbody->m_rigidbody.m_colliderType = COLLIDER_TYPE::kOBBox;
-  pRigidbody->m_rigidbody.m_dragCoefficent = 0.1f;
-  pRigidbody->m_rigidbody.m_elasticity = 0.0f;
-  pRigidbody->m_rigidbody.m_friction = 0.5f;
-  pRigidbody->m_rigidbody.m_gravityScale = 1.0f;
-  pRigidbody->m_rigidbody.m_position = model->transform.getPosition();
-  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->transform.getRotation());*/
-
-  //model->addComponent(pCollider);
-  //model->addComponent(pRigidbody);
-
-  sceneG.addObject(model);
-}
-
-void
-RendererApp::loadSponza()
-{
-  ResourceManager& resMan = g_resourceMan();
-  SceneGraph& sceneG = g_sceneGraph();
-
-  auto sponzaModelRes = cast::re_ptr<StaticMeshResource>(
-                        resMan.loadModelFromCache("resources/assets/models/Sponza.sha"));
-
-  auto model = sh_makeShared<GameObject>();
-  model->m_name = "Sponza";
-  auto modelMC = sh_makeShared<StaticMeshComponent>();
-
-  modelMC->setMeshData(sponzaModelRes);
-  model->addComponent(modelMC);
-
-  //model->m_transform.getTransformMatrix() = Matrix4::IDENTITY;
-  model->setScale(Vector3::ONE * 0.25f);
-
-  /*auto pCollider = sh_makeShared<ColliderComponent>();
-  pCollider->m_collider.m_type = COLLIDER_TYPE::kOBBox;
-  pCollider->m_collider.m_box.center = Vector3::ZERO;
-  pCollider->m_collider.m_box.extent = Vector3(50.0f, 5.0f, 50.0f);
-  pCollider->m_collider.m_box.rotation = Quaternion::IDENTITY;
-
-  auto pRigidbody = sh_makeShared<RigidbodyComponent>();
-  pRigidbody->m_rigidbody.m_mass = 1.0f;
-  pRigidbody->m_rigidbody.m_integrationType = INTEGRATION::kVerlet;
-  pRigidbody->m_rigidbody.m_colliderType = COLLIDER_TYPE::kOBBox;
-  pRigidbody->m_rigidbody.m_dragCoefficent = 0.1f;
-  pRigidbody->m_rigidbody.m_elasticity = 0.0f;
-  pRigidbody->m_rigidbody.m_friction = 0.5f;
-  pRigidbody->m_rigidbody.m_gravityScale = 0.0f;
-  pRigidbody->m_rigidbody.m_position = model->m_transform.getPosition();
-  pRigidbody->m_rigidbody.m_rotation = Quaternion(model->m_transform.getRotation());
-
-  model->addComponent(pCollider);
-  model->addComponent(pRigidbody);*/
-
-  sceneG.addObject(model);
-}
-
-void
 RendererApp::tempLoad()
 {
   ResourceManager& resourceMan = g_resourceMan();
@@ -591,20 +495,6 @@ RendererApp::tempLoad()
   //animator->m_currentAnim = animator->m_skeletonData->m_animations[0];
 
   sceneG.addObject(model);
-}
-
-void
-RendererApp::playScene()
-{
-  //SceneGraph& scene = g_sceneGraph();
-  //m_tempGameObjects = scene.getGameObjectList();
-}
-
-void
-RendererApp::restartScene()
-{
-  //SceneGraph& scene = g_sceneGraph();
-  //scene.getGameObjectList() = m_tempGameObjects;
 }
 
 void

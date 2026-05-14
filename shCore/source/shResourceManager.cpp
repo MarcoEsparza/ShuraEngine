@@ -2,7 +2,7 @@
 /*
 *  @file    shResourceManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/18
+*  @date    2026/05/14
 *  @brief   Resource Manager module for loading all desired resources
 *           from files.
 *
@@ -316,21 +316,21 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   //}
 
   if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
-    resource = loadTextureFromFile(filePath.string());
+    resource = loadTextureFromFile(filePath);
   }
   else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
     Timer timer;
-    resource = loadModelFromFile(filePath.string());
+    resource = loadModelFromFile(filePath);
     float elapsed = timer.getTime();
     String logMsg = filePath.string() + " loaded in " +
                     std::to_string(elapsed) + " seconds.";
     SH_LOG(LogVerbosity::kInfo, logMsg);
   }
   else if (filePath.compareExtensions({ ".cube" })) {
-    resource = loadCubeMapFromFile(filePath.string());
+    resource = loadCubeMapFromFile(filePath);
   }
   else if (filePath.compareExtensions({ ".dds" })) {
-    resource = loadTextureFromDDS(filePath.string());
+    resource = loadTextureFromDDS(filePath);
   }
   else {
     return nullptr;
@@ -394,70 +394,70 @@ ResourceManager::isResourceLoaded(const Path& fileName)
   return nullptr;
 }
 
-bool
-ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
-{
-  SystemPath path = filePath.string();
+//bool
+//ResourceManager::isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes)
+//{
+//  SystemPath path = filePath.string();
+//
+//  auto resObj = m_loadedResources.find(path.filename().string());
+//
+//  if (resObj != m_loadedResources.end()) {
+//    pRes = (*resObj).second;
+//    return true;
+//  }
+//
+//  pRes = nullptr;
+//  return false;
+//}
 
-  auto resObj = m_loadedResources.find(path.filename().string());
-
-  if (resObj != m_loadedResources.end()) {
-    pRes = (*resObj).second;
-    return true;
-  }
-
-  pRes = nullptr;
-  return false;
-}
-
-bool
-ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
-{
-  //auto& logger = g_logger();
-
-  if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
-    SystemPath path = filePath.string();
-    path.replace_extension(".dds");
-    SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
-
-    if (std::filesystem::exists(fullPath)) {
-      pRes = loadTextureFromDDS(fullPath.string());
-      return true;
-    }
-  }
-  else if (filePath.compareExtensions({ ".dds" })) {
-    SystemPath fullPath = "resources/assets/textures/" + filePath.filename();
-    pRes = loadTextureFromDDS(fullPath.string());
-    return true;
-  }
-  else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
-    SystemPath path = filePath.string();
-    path.replace_extension(".sha");
-    SystemPath fullPath = "resources/assets/models/" + path.filename().string();
-
-    if (std::filesystem::exists(fullPath)) {
-      pRes = loadModelFromCache(fullPath.string());
-      return true;
-    }
-  }
-  else if(filePath.compareExtensions({ ".sha" })) {
-    //SystemPath fullPath = "resources/assets/models/" + filePath.filename();
-    Timer timer;
-    pRes = loadModelFromCache(filePath.string());
-    float elapsed = timer.getTime();
-    /*logger.consoleLog(filePath.toString() + " loaded from cache in " +
-                      std::to_string(elapsed) + " seconds.");*/
-    String logMsg = filePath.string() + " loaded from cache in " +
-                    std::to_string(elapsed) + " seconds.";
-    SH_LOG(LogVerbosity::kInfo, logMsg);
-    return true;
-  }
-
-  return false;
-}
+//bool
+//ResourceManager::isCacheForResource(const Path& filePath, SPtr<Resource>& pRes)
+//{
+//  //auto& logger = g_logger();
+//
+//  if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
+//    SystemPath path = filePath.string();
+//    path.replace_extension(".dds");
+//    SystemPath fullPath = "resources/assets/textures/" + path.filename().string();
+//
+//    if (std::filesystem::exists(fullPath)) {
+//      pRes = loadTextureFromDDS(fullPath.string());
+//      return true;
+//    }
+//  }
+//  else if (filePath.compareExtensions({ ".dds" })) {
+//    SystemPath fullPath = "resources/assets/textures/" + filePath.filename();
+//    pRes = loadTextureFromDDS(fullPath.string());
+//    return true;
+//  }
+//  else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
+//    SystemPath path = filePath.string();
+//    path.replace_extension(".sha");
+//    SystemPath fullPath = "resources/assets/models/" + path.filename().string();
+//
+//    if (std::filesystem::exists(fullPath)) {
+//      pRes = loadModelFromCache(fullPath.string());
+//      return true;
+//    }
+//  }
+//  else if(filePath.compareExtensions({ ".sha" })) {
+//    //SystemPath fullPath = "resources/assets/models/" + filePath.filename();
+//    Timer timer;
+//    pRes = loadModelFromCache(filePath.string());
+//    float elapsed = timer.getTime();
+//    /*logger.consoleLog(filePath.toString() + " loaded from cache in " +
+//                      std::to_string(elapsed) + " seconds.");*/
+//    String logMsg = filePath.string() + " loaded from cache in " +
+//                    std::to_string(elapsed) + " seconds.";
+//    SH_LOG(LogVerbosity::kInfo, logMsg);
+//    return true;
+//  }
+//
+//  return false;
+//}
 
 SPtr<Resource>
-ResourceManager::loadTextureFromFile(const String& fileName)
+ResourceManager::loadTextureFromFile(const Path& filePath)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
@@ -467,12 +467,12 @@ ResourceManager::loadTextureFromFile(const String& fileName)
   int32 height = 0;
   int32 bpp = 0;
 
-  SystemPath path = fileName;
-  String file = path.filename().string();
+  //SystemPath path = fileName;
+  //String file = filePath.filename();
 
-  if (path.extension() == ".hdr") {
-    float* data = stbi_loadf(fileName.c_str(), &width, &height, &bpp, 4);
-    pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+  if (filePath.compareExtensions({".hdr"})) {
+    float* data = stbi_loadf(filePath.c_str(), &width, &height, &bpp, 4);
+    pImage->texture = graphMan.createTextureFromFile(filePath, data, width, height, bpp);
 
     stbi_image_free(data);
   }
@@ -481,16 +481,17 @@ ResourceManager::loadTextureFromFile(const String& fileName)
     //if (path.extension() == ".jpg") {
     //  reqComp = STBI_rgb;
     //}
-    uint8* data = stbi_load(fileName.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
-    pImage->texture = graphMan.createTextureFromFile(file, data, width, height, bpp);
+    uint8* data = stbi_load(filePath.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    pImage->texture = graphMan.createTextureFromFile(filePath, data, width, height, bpp);
     stbi_image_free(data);
   }
   
   pImage->width = width;
   pImage->height = height;
-  pImage->setName(file);
+  pImage->setName(filePath.filename());
 
   m_loadedResources[pImage->getName()] = pImage;
+  pImage->setPath(filePath);
 
   //path = file;
   //path.replace_extension(".dds");
@@ -498,61 +499,58 @@ ResourceManager::loadTextureFromFile(const String& fileName)
 
   //graphMan.saveTextureToDDS(pImage->texture, saveTex);
 
-  Path texPath(fileName);
-  pImage->setPath(texPath);
+  //Path texPath(fileName);
 
   return pImage;
 }
 
 SPtr<Resource>
-ResourceManager::loadTextureFromDDS(const String& filename)
+ResourceManager::loadTextureFromDDS(const Path& filePath)
 {
   GraphicsManager& graphMan = g_graphicsMan();
 
   auto pImage = sh_makeShared<ImageResource>();
 
-  pImage->texture = graphMan.createTextureFromDDS(filename);
+  pImage->texture = graphMan.createTextureFromDDS(filePath);
 
   if(!pImage->texture) {
     return nullptr;
   }
 
-  SystemPath file = filename;
-  pImage->setName(file.filename().string());
+  pImage->setName(filePath.filename());
   m_loadedResources[pImage->getName()] = pImage;
-  Path texPath(filename);
-  pImage->setPath(texPath);
+  pImage->setPath(filePath);
 
   return pImage;
 }
 
 SPtr<Resource>
-ResourceManager::loadCubeMapFromFile(const String& fileName)
+ResourceManager::loadCubeMapFromFile(const Path& filePath)
 {
   //GraphicsManager& graphMan = g_graphicsMan();
+  //SystemPath file = fileName;
   auto pCubeMap = sh_makeShared<CubeMap>();
-  SystemPath file = fileName;
-  pCubeMap->setName(file.filename().string());
-  pCubeMap->loadFromFile(fileName);
+  pCubeMap->setName(filePath.filename());
+  pCubeMap->loadFromFile(filePath);
   return pCubeMap;
 }
 
 SPtr<Resource>
-ResourceManager::loadModelFromFile(const String& fileName)
+ResourceManager::loadModelFromFile(const Path& filePath)
 {
   Assimp::Importer fileImporter;
 
-  const aiScene* pScene = fileImporter.ReadFile(fileName,
+  const aiScene* pScene = fileImporter.ReadFile(filePath.string(),
                                                 CUSTOM_AI_MAX_QUALITY_FLAG);
 
   aiNode* rootNode = pScene->mRootNode;
   if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
       !rootNode) {
-    //SH_LOG_ERROR("Assimp error: " + String(fileImporter.GetErrorString()));
+    SH_LOG_ERROR("Assimp error: " + String(fileImporter.GetErrorString()));
     return nullptr;
   }
   if (pScene->mNumMeshes == 0) {
-    //SH_LOG_ERROR("Assimp error: No meshes found in the scene.");
+    SH_LOG_ERROR("Assimp error: No meshes found in the scene.");
     return nullptr;
   }
   //if (pScene->mNumMaterials == 0) {
@@ -563,20 +561,20 @@ ResourceManager::loadModelFromFile(const String& fileName)
   aiMesh* mesh = pScene->mMeshes[0];
 
   if (mesh->HasBones()) {
-    return createSkeletalMesh(pScene, fileName);
+    return createSkeletalMesh(pScene, filePath);
   }
   else {
-    return createStaticMesh(fileName, rootNode, pScene);
+    return createStaticMesh(filePath, rootNode, pScene);
   }
 }
 
 SPtr<Material>
-ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& resPath)
+ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const Path& resPath)
 {
   //GraphicsManager& graphMan = g_graphicsMan();
   auto pMeshMat = isMaterialLoaded(pMat->GetName().C_Str());
-  SystemPath path = resPath;
-  const String directory = path.parent_path().string() + "/";
+  //SystemPath path = resPath;
+  const String directory = resPath.directory() + "/";
 
   if(pMeshMat){
     return pMeshMat;
@@ -604,8 +602,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_DIFFUSE, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = cast::re_ptr<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       pMeshMat->m_properties.properties.flags.bHasDiffuseMap = true;
@@ -626,8 +624,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasNormalMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_NORMALS, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       auto it = m_loadedResources.find("DefaultNormal");
@@ -647,8 +645,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasMetalnessMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_METALNESS, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       auto it = m_loadedResources.find("BlackTexture");
@@ -668,8 +666,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasRoughnessMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       auto it = m_loadedResources.find("BlackTexture");
@@ -689,8 +687,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasAmbientOcclusionMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       auto it = m_loadedResources.find("BlackTexture");
@@ -710,8 +708,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasEmissiveMap = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_EMISSIVE, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       auto it = m_loadedResources.find("BlackTexture");
@@ -731,8 +729,8 @@ ResourceManager::createMaterialFromFile(const aiMaterial* pMat, const String& re
     pMeshMat->m_properties.properties.flags.bHasOpacityMask = true;
     aiString aiPath;
     pMat->GetTexture(aiTextureType_OPACITY, 0, &aiPath);
-    SystemPath filename = aiPath.C_Str();
-    Path filePath(directory + filename.filename().string());
+    Path filename(aiPath.C_Str());
+    Path filePath(directory + filename.filename());
     auto pImage = sh_reinterpretPCast<ImageResource>(loadResourceFromFile(filePath));
     if (!pImage) {
       auto it = m_loadedResources.find("BlackTexture");
@@ -769,31 +767,31 @@ ResourceManager::loadMaterial(const SPtr<Material>& material)
 }
 
 SPtr<Resource>
-ResourceManager::loadModelFromCache(const String& fileName)
+ResourceManager::loadModelFromCache(const Path& filePath)
 {
-  auto pRes = Asset::loadResourceFromAsset(Path(fileName));
+  auto pRes = Asset::loadResourceFromAsset(filePath);
 
   if (pRes == nullptr) {
     return nullptr;
   }
-  SystemPath path = fileName;
-  pRes->setName(path.filename().string());
-  pRes->setPath(Path(fileName));
+  //SystemPath path = fileName;
+  pRes->setName(filePath.filename());
+  pRes->setPath(filePath);
   m_loadedResources[pRes->getName()] = pRes;
 
   return pRes;
 }
 
 SPtr<Resource>
-ResourceManager::createStaticMesh(const String& fileName,
+ResourceManager::createStaticMesh(const Path& filePath,
                                   const aiNode* node,
                                   const aiScene* scene)
 {
   auto currentMesh = sh_makeShared<StaticMeshResource>();
 
-  SystemPath path = fileName;
-  currentMesh->setName(path.filename().string());
-  currentMesh->setPath(Path(fileName));
+  //SystemPath path = fileName;
+  currentMesh->setName(filePath.filename());
+  currentMesh->setPath(filePath);
   proccessStaticMeshNode(node, scene, currentMesh);
   m_loadedResources[currentMesh->getName()] = currentMesh;
 
@@ -828,7 +826,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 
   auto* aiMat = scene->mMaterials[mesh->mMaterialIndex];
   currentData.materialIndex = mesh->mMaterialIndex;
-  auto currentMat = createMaterialFromFile(aiMat, currentMesh->getPath().string());
+  auto currentMat = createMaterialFromFile(aiMat, currentMesh->getPath());
 
   if(currentMat == nullptr) {
     auto it = m_loadedResources.find("ErrorTexture");
@@ -860,7 +858,7 @@ ResourceManager::proccessStaticMesh(const aiMesh* mesh,
 }
 
 SPtr<Resource>
-ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName)
+ResourceManager::createSkeletalMesh(const aiScene* scene, const Path& filePath)
 {
   auto skeletalMesh = sh_makeShared<SkeletalMeshResource>();
   auto skeleton = sh_makeShared<SkeletonResource>();
@@ -868,13 +866,13 @@ ResourceManager::createSkeletalMesh(const aiScene* scene, const String& fileName
   //skeletalMesh->m_materials.resize(scene->mNumMaterials);
 
   auto rootBone = sh_makeShared<BoneHierarchy>();
-  skeletalMesh->setPath(Path(fileName));
+  skeletalMesh->setPath(filePath);
   proccessSkeletalMeshNode(scene->mRootNode, scene, rootBone, skeletalMesh, skeleton);
 
-  SystemPath file = fileName;
-  file.replace_extension("");
-  skeletalMesh->setName(file.filename().string());
-  skeleton->setName(file.filename().string() + "Skeleton");
+  Path file = filePath;
+  file.replaceExtension("");
+  skeletalMesh->setName(file.filename());
+  skeleton->setName(file.filename() + "Skeleton");
 
   m_loadedResources[skeletalMesh->getName()] = skeletalMesh;
   m_loadedResources[skeleton->getName()] = skeleton;
@@ -937,7 +935,7 @@ ResourceManager::proccessSkeletalMesh(const aiMesh* mesh,
   }*/
 
   auto currentMat = createMaterialFromFile(scene->mMaterials[mesh->mMaterialIndex],
-                                           skeletalMesh->getPath().string());
+                                           skeletalMesh->getPath());
 
   if (skeletalMesh->m_materials.empty()) {
     skeletalMesh->m_materials.push_back(currentMat);

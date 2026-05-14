@@ -2,7 +2,7 @@
 /*
 *  @file    shDX11GraphicsManager.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2025/07/18
+*  @date    2026/05/14
 *  @brief   Graphics Manager for DirectX 11.
 *
 *  Graphics Manager for DirectX 11.
@@ -92,7 +92,7 @@ throwIfFailed(HRESULT hr) {
 }
 
 static bool
-compileShaderFromFile(const String& fileName,
+compileShaderFromFile(const Path& filePath,
                       const String& entryPoint,
                       const String& shaderModel,
                       ID3DBlob** pBlob,
@@ -106,9 +106,9 @@ compileShaderFromFile(const String& fileName,
   shaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-  SystemPath path = fileName;
-  path.replace_extension(".hlsl");
-  String newFileName = path.string();
+  Path tempPath = filePath;
+  tempPath.replaceExtension(".hlsl");
+  String newFileName = tempPath.string();
   auto beg = (String::const_iterator)newFileName.begin();
   auto end = (String::const_iterator)newFileName.end();
   WString wFileName(beg, end);
@@ -590,14 +590,14 @@ DX11GraphicsManager::createInputLayoutFromShader(const WPtr<VertexShader> pPShad
 }
 
 SPtr<VertexShader>
-DX11GraphicsManager::createVertexShader(const String& fileName,
+DX11GraphicsManager::createVertexShader(const Path& filePath,
                                         const String& entryPoint,
                                         const String& shaderModel,
                                         const Vector<ShaderMacro>& macros)
 {
   auto pVertexShader = sh_makeShared<DX11VertexShader>();
 
-  if (!compileShaderFromFile(fileName,
+  if (!compileShaderFromFile(filePath,
                              entryPoint,
                              shaderModel,
                              &pVertexShader->m_pBlob,
@@ -610,9 +610,9 @@ DX11GraphicsManager::createVertexShader(const String& fileName,
                                               nullptr,
                                               &pVertexShader->m_pVertexShader));
 
-  SystemPath path(fileName);
+  Path path(filePath);
   path.extension() = ""; // Remove the extension for the name
-  String pathName = path.filename().string() + "_" + entryPoint;
+  String pathName = path.filename() + "_" + entryPoint;
   pVertexShader->m_pVertexShader->SetPrivateData(WKPDID_D3DDebugObjectName,
                                                  static_cast<uint32>(pathName.size()),
                                                  pathName.c_str());
@@ -621,14 +621,14 @@ DX11GraphicsManager::createVertexShader(const String& fileName,
 }
 
 SPtr<PixelShader>
-DX11GraphicsManager::createPixelShader(const String& fileName,
+DX11GraphicsManager::createPixelShader(const Path& filePath,
                                        const String& entryPoint,
                                        const String& shaderModel,
                                        const Vector<ShaderMacro>& macros)
 {
   auto pPixelShader = sh_makeShared<DX11PixelShader>();
 
-  if (!compileShaderFromFile(fileName,
+  if (!compileShaderFromFile(filePath,
                              entryPoint,
                              shaderModel,
                              &pPixelShader->m_pBlob,
@@ -641,9 +641,9 @@ DX11GraphicsManager::createPixelShader(const String& fileName,
                                              nullptr,
                                              &pPixelShader->m_pPixelShader));
 
-  SystemPath path(fileName);
+  Path path(filePath);
   path.extension() = ""; // Remove the extension for the name
-  String pathName = path.filename().string() + "_" + entryPoint;
+  String pathName = path.filename() + "_" + entryPoint;
   pPixelShader->m_pPixelShader->SetPrivateData(WKPDID_D3DDebugObjectName,
                                                static_cast<uint32>(pathName.size()),
                                                pathName.c_str());
@@ -652,14 +652,14 @@ DX11GraphicsManager::createPixelShader(const String& fileName,
 }
 
 SPtr<GeometryShader>
-DX11GraphicsManager::createGeometryShader(const String& fileName,
+DX11GraphicsManager::createGeometryShader(const Path& filePath,
                                           const String& entryPoint,
                                           const String& shaderModel,
                                           const Vector<ShaderMacro>& macros)
 {
   auto pGeometryShader = sh_makeShared<DX11GeometryShader>();
 
-  if (!compileShaderFromFile(fileName,
+  if (!compileShaderFromFile(filePath,
                              entryPoint,
                              shaderModel,
                              &pGeometryShader->m_pBlob,
@@ -672,9 +672,9 @@ DX11GraphicsManager::createGeometryShader(const String& fileName,
                                                 nullptr,
                                                 &pGeometryShader->m_pGeometryShader));
 
-  SystemPath path(fileName);
+  Path path(filePath);
   path.extension() = ""; // Remove the extension for the name
-  String pathName = path.filename().string() + "_" + entryPoint;
+  String pathName = path.filename() + "_" + entryPoint;
   pGeometryShader->m_pGeometryShader->SetPrivateData(WKPDID_D3DDebugObjectName,
                                                      static_cast<uint32>(pathName.size()),
                                                      pathName.c_str());
@@ -683,14 +683,14 @@ DX11GraphicsManager::createGeometryShader(const String& fileName,
 }
 
 SPtr<ComputeShader>
-DX11GraphicsManager::createComputeShader(const String& fileName,
+DX11GraphicsManager::createComputeShader(const Path& filePath,
                                          const String& entryPoint,
                                          const String& shaderModel,
                                          const Vector<ShaderMacro>& macros)
 {
   auto pComputeShader = sh_makeShared<DX11ComputeShader>();
 
-  if (!compileShaderFromFile(fileName,
+  if (!compileShaderFromFile(filePath,
                              entryPoint,
                              shaderModel,
                              &pComputeShader->m_pBlob,
@@ -703,9 +703,9 @@ DX11GraphicsManager::createComputeShader(const String& fileName,
                                                nullptr,
                                                &pComputeShader->m_pComputeShader));
 
-  SystemPath path(fileName);
+  Path path(filePath);
   path.extension() = ""; // Remove the extension for the name
-  String pathName = path.filename().string() + "_" + entryPoint;
+  String pathName = path.filename() + "_" + entryPoint;
   pComputeShader->m_pComputeShader->SetPrivateData(WKPDID_D3DDebugObjectName,
                                                    static_cast<uint32>(pathName.size()),
                                                    pathName.c_str());
@@ -814,7 +814,7 @@ DX11GraphicsManager::createSamplerState(const uint32 filter, const uint32 textAd
 }
 
 SPtr<Texture2D>
-DX11GraphicsManager::createTextureFromFile(const String& fileName,
+DX11GraphicsManager::createTextureFromFile(const Path& filePath,
                                            const void* pData,
                                            const uint32 width,
                                            const uint32 height,
@@ -826,7 +826,7 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
 
   int32 pitch = width * bpp;
 
-  SystemPath path(fileName);
+  //SystemPath path(fileName);
   uint32 format = 0;
 
   uint8* pDst = new uint8[width * height * 4]; // Allocate memory for RGBA format
@@ -836,7 +836,7 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
   //  // If the file is a DDS, we will use the DDS loader
   //  return createTextureFromDDS(fileName);
   //}
-  if (path.extension() == ".hdr") {
+  if (filePath.compareExtensions({ ".hdr" })) {
     format = DXGI_FORMAT_R32G32B32A32_FLOAT;
     pitch = width * 16;
   }
@@ -862,15 +862,15 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
                                                               D3D11_BIND_SHADER_RESOURCE,
                                                               1));
   
-  if (path.extension() == ".hdr") {
-    m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
+  m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
+  /*if (filePath.extension() == ".hdr") {
   }
   else {
     m_pDeviceContext->UpdateSubresource(pTexture->m_pTexture2D, 0, nullptr, pData, pitch, 0);
-  }
+  }*/
   
-  String texName = "t_" + fileName;
-  String ShaderRes = "sr_" + fileName;
+  String texName = "t_" + filePath.filename();
+  String ShaderRes = "sr_" + filePath.filename();
 
   pTexture->m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName,
                                          static_cast<uint32>(texName.size()),
@@ -883,23 +883,22 @@ DX11GraphicsManager::createTextureFromFile(const String& fileName,
 }
 
 SPtr<Texture2D>
-DX11GraphicsManager::createTextureFromDDS(const String& fileName)
+DX11GraphicsManager::createTextureFromDDS(const Path& filePath)
 {
   auto pTexture = sh_makeShared<DX11Texture2D>();
-
-  SystemPath path = fileName;
   
   HRESULT hr =  CreateDDSTextureFromFile(m_pDevice,
-                path.wstring().c_str(),
-                reinterpret_cast<ID3D11Resource**>(&pTexture->m_pTexture2D),
-                &pTexture->m_pShaderRV);
+                                         filePath.w_str(),
+                                         cast::re<ID3D11Resource**>(&pTexture->m_pTexture2D),
+                                         &pTexture->m_pShaderRV);
 
   if(hr != S_OK) {
+    SH_LOG_ERROR("Failed to load DDS texture from file: " + filePath.string());
     return nullptr;
   }
 
-  String texName = "t_" + fileName;
-  String ShaderRes = "sr_" + fileName;
+  String texName = "t_" + filePath.filename();
+  String ShaderRes = "sr_" + filePath.filename();
 
   pTexture->m_pTexture2D->SetPrivateData(WKPDID_D3DDebugObjectName,
                                          static_cast<uint32>(texName.size()),
