@@ -1,8 +1,8 @@
 /*****************************************************************************/
 /*
-*  @file    shFileExplorer.cpp
+*  @file    shFileExplorerWin32.cpp
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2026/05/13
+*  @date    2026/05/15
 *  @brief   File Explorer class platform independent.
 *
 *  File Explorer class platform independent.
@@ -29,6 +29,20 @@ const String FileExplorer::DEFAULT_ASSETS_FOLDER = "resources/EngineData/Default
 const String FileExplorer::ASSETS_FOLDER = "resources/Assets/";
 const String FileExplorer::SHADERS_FOLDER = "resources/EngineData/Shaders/";
 const String FileExplorer::DEFAULT_FONTS_FOLDER = "resources/EngineData/Fonts/";
+
+#if SH_ARCH_TYPE == SH_ARQUITECTURE_X86_64
+  #if SH_DEBUG_MODE == 1
+const String FileExplorer::CODECS_FOLDER = "resources/EngineData/Codecs/x64/Debug/";
+  #else
+const String FileExplorer::CODECS_FOLDER = "resources/EngineData/Codecs/x64/Release/";
+  #endif
+#elif SH_ARCH_TYPE == SH_ARQUITECTURE_X86_32
+  #if SH_DEBUG_MODE == 1
+const String FileExplorer::CODECS_FOLDER = "resources/EngineData/Codecs/x86/Debug/";
+  #else
+const String FileExplorer::CODECS_FOLDER = "resources/EngineData/Codecs/x86/Release/";
+  #endif
+#endif
 
 bool
 FileExplorer::openFile(String& outPath,

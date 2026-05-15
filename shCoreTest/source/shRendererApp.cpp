@@ -29,6 +29,8 @@
 #include <shSceneGraph.h>
 #include <shMath.h>
 #include <shLogger.h>
+#include <shFileExplorer.h>
+#include <shCodecManager.h>
 #include "imgui_impl_shura.h"
 
 #include <shStringID.h>
@@ -66,6 +68,10 @@ RendererApp::onCreate()
   ShaderManager& shaderMan = g_shaderMan();
   //AudioManager& audioMan = AudioManager::instance();
   SceneGraph& scene = g_sceneGraph();
+  ResourceManager& resourceMan = g_resourceMan();
+
+  registerCodecs();
+  resourceMan.loadDefaultResources();
 
   m_shadowTexSize = 2048.0f;
   auto& pScreen = getScreen();
@@ -531,6 +537,37 @@ RendererApp::loadMods()
     dllMan.loadDynLibrary(filename.string());
 
     m_loadedModIds.push_back(StringID(filename.string()).getID());
+  }
+}
+
+void
+RendererApp::registerCodecs()
+{
+  DynamicLibraryManager& dllMan = g_dynLibMan();
+
+  for (auto& entry : DirectoryIterator(FileExplorer::CODECS_FOLDER)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    String extension = "";
+#if SH_PLATFORM == SH_PLATFORM_WIN32
+    extension = ".dll";
+#elif SH_PLATFORM == SH_PLATFORM_LINUX
+    extension = ".so";
+#endif
+
+    if (entry.path().extension() != extension) {
+      continue;
+    }
+
+    SystemPath filename = entry.path().string();
+    filename.replace_extension("");
+
+    if (dllMan.isDynLibLoaded(filename.string())) {
+      dllMan.unloadDynLibrary(filename.string());
+    }
+
+    dllMan.loadDynLibrary(filename.string());
   }
 }
 }

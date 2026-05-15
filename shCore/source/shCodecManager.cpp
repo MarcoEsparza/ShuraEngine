@@ -32,21 +32,6 @@ CodecManager::onShutDown()
   m_codecs.clear();
 }
 
-//void
-//CodecManager::registerCodec(const SPtr<Codec>& pCodec)
-//{
-//  UID codecUID = pCodec->getUID();
-//  if (m_codecs.find(codecUID) != m_codecs.end()) {
-//    String errString = "Trying to register a codec with an already existing UID: " +
-//                       std::to_string(codecUID);
-//    SH_LOG_ERROR(errString);
-//    return;
-//  }
-//
-//  m_codecs[codecUID] = pCodec;
-//  SH_LOG(LogVerbosity::kInfo, "Registered codec with UID: " + std::to_string(codecUID));
-//}
-
 SPtr<Codec>
 CodecManager::getCodecByExtension(const String& extension) const
 {

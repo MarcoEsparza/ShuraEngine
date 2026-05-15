@@ -22,6 +22,7 @@
 #include <shLogger.h>
 #include <shTimer.h>
 #include "shFileExplorer.h"
+#include "shCodecManager.h"
 
 #include "shResource.h"
 #include "shMeshResource.h"
@@ -271,6 +272,12 @@ ResourceManager::~ResourceManager()
 void
 ResourceManager::onStartUp()
 {
+  
+}
+
+void
+ResourceManager::loadDefaultResources()
+{
   GraphicsManager& graphMan = g_graphicsMan();
 
   auto pErrorTex = graphMan.createErrorTexture();
@@ -300,6 +307,8 @@ ResourceManager::onStartUp()
 SPtr<Resource>
 ResourceManager::loadResourceFromFile(const Path& filePath)
 {
+  CodecManager& codecMan = g_codecManager();
+
   // Check if resource is already on memory
   if (isResourceLoaded(filePath.filename())) {
     return m_loadedResources[filePath.filename()];
@@ -315,10 +324,22 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   //  //return resource;
   //}
 
-  if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
-    resource = loadTextureFromFile(filePath);
+  auto codec = codecMan.getCodecByExtension(filePath.extension());
+  if (codec != nullptr) {
+    if (codec->decode(filePath)) {
+      String resName = filePath.filename();
+      resource = m_loadedResources[resName];
+    }
+
+    if (resource) {
+      return resource;
+    }
   }
-  else if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
+
+  /*if (filePath.compareExtensions(IMAGE_EXTENSIONS)) {
+    resource = loadTextureFromFile(filePath);
+  }*/
+  if (filePath.compareExtensions(MODEL_EXTENSIONS)) {
     Timer timer;
     resource = loadModelFromFile(filePath);
     float elapsed = timer.getTime();
@@ -329,9 +350,9 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
   else if (filePath.compareExtensions({ ".cube" })) {
     resource = loadCubeMapFromFile(filePath);
   }
-  else if (filePath.compareExtensions({ ".dds" })) {
+  /*else if (filePath.compareExtensions({ ".dds" })) {
     resource = loadTextureFromDDS(filePath);
-  }
+  }*/
   else {
     return nullptr;
   }

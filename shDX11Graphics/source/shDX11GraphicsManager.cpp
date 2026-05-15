@@ -888,7 +888,7 @@ DX11GraphicsManager::createTextureFromDDS(const Path& filePath)
   auto pTexture = sh_makeShared<DX11Texture2D>();
   
   HRESULT hr =  CreateDDSTextureFromFile(m_pDevice,
-                                         filePath.w_str(),
+                                         filePath.wstring().c_str(),
                                          cast::re<ID3D11Resource**>(&pTexture->m_pTexture2D),
                                          &pTexture->m_pShaderRV);
 

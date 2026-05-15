@@ -32,6 +32,7 @@
 #include "shFileExplorer.h"
 #include "shPhysicsManager.h"
 #include "shGizmos.h"
+#include "shCodecManager.h"
 
 namespace shEngineSDK {
 BaseApp::~BaseApp()
@@ -142,6 +143,7 @@ BaseApp::initManagers()
   DynamicLibraryManager::startUp();
   loadGraphicAPI();
   GraphicsManager::instance().initManager(m_mainScreen, false, m_sample);
+  CodecManager::startUp();
   ResourceManager::startUp();
   ShaderManager::startUp();
   RenderManager::startUp();
@@ -267,6 +269,7 @@ BaseApp::destroyManagers()
   ShaderManager::shutDown();
   //AudioManager::shutDown();
   GraphicsManager::shutDown();
+  CodecManager::shutDown();
   DynamicLibraryManager::shutDown();
   FileExplorer::shutDown();
   Logger::shutDown();

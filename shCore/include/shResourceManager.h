@@ -79,6 +79,9 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   /***************************************************************************/
  public:
+  void
+  loadDefaultResources();
+
   /**
   *  @brief Load resource from desired file, clasify it and create a cache
   *         for optimizing the next time the resource will be loaded.

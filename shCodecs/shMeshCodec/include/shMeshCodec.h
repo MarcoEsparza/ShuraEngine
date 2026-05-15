@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /*
-*  @file    shImgCodec.h
+*  @file    shMeshCodec.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
 *  @date    2026/05/13
 *  @brief
@@ -21,11 +21,11 @@
 #include <shCodec.h>
 
 namespace shEngineSDK {
-class ImgCodec : public Codec
+class MeshCodec : public Codec
 {
  public:
-  ImgCodec() = default;
-  ~ImgCodec() = default;
+  MeshCodec() = default;
+  ~MeshCodec() = default;
 
   UID
   getUID() const override;
@@ -37,9 +37,9 @@ class ImgCodec : public Codec
   getSupportedExtensions() const override;
 
   bool
-  decode(const String& filePath) const override;
+  decode(const Path& filePath) const override;
 
   bool
-  encode(const String& filePath) const override;
+  encode(const Path& filePath) const override;
 };
 }

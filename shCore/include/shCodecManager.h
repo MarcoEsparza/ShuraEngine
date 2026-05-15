@@ -53,19 +53,15 @@ class SH_CORE_EXPORT CodecManager : public Module<CodecManager>
 
   /**
   *  @brief Registers a codec to the manager. Codec will be registered using its UID,
-  *         so make sure it is unique.
-  * 
-  *  @param const SPtr<Codec>& pCodec: Shared pointer to the codec to register.
-  */
-  /*void
-  registerCodec(const SPtr<Codec>& pCodec);*/
-
-  /**
-  *  @brief Registers a codec to the manager. Codec will be registered using its UID,
   *         and the provided type must derive from Codec and have a default constructor.
+  * 
+  *  @tparam CodecType: Type of the codec to register.
+  * 
+  *  @return bool: True if the codec was registered successfully, false if it wasn't
+  *                (e.g., if a codec with the same UID or supported extension already exists).
   */
   template <typename CodecType>
-  void
+  _NODISCARD bool
   registerCodec()
   {
     static_assert(std::derived_from<CodecType, Codec>, "Provided type must derive from Codec.");
@@ -76,11 +72,26 @@ class SH_CORE_EXPORT CodecManager : public Module<CodecManager>
       String errString = "Trying to register a codec with an already existing UID: " +
                          std::to_string(codecUID);
       SH_LOG_ERROR(errString);
-      return;
+      return false;
+    }
+
+    Vector<String> supportedExtensions = pCodec->getSupportedExtensions();
+    for (auto& ext : supportedExtensions) {
+      if(std::find(m_registeredExtensions.begin(), m_registeredExtensions.end(), ext) !=
+         m_registeredExtensions.end()) {
+        String errString =
+        "Trying to register a codec that supports an already registered extension: " + ext;
+        SH_LOG_ERROR(errString);
+        return false;
+      }
+
+      m_registeredExtensions.push_back(ext);
     }
 
     m_codecs[codecUID] = pCodec;
     SH_LOG(LogVerbosity::kInfo, "Registered codec with UID: " + std::to_string(codecUID));
+
+    return true;
   }
 
   /**
@@ -99,6 +110,8 @@ class SH_CORE_EXPORT CodecManager : public Module<CodecManager>
   *  @brief All registered codecs are stored here, mapped by their UID.
   */
   UMap<UID, SPtr<Codec>> m_codecs;
+
+  Vector<String> m_registeredExtensions;
 };
 
 /**

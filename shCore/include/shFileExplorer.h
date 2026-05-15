@@ -2,7 +2,7 @@
 /*
 *  @file    shFileExplorer.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2026/05/13
+*  @date    2026/05/15
 *  @brief   File Explorer class platform independent.
 *
 *  File Explorer class platform independent.
@@ -81,6 +81,7 @@ class SH_CORE_EXPORT FileExplorer : public Module<FileExplorer>
   static const String ASSETS_FOLDER;
   static const String SHADERS_FOLDER;
   static const String DEFAULT_FONTS_FOLDER;
+  static const String CODECS_FOLDER;
 };
 
 /**

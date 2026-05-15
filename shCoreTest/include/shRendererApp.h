@@ -202,6 +202,9 @@ class RendererApp : public BaseApp
   void
   loadMods();
 
+  void
+  registerCodecs();
+
   /***************************************************************************/
   /*
   *  Variables
