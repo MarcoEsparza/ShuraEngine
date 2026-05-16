@@ -224,7 +224,7 @@ Asset::loadResourceFromAsset(Path filePath)
         newMat->m_opacityMask = cast::re_ptr<ImageResource>(resMan.getResource("BlackTexture"));
       }
 
-      resMan.loadMaterial(newMat);
+      resMan.addResource(newMat);
       mat = newMat;
     }
     fclose(file);

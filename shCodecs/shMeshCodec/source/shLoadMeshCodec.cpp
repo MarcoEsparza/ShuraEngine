@@ -34,7 +34,9 @@ loadPlugin()
   }
 
   auto& codecMan = g_codecManager();
-  codecMan.registerCodec<shEngineSDK::MeshCodec>();
+  if (!codecMan.registerCodec<shEngineSDK::MeshCodec>()) {
+    SH_LOG_ERROR("Failed to register shMeshCodec to Codec Manager.");
+  }
 
   SH_LOG_DEBUG("Loaded plugin: shMeshCodec");
 }

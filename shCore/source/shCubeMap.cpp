@@ -18,6 +18,7 @@
 /*****************************************************************************/
 #include "shCubeMap.h"
 #include "shGraphicsManager.h"
+#include <shLogger.h>
 
 using std::getline;
 using std::stof;
@@ -30,7 +31,7 @@ CubeMap::loadFromFile(const Path& filePath)
   GraphicsManager& graphMan = g_graphicsMan();
 
   if(!parseCubeFile(filePath)) {
-    //SH_LOG_ERROR("CubeMap::loadFromFile: Failed to parse cube file: " + filePath);
+    SH_LOG_ERROR("CubeMap::loadFromFile: Failed to parse cube file: " + filePath.string());
     return false;
   }
 
@@ -67,7 +68,8 @@ CubeMap::parseCubeFile(const Path& filePath)
     if(token == "LUT_3D_SIZE") {
       iss >> m_lutSize;
       if (m_lutSize <= 0) {
-        //SH_LOG_ERROR("CubeMap::parseCubeFile: Invalid LUT size in file: " + filePath);
+        SH_LOG_ERROR("CubeMap::parseCubeFile: Invalid LUT size in file: " +
+                     filePath.string());
         return false;
       }
       //m_textureData.resize(m_lutSize * m_lutSize * m_lutSize);

@@ -1077,8 +1077,8 @@ RenderManager::createSceneTexture(const Vector2& winSize)
                                                       BIND_FLAGS::kShaderResource |
                                                       BIND_FLAGS::kRenderTarget,
                                                       1, 1);
-    m_sceneTarget.width = winSize.x;
-    m_sceneTarget.height = winSize.y;
+    m_sceneTarget.width = cast::st<uint32>(winSize.x);
+    m_sceneTarget.height = cast::st<uint32>(winSize.y);
   }
 
   //cleanShaderObjects();

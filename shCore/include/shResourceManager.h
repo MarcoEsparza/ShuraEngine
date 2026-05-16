@@ -20,39 +20,12 @@
 /*****************************************************************************/
 #include "shPrerequisitesCore.h"
 #include "shResource.h"
-#include "shModule.h"
-#include "shMatrix4.h"
-#include "shPath.h"
+#include <shModule.h>
+#include <shPath.h>
 
 #define MODS_RESOURCES_PATH "resources/mods/"
 
-/*****************************************************************************/
-/*
-*  External forward declarations
-*/
-/*****************************************************************************/
-
-struct aiScene;
-struct aiNode;
-struct aiMesh;
-struct aiMaterial;
-struct aiAnimation;
-
 namespace shEngineSDK {
- /****************************************************************************/
-/*
-*  Internal forward declarations
-*/
-/*****************************************************************************/
-
-struct Bone;
-class Material;
-class StaticMeshResource;
-class SkeletalMeshResource;
-class SkeletonResource;
-class AnimationResource;
-struct BoneHierarchy;
-
 /**
 *  @brief Resource Manager module for loading all desired resources from files.
 */
@@ -112,17 +85,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   bool
   saveResourceToAsset(const SPtr<Resource> pRes, const String& path);
 
-  /**
-  *  @brief Load a model from cache.
-  *
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  loadModelFromCache(const Path& filePath);
-
-  void
-  loadMaterial(const SPtr<Material>& material);
-
  private:
   /**
   *  @brief Checks if the resource is already loaded.
@@ -140,176 +102,14 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   isResourceLoaded(const Path& fileName);
 
-  /**
-  *  @brief Checks if the resource is already loaded on memory.
-  *
-  *  @param Path& fileName
-  *  @param SPtr<Resource>& pRes
-  */
-  /*bool
-  isResourceOnMemory(const Path& filePath, SPtr<Resource>& pRes);*/
-
-  /**
-  *  @brief Checks if there is a cache for resource.
-  *
-  *  @param Path& fileName
-  *  @param SPtr<Resource>& pRes
-  */
-  /*bool
-  isCacheForResource(const Path& filePath, SPtr<Resource>& pRes);*/
-
   /***************************************************************************/
   /*
   *  Texture
   */
   /***************************************************************************/
 
-  /**
-  *  @brief Load a image and creates a texture.
-  * 
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  loadTextureFromFile(const Path& filePath);
-
-  /**
-  *  @brief Load a dds image and creates a texture.
-  *
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  loadTextureFromDDS(const Path& filePath);
-
   SPtr<Resource>
   loadCubeMapFromFile(const Path& filePath);
-
-  /***************************************************************************/
-  /*
-  *  Model loading
-  */
-  /***************************************************************************/
-
-  /**
-  *  @brief Load a model from file and create a Static or Skeletal mesh.
-  * 
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  loadModelFromFile(const Path& filePath);
-
-  /**
-  *  @brief Creates an engine material from an aiMaterial.
-  *
-  *  @param aiMaterial* pMat
-  */
-  SPtr<Material>
-  createMaterialFromFile(const aiMaterial* pMat, const Path& resPath);
-
-  SPtr<Material>
-  isMaterialLoaded(const String& materialName);
-
-  /***************************************************************************/
-  /*
-  *  Static Mesh
-  */
-  /***************************************************************************/
-
-  /**
-  *  @brief Creates the static mesh.
-  *
-  *  @param String& fileName
-  *  @param aiNode* node
-  *  @param aiScene* scene
-  */
-  SPtr<Resource>
-  createStaticMesh(const Path& filePath,
-                   const aiNode* node,
-                   const aiScene* scene);
-
-  /**
-  *  @brief If the model file is for static meshes, this function process all
-  *         nodes on the loaded file scene.
-  * 
-  *  @param aiNode* node
-  *  @param aiScene* scene
-  */
-  void
-  proccessStaticMeshNode(const aiNode* node,
-                         const aiScene* scene,
-                         SPtr<StaticMeshResource>& currentMesh);
-
-  /**
-  *  @brief If the model file is for static meshes, this function process and
-  *         creates all static meshes on the file.
-  * 
-  *  @param aiMesh* mesh
-  */
-  void
-  proccessStaticMesh(const aiMesh* mesh,
-                     const aiScene* scene,
-                     SPtr<StaticMeshResource>& currentMesh);
-
-  /***************************************************************************/
-  /*
-  *  Skeletal mesh and skeleton
-  */
-  /***************************************************************************/
-
-  /**
-  *  @brief Creates the skeletal mesh.
-  * 
-  *  @param aiScene* scene
-  *  @param String& fileName
-  */
-  SPtr<Resource>
-  createSkeletalMesh(const aiScene* scene, const Path & filePath);
-
-  /**
-  *  @brief Process all nodes on the file scene for the skeletal mesh.
-  * 
-  *  @param const aiNode* node
-  *  @param const aiScene* scene
-  *  @param SPtr<SkeletalMeshResource>& skeletalMesh
-  */
-  void
-  proccessSkeletalMeshNode(const aiNode* node,
-                           const aiScene* scene,
-                           SPtr<BoneHierarchy> boneNode,
-                           SPtr<SkeletalMeshResource>& skeletalMesh,
-                           SPtr<SkeletonResource>& skeleton);
-
-  /**
-  *  @brief Process the mesh on the file scene for the skeletal mesh.
-  * 
-  *  @param aiMesh* mesh
-  *  @param aiScene* scene
-  *  @param SPtr<SkeletalMeshResource>& skeletalMesh
-  */
-  void
-  proccessSkeletalMesh(const aiMesh* mesh,
-                       const aiScene* scene,
-                       SPtr<SkeletalMeshResource>& skeletalMesh,
-                       SPtr<SkeletonResource>& skeleton);
-
-  /***************************************************************************/
-  /*
-  *  Animation
-  */
-  /***************************************************************************/
-
-  void
-  checkModelAnimations(const aiScene* scene, SPtr<SkeletonResource>& skeleton);
-
-  /**
-  *  @brief Process the animation.
-  * 
-  *  @param aiScene* scene
-  *  @param SPtr<AnimationResource>& animation
-  *  @param uint32 index
-  */
-  void
-  proccessAnimation(const aiAnimation* anim,
-                    SPtr<AnimationResource>& outAnimation);
 
   /***************************************************************************/
   /*
@@ -321,22 +121,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   *  @brief All the resources are storaged here.
   */
   UMap<String, SPtr<Resource>> m_loadedResources;
-
-  /***************************************************************************/
-  /*
-  *  Static Variables
-  */
-  /***************************************************************************/
- private:
-  /**
-  *  @brief All supported model extensions.
-  */
-  static const Vector<String> MODEL_EXTENSIONS;
-
-  /**
-  *  @brief All supported image extensions.
-  */
-  static const Vector<String> IMAGE_EXTENSIONS;
 };
 
 /**
