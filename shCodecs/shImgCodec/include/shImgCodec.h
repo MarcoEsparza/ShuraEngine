@@ -65,14 +65,15 @@ class ImgCodec : public Codec
   decode(const Path& filePath) const override;
 
   /**
-  *  @brief Encodes the resource to a file at the given path.
+  *  @brief Encodes the texture resource with the given name and saves it to a file at the given path.
   * 
+  *  @param const String& objName: Name of the texture resource to encode.
   *  @param const Path& filePath: Path to the file to encode.
   * 
   *  @return bool: True if the resource was encoded and saved successfully,
   *                false if it wasn't.
   */
   bool
-  encode(const Path& filePath) const override;
+  encode(const String& objName, const Path& saveFilePath) const override;
 };
 }

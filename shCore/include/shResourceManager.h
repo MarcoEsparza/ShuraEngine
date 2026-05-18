@@ -75,16 +75,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   SPtr<Resource>
   getResource(const String& resourceName);
 
-  /**
-  *  @brief Saves the given resource to an asset for better loading.
-  *
-  *  @param SPtr<Resource> pRes
-  * 
-  *  TODO: This function is not completed yet.
-  */
-  bool
-  saveResourceToAsset(const SPtr<Resource> pRes, const String& path);
-
  private:
   /**
   *  @brief Checks if the resource is already loaded.
@@ -101,15 +91,6 @@ class SH_CORE_EXPORT ResourceManager : public Module<ResourceManager>
   */
   SPtr<Resource>
   isResourceLoaded(const Path& fileName);
-
-  /***************************************************************************/
-  /*
-  *  Texture
-  */
-  /***************************************************************************/
-
-  SPtr<Resource>
-  loadCubeMapFromFile(const Path& filePath);
 
   /***************************************************************************/
   /*

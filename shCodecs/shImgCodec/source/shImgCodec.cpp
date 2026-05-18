@@ -88,9 +88,10 @@ ImgCodec::decode(const Path& filePath) const
 }
 
 bool
-ImgCodec::encode(const Path& filePath) const
+ImgCodec::encode(const String& objName, const Path& saveFilePath) const
 {
-  SH_UNREFERENCED_PARAMETER(filePath);
+  SH_UNREFERENCED_PARAMETER(objName);
+  SH_UNREFERENCED_PARAMETER(saveFilePath);
   return false;
 }
 }

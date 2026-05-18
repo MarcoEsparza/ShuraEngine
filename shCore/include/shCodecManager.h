@@ -2,7 +2,7 @@
 /*
 *  @file    shCodecManager.h
 *  @author  MarcoEsparza <maeafinn14@gmail.com>
-*  @date    2026/05/13
+*  @date    2026/05/16
 *  @brief   Codec Manager module for registering and retrieving codecs.
 *
 *  Codec Manager module for registering and retrieving codecs.
@@ -21,6 +21,11 @@
 #include "shModule.h"
 #include "shCodec.h"
 #include <shLogger.h>
+
+// TODO: Remove the following uses when the Codec Manager implementation is done
+using std::derived_from;
+using std::find;
+using std::to_string;
 
 namespace shEngineSDK {
 /**
@@ -64,20 +69,20 @@ class SH_CORE_EXPORT CodecManager : public Module<CodecManager>
   _NODISCARD bool
   registerCodec()
   {
-    static_assert(std::derived_from<CodecType, Codec>, "Provided type must derive from Codec.");
+    static_assert(derived_from<CodecType, Codec>, "Provided type must derive from Codec.");
     auto pCodec = sh_makeShared<CodecType>();
 
     UID codecUID = pCodec->getUID();
     if (m_codecs.find(codecUID) != m_codecs.end()) {
       String errString = "Trying to register a codec with an already existing UID: " +
-                         std::to_string(codecUID);
+                         to_string(codecUID);
       SH_LOG_ERROR(errString);
       return false;
     }
 
     Vector<String> supportedExtensions = pCodec->getSupportedExtensions();
     for (auto& ext : supportedExtensions) {
-      if(std::find(m_registeredExtensions.begin(), m_registeredExtensions.end(), ext) !=
+      if(find(m_registeredExtensions.begin(), m_registeredExtensions.end(), ext) !=
          m_registeredExtensions.end()) {
         String errString =
         "Trying to register a codec that supports an already registered extension: " + ext;

@@ -25,6 +25,7 @@
 #include <shSceneGraph.h>
 #include <shResourceManager.h>
 #include <shFileExplorer.h>
+#include <shCodecManager.h>
 #include <shLogger.h>
 #include <shTexture.h>
 #include <shMath.h>
@@ -979,6 +980,7 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
 {
   ResourceManager& resMan = g_resourceMan();
   FileExplorer& fileExp = g_fileExplorer();
+  CodecManager& codecMan = g_codecManager();
 
   if (wpSMesh.expired()) {
     return;
@@ -991,17 +993,17 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     // Mesh selection
     if (ImGui::Button("Select Mesh")) {
       String filePath;
-      if (fileExp.openFile(filePath, ".hdr", "resources/models/")) {
+      if (fileExp.openFile(filePath, ".fbx\000.shr", "resources/Assets/")) {
         Timer timer;
-        float timeStart = timer.getTime();
+        //float timeStart = timer.getTime();
         auto pRes = resMan.loadResourceFromFile(Path(filePath));
         auto pStaticMesh = cast::re_ptr<StaticMeshResource>(pRes);
         if (pStaticMesh) {
           pMesh->setMeshData(pStaticMesh);
           m_selectedMat = -1; // Reset material selection when changing mesh
         }
-        float timeEnd = timer.getTime();
-        float loadTime = timeEnd - timeStart;
+        //float timeEnd = timer.getTime();
+        //float loadTime = timeEnd - timeStart;
         //SystemPath pathObj(filePath);
         /*String log = "Loaded " +
                      pathObj.filename().string() +
@@ -1017,8 +1019,10 @@ GUI::showStaticMeshComponent(const WPtr<StaticMeshComponent> wpSMesh)
     if (ImGui::Button("Save Mesh to cache")) {
       if (!pMesh->m_mesh.expired()) {
         String filePath;
-        if (fileExp.saveFile(filePath, ".sha", "resources/models/")) {
-          resMan.saveResourceToAsset(pMesh->m_mesh.lock(), filePath);
+        if (fileExp.saveFile(filePath, ".shr", "resources/models/")) {
+          //resMan.saveResourceToAsset(pMesh->m_mesh.lock(), filePath);
+          auto pMeshRes = pMesh->m_mesh.lock();
+          codecMan.getCodecByExtension(".shr")->encode(pMeshRes->getName(), Path(filePath));
         }
       }
     }
@@ -1327,7 +1331,7 @@ GUI::showSkyBoxComponent(const WPtr<SkyBoxComponent> wpSkyBox)
       ImGui::TableSetColumnIndex(0);
       if (ImGui::ImageButton("##SkyboxThumbnail", pSkyBoxImg, ImVec2(64.0f, 64.0f))) {
         String filePath;
-        if (fileExp.openFile(filePath, ".hdr", "resources/textures/")) {
+        if (fileExp.openFile(filePath, ".hdr", "resources/Assets/")) {
           auto pRes = resMan.loadResourceFromFile(Path(filePath));
           auto pImg = cast::re_ptr<ImageResource>(pRes);
           if (pImg) {

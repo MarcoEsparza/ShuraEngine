@@ -28,8 +28,6 @@
 #include "shImageResource.h"
 #include "shSkeletonResource.h"
 #include "shAnimationResource.h"
-#include "shAsset.h"
-#include "shCubeMap.h"
 
 namespace shEngineSDK {
 /*************************************************************/
@@ -92,33 +90,17 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
     return m_loadedResources[filePath.filename()];
   }
 
-  SPtr<Resource> resource;
-
-  // Check if there is a cache for resource
-  //if (isCacheForResource(filePath, resource)) {
-  //  if(resource) {
-  //    return resource;
-  //  }
-  //  //return resource;
-  //}
-
+  SPtr<Resource> resource = nullptr;
   auto codec = codecMan.getCodecByExtension(filePath.extension());
   if (codec != nullptr) {
     if (codec->decode(filePath)) {
       String resName = filePath.filename();
       resource = m_loadedResources[resName];
     }
-
-    if (resource) {
-      return resource;
-    }
-  }
-  
-  if (filePath.compareExtensions({ ".cube" })) {
-    resource = loadCubeMapFromFile(filePath);
   }
   else {
-    return nullptr;
+    String errString = "No codec found for file: " + filePath.string();
+    SH_LOG_ERROR(errString);
   }
 
   return resource;
@@ -149,13 +131,6 @@ ResourceManager::getResource(const String& resourceName)
 }
 
 bool
-ResourceManager::saveResourceToAsset(const SPtr<Resource> pRes, const String& path)
-{
-  Asset resAsset;
-  return resAsset.saveResourceToAsset(pRes, path);
-}
-
-bool
 ResourceManager::isResourceLoaded(const String& fileName)
 {
   auto resObj = m_loadedResources.find(fileName);
@@ -177,17 +152,6 @@ ResourceManager::isResourceLoaded(const Path& fileName)
   }
 
   return nullptr;
-}
-
-SPtr<Resource>
-ResourceManager::loadCubeMapFromFile(const Path& filePath)
-{
-  //GraphicsManager& graphMan = g_graphicsMan();
-  //SystemPath file = fileName;
-  auto pCubeMap = sh_makeShared<CubeMap>();
-  pCubeMap->setName(filePath.filename());
-  pCubeMap->loadFromFile(filePath);
-  return pCubeMap;
 }
 
 ResourceManager& g_resourceMan()

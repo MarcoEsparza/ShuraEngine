@@ -53,7 +53,7 @@ class Codec : public sh_enableShared<Codec>
   *
   *  @return bool: True if the codec can decode the given file extension, false if it can't.
   */
-  virtual bool
+  FORCEINLINE virtual bool
   canDecodeExtension(const String& extension) const;
 
   /**
@@ -62,7 +62,7 @@ class Codec : public sh_enableShared<Codec>
   *  @return Vector<String>: List of supported file extensions by the codec,
   *                          including the dot.
   */
-  FORCEINLINE virtual Vector<String>
+  virtual Vector<String>
   getSupportedExtensions() const = 0;
 
   /**
@@ -76,14 +76,15 @@ class Codec : public sh_enableShared<Codec>
   decode(const Path& filePath) const = 0;
 
   /**
-  *  @brief Encodes the file at the given path.
+  *  @brief Encodes the given object to a file at the given path.
   * 
-  *  @param const Path& filePath: Path of the file to encode.
+  *  @param const String& objName: Name of the object to encode.
+  *  @param const Path& saveFilePath: Path of the file to save the encoded object.
   * 
-  *  @return bool: True if the file was encoded successfully, false if it wasn't.
+  *  @return bool: True if the object was encoded successfully, false if it wasn't.
   */
   virtual bool
-  encode(const Path& filePath) const = 0;
+  encode(const String& objName, const Path& saveFilePath) const = 0;
 };
 
 FORCEINLINE bool

@@ -22,6 +22,7 @@
 #include <shFileExplorer.h>
 #include <shStringID.h>
 #include <shException.h>
+#include <shCodecManager.h>
 
 #include <shResource.h>
 #include <shMeshResource.h>
@@ -313,10 +314,32 @@ MeshCodec::decode(const Path& filePath) const
 }
 
 bool
-MeshCodec::encode(const Path& filePath) const
+MeshCodec::encode(const String& objName, const Path& saveFilePath) const
 {
-  SH_UNREFERENCED_PARAMETER(filePath);
-  return false;
+  CodecManager& codecMan = g_codecManager();
+  ResourceManager& resMan = g_resourceMan();
+
+  auto pRes = resMan.getResource(objName);
+  if (pRes == nullptr) {
+    SH_LOG_ERROR("Resource not found: " + objName);
+    return false;
+  }
+  Path resPath = pRes->getPath();
+  resPath.replaceExtension(saveFilePath.extension());
+
+  auto pResCodec = codecMan.getCodecByExtension(saveFilePath.extension());
+  if (pResCodec == nullptr) {
+    SH_LOG_ERROR("No codec found for extension: " + saveFilePath.extension());
+    return false;
+  }
+
+  if (!pResCodec->encode(objName, resPath)) {
+    SH_LOG_ERROR("Failed to encode resource: " + objName + " to " + resPath.string());
+    return false;
+  }
+  SH_LOG_INFO("Resource " + objName + " encoded successfully to " + resPath.string());
+
+  return true;
 }
 
 SPtr<Resource>

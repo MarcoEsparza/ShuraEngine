@@ -17,13 +17,41 @@
 */
 /*****************************************************************************/
 #include "shCodecManager.h"
+#include <shLogger.h>
+#include "shAssetCodec.h"
+#include "shResourceCodec.h"
+#include "shCubemapCodec.h"
 
 namespace shEngineSDK {
 void
 CodecManager::onStartUp()
 {
-  // Nothing to do for now, codecs will be registered by
-  // their respective plugins when they are loaded.
+  // For external formats, their codecs should be registered as plugins
+  // For internal formats, we register their codecs here
+
+  SH_LOG_INFO("Registering internal codecs...");
+
+  if(registerCodec<AssetCodec>()) {
+    SH_LOG_INFO("Registered AssetCodec successfully.");
+  } else {
+    SH_LOG_ERROR("Failed to register AssetCodec.");
+  }
+
+  if (registerCodec<ResourceCodec>()) {
+    SH_LOG_INFO("Registered ResourceCodec successfully.");
+  }
+  else {
+    SH_LOG_ERROR("Failed to register ResourceCodec.");
+  }
+
+  if(registerCodec<CubeMapCodec>()){
+    SH_LOG_INFO("Registered CubeMapCodec successfully.");
+  }
+  else {
+    SH_LOG_ERROR("Failed to register CubeMapCodec.");
+  }
+
+  SH_LOG_INFO("Finished registering internal codecs.");
 }
 
 void
