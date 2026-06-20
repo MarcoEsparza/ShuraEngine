@@ -260,6 +260,26 @@ setVertexBoneData(VertexData& vertex, int32 boneID, float weight)
   }
 }
 
+static String
+getUniqueMeshName(const String& baseName, Vector<String>& existingNames)
+{
+  bool isUnique = std::find(existingNames.begin(), existingNames.end(), baseName) ==
+                  existingNames.end();
+
+  if (isUnique) {
+    existingNames.push_back(baseName);
+    return baseName;
+  }
+
+  String uniqueName = baseName;
+  int32 counter = 1;
+  while (std::find(existingNames.begin(), existingNames.end(), uniqueName) != existingNames.end()) {
+    uniqueName = baseName + "_" + std::to_string(counter);
+    counter++;
+  }
+  return uniqueName;
+}
+
 /*****************************************************************************/
 /*
 *  Class functions
@@ -349,8 +369,9 @@ MeshCodec::decodeStaticMesh(const aiScene* pScene, const Path& filePath) const
   pCurrentMesh->setName(filePath.filename());
   pCurrentMesh->setPath(filePath);
 
+  Vector<String> meshNames;
   aiNode* pRootNode = pScene->mRootNode;
-  processStaticMeshNode(pRootNode, pScene, pCurrentMesh);
+  processStaticMeshNode(pRootNode, pScene, pCurrentMesh, meshNames);
 
   return pCurrentMesh;
 }
@@ -468,25 +489,27 @@ MeshCodec::getMaterialFromScene(const aiMaterial* pMat, const Path& meshPath) co
 void
 MeshCodec::processStaticMeshNode(const aiNode* pNode,
                                  const aiScene* pScene,
-                                 SPtr<StaticMeshResource>& pCurrentMesh) const
+                                 SPtr<StaticMeshResource>& pCurrentMesh,
+                                 Vector<String>& meshNames) const
 {
   for (uint32 i = 0; i < pNode->mNumMeshes; ++i) {
     aiMesh* mesh = pScene->mMeshes[pNode->mMeshes[i]];
-    processCurrentStaticMesh(mesh, pScene, pCurrentMesh);
+    processCurrentStaticMesh(mesh, pScene, pCurrentMesh, meshNames);
   }
 
   for (uint32 i = 0; i < pNode->mNumChildren; ++i) {
-    processStaticMeshNode(pNode->mChildren[i], pScene, pCurrentMesh);
+    processStaticMeshNode(pNode->mChildren[i], pScene, pCurrentMesh, meshNames);
   }
 }
 
 void
 MeshCodec::processCurrentStaticMesh(const aiMesh* pMesh,
                                      const aiScene* pScene,
-                                     SPtr<StaticMeshResource>& pCurrentMesh) const
+                                     SPtr<StaticMeshResource>& pCurrentMesh,
+                                     Vector<String>& meshNames) const
 {
   MeshData currentData;
-  currentData.name = pMesh->mName.C_Str();
+  currentData.name = getUniqueMeshName(pMesh->mName.C_Str(), meshNames);
   currentData.vertices = getVertexDataFromMesh(pMesh);
   currentData.numVertices = pMesh->mNumVertices;
   currentData.indices = getIndicesFromMesh(pMesh, currentData.numIndices);

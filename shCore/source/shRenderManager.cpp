@@ -64,6 +64,7 @@ const uint32 RenderManager::NORMAL_TEX_ID = StringID("NormalMap").getID();
 const uint32 RenderManager::COLOR_TEX_ID = StringID("ColorMap").getID();
 const uint32 RenderManager::PROPS_TEX_ID = StringID("PropMap").getID();
 const uint32 RenderManager::EMMISIVE_TEX_ID = StringID("EmmisiveMap").getID();
+const uint32 RenderManager::SPECULAR_TEX_ID = StringID("SpecularMap").getID();
 const uint32 RenderManager::SSAO_TEX_ID = StringID("SSAOMap").getID();
 const uint32 RenderManager::HBLUR_TEX_ID = StringID("HBlurMap").getID();
 const uint32 RenderManager::VBLUR_TEX_ID = StringID("VBlurMap").getID();
@@ -123,6 +124,10 @@ RenderManager::onStartUp()
   m_renderTargetMap[COLOR_TEX_ID] = RenderTargetInfo("ColorMap");
   m_renderTargetMap[PROPS_TEX_ID] = RenderTargetInfo("PropMap");
   m_renderTargetMap[EMMISIVE_TEX_ID] = RenderTargetInfo("EmmisiveMap");
+
+  m_renderTargetMap[SPECULAR_TEX_ID] = RenderTargetInfo("SpecularMap",
+                                       TEXTURE_FORMAT::kR16G16B16A16_FLOAT);
+
   m_renderTargetMap[SSAO_TEX_ID] = RenderTargetInfo("SSAOMap", TEXTURE_FORMAT::kR16_FLOAT);
 
   m_renderTargetMap[HBLUR_TEX_ID] = RenderTargetInfo("HBlurMap",
@@ -137,7 +142,7 @@ RenderManager::onStartUp()
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags, USAGE::kDefault);
 
   m_renderTargetMap[LIGHTC_TEX_ID] = RenderTargetInfo("LightCMap",
-    TEXTURE_FORMAT::kR8G8B8A8_UNORM, fullUAVBindFlags);
+    TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
 
   m_renderTargetMap[SKYBOX_TEX_ID] = RenderTargetInfo("SkyBoxMap",
     TEXTURE_FORMAT::kR32G32B32A32_FLOAT, fullUAVBindFlags);
@@ -284,7 +289,7 @@ RenderManager::drawMeshesOnScene()
     drawStaticMesh(gameObject);
   }
   for (auto& gameObject : scene.getGameObjectList()) {
-    drawTransparentStaticMesh(gameObject);
+    drawAlphaTestedStaticMesh(gameObject);
   }
   for(auto& gameObject : scene.getGameObjectList()) {
     drawSkeletalMesh(gameObject);
@@ -303,8 +308,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
   auto pGameObject = pGO.lock();
 
   for (auto& component : pGameObject->m_componentList) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
-        pGameObject->m_bActive) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh && pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
 
       if (meshComponent->m_mesh.expired()) {
@@ -324,7 +328,8 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
         auto material = meshResource->m_materials[mesh.materialIndex].lock();
         shaderMan.getPassFromMaterial(material->m_properties)->setPass();
         bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
-        if (!bHasAlphaTest && mesh.bVisible) {
+        bool bHasAlphaBlend = material->m_properties.properties.flags.bHasAlphaBlend;
+        if (!bHasAlphaTest && !bHasAlphaBlend && mesh.bVisible) {
           setShaderResourceFromMaterial(material);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
@@ -340,7 +345,7 @@ RenderManager::drawStaticMesh(const WPtr<GameObject> pGO)
 }
 
 void
-RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
+RenderManager::drawAlphaTestedStaticMesh(const WPtr<GameObject> pGO)
 {
   if (pGO.expired()) {
     return;
@@ -351,8 +356,7 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
   auto pGameObject = pGO.lock();
 
   for (auto& component : pGameObject->m_componentList) {
-    if (component->getType() == COMPONENT_TYPE::kStaticMesh &&
-      pGameObject->m_bActive) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh && pGameObject->m_bActive) {
       auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
 
       if (meshComponent->m_mesh.expired()) {
@@ -373,7 +377,8 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
         auto material = meshResource->m_materials[mesh.materialIndex].lock();
         shaderMan.getPassFromMaterial(material->m_properties)->setPass();
         bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
-        if (bHasAlphaTest && mesh.bVisible) {
+        bool bHasAlphaBlend = material->m_properties.properties.flags.bHasAlphaBlend;
+        if (bHasAlphaTest && !bHasAlphaBlend && mesh.bVisible) {
           setShaderResourceFromMaterial(material);
           graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
         }
@@ -384,7 +389,7 @@ RenderManager::drawTransparentStaticMesh(const WPtr<GameObject> pGO)
   }
 
   for (auto& pChild : pGameObject->m_childList) {
-    drawTransparentStaticMesh(pChild);
+    drawAlphaTestedStaticMesh(pChild);
   }
 }
 
@@ -461,12 +466,75 @@ RenderManager::drawShadowMap()
         uint32 vertexCount = 0;
         auto meshResource = meshComponent->m_mesh.lock();
         for (auto& mesh : meshResource->m_meshes) {
-          if (mesh.bVisible) {
+          auto material = meshResource->m_materials[mesh.materialIndex].lock();
+          bool bHasAlphaBlend = material->m_properties.properties.flags.bHasAlphaBlend;
+          if (!bHasAlphaBlend && mesh.bVisible) {
             graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
           }
           indexCount += mesh.numIndices;
           vertexCount += mesh.numVertices;
         }
+      }
+    }
+  }
+}
+
+void
+RenderManager::drawAlphaBlend()
+{
+  GraphicsManager& graphMan = g_graphicsMan();
+  SceneGraph& scene = g_sceneGraph();
+  ShaderManager& shaderMan = g_shaderMan();
+
+  graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
+                                &Matrix4::IDENTITY,
+                                sizeof(Matrix4));
+
+  for (auto& gameObject : scene.getGameObjectList()) {
+    drawAlphaBlendStaticMesh(gameObject);
+  }
+}
+
+void
+RenderManager::drawAlphaBlendStaticMesh(const WPtr<GameObject> pGO)
+{
+  if (pGO.expired()) {
+    return;
+  }
+  GraphicsManager& graphMan = g_graphicsMan();
+  ShaderManager& shaderMan = g_shaderMan();
+
+  auto pGameObject = pGO.lock();
+
+  for (auto& component : pGameObject->m_componentList) {
+    if (component->getType() == COMPONENT_TYPE::kStaticMesh && pGameObject->m_bActive) {
+      auto meshComponent = cast::re_ptr<StaticMeshComponent>(component);
+
+      if (meshComponent->m_mesh.expired()) {
+        return;
+      }
+
+      graphMan.setVertexBuffers(meshComponent->getVertexBuffer());
+      graphMan.setIndexBuffers(meshComponent->getIndexBuffer());
+
+      Matrix4 modelT = pGameObject->m_transform.getTransformMatrix();
+      graphMan.updateConstantBuffer(shaderMan.m_pModelTransformBuffer,
+                                    &modelT, sizeof(Matrix4));
+
+      uint32 indexCount = 0;
+      uint32 vertexCount = 0;
+      auto meshResource = meshComponent->m_mesh.lock();
+      for (auto& mesh : meshResource->m_meshes) {
+        auto material = meshResource->m_materials[mesh.materialIndex].lock();
+        shaderMan.getPassFromMaterial(material->m_properties)->setPass();
+        bool bHasAlphaTest = material->m_properties.properties.flags.bHasAlphaTest;
+        bool bHasAlphaBlend = material->m_properties.properties.flags.bHasAlphaBlend;
+        if (!bHasAlphaTest && bHasAlphaBlend && mesh.bVisible) {
+          setShaderResourceFromMaterial(material);
+          graphMan.drawIndexed(mesh.numIndices, indexCount, vertexCount);
+        }
+        indexCount += mesh.numIndices;
+        vertexCount += mesh.numVertices;
       }
     }
   }
@@ -528,6 +596,7 @@ RenderManager::renderScene()
 {
   GraphicsManager& graphMan = g_graphicsMan();
   ShaderManager& shaderMan = g_shaderMan();
+  SceneGraph& scene = g_sceneGraph();
 
   SPtr<Texture2D> pOutput;
   SPtr<Texture2D> pInput;
@@ -543,6 +612,7 @@ RenderManager::renderScene()
   auto& pColorMap = m_renderTargetMap[COLOR_TEX_ID];
   auto& pPropMap = m_renderTargetMap[PROPS_TEX_ID];
   auto& pEmmisiveMap = m_renderTargetMap[EMMISIVE_TEX_ID];
+  auto& pSpecularMap = m_renderTargetMap[SPECULAR_TEX_ID];
   auto& pAOMap = m_renderTargetMap[SSAO_TEX_ID];
   auto& pHBlurMap = m_renderTargetMap[HBLUR_TEX_ID];
   auto& pVBlurMap = m_renderTargetMap[VBLUR_TEX_ID];
@@ -633,7 +703,8 @@ RenderManager::renderScene()
                              {pNormalMap.pTexture},
                              {pColorMap.pTexture},
                              {pPropMap.pTexture },
-                             {pEmmisiveMap.pTexture }}, pGbufferDepth.pTexture);
+                             {pEmmisiveMap.pTexture },
+                             {pSpecularMap.pTexture }}, pGbufferDepth.pTexture);
   setSamplers();
   drawMeshesOnScene();
   //cleanShaderObjects();
@@ -692,11 +763,34 @@ RenderManager::renderScene()
   graphMan.unbindAll();
 
   /*************************************/
+  /*             Lightning             */
+  /*************************************/
+  pOutput = pLightCMap.pTexture;
+  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
+  shaderMan.m_passes[shaderMan.LIGHT_CS_ID]->setPass();
+  setSamplers();
+  graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
+  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
+  graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
+  graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
+  graphMan.csSetShaderResourceView(pSpecularMap.pTexture, 4);
+  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 5);
+  graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 6);
+  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 7);
+  graphMan.csSetShaderResourceView(m_pBRDF, 8);
+  graphMan.csSetShaderResourceView(m_pDiffIrr, 9);
+  graphMan.csSetShaderResourceView(m_pSpecularPreMap, 10);
+  graphMan.setUnorderedAccessView({ pOutput }, 0);
+  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
+  //cleanShaderObjects();
+  graphMan.unbindAll();
+
+  /*************************************/
   /*              Sky Box              */
   /*************************************/
   uint32 numMipLevels = 0;
   uint32 maxSize = cast::st<uint32>(Math::max(cast::st<float>(m_skyboxDimension.x),
-                                             cast::st<float>(m_skyboxDimension.y)));
+    cast::st<float>(m_skyboxDimension.y)));
   for (uint32 i = 0; i < maxSize; ++i) {
     if (maxSize >> i < 32) {
       break;
@@ -722,45 +816,32 @@ RenderManager::renderScene()
   shaderMan.m_prefilteredData.roughness = tempRoughness;
 
   /*************************************/
-  /*             Lightning             */
-  /*************************************/
-  pOutput = pLightCMap.pTexture;
-  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
-  shaderMan.m_passes[shaderMan.LIGHT_CS_ID]->setPass();
-  setSamplers();
-  graphMan.csSetShaderResourceView(pDepthMap.pTexture, 0);
-  graphMan.csSetShaderResourceView(pNormalMap.pTexture, 1);
-  graphMan.csSetShaderResourceView(pColorMap.pTexture, 2);
-  graphMan.csSetShaderResourceView(pPropMap.pTexture, 3);
-  graphMan.csSetShaderResourceView(pVBlurMap.pTexture, 5);
-  graphMan.csSetShaderResourceView(pShadowTemp.pTexture, 6);
-  graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 7);
-  graphMan.csSetShaderResourceView(m_pBRDF, 8);
-  graphMan.csSetShaderResourceView(m_pDiffIrr, 9);
-  graphMan.csSetShaderResourceView(m_pSpecularPreMap, 10);
-  graphMan.setUnorderedAccessView({ pOutput }, 0);
-  graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
-  //cleanShaderObjects();
-  graphMan.unbindAll();
-
-  /*************************************/
   /*            Add Sky Box            */
   /*************************************/
-  pOutput = pTempMap.pTexture;
+  //pOutput = pTempMap.pTexture;
   graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   shaderMan.m_passes[shaderMan.ADDSKYBOX_SHADER_ID]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pLightCMap.pTexture, 0);
   graphMan.csSetShaderResourceView(pGbufferDepth.pTexture, 1);
   graphMan.csSetShaderResourceView(pSkyBoxMap.pTexture, 2);
-  graphMan.setUnorderedAccessView({ pOutput }, 0);
+  graphMan.setUnorderedAccessView({ pTempMap.pTexture }, 0);
   graphMan.dispatch(dispatchX, dispatchY, dispatchZ);
   //cleanShaderObjects();
   graphMan.unbindAll();
 
   /*************************************/
+  /*        Transparent objects        */
+  /*************************************/
+  graphMan.setRenderTargets({{ pTempMap.pTexture }}, pGbufferDepth.pTexture);
+  setSamplers();
+  drawAlphaBlend();
+  graphMan.unbindAll();
+
+  /*************************************/
   /*              Emmisive             */
   /*************************************/
+  graphMan.setRenderTargets({ pMainTarget }, pDepthSV);
   shaderMan.m_passes[shaderMan.EMMISIVE_SHADER_ID]->setPass();
   setSamplers();
   graphMan.csSetShaderResourceView(pTempMap.pTexture, 0);

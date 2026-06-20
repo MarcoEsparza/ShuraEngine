@@ -205,7 +205,8 @@ FindSharedPtrInTree(GameObject* raw, const Vector<SPtr<GameObject>>& roots) {
 static void
 textureFileButton(const String& buttonID,
                   WPtr<ImageResource>& textureImg,
-                  ImVec2& buttonSize)
+                  ImVec2& buttonSize,
+                  bool bDisable = false)
 {
   ResourceManager& resMan = g_resourceMan();
   FileExplorer& fileExp = g_fileExplorer();
@@ -213,18 +214,24 @@ textureFileButton(const String& buttonID,
   auto& pTexture = textureImg.lock()->texture;
   ImTextureID* texID = cast::re<ImTextureID*>(&pTexture);
 
+  ImGui::BeginDisabled(bDisable);
   if (ImGui::ImageButton(buttonID.c_str(), texID, buttonSize)) {
     String filePath;
     if (fileExp.openFile(filePath,
                          "PNGs(*.png)\0*.png\0",
                          "resources/textures/")) {
       auto pRes = resMan.loadResourceFromFile(Path(filePath));
+      if (pRes == nullptr) {
+        SH_LOG_ERROR("Failed to load texture from file: " + filePath);
+        return;
+      }
       auto pImg = cast::re_ptr<ImageResource>(pRes);
       if (pImg->texture) {
         textureImg = pImg;
       }
     }
   }
+  ImGui::EndDisabled();
 }
 
 static String
@@ -1110,30 +1117,26 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   auto& pAOImg = currentMat->m_ao;
   auto& pEmissiveImg = currentMat->m_emissive;
   auto& pOpacityImg = currentMat->m_opacityMask;
+  auto& pSpecularImg = currentMat->m_specular;
 
   float windowWidth = ImGui::GetContentRegionAvail().x;
-  ImVec2 buttonSize = ImVec2(32.0f, 32.0f);
+  ImVec2 buttonSize = ImVec2(64.0f, 64.0f);
+  ImU32 separatorColor = IM_COL32(100, 100, 100, 255);
 
   // Base Color
-  textureFileButton("##BaseColorSelection", pBaseColorImg, buttonSize);
-  if (ImGui::IsItemHovered()) {
-    if (!pBaseColorImg.expired()) {
-      ImGui::BeginTooltip();
-      ImGui::TextUnformatted(pBaseColorImg.lock()->getPath().string().c_str());
-      ImGui::EndTooltip();
-    }
-  }
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+  ImGui::Text("Base Color:");
 
-  ImGui::SameLine();
-  String buttonID = "##ColorButton" + currentMat->getName();
-  Vector3& baseColor = currentMat->baseColorFactor;
   bool bHasDiffuseMap = currentMat->m_properties.properties.flags.bHasDiffuseMap;
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  ImGui::Checkbox("BaseColor", &bHasDiffuseMap);
+  //ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  ImGui::Checkbox("Use base color texture", &bHasDiffuseMap);
   currentMat->m_properties.properties.flags.bHasDiffuseMap = bHasDiffuseMap;
 
+  String buttonID = "##ColorButton" + currentMat->getName();
+  Vector3& baseColor = currentMat->baseColorFactor;
   ImVec4 currentColor = ImVec4(baseColor.x, baseColor.y, baseColor.z, 1.0f);
-  ImGui::SameLine();
   float textHeight = ImGui::GetTextLineHeight();
   float frameHeight = ImGui::GetFrameHeight();
   float offsetY = (frameHeight - textHeight) * 0.5f;
@@ -1141,7 +1144,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   if (ImGui::ColorButton(buttonID.c_str(),
                          currentColor,
                          ImGuiColorEditFlags_None,
-                         ImVec2(windowWidth * 0.52f, 20.0f))) {
+                         ImVec2(windowWidth, 22.0f))) {
     ImGui::OpenPopup("ColorPickerPopup");
   }
 
@@ -1153,8 +1156,25 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   baseColor.y = currentColor.y;
   baseColor.z = currentColor.z;
 
+  textureFileButton("##BaseColorSelection", pBaseColorImg, buttonSize, !bHasDiffuseMap);
+  if (ImGui::IsItemHovered()) {
+    if (!pBaseColorImg.expired()) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(pBaseColorImg.lock()->getPath().string().c_str());
+      ImGui::EndTooltip();
+    }
+  }
+
   // Normal
-  textureFileButton("##NormalSelection", pNormalImg, buttonSize);
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
+  bool bHasNormalMap = currentMat->m_properties.properties.flags.bHasNormalMap;
+  ImGui::Checkbox("Use normal texture", &bHasNormalMap);
+  currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
+
+  textureFileButton("##NormalSelection", pNormalImg, buttonSize, !bHasNormalMap);
   if (ImGui::IsItemHovered()) {
     if (!pNormalImg.expired()) {
       ImGui::BeginTooltip();
@@ -1163,14 +1183,27 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
 
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  bool bHasNormalMap = currentMat->m_properties.properties.flags.bHasNormalMap;
-  ImGui::Checkbox("Normal", &bHasNormalMap);
-  currentMat->m_properties.properties.flags.bHasNormalMap = bHasNormalMap;
+  /////// Materieal model selection (Metalness-Roughness or Specular-Glossiness)
 
+  bool bHasSpecularMap = currentMat->m_properties.properties.flags.bHasSpecularMap;
+  ImGui::BeginDisabled(bHasSpecularMap); // Begin disabled if specular-glossiness is selected
   // Metallic
-  textureFileButton("##MetalnessSelection", pMetalnessImg, buttonSize);
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
+  bool bHasMetallicMap = currentMat->m_properties.properties.flags.bHasMetalnessMap;
+  ImGui::Checkbox("Use metallic texture", &bHasMetallicMap);
+  currentMat->m_properties.properties.flags.bHasMetalnessMap = bHasMetallicMap;
+
+  ImGui::BeginDisabled(bHasMetallicMap); // Begin disabled if metallic map is selected
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(windowWidth * 0.4f);
+  ImGui::DragFloat("##Metallic Factor", &currentMat->metallicRoughnessFactor.x,
+                   0.01f, 0.0f, 1.0f);
+  ImGui::EndDisabled(); // End disabled for metallic map selection
+
+  textureFileButton("##MetalnessSelection", pMetalnessImg, buttonSize, !bHasMetallicMap);
   if (ImGui::IsItemHovered()) {
     if (!pMetalnessImg.expired()) {
       ImGui::BeginTooltip();
@@ -1179,19 +1212,23 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
 
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  bool bHasMetallicMap = currentMat->m_properties.properties.flags.bHasMetalnessMap;
-  ImGui::Checkbox("Metallic", &bHasMetallicMap);
-  currentMat->m_properties.properties.flags.bHasMetalnessMap = bHasMetallicMap;
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  ImGui::SetNextItemWidth(windowWidth * 0.55f);
-  ImGui::DragFloat("##Metallic Factor", &currentMat->metallicRoughnessFactor.x,
-                   0.01f, 0.0f, 1.0f);
-
   // Roughness
-  textureFileButton("##RoughnessSelection", pRoughnessImg, buttonSize);
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
+  bool bHasRoughnessMap = currentMat->m_properties.properties.flags.bHasRoughnessMap;
+  ImGui::Checkbox("Use roughness texture", &bHasRoughnessMap);
+  currentMat->m_properties.properties.flags.bHasRoughnessMap = bHasRoughnessMap;
+
+  ImGui::BeginDisabled(bHasRoughnessMap); // Begin disabled if roughness map is selected
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(windowWidth * 0.4f);
+  ImGui::DragFloat("##Roughness Factor", &currentMat->metallicRoughnessFactor.y,
+                   0.01f, 0.0f, 1.0f);
+  ImGui::EndDisabled(); // End disabled for roughness map selection
+
+  textureFileButton("##RoughnessSelection", pRoughnessImg, buttonSize, !bHasRoughnessMap);
   if (ImGui::IsItemHovered()) {
     if (!pRoughnessImg.expired()) {
       ImGui::BeginTooltip();
@@ -1200,19 +1237,48 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
 
+  ImGui::EndDisabled(); // End of metallic-roughness model options
+
+  // Specular
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
+  bool bSpecDirty = ImGui::Checkbox("Use specular-glossiness", &bHasSpecularMap);
+  currentMat->m_properties.properties.flags.bHasSpecularMap = bHasSpecularMap;
+
+  if (bSpecDirty && bHasSpecularMap) {
+    currentMat->m_properties.properties.flags.bHasMetalnessMap = false;
+    currentMat->m_properties.properties.flags.bHasRoughnessMap = false;
+    currentMat->m_properties.properties.flags.bInvertRoughness = true;
+  }
+  else if (bSpecDirty && !bHasSpecularMap) {
+    currentMat->m_properties.properties.flags.bInvertRoughness = false;
+  }
+
+  ImGui::BeginDisabled(!bHasSpecularMap); // Begin disabled if specular-glossiness is not selected
+  ImGui::Text("Glossiness factor:");
   ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  bool bHasRoughnessMap = currentMat->m_properties.properties.flags.bHasRoughnessMap;
-  ImGui::Checkbox("Roughness", &bHasRoughnessMap);
-  currentMat->m_properties.properties.flags.bHasRoughnessMap = bHasRoughnessMap;
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  ImGui::SetNextItemWidth(windowWidth * 0.55f);
-  ImGui::DragFloat("##Roughness Factor", &currentMat->metallicRoughnessFactor.y,
-                   0.01f, 0.0f, 1.0f);
+
+  float glossiness = 1.0f - currentMat->metallicRoughnessFactor.y; // Invert roughness to get glossiness
+  ImGui::SetNextItemWidth(windowWidth * 0.4f);
+  ImGui::DragFloat("##Glossiness Factor", &glossiness, 0.01f, 0.0f, 1.0f);
+  currentMat->metallicRoughnessFactor.y = 1.0f - glossiness; // Store as roughness
+
+  textureFileButton("##SpecularSelection", pSpecularImg, buttonSize);
+
+  ImGui::EndDisabled(); // End of specular-glossiness model options
 
   // Occlusion
-  textureFileButton("##AOSelection", pAOImg, buttonSize);
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
+  bool bHasAO = currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap;
+  ImGui::Checkbox("Ambient Occlusion", &bHasAO);
+  currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap = bHasAO;
+
+  textureFileButton("##AOSelection", pAOImg, buttonSize, !bHasAO);
   if (ImGui::IsItemHovered()) {
     if (!pAOImg.expired()) {
       ImGui::BeginTooltip();
@@ -1221,14 +1287,11 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
 
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  bool bHasAO = currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap;
-  ImGui::Checkbox("Ambient Occlusion", &bHasAO);
-  currentMat->m_properties.properties.flags.bHasAmbientOcclusionMap = bHasAO;
-
   // Emissive
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
   bool bUseEmmision = currentMat->m_properties.properties.flags.bUseEmission;
   ImGui::Checkbox("Emmision", &bUseEmmision);
   currentMat->m_properties.properties.flags.bUseEmission = bUseEmmision;
@@ -1239,16 +1302,23 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
                                   emmisiveColor.y,
                                   emmisiveColor.z,
                                   1.0f);
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+
+  ImGui::BeginDisabled(!bUseEmmision); // Begin disabled if emission is not enabled
+  bool bHasEmissiveMap = currentMat->m_properties.properties.flags.bHasEmissiveMap;
+
+  ImGui::BeginDisabled(bHasEmissiveMap); // Begin disabled if emissive map is selected
   if (ImGui::ColorButton(emmButtonID.c_str(),
                          currentEmmColor,
                          ImGuiColorEditFlags_None,
                          ImVec2(windowWidth * 0.6f, 20.0f))) {
     ImGui::OpenPopup("EmmColorPickerPopup");
   }
+  ImGui::EndDisabled(); // End disabled for emissive map selection
 
-  textureFileButton("##EmissiveSelection", pEmissiveImg, buttonSize);
+  ImGui::Checkbox("Emmisive texture", &bHasEmissiveMap);
+  currentMat->m_properties.properties.flags.bHasEmissiveMap = bHasEmissiveMap;
+
+  textureFileButton("##EmissiveSelection", pEmissiveImg, buttonSize, !bHasEmissiveMap);
   if (ImGui::IsItemHovered()) {
     if (!pEmissiveImg.expired()) {
       ImGui::BeginTooltip();
@@ -1257,11 +1327,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
 
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-  bool bHasEmissiveMap = currentMat->m_properties.properties.flags.bHasEmissiveMap;
-  ImGui::Checkbox("Emmisive texture", &bHasEmissiveMap);
-  currentMat->m_properties.properties.flags.bHasEmissiveMap = bHasEmissiveMap;
+  ImGui::EndDisabled(); // End disabled for emission
 
   if (ImGui::BeginPopup("EmmColorPickerPopup")) {
     ImGui::ColorPicker3("##picker", (float*)&currentEmmColor);
@@ -1271,16 +1337,26 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   emmisiveColor.y = currentEmmColor.y;
   emmisiveColor.z = currentEmmColor.z;
 
-  // Opacity mask
+  // Alpha testing
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
   bool bHasAlpha = currentMat->m_properties.properties.flags.bHasAlphaTest;
   ImGui::Checkbox("Alpha testing", &bHasAlpha);
   currentMat->m_properties.properties.flags.bHasAlphaTest = bHasAlpha;
-  ImGui::SameLine();
+
+  ImGui::BeginDisabled(!bHasAlpha);
   bool bHasOpacityMask = currentMat->m_properties.properties.flags.bHasOpacityMask;
   ImGui::Checkbox("Use Opacity Mask Map", &bHasOpacityMask);
   currentMat->m_properties.properties.flags.bHasOpacityMask = bHasOpacityMask;
 
-  textureFileButton("##OpacityMaskSelection", pOpacityImg, buttonSize);
+  ImGui::Text("Alpha cutoff threshold:");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(windowWidth * 0.5f);
+  ImGui::DragFloat("##Alpha cutoff", &currentMat->alphaCutoff, 0.01f, 0.0f, 1.0f);
+
+  textureFileButton("##OpacityMaskSelection", pOpacityImg, buttonSize, !bHasOpacityMask);
   if (ImGui::IsItemHovered()) {
     if (!pOpacityImg.expired()) {
       ImGui::BeginTooltip();
@@ -1289,14 +1365,23 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
     }
   }
 
+  ImGui::EndDisabled();
+
+  // Alpha blending
+  ImGui::PushStyleColor(ImGuiCol_Separator, separatorColor);
+  ImGui::Separator();
+  ImGui::PopStyleColor();
+
+  bool bHasAlphaBlend = currentMat->m_properties.properties.flags.bHasAlphaBlend;
+  ImGui::Checkbox("Alpha blending", &bHasAlphaBlend);
+  currentMat->m_properties.properties.flags.bHasAlphaBlend = bHasAlphaBlend;
+
+  ImGui::BeginDisabled(!bHasAlphaBlend);
+  ImGui::Text("Opacity:");
   ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f);
-  ImGui::Text("Alpha Cutoff:");
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
   ImGui::SetNextItemWidth(windowWidth * 0.5f);
-  ImGui::DragFloat("##Alpha cutoff", &currentMat->alphaCutoff, 0.01f, 0.0f, 1.0f);
-  
+  ImGui::DragFloat("##Opacity", &currentMat->opacityFactor, 0.01f, 0.0f, 1.0f);
+  ImGui::EndDisabled();
 }
 
 void

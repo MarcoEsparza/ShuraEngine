@@ -151,7 +151,8 @@ class MeshCodec : public Codec
   void
   processStaticMeshNode(const aiNode* pNode,
                         const aiScene* pScene,
-                        SPtr<StaticMeshResource>& pCurrentMesh) const;
+                        SPtr<StaticMeshResource>& pCurrentMesh,
+                        Vector<String>& meshNames) const;
 
   /**
   *  @brief Processes the given aiMesh to extract static mesh data and fill the
@@ -167,7 +168,8 @@ class MeshCodec : public Codec
   void
   processCurrentStaticMesh(const aiMesh* pMesh,
                            const aiScene* pScene,
-                           SPtr<StaticMeshResource>& pCurrentMesh) const;
+                           SPtr<StaticMeshResource>& pCurrentMesh,
+                           Vector<String>& meshNames) const;
 
   /***************************************************************************/
   /*

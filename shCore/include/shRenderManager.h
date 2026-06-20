@@ -131,13 +131,19 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   drawStaticMesh(const WPtr<GameObject> pGO);
 
   void
-  drawTransparentStaticMesh(const WPtr<GameObject> pGO);
+  drawAlphaTestedStaticMesh(const WPtr<GameObject> pGO);
 
   void
   drawSkeletalMesh(const WPtr<GameObject> pGO);
 
   void
   drawShadowMap();
+
+  void
+  drawAlphaBlend();
+
+  void
+  drawAlphaBlendStaticMesh(const WPtr<GameObject> pGO);
 
   /**
   *  @brief Sets the resource view from PBRMaterial.
@@ -284,6 +290,7 @@ class SH_CORE_EXPORT RenderManager : public Module<RenderManager>
   static const uint32 COLOR_TEX_ID;
   static const uint32 PROPS_TEX_ID;
   static const uint32 EMMISIVE_TEX_ID;
+  static const uint32 SPECULAR_TEX_ID;
   static const uint32 SSAO_TEX_ID;
   static const uint32 HBLUR_TEX_ID;
   static const uint32 VBLUR_TEX_ID;

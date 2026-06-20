@@ -451,13 +451,12 @@ RendererApp::updateMainBuffer()
   mbd.viewMatrix = m_camera.getView();
   mbd.transposeViewMatrix = m_camera.getView().getTransposed();
   mbd.inverseViewMatrix = m_camera.getView().getInversed();
-  mbd.inverseTransposeViewMatrix = mbd.inverseViewMatrix * mbd.transposeViewMatrix;
+  mbd.inverseTransposeViewMatrix = mbd.inverseViewMatrix.getTransposed();
 
   mbd.projectionMatrix = m_camera.getProjection();
   mbd.transposeProjectionMatrix = m_camera.getProjection().getTransposed();
-  mbd.inverseProjectionMatrix = m_camera.getView().getInversed();
-  mbd.inverseTransposeProjectionMatrix = mbd.inverseProjectionMatrix *
-                                         mbd.transposeProjectionMatrix;
+  mbd.inverseProjectionMatrix = m_camera.getProjection().getInversed();
+  mbd.inverseTransposeProjectionMatrix = mbd.inverseProjectionMatrix.getTransposed();
 
   mbd.inverseViewProjMatrix = (mbd.viewMatrix * mbd.projectionMatrix).getInversed();
   mbd.inverseTransposeViewProjMatrix = mbd.inverseViewProjMatrix.getTransposed();

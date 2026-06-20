@@ -346,6 +346,7 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   bool bWireframe = props.properties.flags.bWireframeEnabled;
   //bool bDoubleSided = props.properties.flags.bIsDoubleSided;
   bool bAlphaTest = props.properties.flags.bHasAlphaTest;
+  bool bAlphaBlend = props.properties.flags.bHasAlphaBlend;
 
   // Create and configure the Pass based on MaterialProperties (props)
   Vector<ShaderMacro>& macros = matPass->m_macros;
@@ -409,10 +410,23 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   }
   // Add more macros based on other properties as needed
 
-  matPass->setVShaderInfo(Path(m_shaderDirectory + "GBufferShader"), "main", macros);
-  matPass->setPShaderInfo(Path(m_shaderDirectory + "GBufferShader"), "mainPS", macros);
-  matPass->compileShader();
-  matPass->generateInputLayout();
+  if (!bAlphaBlend) {
+    matPass->setVShaderInfo(Path(m_shaderDirectory + "GBufferShader"), "main", macros);
+    matPass->setPShaderInfo(Path(m_shaderDirectory + "GBufferShader"), "mainPS", macros);
+    matPass->compileShader();
+    matPass->generateInputLayout();
+  }
+  else {
+    matPass->addPSConstantBuffer(m_pMainBuffer, 0);
+    matPass->addPSConstantBuffer(m_pShaderDataBuffer, 1);
+    matPass->addPSConstantBuffer(m_pLCBuffer, 4);
+    matPass->addPSConstantBuffer(m_pPrefilteredCB, 5);
+
+    matPass->setVShaderInfo(Path(m_shaderDirectory + "TransparentFowardShader"), "main", macros);
+    matPass->setPShaderInfo(Path(m_shaderDirectory + "TransparentFowardShader"), "mainPS", macros);
+    matPass->compileShader();
+    matPass->generateInputLayout();
+  }
 
   RasterizerDesc rasterDesc = {};
   rasterDesc.fillMode = bWireframe ? FILL_MODE::kWireframe : FILL_MODE::kSolid;
@@ -430,7 +444,8 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   matPass->setRasterizerStateFromDesc(rasterDesc);
 
   BlendDesc blendDesc = {};
-  if (bAlphaTest) {
+  DepthStencilDesc depthSDesc = {};
+  if (bAlphaTest && !bAlphaBlend) {
     blendDesc.alphaToCoverageEnable = false;
     blendDesc.independentBlendEnable = false;
     blendDesc.renderTarget[0].blendEnable = true;
@@ -441,8 +456,30 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
     blendDesc.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
     blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
     blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
+
+    depthSDesc.depthEnable = true;
+    depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kZero;
+    depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+    depthSDesc.stencilEnable = false;
   }
-  else {
+  else if (!bAlphaTest && bAlphaBlend) {
+    blendDesc.alphaToCoverageEnable = false;
+    blendDesc.independentBlendEnable = false;
+    blendDesc.renderTarget[0].blendEnable = true;
+    blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
+    blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
+    blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
+    blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+    blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
+    blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
+    blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
+
+    depthSDesc.depthEnable = true;
+    depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kZero;
+    depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+    depthSDesc.stencilEnable = false;
+  }
+  else if (!bAlphaTest && !bAlphaBlend) {
     blendDesc.renderTarget[0].blendEnable = true;
     blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
     blendDesc.renderTarget[0].destBlend = BLEND::kZero;
@@ -451,24 +488,23 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
     blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
     blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
     blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
+
+    depthSDesc.depthEnable = true;
+    depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
+    depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+    depthSDesc.stencilEnable = true;
+    depthSDesc.stencilReadMask = 0xFF;
+    depthSDesc.stencilWriteMask = 0xFF;
+    depthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
+    depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
+    depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
+    depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
+    depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
+    depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
+    depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
+    depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
   }
   matPass->setBlendStateFromDesc(blendDesc);
-
-  DepthStencilDesc depthSDesc = {};
-  depthSDesc.depthEnable = true;
-  depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
-  depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
-  depthSDesc.stencilEnable = true;
-  depthSDesc.stencilReadMask = 0xFF;
-  depthSDesc.stencilWriteMask = 0xFF;
-  depthSDesc.frontFace.stencilFailOp = STENCIL_OP::kKeep;
-  depthSDesc.frontFace.stencilDepthFailOp = STENCIL_OP::kIncr;
-  depthSDesc.frontFace.stencilPassOp = STENCIL_OP::kKeep;
-  depthSDesc.frontFace.stencilFunc = COMPARISON_FUNC::kAlways;
-  depthSDesc.backFace.stencilFailOp = STENCIL_OP::kKeep;
-  depthSDesc.backFace.stencilDepthFailOp = STENCIL_OP::kDecr;
-  depthSDesc.backFace.stencilPassOp = STENCIL_OP::kKeep;
-  depthSDesc.backFace.stencilFunc = COMPARISON_FUNC::kAlways;
   matPass->setDepthStencilStateFromDesc(depthSDesc);
 
   m_passes[shaderID] = matPass;

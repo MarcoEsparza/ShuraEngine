@@ -20,6 +20,8 @@
 #include "shPrerequisitesCore.h"
 #include "shCodec.h"
 #include <shPath.h>
+#include <shVector2.h>
+#include <shVector3.h>
 
 namespace shEngineSDK {
 class Material;
@@ -70,6 +72,12 @@ struct SH_CORE_EXPORT MaterialAssetHeader {
   uint32 emissiveMapPathSize = 0;
   uint32 specularMapPathSize = 0;
   uint32 opacityMaskMapPathSize = 0;
+  Vector2 metallicRoughnessFactor = Vector2::ONE;
+  Vector3 baseColorFactor = Vector3::ONE;
+  float opacityFactor = 1.0f;
+  Vector3 emissiveFactor = Vector3::ZERO;
+  float emmisiveIntensity = 1.0f;
+  float alphaCutoff = 0.5f;
 };
 
 /**
@@ -128,7 +136,7 @@ class ResourceCodec : public Codec
 
  private:
   SPtr<Material>
-  getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const;
+  getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat, const Path& filePath) const;
 
   bool
   decodeStaticMesh(FILE* pFile, const Path& filePath) const;

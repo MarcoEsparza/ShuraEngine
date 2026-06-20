@@ -114,9 +114,10 @@ class SH_CORE_EXPORT Material : public Resource
   WPtr<ImageResource> m_opacityMask;
 
   Vector3 baseColorFactor = Vector3::ONE;
-  Vector2 metallicRoughnessFactor = Vector2::ONE;
+  float opacityFactor = 1.0f;
   Vector3 emissiveFactor = Vector3::ZERO;
   float emmisiveIntensity = 1.0f;
+  Vector2 metallicRoughnessFactor = Vector2::ONE;
   float alphaCutoff = 0.5f;
 };
 }

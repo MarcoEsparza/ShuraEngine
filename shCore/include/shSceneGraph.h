@@ -50,6 +50,12 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   void
   onStartUp() override;
 
+  FORCEINLINE const String&
+  getName() const;
+
+  FORCEINLINE void
+  setName(const String& name);
+
   /**
   *  @brief Creates and add a empty object to the scene.
   * 
@@ -115,7 +121,21 @@ class SH_CORE_EXPORT SceneGraph : public Module<SceneGraph>
   *  @brief Game Objects storage.
   */
   Vector<SPtr<GameObject>> m_gameObjects;
+
+  String m_name;
 };
+
+FORCEINLINE const String&
+SceneGraph::getName() const
+{
+  return m_name;
+}
+
+FORCEINLINE void
+SceneGraph::setName(const String& name)
+{
+  m_name = name;
+}
 
 /**
 *  @brief Easier way to access the SceneGraph module.

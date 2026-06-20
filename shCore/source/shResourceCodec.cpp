@@ -117,7 +117,7 @@ ResourceCodec::encode(const String& objName, const Path& saveFilePath) const
 }
 
 SPtr<Material>
-ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
+ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat, const Path& filePath) const
 {
   ResourceManager& resMan = g_resourceMan();
 
@@ -141,37 +141,45 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   String baseColorPath;
   baseColorPath.resize(mah.baseColorMapPathSize);
   fread(baseColorPath.data(), sizeof(char), mah.baseColorMapPathSize, pFile);
+  String fullBaseColorPath = filePath.directory() + "/" + baseColorPath;
 
   String normalPath;
   normalPath.resize(mah.normalMapPathSize);
   fread(normalPath.data(), sizeof(char), mah.normalMapPathSize, pFile);
+  String fullNormalPath = filePath.directory() + "/" + normalPath;
 
   String metallicPath;
   metallicPath.resize(mah.metalnessMapPathSize);
   fread(metallicPath.data(), sizeof(char), mah.metalnessMapPathSize, pFile);
+  String fullMetallicPath = filePath.directory() + "/" + metallicPath;
 
   String roughnessPath;
   roughnessPath.resize(mah.roughnessMapPathSize);
   fread(roughnessPath.data(), sizeof(char), mah.roughnessMapPathSize, pFile);
+  String fullRoughnessPath = filePath.directory() + "/" + roughnessPath;
 
   String aoPath;
   aoPath.resize(mah.aoMapPathSize);
   fread(aoPath.data(), sizeof(char), mah.aoMapPathSize, pFile);
+  String fullAOPath = filePath.directory() + "/" + aoPath;
 
   String emissivePath;
   emissivePath.resize(mah.emissiveMapPathSize);
   fread(emissivePath.data(), sizeof(char), mah.emissiveMapPathSize, pFile);
+  String fullEmissivePath = filePath.directory() + "/" + emissivePath;
 
   String specularPath;
   specularPath.resize(mah.specularMapPathSize);
   fread(specularPath.data(), sizeof(char), mah.specularMapPathSize, pFile);
+  String fullSpecularPath = filePath.directory() + "/" + specularPath;
 
   String opacityMaskPath;
   opacityMaskPath.resize(mah.opacityMaskMapPathSize);
   fread(opacityMaskPath.data(), sizeof(char), mah.opacityMaskMapPathSize, pFile);
+  String fullOpacityMaskPath = filePath.directory() + "/" + opacityMaskPath;
 
   auto pBaseColor = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(baseColorPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullBaseColorPath.c_str())));
   if (pBaseColor) {
     pMat->m_baseColor = pBaseColor;
     pMat->m_properties.properties.flags.bHasDiffuseMap = 1;
@@ -182,7 +190,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pNormal = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(normalPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullNormalPath.c_str())));
   if (pNormal) {
     pMat->m_normal = pNormal;
     pMat->m_properties.properties.flags.bHasNormalMap = 1;
@@ -193,7 +201,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pMetalness = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(metallicPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullMetallicPath.c_str())));
   if (pMetalness) {
     pMat->m_metalness = pMetalness;
     pMat->m_properties.properties.flags.bHasMetalnessMap = 1;
@@ -204,7 +212,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pRoughness = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(roughnessPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullRoughnessPath.c_str())));
   if (pRoughness) {
     pMat->m_roughness = pRoughness;
     pMat->m_properties.properties.flags.bHasRoughnessMap = 1;
@@ -215,7 +223,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pAO = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(aoPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullAOPath.c_str())));
   if (pAO) {
     pMat->m_ao = pAO;
     pMat->m_properties.properties.flags.bHasAmbientOcclusionMap = 1;
@@ -226,7 +234,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pEmissive = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(emissivePath.c_str())));
+    resMan.loadResourceFromFile(Path(fullEmissivePath.c_str())));
   if (pEmissive) {
     pMat->m_emissive = pEmissive;
     pMat->m_properties.properties.flags.bHasEmissiveMap = 1;
@@ -237,7 +245,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pSpecular = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(specularPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullSpecularPath.c_str())));
   if (pSpecular) {
     pMat->m_specular = pSpecular;
     pMat->m_properties.properties.flags.bHasSpecularMap = 1;
@@ -248,7 +256,7 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
   }
 
   auto pOpacityMask = cast::re_ptr<ImageResource>(
-    resMan.loadResourceFromFile(Path(opacityMaskPath.c_str())));
+    resMan.loadResourceFromFile(Path(fullOpacityMaskPath.c_str())));
   if (pOpacityMask) {
     pMat->m_opacityMask = pOpacityMask;
     pMat->m_properties.properties.flags.bHasOpacityMask = 1;
@@ -257,6 +265,13 @@ ResourceCodec::getMaterialFromFile(FILE* pFile, SPtr<Material>& pMat) const
     pMat->m_properties.properties.flags.bHasOpacityMask = 0;
     pMat->m_opacityMask = cast::re_ptr<ImageResource>(resMan.getResource("BlackTexture"));
   }
+
+  pMat->baseColorFactor = mah.baseColorFactor;
+  pMat->metallicRoughnessFactor = mah.metallicRoughnessFactor;
+  pMat->opacityFactor = mah.opacityFactor;
+  pMat->emissiveFactor = mah.emissiveFactor;
+  pMat->emmisiveIntensity = mah.emmisiveIntensity;
+  pMat->alphaCutoff = mah.alphaCutoff;
 
   if (!resMan.addResource(pMat)) {
     SH_LOG_ERROR("Failed to add material to resource manager: " + matName);
@@ -308,7 +323,7 @@ ResourceCodec::decodeStaticMesh(FILE* pFile, const Path& filePath) const
   SH_LOG_INFO("Mesh data read successfully. Reading materials...");
   for (auto& pMat : pStaticMesh->m_materials) {
     SPtr<Material> pNewMat = nullptr;
-    getMaterialFromFile(pFile, pNewMat);
+    getMaterialFromFile(pFile, pNewMat, filePath);
     pMat = pNewMat;
   }
 
@@ -372,6 +387,12 @@ ResourceCodec::encodeStaticMesh(const String& objName, const Path& saveFilePath)
     MaterialAssetHeader matHeader = {};
     matHeader.nameSize = static_cast<uint32>(currentMat->getName().size() + 1);
     matHeader.properties = currentMat->m_properties.properties.value;
+    matHeader.baseColorFactor = currentMat->baseColorFactor;
+    matHeader.metallicRoughnessFactor = currentMat->metallicRoughnessFactor;
+    matHeader.opacityFactor = currentMat->opacityFactor;
+    matHeader.emissiveFactor = currentMat->emissiveFactor;
+    matHeader.emmisiveIntensity = currentMat->emmisiveIntensity;
+    matHeader.alphaCutoff = currentMat->alphaCutoff;
 
     // Get texture paths
     String baseColorPath;
