@@ -448,6 +448,23 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
   if (bAlphaTest && !bAlphaBlend) {
     blendDesc.alphaToCoverageEnable = false;
     blendDesc.independentBlendEnable = false;
+    blendDesc.renderTarget[0].blendEnable = false;
+    blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
+    blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
+    blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
+    blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
+    blendDesc.renderTarget[0].destBlendAlpha = BLEND::kInvSrcAlpha;
+    blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
+    blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
+
+    depthSDesc.depthEnable = true;
+    depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kAll;
+    depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
+    depthSDesc.stencilEnable = false;
+  }
+  else if (!bAlphaTest && bAlphaBlend) {
+    blendDesc.alphaToCoverageEnable = false;
+    blendDesc.independentBlendEnable = false;
     blendDesc.renderTarget[0].blendEnable = true;
     blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
     blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
@@ -462,24 +479,7 @@ ShaderManager::getPassFromMaterial(const MaterialProperties& props)
     depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
     depthSDesc.stencilEnable = false;
   }
-  else if (!bAlphaTest && bAlphaBlend) {
-    blendDesc.alphaToCoverageEnable = false;
-    blendDesc.independentBlendEnable = false;
-    blendDesc.renderTarget[0].blendEnable = true;
-    blendDesc.renderTarget[0].srcBlend = BLEND::kSrcAlpha;
-    blendDesc.renderTarget[0].destBlend = BLEND::kInvSrcAlpha;
-    blendDesc.renderTarget[0].blendOp = BLEND_OP::kAdd;
-    blendDesc.renderTarget[0].srcBlendAlpha = BLEND::kOne;
-    blendDesc.renderTarget[0].destBlendAlpha = BLEND::kZero;
-    blendDesc.renderTarget[0].blendOpAlpha = BLEND_OP::kAdd;
-    blendDesc.renderTarget[0].renderTargetWriteMask = COLOR_WHITE_ENABLE::kEnableAll;
-
-    depthSDesc.depthEnable = true;
-    depthSDesc.depthWriteMask = DEPTH_WRITE_MASK::kZero;
-    depthSDesc.depthFunc = COMPARISON_FUNC::kLess;
-    depthSDesc.stencilEnable = false;
-  }
-  else if (!bAlphaTest && !bAlphaBlend) {
+  else {
     blendDesc.renderTarget[0].blendEnable = true;
     blendDesc.renderTarget[0].srcBlend = BLEND::kOne;
     blendDesc.renderTarget[0].destBlend = BLEND::kZero;

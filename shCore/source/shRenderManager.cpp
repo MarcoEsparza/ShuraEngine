@@ -553,6 +553,7 @@ RenderManager::setShaderResourceFromMaterial(const SPtr<Material>& pMat)
   shaderMan.m_materialData.emmisiveIntensity = pMat->emmisiveIntensity;
   shaderMan.m_materialData.alphaCutoff = pMat->alphaCutoff;
   shaderMan.m_materialData.properties = pMat->m_properties;
+  shaderMan.m_materialData.opacityFactor = pMat->opacityFactor;
   shaderMan.updateMaterialCB();
 
   if (!pMat->m_baseColor.expired()) {
@@ -578,6 +579,14 @@ RenderManager::setShaderResourceFromMaterial(const SPtr<Material>& pMat)
   if (!pMat->m_emissive.expired()) {
     auto pEmissive = pMat->m_emissive.lock();
     graphMan.psSetShaderResourceView(pEmissive->texture, 5);
+  }
+  if (!pMat->m_specular.expired()) {
+    auto pSpecular = pMat->m_specular.lock();
+    graphMan.psSetShaderResourceView(pSpecular->texture, 6);
+  }
+  if (!pMat->m_opacityMask.expired()) {
+    auto pAlphaMask = pMat->m_opacityMask.lock();
+    graphMan.psSetShaderResourceView(pAlphaMask->texture, 7);
   }
 }
 

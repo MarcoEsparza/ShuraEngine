@@ -153,7 +153,7 @@ struct PBRMaterialData {
   float alphaCutoff = 0.5f;
   Vector2 metallicRoughnessFactor = Vector2::ZERO; // x = metallic, y = roughness
   MaterialProperties properties;
-  float unused1 = 0.0f; // Padding to align to 16 bytes
+  float opacityFactor = 1.0f;
   Vector3 emissiveFactor = Vector3::ZERO;
   float emmisiveIntensity = 1.0f;
 };

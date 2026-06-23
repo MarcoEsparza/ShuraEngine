@@ -85,6 +85,9 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
 {
   CodecManager& codecMan = g_codecManager();
 
+  Timer timer;
+  float timeStart = timer.getTime();
+
   // Check if resource is already on memory
   if (isResourceLoaded(filePath.filename())) {
     return m_loadedResources[filePath.filename()];
@@ -102,6 +105,11 @@ ResourceManager::loadResourceFromFile(const Path& filePath)
     String errString = "No codec found for file: " + filePath.string();
     SH_LOG_ERROR(errString);
   }
+
+  float timeEnd = timer.getTime();
+  float loadTime = timeEnd - timeStart;
+  SH_LOG_INFO("Loaded resource: " + filePath.filename() + " in " +
+              std::to_string(loadTime) + " seconds.");
 
   return resource;
 }

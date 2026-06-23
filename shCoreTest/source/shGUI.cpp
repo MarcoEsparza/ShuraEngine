@@ -211,8 +211,17 @@ textureFileButton(const String& buttonID,
   ResourceManager& resMan = g_resourceMan();
   FileExplorer& fileExp = g_fileExplorer();
 
-  auto& pTexture = textureImg.lock()->texture;
-  ImTextureID* texID = cast::re<ImTextureID*>(&pTexture);
+  ImTextureID* texID;
+
+  if (textureImg.expired()) {
+    auto& defaultTex = cast::re_ptr<ImageResource>(
+                       resMan.getResource("BlackTexture"))->texture;
+    texID = cast::re<ImTextureID*>(&defaultTex);
+  }
+  else {
+    auto& pTexture = textureImg.lock()->texture;
+    texID = cast::re<ImTextureID*>(&pTexture);
+  }
 
   ImGui::BeginDisabled(bDisable);
   if (ImGui::ImageButton(buttonID.c_str(), texID, buttonSize)) {
@@ -1293,7 +1302,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   ImGui::PopStyleColor();
 
   bool bUseEmmision = currentMat->m_properties.properties.flags.bUseEmission;
-  ImGui::Checkbox("Emmision", &bUseEmmision);
+  ImGui::Checkbox("Emission", &bUseEmmision);
   currentMat->m_properties.properties.flags.bUseEmission = bUseEmmision;
 
   String emmButtonID = "##EmmColorButton" + currentMat->getName();
@@ -1315,7 +1324,7 @@ GUI::showMaterialInspector(const WPtr<Material> wpMat)
   }
   ImGui::EndDisabled(); // End disabled for emissive map selection
 
-  ImGui::Checkbox("Emmisive texture", &bHasEmissiveMap);
+  ImGui::Checkbox("Emissive texture", &bHasEmissiveMap);
   currentMat->m_properties.properties.flags.bHasEmissiveMap = bHasEmissiveMap;
 
   textureFileButton("##EmissiveSelection", pEmissiveImg, buttonSize, !bHasEmissiveMap);

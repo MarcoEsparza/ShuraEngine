@@ -397,35 +397,35 @@ ResourceCodec::encodeStaticMesh(const String& objName, const Path& saveFilePath)
     // Get texture paths
     String baseColorPath;
     if (!currentMat->m_baseColor.expired()) {
-      baseColorPath = currentMat->m_baseColor.lock()->getPath().string();
+      baseColorPath = currentMat->m_baseColor.lock()->getPath().filename();
     }
     String normalPath;
     if (!currentMat->m_normal.expired()) {
-      normalPath = currentMat->m_normal.lock()->getPath().string();
+      normalPath = currentMat->m_normal.lock()->getPath().filename();
     }
     String metallicPath;
     if (!currentMat->m_metalness.expired()) {
-      metallicPath = currentMat->m_metalness.lock()->getPath().string();
+      metallicPath = currentMat->m_metalness.lock()->getPath().filename();
     }
     String roughnessPath;
     if (!currentMat->m_roughness.expired()) {
-      roughnessPath = currentMat->m_roughness.lock()->getPath().string();
+      roughnessPath = currentMat->m_roughness.lock()->getPath().filename();
     }
     String aoPath;
     if (!currentMat->m_ao.expired()) {
-      aoPath = currentMat->m_ao.lock()->getPath().string();
+      aoPath = currentMat->m_ao.lock()->getPath().filename();
     }
     String emissivePath;
     if (!currentMat->m_emissive.expired()) {
-      emissivePath = currentMat->m_emissive.lock()->getPath().string();
+      emissivePath = currentMat->m_emissive.lock()->getPath().filename();
     }
     String specularPath;
     if (!currentMat->m_specular.expired()) {
-      specularPath = currentMat->m_specular.lock()->getPath().string();
+      specularPath = currentMat->m_specular.lock()->getPath().filename();
     }
     String opacityMaskPath;
     if (!currentMat->m_opacityMask.expired()) {
-      opacityMaskPath = currentMat->m_opacityMask.lock()->getPath().string();
+      opacityMaskPath = currentMat->m_opacityMask.lock()->getPath().filename();
     }
 
     // Save path sizes
